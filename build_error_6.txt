@@ -1,0 +1,28 @@
+
+
+> sil-bastan@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/stok/page.js:390:18
+Parsing ecmascript source code failed
+[0m [90m 388 |[39m         [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 389 |[39m             
+[31m[1m>[22m[39m[90m 390 |[39m     [33m<[39m[33mSilBastanModal[39m acik[33m=[39m{barkodModalAcik} onClose[33m=[39m{() [33m=>[39m setBarkodModalAcik([36mfalse[39m)} title[33m=[39m[32m"🖨️ Ürün Barkodu Yazdır"[39m[33m>[39m
+ [90m     |[39m                  [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 391 |[39m         {seciliBarkodUrun [33m&&[39m (
+ [90m 392 |[39m             [33m<[39m[33mdiv[39m style[33m=[39m{{ display[33m:[39m [32m'flex'[39m[33m,[39m flexDirection[33m:[39m [32m'column'[39m[33m,[39m alignItems[33m:[39m [32m'center'[39m[33m,[39m gap[33m:[39m [32m'1rem'[39m[33m,[39m background[33m:[39m [32m'white'[39m[33m,[39m padding[33m:[39m [32m'2rem'[39m[33m,[39m borderRadius[33m:[39m [32m'12px'[39m }}[33m>[39m
+ [90m 393 |[39m                 [33m<[39m[33mFizikselQRBarkod[39m[0m
+
+Expected ',', got 'ident'
+
+
+    at <unknown> (./src/app/stok/page.js:390:18)

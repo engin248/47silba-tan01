@@ -1,0 +1,222 @@
+{
+  "ajanlar": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "arge": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "ayarlar": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": false,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": true
+  },
+  "denetmen": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": false,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": true
+  },
+  "giris": {
+    "pinCheck": false,
+    "offline": false,
+    "softDelete": false,
+    "realtime": false,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": false
+  },
+  "gorevler": {
+    "pinCheck": false,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "guvenlik": {
+    "pinCheck": false,
+    "offline": false,
+    "softDelete": false,
+    "realtime": false,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": false
+  },
+  "imalat": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": false,
+    "realtime": false,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": true
+  },
+  "kalip": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": true,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "kasa": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "katalog": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "kesim": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "kumas": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "maliyet": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": false,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "modelhane": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "muhasebe": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": false,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": false,
+    "hasInsert": true
+  },
+  "musteriler": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "personel": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "raporlar": {
+    "pinCheck": true,
+    "offline": false,
+    "softDelete": false,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": true,
+    "hasDelete": false,
+    "hasInsert": false
+  },
+  "siparisler": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "stok": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": true,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  },
+  "uretim": {
+    "pinCheck": true,
+    "offline": true,
+    "softDelete": true,
+    "realtime": true,
+    "promiseAllSettled": false,
+    "promiseAll": false,
+    "hasDelete": true,
+    "hasInsert": true
+  }
+}

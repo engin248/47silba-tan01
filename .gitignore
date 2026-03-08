@@ -1,0 +1,49 @@
+# ─── ORTAM DEĞİŞKENLERİ (ASLA GİT'E GİTMESİN) ───────────────
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+
+# ─── NEXT.JS ──────────────────────────────────────────────────
+.next/
+out/
+build/
+
+# ─── NODE ─────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── API ANAHTARLARI VE GİZLİ DOSYALAR ───────────────────────
+*.pem
+*.key
+*.cert
+secrets/
+
+# ─── LOGS ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS DOSYALARI ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── TEST BOTLARI (gerçek key içerebilir) ────────────────────
+# Dikkat: bu botlar gerçek API key kullanıyorsa aşağıyı aktif et
+# *_test_bot.js
+# agent_*.js
+
+# ─── İDE ──────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+
+# ─── GEÇİCİ DOSYALAR ──────────────────────────────────────────
+*.tmp
+*.swp
+*.bak
+build_output*.txt
+page_output*.html
+.vercel
