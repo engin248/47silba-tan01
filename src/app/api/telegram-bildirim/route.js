@@ -3,16 +3,15 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase İstemcisi (Admin / Service Rolü Yoksa Anonim ile bağlanır, ama IP logu RLS ile açık yapıldı)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 // ─── KÖR NOKTA 2 (YENİDEN ONARILDI): API SPAM ZIRHI (Persistent DB Limiter) ───
 // Serverless (Vercel) RAM temizlediği için Map() kullanılamazdı. Veritabanına alındı.
 const MAX_ISTEK = 15; // 1 Dakikada Max 15 Telegram mesajı
 const ZAMAN_ARALIGI_SN = 60; // 60 saniye
 
 export async function POST(request) {
+    const supabase = createClient(supabaseUrl, supabaseKey);
     try {
         // IP Tespiti (Vercel Node / Nginx vb)
         const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Bilinmeyen-IP';

@@ -2,11 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Servis rolüyle Supabase bağlantısı (RLS bypass)
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 // ============================================================
 // GÜVENLİK: API Key + Yetki Kontrolü
 // Sadece koordinatör oturumundan gelen istekler çalıştırabilir
@@ -211,6 +206,10 @@ async function raporGoreviniCalistir(gorev) {
 // ANA HANDLER
 // ============================================================
 export async function POST(req) {
+    const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
     try {
         // ─── GÜVENLİK KONTROLÜ ───────────────────────────────────────
         if (!yetkiKontrol(req)) {

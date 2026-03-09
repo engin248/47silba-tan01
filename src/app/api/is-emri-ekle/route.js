@@ -3,13 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { isEmriSchema, veriDogrula } from '@/lib/zodSchemas';
 
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 // ─── POST /api/is-emri-ekle ────────────────────────────────────
 export async function POST(request) {
+    const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();

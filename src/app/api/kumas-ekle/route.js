@@ -7,13 +7,12 @@ import { hataBildir } from '@/lib/hataBildirim';
 // ─── SERVER-SIDE SUPABASE (Service Role Key — güvenli) ─────────
 // Client-side anon key yerine sunucu tarafı service key kullanılır.
 // Bu sayede RLS bypass riski kontrol altına alınır.
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 // ─── POST /api/kumas-ekle ──────────────────────────────────────
 export async function POST(request) {
+    const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
     try {
         // 1. RATE LIMIT KONTROLÜ
         const forwarded = request.headers.get('x-forwarded-for');

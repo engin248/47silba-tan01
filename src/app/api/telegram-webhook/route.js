@@ -2,11 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase service key ile (storage yazma yetkisi için)
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 // Telegram webhook güvenlik: setWebhook'ta secret_token parametresiyle eşleşmeli
@@ -34,6 +29,10 @@ async function dosyaIndir(file_id) {
 }
 
 export async function POST(request) {
+    const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
     // ─── GÜVENLİK: Telegram Secret Token Doğrulama ────────────────────────
     // Telegram, setWebhook'ta verilen secret_token'ı her istekte header'da gönderir
     if (!TELEGRAM_WEBHOOK_SECRET) {
