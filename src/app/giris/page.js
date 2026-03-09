@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { Lock, Eye, EyeOff, LogIn, ShieldAlert } from 'lucide-react';
+import { Lock, Eye, EyeOff, LogIn, ShieldAlert, Globe } from 'lucide-react';
+import { T, langDir } from '@/lib/lang';
 
 const MAX_DENEME = 5;
 const KILIT_SURE_SN = 30;
@@ -18,7 +19,8 @@ export default function GirisSayfasi() {
     const [deneme, setDeneme] = useState(0);
     const [kilitliSaniye, setKilitliSaniye] = useState(0);
 
-    // Sayfa açıldığında kalan kilidi kontrol et
+    const [dil, setDil] = useState('tr');
+
     useEffect(() => {
         try {
             const kayit = JSON.parse(localStorage.getItem(DEPO_ANAHTAR) || 'null');
@@ -27,8 +29,15 @@ export default function GirisSayfasi() {
                 if (kalan > 0) { setKilitliSaniye(kalan); setDeneme(MAX_DENEME); }
                 else { localStorage.removeItem(DEPO_ANAHTAR); }
             }
+            const localDil = localStorage.getItem('sb47_dil') || 'tr';
+            setDil(localDil);
         } catch { }
     }, []);
+
+    const handleDilDegis = (yeniDil) => {
+        setDil(yeniDil);
+        localStorage.setItem('sb47_dil', yeniDil);
+    };
 
     // Geri sayım
     useEffect(() => {
@@ -62,8 +71,8 @@ export default function GirisSayfasi() {
                 setKilitliSaniye(KILIT_SURE_SN);
                 setHata('');
             } else {
-                const mesaj = sonuc?.mesaj || `PIN tanınmadı. ${MAX_DENEME - yeniDeneme} deneme hakkınız kaldı.`;
-                setHata(mesaj);
+                const hataMesaji = dil === 'ar' ? `رمز PIN غير معروف. تبقى لك ${MAX_DENEME - yeniDeneme} محاولات.` : `PIN tanınmadı. ${MAX_DENEME - yeniDeneme} deneme hakkınız kaldı.`;
+                setHata(hataMesaji);
             }
         }
         setYukleniyor(false);
@@ -80,7 +89,15 @@ export default function GirisSayfasi() {
             fontFamily: "'Inter', 'Segoe UI', sans-serif",
             padding: '1rem',
         }}>
-            <div style={{ width: '100%', maxWidth: '360px', animation: 'fadeIn 0.4s ease' }}>
+            <div style={{ width: '100%', maxWidth: '360px', animation: 'fadeIn 0.4s ease', direction: langDir(dil) }}>
+
+                {/* Dil Seçici */}
+                <div style={{ position: 'absolute', top: 20, right: 20 }}>
+                    <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.1)', padding: '4px', borderRadius: '8px' }}>
+                        <button onClick={() => handleDilDegis('tr')} style={{ border: 'none', background: dil === 'tr' ? 'rgba(255,255,255,0.2)' : 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>🇹🇷 TR</button>
+                        <button onClick={() => handleDilDegis('ar')} style={{ border: 'none', background: dil === 'ar' ? 'rgba(255,255,255,0.2)' : 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>🇸🇦 AR</button>
+                    </div>
+                </div>
 
                 {/* Başlık — sade */}
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -98,10 +115,10 @@ export default function GirisSayfasi() {
                         fontSize: '1.3rem', fontWeight: 800,
                         color: '#e2e8f0', margin: 0, letterSpacing: '-0.01em',
                     }}>
-                        47 Sil Baştan
+                        {T('sistem_adi', dil)}
                     </h1>
                     <p style={{ fontSize: '0.72rem', color: '#475569', margin: '6px 0 0', fontWeight: 600 }}>
-                        Üretim & Mağaza Sistemi
+                        {dil === 'ar' ? 'نظام الإنتاج والمتجر' : 'Üretim & Mağaza Sistemi'}
                     </p>
                 </div>
 
@@ -117,7 +134,7 @@ export default function GirisSayfasi() {
                         color: '#64748b', textTransform: 'uppercase',
                         letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem',
                     }}>
-                        Erişim Kodu
+                        {dil === 'ar' ? 'رمز الوصول' : 'Erişim Kodu'}
                     </label>
 
                     <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
@@ -131,7 +148,7 @@ export default function GirisSayfasi() {
                             disabled={kilitliSaniye > 0}
                             style={{
                                 width: '100%',
-                                padding: '13px 48px 13px 16px',
+                                padding: dil === 'ar' ? '13px 16px 13px 48px' : '13px 48px 13px 16px',
                                 background: kilitliSaniye > 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.05)',
                                 border: `1px solid ${kilitliSaniye > 0 ? 'rgba(239,68,68,0.3)' : hata ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}`,
                                 borderRadius: 10,
@@ -143,12 +160,16 @@ export default function GirisSayfasi() {
                                 boxSizing: 'border-box',
                                 transition: 'border-color 0.2s',
                                 opacity: kilitliSaniye > 0 ? 0.4 : 1,
+                                textAlign: dil === 'ar' ? 'right' : 'left'
                             }}
                         />
                         <button
                             onClick={() => setGoster(!goster)}
                             style={{
-                                position: 'absolute', right: 12, top: '50%',
+                                position: 'absolute',
+                                right: dil === 'ar' ? 'auto' : 12,
+                                left: dil === 'ar' ? 12 : 'auto',
+                                top: '50%',
                                 transform: 'translateY(-50%)',
                                 background: 'none', border: 'none',
                                 color: '#475569', cursor: 'pointer', padding: 4,
@@ -174,13 +195,13 @@ export default function GirisSayfasi() {
                         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                             <ShieldAlert size={32} color="#f87171" style={{ marginBottom: 10 }} />
                             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#f87171', marginBottom: 6 }}>
-                                Erişim Geçici Olarak Kilitlendi
+                                {dil === 'ar' ? 'تم قفل الوصول مؤقتاً' : 'Erişim Geçici Olarak Kilitlendi'}
                             </div>
                             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#fca5a5', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
                                 {kilitliSaniye}s
                             </div>
                             <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: 6, fontWeight: 600 }}>
-                                {MAX_DENEME} başarısız deneme — lütfen bekleyin
+                                {MAX_DENEME} {dil === 'ar' ? 'محاولات فاشلة — يرجى الانتظار' : 'başarısız deneme — lütfen bekleyin'}
                             </div>
                         </div>
                     ) : (
@@ -203,8 +224,9 @@ export default function GirisSayfasi() {
                                 gap: 8,
                                 transition: 'all 0.2s',
                                 letterSpacing: '0.02em',
+                                flexDirection: dil === 'ar' ? 'row-reverse' : 'row'
                             }}>
-                            {yukleniyor ? '...' : <><LogIn size={16} color="#d8b863" /> Giriş</>}
+                            {yukleniyor ? '...' : <><LogIn size={16} color="#d8b863" /> {dil === 'ar' ? 'تسجيل الدخول' : 'Giriş'}</>}
                         </button>
                     )}
                 </div>
@@ -213,7 +235,7 @@ export default function GirisSayfasi() {
                     textAlign: 'center', fontSize: '0.62rem',
                     color: '#334155', marginTop: '1.25rem', fontWeight: 600,
                 }}>
-                    Oturum 8 saat geçerlidir &nbsp;•&nbsp; {MAX_DENEME} yanlış denemede {KILIT_SURE_SN}s kilit
+                    {dil === 'ar' ? `الجلسة صالحة لمدة 8 ساعات • ${MAX_DENEME} محاولات خاطئة قفل ${KILIT_SURE_SN} ثانية` : `Oturum 8 saat geçerlidir • ${MAX_DENEME} yanlış denemede ${KILIT_SURE_SN}s kilit`}
                 </p>
             </div>
 
