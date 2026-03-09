@@ -1,6 +1,6 @@
 'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
-import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap, Bot, Search } from 'lucide-react';
+import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap, Bot, Search, Scissors, Package, Store, Users, Briefcase, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
@@ -283,10 +283,10 @@ export default function KarargahSayfasi() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <div>
                     <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-700 to-teal-500 m-0 tracking-tight">
-                        KARARGÂH
+                        AJAN KOMUTA MERKEZİ
                     </h1>
                     <p className="text-sm font-extrabold text-slate-500 uppercase tracking-widest mt-1">
-                        Üretim · Maliyet · Harekât Merkezi
+                        Merkezi Kontrol ve Yapay Zeka Harekât Üssü
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -477,25 +477,30 @@ export default function KarargahSayfasi() {
                         </div>
                     </div>
 
-                    {/* ERP İZOLE BİRİM GEÇİŞLERİ */}
+                    {/* TÜM SİSTEM MODÜLLERİ GEÇİŞ KONSOLU */}
                     <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4"><Database size={18} className="text-sky-500" /> Kritik Ana Kısayollar</h2>
-                        <div className="flex flex-col gap-3">
-                            <Link href={yetkiSorgula('/imalat', '/imalat')} onClick={(e) => tiklamaKorumasi(e, '/imalat')} className="group flex items-center gap-4 p-4 rounded-xl border border-blue-100 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-300 transition-all">
-                                <div className="bg-blue-600 text-white p-3 rounded-xl shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform"><Factory size={22} /></div>
-                                <div>
-                                    <div className="font-black text-blue-900 text-sm">İmalat (Ön Hazırlık) Zinciri</div>
-                                    <div className="font-semibold text-blue-600/70 text-xs">Ar-Ge, Kumaş, Kalıp, Modelhane Bacakları</div>
-                                </div>
-                            </Link>
-
-                            <Link href={yetkiSorgula('/uretim', '/uretim')} onClick={(e) => tiklamaKorumasi(e, '/uretim')} className="group flex items-center gap-4 p-4 rounded-xl border border-purple-100 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300 transition-all">
-                                <div className="bg-purple-600 text-white p-3 rounded-xl shadow-lg shadow-purple-600/20 group-hover:scale-110 transition-transform"><Activity size={22} /></div>
-                                <div>
-                                    <div className="font-black text-purple-900 text-sm">Bant, Üretim ve Fason Yönetimi</div>
-                                    <div className="font-semibold text-purple-600/70 text-xs">Canlı Aktif Takip Rotaları</div>
-                                </div>
-                            </Link>
+                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4"><Database size={18} className="text-sky-500" /> Ana Sistem Modülleri (Portal)</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                                { link: '/arge', ikon: <Bot size={20} />, isim: 'Ar-Ge & Trend', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
+                                { link: '/kumas', ikon: <Database size={20} />, isim: 'Kumaş Arşivi', base: 'text-cyan-600', bg: 'bg-cyan-50/30 font-black text-cyan-900', hoverBase: 'hover:bg-cyan-50 hover:border-cyan-300', border: 'border-cyan-100' },
+                                { link: '/kalip', ikon: <Activity size={20} />, isim: 'Kalıp Dairesi', base: 'text-fuchsia-600', bg: 'bg-fuchsia-50/30 font-black text-fuchsia-900', hoverBase: 'hover:bg-fuchsia-50 hover:border-fuchsia-300', border: 'border-fuchsia-100' },
+                                { link: '/modelhane', ikon: <Factory size={20} />, isim: 'Modelhane', base: 'text-pink-600', bg: 'bg-pink-50/30 font-black text-pink-900', hoverBase: 'hover:bg-pink-50 hover:border-pink-300', border: 'border-pink-100' },
+                                { link: '/kesim', ikon: <Scissors size={20} />, isim: 'Kesimhane', base: 'text-indigo-600', bg: 'bg-indigo-50/30 font-black text-indigo-900', hoverBase: 'hover:bg-indigo-50 hover:border-indigo-300', border: 'border-indigo-100' },
+                                { link: '/imalat', ikon: <Layers size={20} />, isim: 'İmalat Znc.', base: 'text-blue-600', bg: 'bg-blue-50/30 font-black text-blue-900', hoverBase: 'hover:bg-blue-50 hover:border-blue-300', border: 'border-blue-100' },
+                                { link: '/uretim', ikon: <Activity size={20} />, isim: 'Bant & Üretim', base: 'text-purple-600', bg: 'bg-purple-50/30 font-black text-purple-900', hoverBase: 'hover:bg-purple-50 hover:border-purple-300', border: 'border-purple-100' },
+                                { link: '/stok', ikon: <Package size={20} />, isim: 'Stok & Loj.', base: 'text-slate-600', bg: 'bg-slate-50/30 font-black text-slate-900', hoverBase: 'hover:bg-slate-50 hover:border-slate-300', border: 'border-slate-100' },
+                                { link: '/katalog', ikon: <Store size={20} />, isim: 'Katalog', base: 'text-amber-600', bg: 'bg-amber-50/30 font-black text-amber-900', hoverBase: 'hover:bg-amber-50 hover:border-amber-300', border: 'border-amber-100' },
+                                { link: '/musteriler', ikon: <Users size={20} />, isim: 'Müşteriler', base: 'text-teal-600', bg: 'bg-teal-50/30 font-black text-teal-900', hoverBase: 'hover:bg-teal-50 hover:border-teal-300', border: 'border-teal-100' },
+                                { link: '/kasa', ikon: <Briefcase size={20} />, isim: 'Kasa & Finans', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
+                                { link: '/maliyet', ikon: <BarChart3 size={20} />, isim: 'Maliyet/Kâr', base: 'text-rose-600', bg: 'bg-rose-50/30 font-black text-rose-900', hoverBase: 'hover:bg-rose-50 hover:border-rose-300', border: 'border-rose-100' },
+                                { link: '/personel', ikon: <ShieldCheck size={20} />, isim: 'Personel (İK)', base: 'text-sky-600', bg: 'bg-sky-50/30 font-black text-sky-900', hoverBase: 'hover:bg-sky-50 hover:border-sky-300', border: 'border-sky-100' }
+                            ].map((modul, i) => (
+                                <Link key={i} href={yetkiSorgula(modul.link, modul.link)} onClick={(e) => tiklamaKorumasi(e, modul.link)} className={`group flex flex-col justify-center items-center gap-2 p-3 rounded-xl border transition-all text-center hover:shadow-md ${modul.border} ${modul.bg} ${modul.hoverBase}`}>
+                                    <div className={`${modul.base} group-hover:scale-110 transition-transform`}>{modul.ikon}</div>
+                                    <div className={`text-[11px] sm:text-xs leading-tight`}>{modul.isim}</div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
                 </div>
