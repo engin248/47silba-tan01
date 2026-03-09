@@ -73,7 +73,7 @@ export default function GirisSayfasi() {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 100%)',
+            background: 'linear-gradient(160deg, #022c22 0%, #0f6c52 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -92,7 +92,7 @@ export default function GirisSayfasi() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         margin: '0 auto 1.25rem',
                     }}>
-                        <Lock size={26} color="#94a3b8" />
+                        <Lock size={26} color="#d8b863" />
                     </div>
                     <h1 style={{
                         fontSize: '1.3rem', fontWeight: 800,
@@ -204,7 +204,7 @@ export default function GirisSayfasi() {
                                 transition: 'all 0.2s',
                                 letterSpacing: '0.02em',
                             }}>
-                            {yukleniyor ? '...' : <><LogIn size={16} /> Giriş</>}
+                            {yukleniyor ? '...' : <><LogIn size={16} color="#d8b863" /> Giriş</>}
                         </button>
                     )}
                 </div>
@@ -222,8 +222,8 @@ export default function GirisSayfasi() {
                     from { opacity: 0; transform: translateY(16px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
-                input:focus { border-color: rgba(255,255,255,0.25) !important; }
-                input::placeholder { color: #334155; letter-spacing: 0.1em; }
+                input:focus { border-color: #d8b863 !important; }
+                input::placeholder { color: #576b63; letter-spacing: 0.1em; }
             `}</style>
         </div>
     );

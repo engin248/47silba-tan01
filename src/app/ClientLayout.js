@@ -275,9 +275,7 @@ function LayoutInner({ children }) {
                             </svg>
                         </button>
                         <div>
-                            <h2 style={{ textAlign: isAR ? 'right' : 'left', fontSize: '1.1rem', fontWeight: 900, color: '#065f46', letterSpacing: '0.04em', margin: 0 }}>
-                                {isAR ? 'بحث · تصنيع · إنتاج · متجر · تجارة' : 'AR-GE · İMALAT · ÜRETİM · MAĞAZA · E-TİCARET'}
-                            </h2>
+                            {/* ÖLÜ ALAN TEMİZLENDİ (AR-GE İMALAT MAĞAZA vb. MENÜ METİNLERİ KALDIRILDI) */}
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

@@ -38,8 +38,8 @@ export const viewport = {
 // ─── ROOT LAYOUT ──────────────────────────────────────────────
 export default function RootLayout({ children }) {
     return (
-        <html lang="tr">
-            <body>
+        <html lang="tr" suppressHydrationWarning>
+            <body suppressHydrationWarning>
                 <ClientLayout>
                     {children}
                 </ClientLayout>

@@ -3,17 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --primary: #064e3b;      /* Derin Zümrüt Yeşili (Sol Menü) */
-  --primary-light: #047857;/* Daha Açık Zümrüt Yeşili (Hover) */
-  --secondary: #d4af37;    /* Klasik Metalik Altın (Butonlar/Vurgu) */
+  --primary: #064e3b;
+  /* Derin Zümrüt Yeşili (Sol Menü) */
+  --primary-light: #047857;
+  /* Daha Açık Zümrüt Yeşili (Hover) */
+  --secondary: #d4af37;
+  /* Klasik Metalik Altın (Butonlar/Vurgu) */
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
-  --bg-color: #fcfcf9;     /* Çok hafif krem/kemik (Sayfa arka planı) */
-  --card-bg: #ffffff;      
-  --text-main: #022c22;    /* Neredeyse siyah, çok koyu zümrüt (Ana yazı) */
-  --text-muted: #4b5563;   /* Koyu Gri (Alt metinler) */
-  --border: #e5e7eb;       /* Daha yumuşak kenarlıklar */
+  --bg-color: #fcfcf9;
+  /* Çok hafif krem/kemik (Sayfa arka planı) */
+  --card-bg: #ffffff;
+  --text-main: #022c22;
+  /* Neredeyse siyah, çok koyu zümrüt (Ana yazı) */
+  --text-muted: #4b5563;
+  /* Koyu Gri (Alt metinler) */
+  --border: #e5e7eb;
+  /* Daha yumuşak kenarlıklar */
 }
 
 * {

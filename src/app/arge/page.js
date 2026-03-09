@@ -20,8 +20,8 @@ const PLATFORMLAR = ['trendyol', 'amazon', 'instagram', 'pinterest', 'diger'];
 const KATEGORILER = ['gomlek', 'pantolon', 'elbise', 'dis_giyim', 'spor', 'ic_giyim', 'aksesuar', 'diger'];
 
 const KAT_LABEL = {
-    tr: { gomlek: 'Gömlek', pantolon: 'Pantolon', elbise: 'Elbise', dis_giyim: 'Dış Giyim', spor: 'Spor', ic_giyim: 'İç Giyim', aksesuar: 'Aksesuar', diger: 'Diğer' },
-    ar: { gomlek: 'قميص', pantolon: 'بنطلون', elbise: 'فستان', dis_giyim: 'ملابس خارجية', spor: 'رياضية', ic_giyim: 'داخلية', aksesuar: 'إكسسوار', diger: 'أخرى' }
+    tr: { gomlek: 'Gömlek', pantolon: 'Pantolon', elbise: 'Elbise', dis_giyim: 'Dış Giyim', spor: 'Spor', ic_giyim: 'İç Giyim', aksesuar: 'Aksesuar', diger: 'Genel (Diğer)' },
+    ar: { gomlek: 'قميص', pantolon: 'بنطلون', elbise: 'فستان', dis_giyim: 'ملابس خارجية', spor: 'رياضية', ic_giyim: 'داخلية', aksesuar: 'إكسسوار', diger: 'عام (أخرى)' }
 };
 
 const DURUM_CONFIG = {
@@ -454,6 +454,19 @@ export default function ArgeSayfasi() {
                     </button>
                 </div>
 
+                {/* HIZLI GÖREV ÇİPLERİ (TEK TIKLA BOT TETİKLEME) */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap', flexDirection: isAR ? 'row-reverse' : 'row' }}>
+                    <button onClick={() => { setAiSorgu('Yazlık Oversize Keten Gömlek Trendleri ve ZARA Analizi'); setTimeout(trendAra, 100); }} style={{ background: '#1d4ed830', color: '#93c5fd', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #1e3a8a', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <TrendingUp size={13} /> {isAR ? 'تحليل اتجاهات الموضة' : 'Görsel Trend Analizi'}
+                    </button>
+                    <button onClick={() => { setAiSorgu('2026 Kadın Pantolon Kumaş ve Renk Trendleri Nelerdir?'); setTimeout(trendAra, 100); }} style={{ background: '#1d4ed830', color: '#93c5fd', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #1e3a8a', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Tag size={13} /> {isAR ? 'البحث عن خيارات الأقمشة' : 'Kumaş Seçenekleri Bul'}
+                    </button>
+                    <button onClick={() => { setAiSorgu('Rakip Markaların Son Çeyrek Elbise Fiyatlandırma Stratejileri'); setTimeout(trendAra, 100); }} style={{ background: '#1d4ed830', color: '#93c5fd', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #1e3a8a', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Activity size={13} /> {isAR ? 'فحص أسعار المنافسين' : 'Rakip Fiyat Taraması'}
+                    </button>
+                </div>
+
                 {/* AI SONUÇLARI */}
                 {aiSonuclar && aiPanelAcik && (
                     <div style={{ marginTop: '1rem' }}>
@@ -766,7 +779,7 @@ export default function ArgeSayfasi() {
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap', flexDirection: isAR ? 'row-reverse' : 'row' }}>
                                                 <span style={{ fontSize: '0.75rem', background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
-                                                    {trend.platform.toUpperCase()}
+                                                    {trend.platform === 'diger' ? (isAR ? 'ويب عام' : 'GENEL WEB') : trend.platform.toUpperCase()}
                                                 </span>
                                                 <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
                                                     {KAT_LABEL[lang][trend.kategori] || trend.kategori}
@@ -904,22 +917,7 @@ export default function ArgeSayfasi() {
                         )}
                     </div>
 
-                    {/* Test Durumu */}
-                    <div style={{ background: '#fffbeb', border: '2px solid #fde68a', borderRadius: '14px', padding: '1rem' }}>
-                        <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                            {isAR ? '✅ معايير الاختبار' : '✅ M1 Test Kriterleri'}
-                        </h3>
-                        {[
-                            { q_tr: 'Form → Supabase\'e gidiyor mu?', q_ar: 'النموذج → يذهب إلى Supabase؟' },
-                            { q_tr: 'Zorunlu alanlar boşken engelleniyor mu?', q_ar: 'يتم الحجب عند فراغ الحقول الإلزامية؟' },
-                            { q_tr: 'Onay → Ajan tetikleniyor mu?', q_ar: 'الموافقة → هل يتم تشغيل الوكيل؟' },
-                        ].map((c, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', fontSize: '0.75rem', color: '#713f12', fontWeight: 600, flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                                <CheckCircle2 size={14} style={{ color: '#10b981', flexShrink: 0 }} />
-                                {isAR ? c.q_ar : c.q_tr}
-                            </div>
-                        ))}
-                    </div>
+                    {/* TEST KUTUSU RAPOR İSTEĞİYLE KALDIRILDI */}
                 </div>
             </div>
         </div>
