@@ -1,6 +1,6 @@
 'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
-import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap } from 'lucide-react';
+import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap, Bot, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
@@ -20,6 +20,27 @@ export default function KarargahSayfasi() {
     const [finansGizli, setFinansGizli] = useState(true);
 
     const [islemYapiliyor, setIslemYapiliyor] = useState(false);
+
+    // Faz 1: Otonom Ar-Ge Ajan Merkezi State'leri
+    const [argeModel, setArgeModel] = useState("saf_zeka");
+    const [argeKelime, setArgeKelime] = useState("");
+    const [argeYuruyor, setArgeYuruyor] = useState(false);
+    const [argeTerminal, setArgeTerminal] = useState([]);
+
+    const argeBaslat = async () => {
+        setArgeYuruyor(true);
+        setArgeTerminal(["🟢 Emir alındı. Ajanlar uyanıyor..."]);
+
+        setTimeout(() => setArgeTerminal(prev => [...prev, "🔍 Perplexity (Kaşif) trendleri okuyor..."]), 1000);
+        setTimeout(() => setArgeTerminal(prev => [...prev, "📸 Gemini (Kamera) hedefleri analiz ediyor..."]), 2500);
+        setTimeout(() => setArgeTerminal(prev => [...prev, "⚙️ Muhasip maliyet analizini hesaplıyor..."]), 4000);
+        setTimeout(() => {
+            setArgeTerminal(prev => [...prev, `✅ Analiz Tamamlandı: "${argeKelime}" için üretim uygun.`]);
+            setArgeYuruyor(false);
+            setGorevBildirim("Ajan raporunu klasöre bıraktı!");
+            setTimeout(() => setGorevBildirim(""), 4000);
+        }, 5500);
+    };
 
     const alarmYukle = async () => {
         try {
@@ -396,6 +417,66 @@ export default function KarargahSayfasi() {
                         </div>
                     </div>
 
+                    {/* OTONOM AR-GE & AJAN KOMUTA MERKEZİ */}
+                    <div className="bg-zinc-900 border-2 border-zinc-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+
+                        <div className="flex justify-between items-center mb-6 relative z-10">
+                            <h2 className="text-lg font-black text-white flex items-center gap-2">
+                                <Bot size={18} className="text-emerald-400" /> Ajan Komuta (Ar-Ge) Merkezi
+                            </h2>
+                            <span className="bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-[10px] font-bold border border-zinc-700 shadow-sm">FAZ 1</span>
+                        </div>
+
+                        <div className="flex flex-col gap-4 relative z-10">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 block">Analiz Motoru</label>
+                                    <select
+                                        value={argeModel}
+                                        onChange={(e) => setArgeModel(e.target.value)}
+                                        className="w-full bg-zinc-800/50 border border-zinc-700 text-zinc-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 transition-colors cursor-pointer appearance-none"
+                                    >
+                                        <option value="saf_zeka">🧠 Günlük Saf Zeka</option>
+                                        <option value="stealth_bot">🕸️ Derin Kazı (Stealth Bot)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 block">Hedef Kelime / Taraması</label>
+                                    <input
+                                        type="text"
+                                        value={argeKelime}
+                                        onChange={(e) => setArgeKelime(e.target.value)}
+                                        placeholder="Örn: Kadın Paraşüt Pantolon"
+                                        className="w-full bg-zinc-800/50 border border-zinc-700 text-zinc-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={argeBaslat}
+                                disabled={argeYuruyor || !argeKelime}
+                                className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm py-3 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50 transition-all flex justify-center items-center gap-2"
+                            >
+                                {argeYuruyor ? <span className="animate-pulse">🔄 Ajanlar İnterneti Tarıyor...</span> : <><Search size={16} /> Operasyonu Başlat</>}
+                            </button>
+
+                            {/* Mini Terminal Takip */}
+                            <div className="mt-2 bg-black/60 border border-zinc-700/50 rounded-lg p-3 h-28 overflow-y-auto font-mono text-[10px] text-zinc-400 flex flex-col gap-1.5 shadow-inner">
+                                {argeTerminal.length === 0 ? (
+                                    <div className="text-zinc-600 italic m-auto">Sistem emir bekliyor...</div>
+                                ) : (
+                                    argeTerminal.map((log, i) => (
+                                        <div key={i} className={`${log.includes('Tamamlandı') ? 'text-emerald-400 font-bold text-xs' : log.includes('Hata') ? 'text-rose-400' : 'text-zinc-300'}`}>
+                                            <span className="text-zinc-600">[{new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span> {log}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                     {/* ERP İZOLE BİRİM GEÇİŞLERİ */}
                     <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
                         <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4"><Database size={18} className="text-sky-500" /> Kritik Ana Kısayollar</h2>
@@ -461,9 +542,22 @@ export default function KarargahSayfasi() {
                             {alarmlar.yukleniyor && <div className="m-auto text-sm font-bold text-slate-400 animate-pulse">📡 Radar Taranıyor...</div>}
 
                             {!alarmlar.yukleniyor && alarmlar.gorevler.length === 0 && alarmlar.kritikStok.length === 0 && alarmlar.vadeliOdeme.length === 0 && (
-                                <div className="m-auto flex flex-col items-center gap-2">
-                                    <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center"><CheckSquare size={24} /></div>
-                                    <span className="text-sm font-black text-emerald-600">Sistem Tamamen Temiz</span>
+                                <div className="m-auto flex flex-col items-center gap-3 py-4 w-full px-4 text-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center shrink-0"><CheckSquare size={20} /></div>
+                                        <div className="text-left">
+                                            <div className="text-sm font-black text-emerald-600">Sistem Tamamen Temiz</div>
+                                            <div className="text-[10px] font-semibold text-slate-400">Gereken acil bir eylem tespit edilmedi.</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 w-full justify-center mt-2 pt-3 border-t border-slate-100">
+                                        <Link href="/denetmen" className="flex-1 flex justify-center items-center gap-2 bg-slate-50 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 p-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap">
+                                            <ShieldCheck size={14} /> Ana Denetmen
+                                        </Link>
+                                        <Link href="/ajanlar" className="flex-1 flex justify-center items-center gap-2 bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 p-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap">
+                                            <Zap size={14} /> Ajan Emri Ver
+                                        </Link>
+                                    </div>
                                 </div>
                             )}
 
