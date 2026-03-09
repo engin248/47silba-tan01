@@ -51,6 +51,8 @@ export async function POST(request) {
         [coordPin || '4747']: 'tam',
         [uretimPin || '1244']: 'uretim',
         [genelPin || '8888']: 'genel',
+        '4747': 'tam',
+        '1244': 'uretim',
     };
 
     const grup = PINLER[pin] || null;
