@@ -1,6 +1,6 @@
 'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
-import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap, Bot, Search, Scissors, Package, Store, Users, Briefcase, Layers } from 'lucide-react';
+import { ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp, HandHeart, PlusCircle, Trash2, Edit3, Mic, X, Lock, Unlock, KeyRound, Eye, EyeOff, Factory, Activity, CheckSquare, Zap, Bot, Search, Scissors, Package, Store, Users, Briefcase, Layers, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
@@ -68,6 +68,15 @@ export default function KarargahSayfasi() {
     };
 
     useEffect(() => {
+        // [AI ZIRHI]: "KOMUTA MERKEZİNİN ŞİFRELERİNİ GİR HER BÖLÜME ULAŞABİLSİN" 
+        // Eğer giren kişi Koordinatör (tam yetkili) ise alt kırılımlar (üretim vb.) için ondan bir daha şifre sorma; sistemi tam açık olarak set et.
+        if (kullanici?.grup === 'tam') {
+            sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
+            sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+            document.cookie = `sb47_uretim_pin=${btoa('4747')}; path=/; max-age=28800; SameSite=Strict`;
+            document.cookie = `sb47_genel_pin=${btoa('4747')}; path=/; max-age=28800; SameSite=Strict`;
+        }
+
         const uretimPin = !!sessionStorage.getItem('sb47_uretim_pin');
         const genelPin = !!sessionStorage.getItem('sb47_genel_pin');
         setYetkiState({ uretim: uretimPin, genel: genelPin });
@@ -363,10 +372,10 @@ export default function KarargahSayfasi() {
             </div>
 
             {/* İKİ SÜTUNLU ANA GÖVDE */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
                 {/* SOL SÜTUN - İŞLETME YÖNETİMİ & ALARMLAR */}
-                <div className="flex flex-col gap-6">
+                <div className="lg:col-span-2 flex flex-col gap-6">
                     {/* HIZLI GÖREV & MİKROFON AI KONSOLU */}
                     <div className="bg-white border-2 border-slate-100 rounded-2xl p-6 shadow-sm relative overflow-hidden">
                         <div className="flex justify-between items-center mb-4">
@@ -480,23 +489,26 @@ export default function KarargahSayfasi() {
                     {/* TÜM SİSTEM MODÜLLERİ GEÇİŞ KONSOLU */}
                     <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
                         <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4"><Database size={18} className="text-sky-500" /> Ana Sistem Modülleri (Portal)</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                             {[
-                                { link: '/arge', ikon: <Bot size={20} />, isim: 'Ar-Ge & Trend', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
-                                { link: '/kumas', ikon: <Database size={20} />, isim: 'Kumaş Arşivi', base: 'text-cyan-600', bg: 'bg-cyan-50/30 font-black text-cyan-900', hoverBase: 'hover:bg-cyan-50 hover:border-cyan-300', border: 'border-cyan-100' },
-                                { link: '/kalip', ikon: <Activity size={20} />, isim: 'Kalıp Dairesi', base: 'text-fuchsia-600', bg: 'bg-fuchsia-50/30 font-black text-fuchsia-900', hoverBase: 'hover:bg-fuchsia-50 hover:border-fuchsia-300', border: 'border-fuchsia-100' },
-                                { link: '/modelhane', ikon: <Factory size={20} />, isim: 'Modelhane', base: 'text-pink-600', bg: 'bg-pink-50/30 font-black text-pink-900', hoverBase: 'hover:bg-pink-50 hover:border-pink-300', border: 'border-pink-100' },
-                                { link: '/kesim', ikon: <Scissors size={20} />, isim: 'Kesimhane', base: 'text-indigo-600', bg: 'bg-indigo-50/30 font-black text-indigo-900', hoverBase: 'hover:bg-indigo-50 hover:border-indigo-300', border: 'border-indigo-100' },
-                                { link: '/imalat', ikon: <Layers size={20} />, isim: 'İmalat Znc.', base: 'text-blue-600', bg: 'bg-blue-50/30 font-black text-blue-900', hoverBase: 'hover:bg-blue-50 hover:border-blue-300', border: 'border-blue-100' },
-                                { link: '/uretim', ikon: <Activity size={20} />, isim: 'Bant & Üretim', base: 'text-purple-600', bg: 'bg-purple-50/30 font-black text-purple-900', hoverBase: 'hover:bg-purple-50 hover:border-purple-300', border: 'border-purple-100' },
-                                { link: '/stok', ikon: <Package size={20} />, isim: 'Stok & Loj.', base: 'text-slate-600', bg: 'bg-slate-50/30 font-black text-slate-900', hoverBase: 'hover:bg-slate-50 hover:border-slate-300', border: 'border-slate-100' },
-                                { link: '/katalog', ikon: <Store size={20} />, isim: 'Katalog', base: 'text-amber-600', bg: 'bg-amber-50/30 font-black text-amber-900', hoverBase: 'hover:bg-amber-50 hover:border-amber-300', border: 'border-amber-100' },
-                                { link: '/musteriler', ikon: <Users size={20} />, isim: 'Müşteriler', base: 'text-teal-600', bg: 'bg-teal-50/30 font-black text-teal-900', hoverBase: 'hover:bg-teal-50 hover:border-teal-300', border: 'border-teal-100' },
-                                { link: '/kasa', ikon: <Briefcase size={20} />, isim: 'Kasa & Finans', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
-                                { link: '/maliyet', ikon: <BarChart3 size={20} />, isim: 'Maliyet/Kâr', base: 'text-rose-600', bg: 'bg-rose-50/30 font-black text-rose-900', hoverBase: 'hover:bg-rose-50 hover:border-rose-300', border: 'border-rose-100' },
-                                { link: '/personel', ikon: <ShieldCheck size={20} />, isim: 'Personel (İK)', base: 'text-sky-600', bg: 'bg-sky-50/30 font-black text-sky-900', hoverBase: 'hover:bg-sky-50 hover:border-sky-300', border: 'border-sky-100' }
+                                { link: '/arge', ikon: <Bot size={18} />, isim: 'Ar-Ge & Trend', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
+                                { link: '/kumas', ikon: <Database size={18} />, isim: 'Kumaş Arşivi', base: 'text-cyan-600', bg: 'bg-cyan-50/30 font-black text-cyan-900', hoverBase: 'hover:bg-cyan-50 hover:border-cyan-300', border: 'border-cyan-100' },
+                                { link: '/kalip', ikon: <Activity size={18} />, isim: 'Kalıp Dairesi', base: 'text-fuchsia-600', bg: 'bg-fuchsia-50/30 font-black text-fuchsia-900', hoverBase: 'hover:bg-fuchsia-50 hover:border-fuchsia-300', border: 'border-fuchsia-100' },
+                                { link: '/modelhane', ikon: <Factory size={18} />, isim: 'Modelhane', base: 'text-pink-600', bg: 'bg-pink-50/30 font-black text-pink-900', hoverBase: 'hover:bg-pink-50 hover:border-pink-300', border: 'border-pink-100' },
+                                { link: '/kesim', ikon: <Scissors size={18} />, isim: 'Kesimhane', base: 'text-indigo-600', bg: 'bg-indigo-50/30 font-black text-indigo-900', hoverBase: 'hover:bg-indigo-50 hover:border-indigo-300', border: 'border-indigo-100' },
+                                { link: '/imalat', ikon: <Layers size={18} />, isim: 'İmalat', base: 'text-blue-600', bg: 'bg-blue-50/30 font-black text-blue-900', hoverBase: 'hover:bg-blue-50 hover:border-blue-300', border: 'border-blue-100' },
+                                { link: '/uretim', ikon: <Activity size={18} />, isim: 'Üretim', base: 'text-purple-600', bg: 'bg-purple-50/30 font-black text-purple-900', hoverBase: 'hover:bg-purple-50 hover:border-purple-300', border: 'border-purple-100' },
+                                { link: '/stok', ikon: <Package size={18} />, isim: 'Stok Lojistik', base: 'text-slate-600', bg: 'bg-slate-50/30 font-black text-slate-900', hoverBase: 'hover:bg-slate-50 hover:border-slate-300', border: 'border-slate-100' },
+                                { link: '/katalog', ikon: <Store size={18} />, isim: 'Katalog', base: 'text-amber-600', bg: 'bg-amber-50/30 font-black text-amber-900', hoverBase: 'hover:bg-amber-50 hover:border-amber-300', border: 'border-amber-100' },
+                                { link: '/musteriler', ikon: <Users size={18} />, isim: 'Müşteriler', base: 'text-teal-600', bg: 'bg-teal-50/30 font-black text-teal-900', hoverBase: 'hover:bg-teal-50 hover:border-teal-300', border: 'border-teal-100' },
+                                { link: '/kasa', ikon: <Briefcase size={18} />, isim: 'Kasa & Finans', base: 'text-emerald-600', bg: 'bg-emerald-50/30 font-black text-emerald-900', hoverBase: 'hover:bg-emerald-50 hover:border-emerald-300', border: 'border-emerald-100' },
+                                { link: '/maliyet', ikon: <BarChart3 size={18} />, isim: 'Maliyet/Kâr', base: 'text-rose-600', bg: 'bg-rose-50/30 font-black text-rose-900', hoverBase: 'hover:bg-rose-50 hover:border-rose-300', border: 'border-rose-100' },
+                                { link: '/personel', ikon: <ShieldCheck size={18} />, isim: 'Personel', base: 'text-sky-600', bg: 'bg-sky-50/30 font-black text-sky-900', hoverBase: 'hover:bg-sky-50 hover:border-sky-300', border: 'border-sky-100' },
+                                { link: '/ajanlar', ikon: <Zap size={18} />, isim: 'Ajan Komuta', base: 'text-amber-600', bg: 'bg-amber-50/30 font-black text-amber-900', hoverBase: 'hover:bg-amber-50 hover:border-amber-300', border: 'border-amber-100' },
+                                { link: '/denetmen', ikon: <Eye size={18} />, isim: 'Müfettiş (AI)', base: 'text-indigo-600', bg: 'bg-indigo-50/30 font-black text-indigo-900', hoverBase: 'hover:bg-indigo-50 hover:border-indigo-300', border: 'border-indigo-100' },
+                                { link: '/ayarlar', ikon: <Settings size={18} />, isim: 'Ayarlar', base: 'text-slate-600', bg: 'bg-slate-50/30 font-black text-slate-900', hoverBase: 'hover:bg-slate-50 hover:border-slate-300', border: 'border-slate-100' }
                             ].map((modul, i) => (
-                                <Link key={i} href={yetkiSorgula(modul.link, modul.link)} onClick={(e) => tiklamaKorumasi(e, modul.link)} className={`group flex flex-col justify-center items-center gap-2 p-3 rounded-xl border transition-all text-center hover:shadow-md ${modul.border} ${modul.bg} ${modul.hoverBase}`}>
+                                <Link key={i} href={yetkiSorgula(modul.link, modul.link)} onClick={(e) => tiklamaKorumasi(e, modul.link)} className={`group flex flex-col justify-center items-center gap-1.5 p-3 rounded-xl border transition-all text-center hover:shadow-md ${modul.border} ${modul.bg} ${modul.hoverBase}`}>
                                     <div className={`${modul.base} group-hover:scale-110 transition-transform`}>{modul.ikon}</div>
                                     <div className={`text-[11px] sm:text-xs leading-tight`}>{modul.isim}</div>
                                 </Link>
@@ -543,7 +555,7 @@ export default function KarargahSayfasi() {
                             <button onClick={alarmYukle} className="text-xs font-bold text-slate-500 hover:text-slate-800 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">🔄 Tazele</button>
                         </div>
 
-                        <div className="p-2 sm:p-4 flex-1 flex flex-col gap-3 min-h-[300px] overflow-y-auto">
+                        <div className="p-2 sm:p-4 flex-1 flex flex-col gap-3 min-h-[0px] max-h-[350px] overflow-y-auto">
                             {alarmlar.yukleniyor && <div className="m-auto text-sm font-bold text-slate-400 animate-pulse">📡 Radar Taranıyor...</div>}
 
                             {!alarmlar.yukleniyor && alarmlar.gorevler.length === 0 && alarmlar.kritikStok.length === 0 && alarmlar.vadeliOdeme.length === 0 && (
