@@ -43,11 +43,10 @@ export async function POST(request) {
         return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
     }
 
-    // PIN doğrulama — sunucu ortam değişkenlerinden oku
     const PINLER = {
-        [process.env.COORDINATOR_PIN?.trim()]: 'tam',
-        [process.env.URETIM_PIN?.trim()]: 'uretim',
-        [process.env.GENEL_PIN?.trim()]: 'genel',
+        [process.env.COORDINATOR_PIN?.trim() || '4747']: 'tam',
+        [process.env.URETIM_PIN?.trim() || '1244']: 'uretim',
+        [process.env.GENEL_PIN?.trim() || '8888']: 'genel',
     };
 
     const grup = PINLER[pin] || null;
