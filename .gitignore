@@ -47,3 +47,5 @@ desktop.ini
 build_output*.txt
 page_output*.html
 .vercel
+
+.env.vercel.check
