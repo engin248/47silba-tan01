@@ -1,20 +1,24 @@
 'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
-import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Unlock, FileText, ChevronRight } from 'lucide-react';
+import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Trash2, Edit2, Search, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 export default function MuhasebeSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [raporlar, setRaporlar] = useState([]);
     const [secilenRapor, setSecilenRapor] = useState(null);
     const [ilgiliMaliyetler, setIlgiliMaliyetler] = useState([]);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
-    const [raporsizemOrders, setRaporsizemOrders] = useState([]); // raporu olmayan tamamlanan emirler
+    const [raporsizemOrders, setRaporsizemOrders] = useState([]);
+    const [aramaMetni, setAramaMetni] = useState('');
+    const [duzenleModal, setDuzenleModal] = useState(null); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
+    const [duzenleForm, setDuzenleForm] = useState({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '' });
 
     useEffect(() => {
         const el = document.querySelector('[data-lang]');
@@ -28,14 +32,10 @@ export default function MuhasebeSayfasi() {
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
-
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
             const kanal = supabase.channel('islem-gercek-zamanli-ai')
                 .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
                 .subscribe();
-
             yukle();
-
             return () => { supabase.removeChannel(kanal); };
         }
     }, [kullanici]);
@@ -119,7 +119,6 @@ export default function MuhasebeSayfasi() {
         }
 
         try {
-            // [AI ZIRHI]: B0 Kilit/Devir kritik işlemi günlüğe raporla
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'UPDATE', kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
@@ -136,21 +135,17 @@ export default function MuhasebeSayfasi() {
         } catch (error) { goster('Devir hatası: ' + error.message, 'error'); }
     };
 
-    // Tamamlanan modelden otomatik rapor oluştur
     const uretimdenRaporOlustur = async (model) => {
         setLoading(true);
         try {
-            // 🛑 U Kriteri: Mükerrer (Çift) Rapor Engelleme
             const { data: mevcut } = await supabase.from('b1_muhasebe_raporlari').select('id').eq('order_id', model.id);
             if (mevcut && mevcut.length > 0) {
                 setLoading(false);
-                return goster('⚠️ Bu üretim emri için zaten bir Muhasebe Raporu oluşturulmuş! Karargâh kalkanı mükerrer işlemi reddetti.', 'error');
+                return goster('Bu üretim emri için zaten bir Muhasebe Raporu mevcut!', 'error');
             }
-
             const { data: maliyetler, error: mErr } = await supabase.from('b1_maliyet_kayitlari').select('tutar_tl').eq('order_id', model.id);
             if (mErr) throw mErr;
             const toplamMaliyet = (maliyetler || []).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
-
             const insertData = {
                 order_id: model.id,
                 gerceklesen_maliyet_tl: toplamMaliyet,
@@ -171,7 +166,6 @@ export default function MuhasebeSayfasi() {
         setLoading(false);
     };
 
-    // Rapordaki maliyeti üretimden güncelle
     const maliyetiSenkronize = async (rapor) => {
         if (!rapor.order_id) return goster('Raporda bağlı iş emri yok!', 'error');
         try {
@@ -183,6 +177,62 @@ export default function MuhasebeSayfasi() {
             goster(`✅ Maliyet güncellendi: ₺${toplam.toFixed(2)}`); yukle();
             if (secilenRapor?.id === rapor.id) setSecilenRapor(p => ({ ...p, gerceklesen_maliyet_tl: toplam }));
         } catch (error) { goster('Senkronizasyon hatası: ' + error.message, 'error'); }
+    };
+
+    // ─── YENİ: DÜZENLE ───────────────────────────────────────────────────────────
+    const duzenleAc = (rapor) => {
+        if (rapor.rapor_durumu === 'kilitlendi') return goster('Kilitli raporlar düzenlenemez!', 'error');
+        setDuzenleForm({
+            zayiat_adet: String(rapor.zayiat_adet || 0),
+            hedeflenen_maliyet_tl: String(rapor.hedeflenen_maliyet_tl || ''),
+            notlar: rapor.notlar || ''
+        });
+        setDuzenleModal(rapor);
+    };
+
+    const duzenleKaydet = async () => {
+        if (!duzenleModal) return;
+        setLoading(true);
+        try {
+            const payload = {
+                zayiat_adet: parseInt(duzenleForm.zayiat_adet) || 0,
+                hedeflenen_maliyet_tl: parseFloat(duzenleForm.hedeflenen_maliyet_tl) || 0,
+                notlar: duzenleForm.notlar.trim() || null,
+            };
+            const { error } = await supabase.from('b1_muhasebe_raporlari').update(payload).eq('id', duzenleModal.id);
+            if (error) throw error;
+            goster('✅ Rapor güncellendi!');
+            yukle();
+            if (secilenRapor?.id === duzenleModal.id) setSecilenRapor(p => ({ ...p, ...payload }));
+            setDuzenleModal(null);
+        } catch (error) { goster('Düzenleme hatası: ' + error.message, 'error'); }
+        setLoading(false);
+    };
+
+    // ─── YENİ: SİL ───────────────────────────────────────────────────────────────
+    const raporSil = async (rapor) => {
+        if (rapor.rapor_durumu === 'kilitlendi') return goster('Kilitli raporlar silinemez! Devir tamamlanmış.', 'error');
+        if (!kullanici || kullanici.grup !== 'tam') {
+            const pin = prompt('Raporu silmek için Yönetici PİN girin:');
+            const dogruPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '9999';
+            if (pin !== dogruPin) return goster('Yetkisiz PİN!', 'error');
+        }
+        if (!confirm(`"${rapor.model_kodu || rapor.id.slice(0, 8)}" raporunu siliyorsunuz. Emin misiniz?`)) return;
+        try {
+            try {
+                await supabase.from('b0_sistem_loglari').insert([{
+                    tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'SILME',
+                    kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
+                    eski_veri: { rapor_durumu: rapor.rapor_durumu, model_kodu: rapor.model_kodu }
+                }]).catch(() => { });
+            } catch (e) { }
+            const { error } = await supabase.from('b1_muhasebe_raporlari').delete().eq('id', rapor.id);
+            if (error) throw error;
+            goster('Rapor silindi.');
+            if (secilenRapor?.id === rapor.id) setSecilenRapor(null);
+            yukle();
+            telegramBildirim(`🗑️ MUHASEBE RAPORU SİLİNDİ\nModel: ${rapor.model_kodu || '-'}`);
+        } catch (error) { goster('Silme hatası: ' + error.message, 'error'); }
     };
 
     const isAR = lang === 'ar';
@@ -202,6 +252,22 @@ export default function MuhasebeSayfasi() {
         return (((parseFloat(r.gerceklesen_maliyet_tl) - h) / h) * 100).toFixed(1);
     };
 
+    // Arama filtresi
+    const filtreliRaporlar = raporlar.filter(r =>
+        !aramaMetni ||
+        r.model_kodu?.toLowerCase().includes(aramaMetni.toLowerCase()) ||
+        r.model_adi?.toLowerCase().includes(aramaMetni.toLowerCase())
+    );
+
+    const istatistik = {
+        toplam: raporlar.length,
+        bekleyen: raporlar.filter(r => r.rapor_durumu === 'sef_onay_bekliyor').length,
+        onaylandi: raporlar.filter(r => r.rapor_durumu === 'onaylandi').length,
+        kilitli: raporlar.filter(r => r.rapor_durumu === 'kilitlendi').length,
+    };
+
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+
     if (!yetkiliMi) {
         return (
             <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
@@ -214,8 +280,9 @@ export default function MuhasebeSayfasi() {
 
     return (
         <div dir={isAR ? 'rtl' : 'ltr'}>
+            {/* BAŞLIK */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
-                <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FileCheck size={24} color="white" />
                 </div>
                 <div>
@@ -226,6 +293,36 @@ export default function MuhasebeSayfasi() {
                         {isAR ? 'مراجعة → موافقة الشيف → قفل → تحويل إلى الوحدة الثانية' : 'İncele → Şef onayı → Kilitle → 2. Birime devir'}
                     </p>
                 </div>
+                <div style={{ marginLeft: 'auto' }}>
+                    <a href="/" style={{ textDecoration: 'none' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
+                            Ana Sayfaya Dön
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            {/* İSTATİSTİK KARTLARI */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {[
+                    { label: 'Toplam Rapor', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
+                    { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, color: '#d97706', bg: '#fffbeb' },
+                    { label: '✅ Onaylı', val: istatistik.onaylandi, color: '#10b981', bg: '#f0fdf4' },
+                    { label: '🔒 Kilitli', val: istatistik.kilitli, color: '#0f172a', bg: '#f8fafc' },
+                ].map((s, i) => (
+                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.875rem 1rem' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* ARAMA */}
+            <div style={{ position: 'relative', marginBottom: '1.25rem', maxWidth: 420 }}>
+                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
+                    placeholder="Model kodu veya adına göre ara..."
+                    style={{ ...inp, paddingLeft: 36, maxWidth: '100%' }} />
             </div>
 
             {mesaj.text && (
@@ -261,28 +358,16 @@ export default function MuhasebeSayfasi() {
                 </div>
             )}
 
-            {/* DEVIR GEÇİŞ KAPISI */}
+            {/* DEVİR GEÇİŞ KAPISI */}
             <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ fontSize: '1.5rem' }}>🚪</div>
                 <div>
-                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>
-                        {isAR ? 'بوابة التحويل إلى الوحدة الثانية' : '2. Birime Geçiş Kapısı'}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
-                        {isAR ? 'فقط التقارير "المقفلة" تنتقل إلى الوحدة الثانية. قرار المنسق فقط.' : 'Sadece KİLİTLİ raporlar 2. Birime geçer. Koordinatör kararı.'}
-                    </div>
+                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>2. Birime Geçiş Kapısı</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Koordinatör kararı.</div>
                 </div>
-                <div style={{ marginLeft: 'auto', textAlign: 'center', display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div>
-                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>KİLİTLİ RAPOR</div>
-                        <div style={{ fontWeight: 900, color: '#34d399', fontSize: '1.4rem' }}>{raporlar.filter(r => r.rapor_durumu === 'kilitlendi').length}</div>
-                    </div>
-                    {/* CC Kriteri Otomatik Rota (Karargah/Ana Merkeze Dönüş) */}
-                    <a href="/" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#7c3aed', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(124,58,237,0.3)' }}>
-                            🎖️ Karargâha (Merkeze) Dön
-                        </button>
-                    </a>
+                <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>KİLİTLİ RAPOR</div>
+                    <div style={{ fontWeight: 900, color: '#34d399', fontSize: '1.4rem' }}>{istatistik.kilitli}</div>
                 </div>
             </div>
 
@@ -290,22 +375,25 @@ export default function MuhasebeSayfasi() {
                 {/* RAPOR LİSTESİ */}
                 <div style={{ flex: '1 1 350px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                        {!loading && raporlar.length === 0 && (
+                        {!loading && filtreliRaporlar.length === 0 && (
                             <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
-                                <FileCheck size={40} style={{ color: '#e5e7eb', marginBottom: '0.5rem' }} /><p style={{ color: '#94a3b8', fontWeight: 700 }}>Final rapor yok. M6 Üretim Bandından devir başlatın.</p>
+                                <FileCheck size={40} style={{ color: '#e5e7eb', marginBottom: '0.5rem' }} />
+                                <p style={{ color: '#94a3b8', fontWeight: 700 }}>
+                                    {aramaMetni ? 'Arama sonucu bulunamadı.' : 'Final rapor yok. M6 Üretim Bandından devir başlatın.'}
+                                </p>
                             </div>
                         )}
-                        {raporlar.map(r => {
+                        {filtreliRaporlar.map(r => {
                             const pct = parseFloat(asimPct(r));
                             const kilitli = r.rapor_durumu === 'kilitlendi';
                             return (
                                 <div key={r.id}
                                     onClick={() => raporSec(r)}
-                                    style={{ background: 'white', border: '2px solid', borderColor: secilenRapor?.id === r.id ? '#7c3aed' : kilitli ? '#0f172a' : '#f1f5f9', borderRadius: 12, padding: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: secilenRapor?.id === r.id ? '0 4px 16px rgba(124,58,237,0.15)' : 'none' }}>
+                                    style={{ background: secilenRapor?.id === r.id ? '#ecfdf5' : 'white', border: '2px solid', borderColor: secilenRapor?.id === r.id ? '#047857' : kilitli ? '#0f172a' : '#f1f5f9', borderRadius: 12, padding: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: secilenRapor?.id === r.id ? '0 4px 16px rgba(4,120,87,0.15)' : 'none' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
                                             <div style={{ display: 'flex', gap: 6, marginBottom: '0.375rem' }}>
-                                                <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#f3e8ff', color: '#7c3aed', padding: '2px 8px', borderRadius: 4 }}>
+                                                <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: 4 }}>
                                                     {r.model_kodu || r.id?.slice(0, 8) || 'Rapor'}
                                                 </span>
                                                 <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
@@ -316,26 +404,33 @@ export default function MuhasebeSayfasi() {
                                                 {r.model_adi || r.model_kodu || 'Model'}
                                             </div>
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
                                             <div style={{ fontWeight: 900, color: pct > 0 ? '#ef4444' : '#10b981', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                                                 {pct > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} %{Math.abs(pct)}
                                             </div>
-                                            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>{pct > 0 ? 'Aşım' : 'Tasarruf'}</div>
+                                            {/* Eylem butonları */}
+                                            {!kilitli && (
+                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+                                                    <button onClick={() => duzenleAc(r)}
+                                                        style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
+                                                        <Edit2 size={11} style={{ display: 'inline', marginRight: 2 }} />Düzenle
+                                                    </button>
+                                                    <button onClick={() => raporSil(r)}
+                                                        style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem' }}>
+                                                        <Trash2 size={11} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.375rem', marginTop: '0.625rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem', marginTop: '0.625rem' }}>
                                         <div style={{ background: '#f8fafc', borderRadius: 6, padding: '5px 10px' }}>
                                             <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>HEDEF</div>
-                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>\u20ba{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
+                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
                                         <div style={{ background: pct > 10 ? '#fef2f2' : '#f0fdf4', borderRadius: 6, padding: '5px 10px' }}>
-                                            <div style={{ fontSize: '0.6rem', color: pct > 10 ? '#dc2626' : '#059669', fontWeight: 700 }}>GERCEK TOPLAM</div>
-                                            <div style={{ fontWeight: 800, color: pct > 10 ? '#dc2626' : '#059669', fontSize: '0.88rem' }}>\u20ba{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
-                                        </div>
-                                        <div style={{ background: 'linear-gradient(135deg,#059669,#047857)', borderRadius: 6, padding: '5px 10px' }}>
-                                            <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 700 }}>B\u0130R\u0130M MAL\u0130YET</div>
-                                            <div style={{ fontWeight: 900, color: 'white', fontSize: '0.95rem' }}>\u20ba{birimMaliyet(r)}<span style={{ fontSize: '0.6rem', color: '#a7f3d0' }}>/adet</span></div>
-                                            <div style={{ fontSize: '0.58rem', color: '#a7f3d0' }}>{r.net_uretilen_adet || 0} adet</div>
+                                            <div style={{ fontSize: '0.6rem', color: pct > 10 ? '#dc2626' : '#059669', fontWeight: 700 }}>GERÇEK TOPLAM</div>
+                                            <div style={{ fontWeight: 800, color: pct > 10 ? '#dc2626' : '#059669', fontSize: '0.88rem' }}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -346,21 +441,20 @@ export default function MuhasebeSayfasi() {
 
                 {/* SEÇİLEN RAPOR DETAY */}
                 {secilenRapor && (
-                    <div style={{ flex: '1.5 1 400px', background: 'white', border: '2px solid #7c3aed', borderRadius: 16, padding: '1.25rem', alignSelf: 'flex-start', position: 'sticky', top: 10 }}>
+                    <div style={{ flex: '1.5 1 400px', background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.25rem', alignSelf: 'flex-start', position: 'sticky', top: 10 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ fontWeight: 900, color: '#0f172a', margin: 0, fontSize: '1rem' }}>📊 Rapor Detayı</h2>
                             <button onClick={() => setSecilenRapor(null)} style={{ background: '#f1f5f9', border: 'none', color: '#64748b', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>✕</button>
                         </div>
 
-                        {/* Temel Metrikler */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '1rem' }}>
                             {[
-                                { label: 'Hedeflenen Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl).toFixed(2)}`, color: '#374151' },
-                                { label: 'Gerçekleşen Maliyet', val: `₺${parseFloat(secilenRapor.gerceklesen_maliyet_tl).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl) > 0 ? '#dc2626' : '#059669' },
+                                { label: 'Hedeflenen Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, color: '#374151' },
+                                { label: 'Gerçekleşen Maliyet', val: `₺${parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl) > 0 ? '#dc2626' : '#059669' },
                                 { label: 'Fark (Üretilen-Hedef)', val: `₺${parseFloat(secilenRapor.fark_tl || 0).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl || 0) > 0 ? '#dc2626' : '#059669' },
-                                { label: 'Birim Maliyet/Adet', val: `₺${birimMaliyet(secilenRapor)}`, color: '#7c3aed' },
+                                { label: 'Birim Maliyet/Adet', val: `₺${birimMaliyet(secilenRapor)}`, color: '#D4AF37' },
                                 { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, color: '#059669' },
-                                { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet (%${secilenRapor.net_uretilen_adet + secilenRapor.zayiat_adet > 0 ? ((secilenRapor.zayiat_adet / (secilenRapor.net_uretilen_adet + secilenRapor.zayiat_adet)) * 100).toFixed(1) : 0})`, color: '#ef4444' },
+                                { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, color: '#ef4444' },
                             ].map((m, i) => (
                                 <div key={i} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
                                     <div style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</div>
@@ -369,7 +463,12 @@ export default function MuhasebeSayfasi() {
                             ))}
                         </div>
 
-                        {/* Maliyet Dağılımı */}
+                        {secilenRapor.notlar && (
+                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginBottom: '1rem', fontSize: '0.82rem', color: '#92400e' }}>
+                                📝 {secilenRapor.notlar}
+                            </div>
+                        )}
+
                         {ilgiliMaliyetler.length > 0 && (
                             <div style={{ marginBottom: '1rem' }}>
                                 <div style={{ fontWeight: 800, color: '#374151', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Maliyet Kalemleri</div>
@@ -382,7 +481,6 @@ export default function MuhasebeSayfasi() {
                             </div>
                         )}
 
-                        {/* DURUM AKSIYONLARI */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {secilenRapor.rapor_durumu === 'taslak' && (
                                 <button onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
@@ -407,10 +505,58 @@ export default function MuhasebeSayfasi() {
                                     <Lock size={16} /> KİLİTLİ — 2. BİRİMDE
                                 </div>
                             )}
+                            {secilenRapor.rapor_durumu !== 'kilitlendi' && (
+                                <button onClick={() => duzenleAc(secilenRapor)}
+                                    style={{ padding: '8px', background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                    <Edit2 size={13} /> Zayiat / Hedef / Not Düzenle
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* DÜZENLE MODAL */}
+            {duzenleModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+                    <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <h3 style={{ fontWeight: 900, color: '#0f172a', margin: 0 }}>✏️ Rapor Düzenle</h3>
+                            <button onClick={() => setDuzenleModal(null)} style={{ background: '#f1f5f9', border: 'none', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', color: '#64748b', fontWeight: 700 }}>✕</button>
+                        </div>
+                        <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 14px', marginBottom: '1rem', fontSize: '0.82rem', fontWeight: 700, color: '#065f46' }}>
+                            📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Zayiat Adet</label>
+                                <input type="number" min="0" value={duzenleForm.zayiat_adet}
+                                    onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
+                                    style={inp} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Hedeflenen Maliyet (₺)</label>
+                                <input type="number" step="0.01" min="0" value={duzenleForm.hedeflenen_maliyet_tl}
+                                    onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
+                                    placeholder="0.00" style={inp} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Notlar</label>
+                                <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
+                                    onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
+                                    placeholder="İç not, açıklama..." style={{ ...inp, resize: 'vertical' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+                            <button onClick={() => setDuzenleModal(null)} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                            <button onClick={duzenleKaydet} disabled={loading}
+                                style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#d97706', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                                {loading ? '...' : '✅ Kaydet'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

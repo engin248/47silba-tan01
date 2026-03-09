@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { BookOpen, ShoppingBag, Plus, RefreshCw, AlertTriangle, CheckCircle2, QrCode, Trash2, Tag, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/components/barkod/FizikselQRBarkod';
 
-const BOSH_URUN = { urun_kodu: '', urun_adi: '', urun_adi_ar: '', satis_fiyati_tl: '', birim_maliyet_tl: '', bedenler: '', renkler: '', stok_adeti: '', min_stok: '50', durum: 'aktif' };
+const USD_KUR = 32.5; // Varsayılan kur — ileride /api/kur endpoint ile güncellenebilir
+const BOSH_URUN = { urun_kodu: '', urun_adi: '', urun_adi_ar: '', satis_fiyati_tl: '', satis_fiyati_usd: '', birim_maliyet_tl: '', bedenler: '', renkler: '', stok_adeti: '', min_stok: '50', durum: 'aktif' };
 const DURUMLAR = ['aktif', 'pasif', 'tukenmek_uzere'];
 
 export default function KatalogSayfasi() {
@@ -16,7 +18,7 @@ export default function KatalogSayfasi() {
 
     // UI - State
     const [mounted, setMounted] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [finansGizli, setFinansGizli] = useState(true);
 
     const [urunler, setUrunler] = useState([]);
@@ -28,6 +30,7 @@ export default function KatalogSayfasi() {
 
     const [barkodAcik, setBarkodAcik] = useState(false);
     const [seciliUrun, setSeciliUrun] = useState(null);
+    const [arama, setArama] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -82,6 +85,7 @@ export default function KatalogSayfasi() {
             urun_adi: form.urun_adi.trim(),
             urun_adi_ar: form.urun_adi_ar.trim() || null,
             satis_fiyati_tl: parseFloat(form.satis_fiyati_tl) || 0,
+            satis_fiyati_usd: form.satis_fiyati_usd ? parseFloat(form.satis_fiyati_usd) : (parseFloat(form.satis_fiyati_tl) / USD_KUR) || null,
             birim_maliyet_tl: parseFloat(form.birim_maliyet_tl) || 0,
             bedenler: form.bedenler.trim() || null,
             renkler: form.renkler.trim() || null,
@@ -162,6 +166,18 @@ export default function KatalogSayfasi() {
     const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
+    const filtreliUrunler = urunler.filter(u =>
+        u.urun_kodu?.toLowerCase().includes(arama.toLowerCase()) ||
+        u.urun_adi?.toLowerCase().includes(arama.toLowerCase()) ||
+        u.urun_adi_ar?.toLowerCase().includes(arama.toLowerCase())
+    );
+    const istatistik = {
+        toplam: urunler.length,
+        aktif: urunler.filter(u => u.durum === 'aktif').length,
+        kritik: urunler.filter(u => u.stok_adeti <= u.min_stok).length,
+        ortFiyat: urunler.length ? (urunler.reduce((s, u) => s + parseFloat(u.satis_fiyati_tl || 0), 0) / urunler.length).toFixed(0) : 0,
+    };
+
     if (!mounted) return null;
 
     if (erisim === 'yok') {
@@ -180,7 +196,7 @@ export default function KatalogSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#db2777,#be185d)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ShoppingBag size={24} color="white" />
                     </div>
                     <div>
@@ -198,16 +214,37 @@ export default function KatalogSayfasi() {
                     </button>
                     {erisim === 'full' && (
                         <button onClick={() => { setFormAcik(!formAcik); setDuzenleId(null); setForm(BOSH_URUN); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#db2777', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(219,39,119,0.3)' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                             <Plus size={18} /> Yeni Ürün
                         </button>
                     )}
                     <a href="/siparisler" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             📦 Siparişler (M10)
                         </button>
                     </a>
                 </div>
+            </div>
+
+            {/* İSTATİSTİK KARTI + ARAMA */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {[
+                    { label: 'Toplam Ürün', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
+                    { label: '✅ Aktif', val: istatistik.aktif, color: '#10b981', bg: '#f0fdf4' },
+                    { label: '⚠️ Kritik Stok', val: istatistik.kritik, color: istatistik.kritik > 0 ? '#ef4444' : '#94a3b8', bg: istatistik.kritik > 0 ? '#fef2f2' : '#f8fafc' },
+                    { label: 'Ort. Fiyat', val: `₺${istatistik.ortFiyat}`, color: '#D4AF37', bg: '#fffbeb' },
+                ].map((s, i) => (
+                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.875rem 1rem' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
+                    </div>
+                ))}
+            </div>
+            <div style={{ position: 'relative', marginBottom: '1.25rem', maxWidth: 440 }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '1rem' }}>🔍</span>
+                <input value={arama} onChange={e => setArama(e.target.value)}
+                    placeholder={isAR ? 'ابحث بالرمز أو الاسم...' : 'Ürün kodu veya ada göre ara...'}
+                    style={{ ...inp, paddingLeft: 40 }} />
             </div>
 
             {/* BİLDİRİM BÖLGESİ */}
@@ -219,8 +256,8 @@ export default function KatalogSayfasi() {
 
             {/* HIZLI FORM (M9) */}
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #fecdd3', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(219,39,119,0.08)' }}>
-                    <h3 style={{ fontWeight: 900, color: '#be185d', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)' }}>
+                    <h3 style={{ fontWeight: 900, color: '#065f46', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Tag size={18} /> {duzenleId ? 'Ürün Düzenle' : 'Yeni Ürün Kartı'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -242,7 +279,16 @@ export default function KatalogSayfasi() {
                         </div>
                         <div>
                             <label style={lbl}>Satış Fiyatı (TL) *</label>
-                            <input type="number" dir="ltr" value={form.satis_fiyati_tl} onChange={e => setForm({ ...form, satis_fiyati_tl: e.target.value })} placeholder="299.90" style={inp} />
+                            <input type="number" dir="ltr" value={form.satis_fiyati_tl}
+                                onChange={e => setForm({ ...form, satis_fiyati_tl: e.target.value })}
+                                placeholder="299.90" style={inp} />
+                        </div>
+                        <div>
+                            <label style={lbl}>Satış Fiyatı (USD $) <span style={{ fontWeight: 600, color: '#94a3b8', textTransform: 'none', fontSize: '0.65rem' }}>boş bırakılırsa TL/kur otomatik</span></label>
+                            <input type="number" dir="ltr" value={form.satis_fiyati_usd}
+                                onChange={e => setForm({ ...form, satis_fiyati_usd: e.target.value })}
+                                placeholder={form.satis_fiyati_tl ? `≈ $${(parseFloat(form.satis_fiyati_tl) / USD_KUR).toFixed(2)}` : '0.00'}
+                                style={{ ...inp, borderColor: '#d97706' }} />
                         </div>
                         <div>
                             <label style={lbl}>Mevcut Stok Adeti</label>
@@ -272,7 +318,7 @@ export default function KatalogSayfasi() {
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH_URUN); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: 'white', fontWeight: 800, cursor: 'pointer', color: '#475569' }}>İptal</button>
                         <button onClick={kaydet} disabled={loading}
-                            style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#be185d', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                            style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
                             {loading ? 'Yükleniyor...' : (duzenleId ? 'Değişiklikleri Kaydet' : 'Ürünü Ekle')}
                         </button>
                     </div>
@@ -283,7 +329,7 @@ export default function KatalogSayfasi() {
             {loading && !urunler.length && <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem', fontWeight: 800 }}>Yükleniyor...</p>}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '1.25rem' }}>
-                {urunler.map(u => {
+                {filtreliUrunler.map(u => {
                     const kritik = u.stok_adeti <= u.min_stok;
 
                     return (
@@ -291,7 +337,7 @@ export default function KatalogSayfasi() {
                             <div style={{ padding: '1.25rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                                     <div>
-                                        <span style={{ fontSize: '0.65rem', fontWeight: 900, background: kritik ? '#fef2f2' : '#fdf2f8', color: kritik ? '#dc2626' : '#be185d', padding: '3px 10px', borderRadius: 6 }}>{u.urun_kodu}</span>
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 900, background: kritik ? '#fef2f2' : '#ecfdf5', color: kritik ? '#dc2626' : '#047857', padding: '3px 10px', borderRadius: 6 }}>{u.urun_kodu}</span>
                                         <h3 style={{ fontWeight: 900, fontSize: '1.05rem', color: '#0f172a', margin: '6px 0 0' }}>{u.urun_adi}</h3>
                                         {u.urun_adi_ar && <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, marginTop: 2 }} dir="rtl">{u.urun_adi_ar}</div>}
                                     </div>
@@ -309,7 +355,16 @@ export default function KatalogSayfasi() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
                                     <div style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
                                         <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, letterSpacing: '0.05em' }}>SATIŞ FİYATI</div>
-                                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>{finansGizli ? '₺ ***' : `₺${u.satis_fiyati_tl}`}</div>
+                                        {finansGizli ? (
+                                            <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺ ***</div>
+                                        ) : (
+                                            <div>
+                                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺{u.satis_fiyati_tl}</div>
+                                                <div style={{ fontWeight: 700, color: '#d97706', fontSize: '0.78rem', marginTop: 1 }}>
+                                                    ${u.satis_fiyati_usd ? parseFloat(u.satis_fiyati_usd).toFixed(2) : (parseFloat(u.satis_fiyati_tl) / USD_KUR).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div style={{ background: kritik ? '#fef2f2' : '#ecfdf5', borderRadius: 8, padding: '8px 12px' }}>
                                         <div style={{ fontSize: '0.6rem', color: kritik ? '#dc2626' : '#059669', fontWeight: 800, letterSpacing: '0.05em' }}>GÜNCEL STOK</div>

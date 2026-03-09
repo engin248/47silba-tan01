@@ -1,4 +1,5 @@
 'use client';
+import { useLang } from '@/lib/langContext';
 import { useState, useEffect } from 'react';
 import { Shield, Clock, RefreshCw, CheckCircle2, AlertTriangle, LogOut } from 'lucide-react';
 import { useAuth, ERISIM_GRUPLARI, ERISIM_MATRISI, pindenGrupBul } from '@/lib/auth';
@@ -10,6 +11,8 @@ const formatTarih = (iso) => {
 };
 
 export default function GuvenlikSayfasi() {
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const { kullanici, cikisYap } = useAuth();
     const [sekme, setSekme] = useState('genel');
     const [loglar, setLoglar] = useState([]);
@@ -80,7 +83,7 @@ export default function GuvenlikSayfasi() {
     // Sadece "tam" erişim grubu bu sayfayı görür
     if (kullanici?.grup !== 'tam') {
         return (
-            <div style={{ textAlign: 'center', padding: '5rem', background: '#f8fafc', borderRadius: 20, border: '2px solid #e2e8f0' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ textAlign: 'center', padding: '5rem', background: '#f8fafc', borderRadius: 20, border: '2px solid #e2e8f0' }}>
                 <Shield size={44} color="#94a3b8" style={{ marginBottom: '1rem' }} />
                 <h2 style={{ color: '#374151', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem yönetimine aittir</h2>
                 <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.85rem' }}>

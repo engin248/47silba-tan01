@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DollarSign, Plus, Trash2, BarChart2, Edit2, X, TrendingUp, Package, Calculator, Upload, ChevronDown, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const MALIYET_TIPLERI = ['personel_iscilik', 'hammadde_kumas', 'isletme_gideri', 'sarf_malzeme', 'fire_kaybi', 'sabit_gider', 'nakliye_lojistik'];
 const MALIYET_RENK = { personel_iscilik: '#3b82f6', hammadde_kumas: '#8b5cf6', isletme_gideri: '#f59e0b', sarf_malzeme: '#10b981', fire_kaybi: '#ef4444', sabit_gider: '#06b6d4', nakliye_lojistik: '#f97316' };
@@ -18,6 +19,8 @@ const SEKMELER = [
 
 export default function MaliyetSayfasi() {
     const { kullanici } = useAuth();
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('giris');
     const [maliyetler, setMaliyetler] = useState([]);
@@ -33,6 +36,7 @@ export default function MaliyetSayfasi() {
     const [menuAcik, setMenuAcik] = useState(false);
     const [csvModal, setCsvModal] = useState(false);
     const [csvText, setCsvText] = useState('');
+    const [aramaMetni, setAramaMetni] = useState('');
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -221,7 +225,8 @@ export default function MaliyetSayfasi() {
     const filtreli = maliyetler.filter(m => {
         const tipOk = filtreTip === 'hepsi' || m.maliyet_tipi === filtreTip;
         const orderOk = filtreOrder === 'hepsi' || m.order_id === filtreOrder;
-        return tipOk && orderOk;
+        const aramaOk = !aramaMetni || m.kalem_aciklama?.toLowerCase().includes(aramaMetni.toLowerCase());
+        return tipOk && orderOk && aramaOk;
     });
 
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
@@ -229,7 +234,7 @@ export default function MaliyetSayfasi() {
 
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
                 <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
                 <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Maliyet Verileri gizlidir. Üretim PİN girişi zorunludur.</p>
@@ -242,22 +247,22 @@ export default function MaliyetSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#06b6d4,#0891b2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <DollarSign size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Maliyet Merkezi</h1>
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Birim maliyet · Satış fiyatı · Kar analizi — SAP/NetSuite standardı</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'مركز التكلفة' : 'Maliyet Merkezi'}</h1>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'تكلفة الوحدة · سعر البيع · تحليل الربح' : 'Birim maliyet · Satış fiyatı · Kar analizi'}</p>
                     </div>
                 </div>
                 {/* SPLIT BUTTON */}
                 <div ref={menuRef} style={{ position: 'relative', display: 'flex' }}>
                     <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(!formAcik); setSekme('giris'); setMenuAcik(false); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#06b6d4', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px 0 0 10px', fontWeight: 700, cursor: 'pointer' }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px 0 0 10px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
                         <Plus size={18} /> Maliyet Ekle
                     </button>
                     <button onClick={() => setMenuAcik(!menuAcik)}
-                        style={{ background: '#0891b2', color: 'white', border: 'none', borderLeft: '1px solid rgba(255,255,255,0.3)', padding: '10px 10px', borderRadius: '0 10px 10px 0', cursor: 'pointer' }}>
+                        style={{ background: '#065f46', color: 'white', border: 'none', borderLeft: '1px solid rgba(255,255,255,0.3)', padding: '10px 10px', borderRadius: '0 10px 10px 0', cursor: 'pointer' }}>
                         <ChevronDown size={16} />
                     </button>
                     {menuAcik && (
@@ -272,7 +277,7 @@ export default function MaliyetSayfasi() {
                             </button>
                             <a href="/muhasebe" style={{ textDecoration: 'none', display: 'block', borderTop: '1px solid #f1f5f9' }}>
                                 <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#16a34a' }}>
-                                    <BarChart2 size={15} color="#16a34a" /> Muhasebeye (M9) Geç
+                                    <BarChart2 size={15} color="#16a34a" /> Muhasebe (M8)
                                 </button>
                             </a>
                             <button onClick={() => { setMenuAcik(false); tumunuSil(); }}
@@ -356,8 +361,8 @@ export default function MaliyetSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : duzenleId ? '#f59e0b' : '#06b6d4', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
-                            {loading ? '...' : duzenleId ? '💾 Güncelle' : '💾 Kaydet'}
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : duzenleId ? '#d97706' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                            {loading ? '...' : duzenleId ? 'Güncelle' : 'Kaydet'}
                         </button>
                     </div>
                 </div>
@@ -367,7 +372,7 @@ export default function MaliyetSayfasi() {
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
                 {SEKMELER.map(s => (
                     <button key={s.id} onClick={() => setSekme(s.id)}
-                        style={{ padding: '8px 18px', border: 'none', borderRadius: '8px 8px 0 0', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', background: sekme === s.id ? '#06b6d4' : 'transparent', color: sekme === s.id ? 'white' : '#64748b' }}>
+                        style={{ padding: '8px 18px', border: 'none', borderRadius: '8px 8px 0 0', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', background: sekme === s.id ? '#047857' : 'transparent', color: sekme === s.id ? 'white' : '#64748b' }}>
                         {s.label}
                     </button>
                 ))}
@@ -385,6 +390,12 @@ export default function MaliyetSayfasi() {
                             <option value="hepsi">Tüm Siparişler</option>
                             {orderler.map(o => <option key={o.id} value={o.id}>{o.b1_model_taslaklari?.model_kodu || o.id.slice(0, 8)}</option>)}
                         </select>
+                        <div style={{ position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '0.9rem' }}>🔍</span>
+                            <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
+                                placeholder="Açıklama ara..."
+                                style={{ padding: '7px 10px 7px 30px', border: '2px solid #e5e7eb', borderRadius: 8, fontWeight: 600, fontSize: '0.82rem', outline: 'none', width: 160 }} />
+                        </div>
                         <div style={{ marginLeft: 'auto', fontSize: '0.82rem', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <BarChart2 size={14} /> {filtreli.length} kayıt | <strong style={{ color: '#0f172a' }}>₺{filtreli.reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0).toFixed(2)}</strong>
                         </div>

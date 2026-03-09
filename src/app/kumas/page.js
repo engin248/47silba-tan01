@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Layers, Plus, Search, AlertTriangle, CheckCircle2, Image, Package, Scissors, X, ChevronDown, Tag, Trash2, Eye, Lock, QrCode } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import FizikselQRBarkod from '@/components/barkod/FizikselQRBarkod';
 import SilBastanModal from '@/components/ui/SilBastanModal';
 
@@ -25,7 +26,7 @@ export default function KumasArsiviSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('kumas');
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [mounted, setMounted] = useState(false);
     const [kumaslar, setKumaslar] = useState([]);
     const [aksesuarlar, setAksesuarlar] = useState([]);
@@ -327,7 +328,7 @@ export default function KumasArsiviSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#10b981,#059669)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Layers size={24} color="white" />
                     </div>
                     <div>
@@ -341,16 +342,31 @@ export default function KumasArsiviSayfasi() {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button onClick={() => setFormAcik(!formAcik)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#10b981', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(16,185,129,0.4)' }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                         <Plus size={18} /> {isAR ? 'إضافة جديد' : 'Yeni Ekle'}
                     </button>
                     {/* CC Kriteri (M3 - Kalıp'a geçiş için akış rotası) */}
                     <a href="/kalip" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             📐 Kalıp & Serileme (M3) Geç
                         </button>
                     </a>
                 </div>
+            </div>
+
+            {/* İSTATİSTİK KARTLARI */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {[
+                    { label: 'Toplam Kumaş', val: kumaslar.length, color: '#047857', bg: '#ecfdf5' },
+                    { label: '⚠️ Kritik Stok', val: kumaslar.filter(k => (k.stok_mt || 0) <= (k.min_stok_mt || 10)).length, color: '#dc2626', bg: '#fef2f2' },
+                    { label: 'Aksesuar', val: aksesuarlar.length, color: '#d97706', bg: '#fffbeb' },
+                    { label: 'Tedarikçi', val: tedarikciler.length, color: '#374151', bg: '#f8fafc' },
+                ].map((s, i) => (
+                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
+                    </div>
+                ))}
             </div>
 
             {/* MESAJ */}
@@ -366,8 +382,8 @@ export default function KumasArsiviSayfasi() {
                     <button key={s.id} onClick={() => { setSekme(s.id); setFormAcik(false); setArama(''); }}
                         style={{
                             padding: '8px 20px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s',
-                            borderColor: sekme === s.id ? '#10b981' : '#e5e7eb',
-                            background: sekme === s.id ? '#10b981' : 'white',
+                            borderColor: sekme === s.id ? '#047857' : '#e5e7eb',
+                            background: sekme === s.id ? '#047857' : 'white',
                             color: sekme === s.id ? 'white' : '#374151'
                         }}>
                         {isAR ? s.label_ar : s.label_tr}
@@ -444,8 +460,8 @@ export default function KumasArsiviSayfasi() {
 
             {/* =========== AKSESUAR FORMU =========== */}
             {formAcik && sekme === 'aksesuar' && (
-                <div style={{ background: 'white', border: '2px solid #8b5cf6', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(139,92,246,0.12)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#5b21b6', marginBottom: '1rem', fontSize: '1rem' }}>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.12)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>
                         {isAR ? '🧷 إضافة إكسسوار جديد' : '🧷 Yeni Aksesuar Ekle'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>

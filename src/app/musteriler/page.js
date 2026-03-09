@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { UserCheck, Plus, Phone, Mail, MapPin, Trash2, Lock, Search, Edit3, AlertTriangle, RefreshCw, ShieldOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const MUSTERI_TIPLERI = ['bireysel', 'toptan', 'magaza'];
 const TIP_LABEL = { bireysel: '👤 Bireysel', toptan: '🏭 Toptan', magaza: '🏪 Mağaza' };
@@ -16,7 +17,7 @@ const BOSH_FORM = {
 export default function MusterilerSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [musteriler, setMusteriler] = useState([]);
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
@@ -217,7 +218,7 @@ export default function MusterilerSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <UserCheck size={24} color="white" />
                     </div>
                     <div>
@@ -239,7 +240,7 @@ export default function MusterilerSayfasi() {
                         <RefreshCw size={15} /> Yenile
                     </button>
                     <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(!formAcik); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#7c3aed', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,58,237,0.4)' }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                         <Plus size={18} /> {isAR ? 'إضافة عميل' : 'Yeni Müşteri'}
                     </button>
                 </div>
@@ -247,9 +248,9 @@ export default function MusterilerSayfasi() {
 
             {/* İSTATİSTİKLER */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#faf5ff', border: '2px solid #ddd6fe', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#6d28d9', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>👥 Toplam</div>
-                    <div style={{ fontWeight: 900, color: '#7c3aed', fontSize: '1.35rem' }}>{istatistik.toplam}</div>
+                <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>👥 Toplam</div>
+                    <div style={{ fontWeight: 900, color: '#047857', fontSize: '1.35rem' }}>{istatistik.toplam}</div>
                 </div>
                 <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
                     <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>✅ Aktif</div>
@@ -259,9 +260,9 @@ export default function MusterilerSayfasi() {
                     <div style={{ fontSize: '0.65rem', color: istatistik.karaListe > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>🚫 Kara Liste</div>
                     <div style={{ fontWeight: 900, color: istatistik.karaListe > 0 ? '#ef4444' : '#0f172a', fontSize: '1.35rem' }}>{istatistik.karaListe}</div>
                 </div>
-                <div style={{ background: '#ede9fe', border: '2px solid #c4b5fd', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#5b21b6', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>🏭 Toptan</div>
-                    <div style={{ fontWeight: 900, color: '#7c3aed', fontSize: '1.35rem' }}>{istatistik.toptan}</div>
+                <div style={{ background: '#fffbeb', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#92400e', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>🏭 Toptan</div>
+                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.35rem' }}>{istatistik.toptan}</div>
                 </div>
             </div>
 
@@ -274,8 +275,8 @@ export default function MusterilerSayfasi() {
 
             {/* FORM */}
             {formAcik && (
-                <div style={{ background: 'white', border: `2px solid ${duzenleId ? '#f59e0b' : '#7c3aed'}`, borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(124,58,237,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: duzenleId ? '#92400e' : '#5b21b6', marginBottom: '1rem' }}>
+                <div style={{ background: 'white', border: `2px solid ${duzenleId ? '#d97706' : '#047857'}`, borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.08)' }}>
+                    <h3 style={{ fontWeight: 800, color: duzenleId ? '#92400e' : '#065f46', marginBottom: '1rem' }}>
                         {duzenleId ? '✏️ Müşteri Düzenle' : '👤 Yeni Müşteri'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
@@ -326,7 +327,7 @@ export default function MusterilerSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : (duzenleId ? '#f59e0b' : '#7c3aed'), color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : (duzenleId ? '#d97706' : '#047857'), color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
                             {loading ? '...' : (duzenleId ? '✏️ Güncelle' : '✅ Kaydet')}
                         </button>
                     </div>

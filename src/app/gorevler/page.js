@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ClipboardList, Plus, CheckCircle2, AlertTriangle, Trash2, User, Clock, Flag, Zap } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
 const ONCELIK = ['dusuk', 'normal', 'yuksek', 'kritik'];
@@ -15,6 +16,8 @@ const BOSH = { baslik: '', aciklama: '', atanan_kisi: '', son_tarih: '', oncelik
 const formatTarih = (iso) => { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); };
 
 export default function GorevlerSayfasi() {
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const { kullanici, sayfaErisim } = useAuth();
     const erisim = sayfaErisim('/gorevler');
     const [gorevler, setGorevler] = useState([]);
@@ -25,6 +28,7 @@ export default function GorevlerSayfasi() {
     const [filtreOncelik, setFiltreOncelik] = useState('hepsi');
     const [filtreDurum, setFiltreDurum] = useState('hepsi');
     const [duzenleId, setDuzenleId] = useState(null);
+    const [aramaMetni, setAramaMetni] = useState('');
 
     useEffect(() => {
         // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
@@ -185,7 +189,10 @@ export default function GorevlerSayfasi() {
     const filtreli = gorevler.filter(g => {
         const oncelikOk = filtreOncelik === 'hepsi' || g.oncelik === filtreOncelik;
         const durumOk = filtreDurum === 'hepsi' || g.durum === filtreDurum;
-        return oncelikOk && durumOk;
+        const aramaOk = !aramaMetni || [
+            g.baslik, g.aciklama, g.atanan_kisi
+        ].some(v => v?.toLowerCase().includes(aramaMetni.toLowerCase()));
+        return oncelikOk && durumOk && aramaOk;
     });
 
     const istatistik = {
@@ -196,26 +203,26 @@ export default function GorevlerSayfasi() {
     };
 
     return (
-        <div>
+        <div dir={isAR ? 'rtl' : 'ltr'}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ClipboardList size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Görev Takibi</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Görev ata · öncelik belirle · takip et</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'تتبع المهام' : 'Görev Takibi'}</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'تعيين المهام · تحديد الأولوية · التتبع' : 'Görev ata · öncelik belirle · takip et'}</p>
                     </div>
                 </div>
                 {erisim === 'full' && (
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => setFormAcik(!formAcik)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#8b5cf6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(139,92,246,0.4)' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                             <Plus size={18} /> Yeni Görev
                         </button>
                         {/* CC Kriteri Otomatik Rota (M16 Raporlara Geçiş) */}
                         <a href="/raporlar" style={{ textDecoration: 'none' }}>
-                            <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#0f172a', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(15,23,42,0.3)' }}>
+                            <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                                 📊 Raporlar (M16)
                             </button>
                         </a>
@@ -226,7 +233,7 @@ export default function GorevlerSayfasi() {
             {/* İstatistik */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 {[
-                    { label: 'Toplam', val: istatistik.toplam, color: '#8b5cf6', bg: '#f5f3ff' },
+                    { label: 'Toplam', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
                     { label: '⏳ Bekliyor', val: istatistik.bekliyor, color: '#d97706', bg: '#fffbeb' },
                     { label: '⚙️ Devam', val: istatistik.devam, color: '#2563eb', bg: '#eff6ff' },
                     { label: '🔥 Kritik', val: istatistik.kritik, color: '#dc2626', bg: '#fef2f2' },
@@ -246,8 +253,8 @@ export default function GorevlerSayfasi() {
 
             {/* Form */}
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #8b5cf6', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(139,92,246,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#5b21b6', marginBottom: '1rem', fontSize: '1rem' }}>📋 Yeni Görev</h3>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>📋 Yeni Görev</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem' }}>
                         <div style={{ gridColumn: '1/-1' }}>
                             <label style={lbl}>Görev Başlığı *</label>
@@ -278,12 +285,18 @@ export default function GorevlerSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : 'Görev Oluştur'}</button>
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : 'Görev Oluştur'}</button>
                     </div>
                 </div>
             )}
 
-            {/* Filtreler */}
+            {/* Arama + Filtreler */}
+            <div style={{ position: 'relative', marginBottom: '0.75rem', maxWidth: 420 }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>🔍</span>
+                <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
+                    placeholder="Başlık, kişi veya açıklama ara..."
+                    style={inp} />
+            </div>
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 {['hepsi', ...ONCELIK].map(o => (
                     <button key={o} onClick={() => setFiltreOncelik(o)}

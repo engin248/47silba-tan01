@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Save, Settings2, Globe, CheckCircle2, AlertTriangle, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const VARSAYILAN = {
     teknik_foy_zorunlu: true,
@@ -19,6 +20,8 @@ const VARSAYILAN = {
 
 export default function AyarlarSayfasi() {
     const { kullanici } = useAuth();
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [ayarlar, setAyarlar] = useState(VARSAYILAN);
     const [loading, setLoading] = useState(false);
@@ -111,7 +114,7 @@ export default function AyarlarSayfasi() {
 
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
                 <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
                 <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Sistem Ayarları izne tabidir. Görüntülemek ve düzenlemek için Üretim PİN girişi zorunludur.</p>

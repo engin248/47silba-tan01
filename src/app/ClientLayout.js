@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth, ERISIM_MATRISI } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { bekleyenleriGetir, offlineSenkronizasyonuBaslat } from '@/lib/offlineKuyruk';
+import { LangProvider, useLang } from '@/lib/langContext';
 
 // ─── NAV YAPISI ───────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -124,7 +125,7 @@ function LayoutInner({ children }) {
     const { kullanici, yukleniyor } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
-    const [lang, setLang] = useState('tr');
+    const { lang, setLang } = useLang();
     const [sidebarAcik, setSidebarAcik] = useState(false);
     const [canliBildirim, setCanliBildirim] = useState(null);
     const isAR = lang === 'ar';
@@ -333,7 +334,9 @@ function LayoutInner({ children }) {
 export default function ClientLayout({ children }) {
     return (
         <AuthProvider>
-            <LayoutInner>{children}</LayoutInner>
+            <LangProvider>
+                <LayoutInner>{children}</LayoutInner>
+            </LangProvider>
         </AuthProvider>
     );
 }

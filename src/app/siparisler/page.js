@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, CheckCircle2, AlertTriangle, Trash2, ChevronRight, Package, Truck, X, Printer, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import ErisimBariyeri from '@/components/ui/ErisimBariyeri';
 import SayfaBasligi from '@/components/ui/SayfaBasligi';
 import IstatistikKutulari from '@/components/ui/IstatistikKutulari';
@@ -15,12 +16,17 @@ const KANALLAR = ['trendyol', 'amazon', 'magaza', 'toptan', 'diger'];
 const DURUMLAR = ['beklemede', 'onaylandi', 'hazirlaniyor', 'kargoda', 'teslim', 'iptal', 'iade'];
 const DURUM_RENK = { beklemede: '#f59e0b', onaylandi: '#3b82f6', hazirlaniyor: '#8b5cf6', kargoda: '#f97316', teslim: '#10b981', iptal: '#ef4444', iade: '#64748b' };
 const DURUM_LABEL = { beklemede: '⏳ Beklemede', onaylandi: '✅ Onaylandı', hazirlaniyor: '⚙️ Hazırlanıyor', kargoda: '🚛 Kargoda', teslim: '🎉 Teslim', iptal: '❌ İptal', iade: '↩️ İade' };
-const BOSH_FORM = { musteri_id: '', siparis_no: '', kanal: 'magaza', notlar: '', acil: false };
+const PARA_BIRIMLERI = [
+    { kod: 'TL', simge: '₺', bayrak: '🇹🇷' },
+    { kod: 'USD', simge: '$', bayrak: '🇺🇸' },
+    { kod: 'EUR', simge: '€', bayrak: '🇪🇺' },
+];
+const BOSH_FORM = { musteri_id: '', siparis_no: '', kanal: 'magaza', notlar: '', acil: false, para_birimi: 'TL' };
 
 export default function SiparislerSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [siparisler, setSiparisler] = useState([]);
     const [musteriler, setMusteriler] = useState([]);
     const [urunler, setUrunler] = useState([]);
@@ -32,8 +38,9 @@ export default function SiparislerSayfasi() {
     const [aktifSiparis, setAktifSiparis] = useState(null);
     const [filtreKanal, setFiltreKanal] = useState('hepsi');
     const [filtreDurum, setFiltreDurum] = useState('hepsi');
-    const [kargoModal, setKargoModal] = useState(null); // siparis objesi
+    const [kargoModal, setKargoModal] = useState(null);
     const [kargoNo, setKargoNo] = useState('');
+    const [aramaMetni, setAramaMetni] = useState('');
 
     useEffect(() => {
         let satisPin = false;
@@ -130,6 +137,7 @@ export default function SiparislerSayfasi() {
                 durum: 'beklemede',
                 notlar: form.notlar.trim() || null,
                 acil: form.acil || false,
+                para_birimi: form.para_birimi || 'TL',
             }]).select().single();
             if (sipErr) throw sipErr;
             // Kalemler
@@ -261,7 +269,12 @@ export default function SiparislerSayfasi() {
         const kanalOk = filtreKanal === 'hepsi' || s.kanal === filtreKanal;
         const durumOk = filtreDurum === 'hepsi' || s.durum === filtreDurum;
         const acilOk = !filtreAcil || s.acil === true;
-        return kanalOk && durumOk && acilOk;
+        const aramaOk = !aramaMetni || [
+            s.siparis_no,
+            s.b2_musteriler?.ad_soyad,
+            s.kanal
+        ].some(v => v?.toLowerCase().includes(aramaMetni.toLowerCase()));
+        return kanalOk && durumOk && acilOk && aramaOk;
     });
 
     const istatistik = {
@@ -279,17 +292,17 @@ export default function SiparislerSayfasi() {
             {/* Obezite Cerrahisi: UI Bileşenleri (Componentization) kullanılarak %60'a varan kod satırı tasarrufu sağlandı */}
             <SayfaBasligi
                 ikon={ShoppingCart}
-                renkler={{ bg: 'linear-gradient(135deg,#f97316,#ea580c)' }}
+                renkler={{ bg: 'linear-gradient(135deg,#047857,#065f46)' }}
                 baslik={isAR ? 'إدارة الطلبات' : 'Sipariş Yönetimi'}
                 altBaslik={isAR ? 'استلام → تأكيد → شحن → تسليم' : 'Al → Onayla → Hazırla → Kargoyla → Teslim'}
                 islemButonlari={
                     <>
                         <button onClick={() => { setForm({ ...BOSH_FORM, siparis_no: siparisNoUret() }); setFormAcik(!formAcik); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,115,22,0.4)' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                             <Plus size={18} /> Yeni Sipariş
                         </button>
                         <a href="/stok" style={{ textDecoration: 'none' }}>
-                            <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#2563eb', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(37,99,235,0.3)' }}>
+                            <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                                 📦 Stoklar (M11)
                             </button>
                         </a>
@@ -298,9 +311,9 @@ export default function SiparislerSayfasi() {
             />
 
             <IstatistikKutulari kartlar={[
-                { label: 'Toplam Sipariş', val: istatistik.toplam, color: '#f97316', bg: '#fff7ed' },
+                { label: 'Toplam Sipariş', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
                 { label: '⏳ Bekleyen', val: istatistik.bekleyen, color: '#d97706', bg: '#fffbeb' },
-                { label: '🚛 Kargoda', val: istatistik.kargoda, color: '#2563eb', bg: '#eff6ff' },
+                { label: '🚛 Kargoda', val: istatistik.kargoda, color: '#374151', bg: '#f8fafc' },
                 { label: '💰 Teslim Ciro', val: `₺${istatistik.gelir.toFixed(0)}`, color: '#059669', bg: '#ecfdf5' },
             ]} />
 
@@ -308,8 +321,8 @@ export default function SiparislerSayfasi() {
 
             {/* FORM */}
             {formAcik && (
-                <div style={{ background: 'white', border: '2px solid #f97316', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(249,115,22,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#c2410c', marginBottom: '1rem' }}>🛒 Yeni Sipariş</h3>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.08)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>Yeni Sipariş</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
                         <div><label style={lbl}>Sipariş No *</label><input maxLength={50} value={form.siparis_no} onChange={e => setForm({ ...form, siparis_no: e.target.value })} style={inp} /></div>
                         <div><label style={lbl}>Müşteri</label>
@@ -321,6 +334,11 @@ export default function SiparislerSayfasi() {
                         <div><label style={lbl}>Kanal *</label>
                             <select value={form.kanal} onChange={e => setForm({ ...form, kanal: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
                                 {KANALLAR.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
+                            </select>
+                        </div>
+                        <div><label style={lbl}>Para Birimi</label>
+                            <select value={form.para_birimi} onChange={e => setForm({ ...form, para_birimi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                {PARA_BIRIMLERI.map(p => <option key={p.kod} value={p.kod}>{p.bayrak} {p.kod} ({p.simge})</option>)}
                             </select>
                         </div>
                         <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Notlar</label><textarea maxLength={300} rows={1} value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })} style={{ ...inp, resize: 'none' }} /></div>
@@ -363,17 +381,23 @@ export default function SiparislerSayfasi() {
 
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH_FORM); setKalemler([]); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#f97316', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : 'Siparişi Kaydet'}</button>
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>{loading ? '...' : 'Siparişi Kaydet'}</button>
                     </div>
                 </div>
             )}
 
-            {/* FİLTRELER YENİ MİMARİDE YAZILDI */}
+            {/* ARAMA + FİLTRELER */}
+            <div style={{ position: 'relative', marginBottom: '0.75rem', maxWidth: 400 }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>🔍</span>
+                <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
+                    placeholder="Sipariş no, müşteri, kanal ara..."
+                    style={{ ...inp, paddingLeft: 36, maxWidth: '100%' }} />
+            </div>
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <FiltreDugmeleri
                     aktifDeger={filtreKanal}
                     onClickSecenegi={setFiltreKanal}
-                    renkler={{ aktifBg: '#f97316' }}
+                    renkler={{ aktifBg: '#047857' }}
                     secenekler={[
                         { v: 'hepsi', l: 'Tüm Kanallar' },
                         ...KANALLAR.map(k => ({ v: k, l: k.charAt(0).toUpperCase() + k.slice(1) }))
@@ -406,12 +430,17 @@ export default function SiparislerSayfasi() {
                 <div style={{ flex: '1 1 340px', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                     {filtreli.length === 0 && <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}><ShoppingCart size={40} style={{ color: '#e5e7eb' }} /><p style={{ color: '#94a3b8', fontWeight: 700, marginTop: '0.75rem' }}>Sipariş yok.</p></div>}
                     {filtreli.map(s => (
-                        <div key={s.id} onClick={() => detayAc(s)} style={{ background: 'white', border: '2px solid', borderColor: aktifSiparis?.id === s.id ? '#f97316' : s.durum === 'teslim' ? '#d1fae5' : '#f1f5f9', borderRadius: 12, padding: '1rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+                        <div key={s.id} onClick={() => detayAc(s)} style={{ background: 'white', border: '2px solid', borderColor: aktifSiparis?.id === s.id ? '#047857' : s.durum === 'teslim' ? '#d1fae5' : '#f1f5f9', borderRadius: 12, padding: '1rem', cursor: 'pointer', transition: 'all 0.15s' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
                                     <div style={{ display: 'flex', gap: 6, marginBottom: '0.3rem', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.62rem', fontWeight: 800, background: '#fff7ed', color: '#c2410c', padding: '2px 8px', borderRadius: 4 }}>{s.siparis_no}</span>
+                                        <span style={{ fontSize: '0.62rem', fontWeight: 800, background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: 4 }}>{s.siparis_no}</span>
                                         <span style={{ fontSize: '0.62rem', fontWeight: 800, background: '#f1f5f9', color: '#374151', padding: '2px 8px', borderRadius: 4 }}>{s.kanal}</span>
+                                        {s.para_birimi && s.para_birimi !== 'TL' && (
+                                            <span style={{ fontSize: '0.62rem', fontWeight: 900, background: '#1e293b', color: '#f59e0b', padding: '2px 8px', borderRadius: 4 }}>
+                                                {PARA_BIRIMLERI.find(p => p.kod === s.para_birimi)?.bayrak} {s.para_birimi}
+                                            </span>
+                                        )}
                                         <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${DURUM_RENK[s.durum]}20`, color: DURUM_RENK[s.durum] }}>{DURUM_LABEL[s.durum]}</span>
                                         {s.acil && <span style={{ fontSize: '0.62rem', fontWeight: 900, background: '#fef2f2', color: '#dc2626', padding: '2px 8px', borderRadius: 4, border: '1px solid #fca5a5' }}>🚨 ACİL</span>}
                                         {getGecikmeAlarm(s)}
@@ -419,7 +448,10 @@ export default function SiparislerSayfasi() {
                                     <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{s.b2_musteriler?.ad_soyad || 'Anonim'}</div>
                                     <div style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, marginTop: 2 }}>🕐 {formatTarih(s.created_at)}</div>
                                 </div>
-                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺{parseFloat(s.toplam_tutar_tl).toFixed(2)}</div>
+                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>
+                                    {PARA_BIRIMLERI.find(p => p.kod === (s.para_birimi || 'TL'))?.simge || '₺'}{parseFloat(s.toplam_tutar_tl).toFixed(2)}
+                                    {s.para_birimi && s.para_birimi !== 'TL' && <span style={{ fontSize: '0.65rem', color: '#94a3b8', marginLeft: 4 }}>{s.para_birimi}</span>}
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -427,7 +459,7 @@ export default function SiparislerSayfasi() {
 
                 {/* DETAY PANELİ */}
                 {aktifSiparis && (
-                    <div style={{ flex: '1.4 1 350px', background: 'white', border: '2px solid #f97316', borderRadius: 16, padding: '1.25rem', alignSelf: 'flex-start', position: 'sticky', top: 10 }}>
+                    <div style={{ flex: '1.4 1 350px', background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.25rem', alignSelf: 'flex-start', position: 'sticky', top: 10 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3 style={{ fontWeight: 900, color: '#0f172a', margin: 0, fontSize: '0.95rem' }}>📋 {aktifSiparis.siparis_no}</h3>
                             <div style={{ display: 'flex', gap: 6 }}>
@@ -439,9 +471,9 @@ export default function SiparislerSayfasi() {
 
                         {/* Durum Aksiyonları */}
                         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                            {aktifSiparis.durum === 'beklemede' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>✅ Onayla</button>}
-                            {aktifSiparis.durum === 'onaylandi' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>⚙️ Hazırlığa Al</button>}
-                            {aktifSiparis.durum === 'hazirlaniyor' && <button onClick={() => { setKargoModal(aktifSiparis); setKargoNo(''); }} style={{ padding: '6px 14px', background: '#f97316', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>🚛 Kargoya Ver</button>}
+                            {aktifSiparis.durum === 'beklemede' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>✅ Onayla</button>}
+                            {aktifSiparis.durum === 'onaylandi' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#065f46', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>⚙️ Hazırlığa Al</button>}
+                            {aktifSiparis.durum === 'hazirlaniyor' && <button onClick={() => { setKargoModal(aktifSiparis); setKargoNo(''); }} style={{ padding: '6px 14px', background: '#D4AF37', color: '#0f172a', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>🚛 Kargoya Ver</button>}
                             {aktifSiparis.durum === 'kargoda' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'teslim')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>🎉 Teslim Edildi</button>}
                             {!['teslim', 'iptal'].includes(aktifSiparis.durum) && <button onClick={() => durumGuncelle(aktifSiparis.id, 'iptal')} style={{ padding: '6px 14px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>❌ İptal</button>}
                         </div>
@@ -476,10 +508,10 @@ export default function SiparislerSayfasi() {
                 {kargoModal && (
                     <div style={{ padding: '0.5rem', textAlign: 'center' }}>
                         <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem' }}>Sipariş: <strong style={{ color: 'white' }}>{kargoModal.siparis_no}</strong></p>
-                        <input maxLength={50} value={kargoNo} onChange={e => setKargoNo(e.target.value)} placeholder="Örn: MNG-123456789" style={{ width: '100%', padding: '10px 14px', border: '2px solid #f97316', borderRadius: 10, fontSize: '0.9rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none', marginBottom: '1rem', background: '#0f172a', color: 'white' }} />
+                        <input maxLength={50} value={kargoNo} onChange={e => setKargoNo(e.target.value)} placeholder="Örn: MNG-123456789" style={{ width: '100%', padding: '10px 14px', border: '2px solid #047857', borderRadius: 10, fontSize: '0.9rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none', marginBottom: '1rem', background: '#0f172a', color: 'white' }} />
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                             <button onClick={() => setKargoModal(null)} style={{ padding: '9px 18px', border: '2px solid #334155', borderRadius: 8, background: '#1e293b', color: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                            <button onClick={kargoGonder} style={{ padding: '9px 24px', background: '#f97316', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>Kargoya Ver ✓</button>
+                            <button onClick={kargoGonder} style={{ padding: '9px 24px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>Kargoya Ver ✓</button>
                         </div>
                     </div>
                 )}

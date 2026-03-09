@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Video, Plus, Lock, Unlock, CheckCircle2, AlertTriangle, Trash2, Play, FileText, Clock, ChevronRight, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const BOSH_NUMUNE = { model_id: '', kalip_id: '', numune_beden: 'M', dikim_tarihi: '', notlar: '' };
 const BOSH_TALIMAT = { numune_id: '', talimat_video_url: '', sesli_aciklama_url: '', yazili_adimlari: [] };
@@ -12,7 +13,7 @@ const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 export default function ModelhaneSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [sekme, setSekme] = useState('numuneler');
     const [numuneler, setNumuneler] = useState([]);
     const [talimatlar, setTalimatlar] = useState([]);
@@ -166,7 +167,7 @@ export default function ModelhaneSayfasi() {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                mesaj: `🚀 <b>NUMUNE ONAYLANDI! (M2 - MODELHANE)</b>\n\n👤 <b>Onaylayan:</b> ${onaylayanAd}\n👉 <i>Üretim için Dikim Talimatı ve Fason Videolarını sisteme yükleyebilirsiniz.</i>`
+                                mesaj: `✅ <b>NUMUNE ONAYLANDI! (M4 - MODELHANE)</b>\n\n👤 <b>Onaylayan:</b> ${onaylayanAd}\n👉 <i>Üretim için Dikim Talimatı ve Fason Videolarını sisteme yükleyebilirsiniz.</i>`
                             }),
                             signal: controller.signal
                         });
@@ -339,7 +340,7 @@ export default function ModelhaneSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#ef4444,#dc2626)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Camera size={24} color="white" />
                     </div>
                     <div>
@@ -348,7 +349,7 @@ export default function ModelhaneSayfasi() {
                     </div>
                 </div>
                 <button onClick={() => setFormAcik(!formAcik)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                     <Plus size={18} /> {sekme === 'numuneler' ? 'Yeni Numune' : 'Yeni Talimat'}
                 </button>
             </div>
@@ -371,9 +372,9 @@ export default function ModelhaneSayfasi() {
 
             {/* SEKMELER */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-                {[{ id: 'numuneler', tr: '🧵 Numune Kayıtları' }, { id: 'talimatlar', tr: '📋 Dikim Talimatları' }, { id: 'galeri', tr: '📷 Fotoğraf Galerisi' }].map(s => (
+                {[{ id: 'numuneler', tr: 'Numune Kayıtları' }, { id: 'talimatlar', tr: 'Dikim Talimatları' }, { id: 'galeri', tr: 'Fotoğraf Galerisi' }].map(s => (
                     <button key={s.id} onClick={() => { setSekme(s.id); setFormAcik(false); }}
-                        style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', borderColor: sekme === s.id ? '#ef4444' : '#e5e7eb', background: sekme === s.id ? '#ef4444' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
+                        style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', borderColor: sekme === s.id ? '#047857' : '#e5e7eb', background: sekme === s.id ? '#047857' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
                         {s.tr}
                     </button>
                 ))}
@@ -381,8 +382,8 @@ export default function ModelhaneSayfasi() {
 
             {/* NUMUNE FORMU */}
             {formAcik && sekme === 'numuneler' && (
-                <div style={{ background: 'white', border: '2px solid #ef4444', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontWeight: 800, color: '#991b1b', marginBottom: '1rem', fontSize: '1rem' }}>Yeni Numune</h3>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>Yeni Numune Kaydı</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
                         <div>
                             <label style={lbl}>Model *</label>
@@ -415,15 +416,15 @@ export default function ModelhaneSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => { setFormN(BOSH_NUMUNE); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydetNumune} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? '...' : 'Kaydet'}</button>
+                        <button onClick={kaydetNumune} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? '...' : 'Kaydet'}</button>
                     </div>
                 </div>
             )}
 
             {/* TALİMAT FORMU */}
             {formAcik && sekme === 'talimatlar' && (
-                <div style={{ background: 'white', border: '2px solid #ef4444', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontWeight: 800, color: '#991b1b', marginBottom: '1rem', fontSize: '1rem' }}>Yeni Dikim Talimatı</h3>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>Yeni Dikim Talimatı</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.875rem' }}>
                         <div>
                             <label style={lbl}>Onaylı Numune *</label>
@@ -477,7 +478,7 @@ export default function ModelhaneSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => { setFormT(BOSH_TALIMAT); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydetTalimat} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? '...' : 'Kaydet'}</button>
+                        <button onClick={kaydetTalimat} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? '...' : 'Kaydet'}</button>
                     </div>
                 </div>
             )}
@@ -524,7 +525,7 @@ export default function ModelhaneSayfasi() {
                             {/* FOTOĞRAF SATIRI */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
                                 <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>📷 {n.fotograflar?.length || 0} sayfa</span>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f3e8ff', color: '#6d28d9', border: '2px solid #6d28d9', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#ecfdf5', color: '#047857', border: '2px solid #047857', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>
                                     {fotYukleniyor ? 'Yükleniyor...' : '+ Fotoğraf Ekle'}
                                     <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                                         onChange={e => fotografYukle(n.id, e.target.files)}
@@ -591,7 +592,7 @@ export default function ModelhaneSayfasi() {
                                 {/* CC Kriteri Onarımı (İş Akış Zinciri) */}
                                 {videoVar && (
                                     <a href="/imalat" style={{ textDecoration: 'none', display: 'block', marginTop: '1rem' }}>
-                                        <button style={{ width: '100%', padding: '10px 14px', background: '#3b82f6', color: 'white', border: '1px solid #2563eb', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                        <button style={{ width: '100%', padding: '10px 14px', background: '#047857', color: 'white', border: '1px solid #065f46', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                                             🚀 Üretime / İmalata Geç (M3)
                                         </button>
                                     </a>
@@ -605,7 +606,7 @@ export default function ModelhaneSayfasi() {
             {/* FOTOĞRAF GALERİSİ SEKMESİ */}
             {sekme === 'galeri' && (
                 <div>
-                    <div style={{ background: 'linear-gradient(135deg,#ef4444,#b91c1c)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Camera size={22} color="white" />
                         <div>
                             <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>TEKNİK FÖY FOTOĞRAF ARŞİVİ</div>
@@ -620,9 +621,9 @@ export default function ModelhaneSayfasi() {
                     {/* Model Filtresi */}
                     {modeller.length > 0 && (
                         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                            <button onClick={() => setGaleridFiltre('hepsi')} style={{ padding: '5px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: galeridFiltre === 'hepsi' ? '#ef4444' : '#e5e7eb', background: galeridFiltre === 'hepsi' ? '#ef4444' : 'white', color: galeridFiltre === 'hepsi' ? 'white' : '#374151' }}>Tümü</button>
+                            <button onClick={() => setGaleridFiltre('hepsi')} style={{ padding: '5px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: galeridFiltre === 'hepsi' ? '#047857' : '#e5e7eb', background: galeridFiltre === 'hepsi' ? '#047857' : 'white', color: galeridFiltre === 'hepsi' ? 'white' : '#374151' }}>Tümü</button>
                             {modeller.map(m => (
-                                <button key={m.id} onClick={() => setGaleridFiltre(m.id)} style={{ padding: '5px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: galeridFiltre === m.id ? '#ef4444' : '#e5e7eb', background: galeridFiltre === m.id ? '#ef4444' : 'white', color: galeridFiltre === m.id ? 'white' : '#374151' }}>{m.model_kodu}</button>
+                                <button key={m.id} onClick={() => setGaleridFiltre(m.id)} style={{ padding: '5px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: galeridFiltre === m.id ? '#047857' : '#e5e7eb', background: galeridFiltre === m.id ? '#047857' : 'white', color: galeridFiltre === m.id ? 'white' : '#374151' }}>{m.model_kodu}</button>
                             ))}
                         </div>
                     )}
@@ -646,7 +647,7 @@ export default function ModelhaneSayfasi() {
                                             <span style={{ fontSize: '0.62rem', fontWeight: 700, background: n.onay_durumu === 'onaylandi' ? '#d1fae5' : '#fef3c7', color: n.onay_durumu === 'onaylandi' ? '#065f46' : '#92400e', padding: '2px 8px', borderRadius: 4 }}>{n.onay_durumu === 'onaylandi' ? '✅ Onaylı' : '⏳ Bekliyor'}</span>
                                             <span style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600 }}>{n.fotograflar?.length || 0} fotoğraf</span>
                                         </div>
-                                        <label style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <label style={{ background: '#047857', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <Camera size={13} /> Fotoğraf Ekle
                                             <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => fotografYukle(n.id, e.target.files)} />
                                         </label>
@@ -680,7 +681,7 @@ export default function ModelhaneSayfasi() {
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{fotGaleri.model} — {fotGaleri.fotograflar.length} sayfa</div>
                             </div>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <label style={{ background: '#6d28d9', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                                <label style={{ background: '#047857', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
                                     + Sayfa Ekle
                                     <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                                         onChange={e => fotografYukle(fotGaleri.numune_id, e.target.files)} />

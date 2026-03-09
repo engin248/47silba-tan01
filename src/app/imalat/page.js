@@ -4,10 +4,13 @@ import { Camera, FileText, CheckCircle2, PlaySquare, PlusCircle, Save, Trash2, E
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import { Lock } from 'lucide-react';
 
 export default function Birim1AnaKarargah() {
     const { kullanici } = useAuth();
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
 
     // 4 ANA PENCERE (DEPARTMAN) DEVLETİ
@@ -278,7 +281,7 @@ export default function Birim1AnaKarargah() {
 
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
                 <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
                 <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>M4 İmalat ve Bant verileri gizlidir. Görüntülemek için Üretim PİN girişi yapın.</p>

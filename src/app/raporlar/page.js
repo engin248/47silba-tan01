@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { PieChart, TrendingUp, Package, Users, ShoppingCart, DollarSign, BarChart2, Calendar, Filter, Download, RefreshCw, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const formatTarih = (iso) => { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('tr-TR'); };
 
@@ -23,6 +24,8 @@ const csvIndir = (baslik, satirlar, dosyaAdi) => {
 
 export default function RaporlarSayfasi() {
     const { kullanici } = useAuth();
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [aktifSekme, setAktifSekme] = useState('genel');
     const [baslangic, setBaslangic] = useState('');
@@ -44,15 +47,15 @@ export default function RaporlarSayfasi() {
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
-            
-        // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
-        const kanal = supabase.channel('islem-gercek-zamanli-ai')
-            .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
-            .subscribe();
-        
-        yukle();
 
-        return () => { supabase.removeChannel(kanal); };
+            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            const kanal = supabase.channel('islem-gercek-zamanli-ai')
+                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+                .subscribe();
+
+            yukle();
+
+            return () => { supabase.removeChannel(kanal); };
         }
     }, [baslangic, bitis, kullanici]);
 
@@ -170,7 +173,7 @@ export default function RaporlarSayfasi() {
 
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
                 <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
                 <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Tüm şirket raporları ve bilançoları Karargâh tarafından gizlenmiştir. Görüntülemek için Üretim PİN girişi zorunludur.</p>
@@ -183,7 +186,7 @@ export default function RaporlarSayfasi() {
             {/* Başlık + Tarih Filtresi */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#0f172a,#1e293b)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <PieChart size={24} color="white" />
                     </div>
                     <div>
@@ -237,8 +240,8 @@ export default function RaporlarSayfasi() {
                     </button>
                     {/* CC Kriteri Otomatik Rota (Karargaha Dönüş - Audit Zincirinin Sonu) */}
                     <a href="/" style={{ textDecoration: 'none', marginLeft: '0.5rem' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ef4444', color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
-                            🏠 Ana Karargâha Dön
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
+                            🏠 Ana Sayfaya Dön
                         </button>
                     </a>
                 </div>
@@ -248,7 +251,7 @@ export default function RaporlarSayfasi() {
             {/* Sekmeler */}
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.25rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
                 {SEKMELER.map(s => (
-                    <button key={s.id} onClick={() => setAktifSekme(s.id)} style={{ padding: '8px 18px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', borderColor: aktifSekme === s.id ? '#0f172a' : '#e5e7eb', background: aktifSekme === s.id ? '#0f172a' : 'white', color: aktifSekme === s.id ? 'white' : '#374151' }}>
+                    <button key={s.id} onClick={() => setAktifSekme(s.id)} style={{ padding: '8px 18px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', borderColor: aktifSekme === s.id ? '#047857' : '#e5e7eb', background: aktifSekme === s.id ? '#047857' : 'white', color: aktifSekme === s.id ? 'white' : '#374151' }}>
                         {s.label}
                     </button>
                 ))}
@@ -433,7 +436,7 @@ export default function RaporlarSayfasi() {
             {/* PERSONEL PERFORMANS */}
             {aktifSekme === 'personel' && (
                 <div>
-                    <div style={{ background: 'linear-gradient(135deg,#0369a1,#0284c7)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ fontSize: '1.8rem' }}>👷</div>
                         <div>
                             <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>PERSONEL PERFORMANS RAPORU</div>

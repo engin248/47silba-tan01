@@ -3,6 +3,7 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 import { Package, Plus, Search, ArrowUpRight, ArrowDownRight, AlertTriangle, ShieldAlert, Boxes, Database, Trash2, ArrowRightLeft } from 'lucide-react';
 
 const BOSH_HAREKET = { urun_id: '', hareket_tipi: 'giris', adet: '', aciklama: '' };
@@ -11,7 +12,7 @@ export default function StokDepoKarargahi() {
     const { kullanici, sayfaErisim } = useAuth();
     const erisim = sayfaErisim('/stok');
     const [mounted, setMounted] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
 
     // Tablolar
     const [stokEnvanteri, setStokEnvanteri] = useState([]);
@@ -191,27 +192,27 @@ export default function StokDepoKarargahi() {
             {/* BAŞLIK VE KÖPRÜ */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#4f46e5,#6366f1)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Boxes size={24} color="white" />
                     </div>
                     <div>
                         <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                            {isAR ? 'المستودع ومراقبة المخزون (M11)' : 'M11 DEPO VE STOK KARARGÂH'}
+                            {isAR ? 'إدارة المخزون (M11)' : 'Depo ve Stok Yönetimi (M11)'}
                         </h1>
                         <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
-                            {isAR ? 'إدارة المخزون المحمية ضد الانقطاع' : 'DDoS korumalı ve Çevrimdışı zırhlı tam denetimli depo yönetim ekranı.'}
+                            {isAR ? 'إدارة المخزون المحمية ضد الانقطاع' : 'Stok giriş, çıkış, iade ve fire kaydı.'}
                         </p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     {erisim === 'full' && (
                         <button onClick={() => { setFormAcik(!formAcik); setYeniHareket(BOSH_HAREKET); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#4f46e5', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
                             <Plus size={18} /> {isAR ? 'إضافة حركة جديدة' : 'Yeni Hareket (Giriş/Çıkış)'}
                         </button>
                     )}
                     <a href="/siparisler" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#0f172a', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             {isAR ? 'الطلبات (M10)' : 'Siparişler (M10)'}
                         </button>
                     </a>
@@ -233,11 +234,11 @@ export default function StokDepoKarargahi() {
             </div>
 
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #818cf8', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(79,70,229,0.08)', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 0, right: isAR ? 'auto' : 0, left: isAR ? 0 : 'auto', background: '#fbbf24', color: 'black', padding: '4px 12px', fontSize: '0.65rem', fontWeight: 900, borderBottomLeftRadius: isAR ? 0 : 18, borderBottomRightRadius: isAR ? 18 : 0, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        {isAR ? 'المنطقة المحمية أوفلاين' : 'Offline Zırhlı Bölge'}
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 0, right: isAR ? 'auto' : 0, left: isAR ? 0 : 'auto', background: '#d97706', color: 'white', padding: '4px 12px', fontSize: '0.65rem', fontWeight: 900, borderBottomLeftRadius: isAR ? 0 : 18, borderBottomRightRadius: isAR ? 18 : 0, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        {isAR ? 'منطقة ٙمنة أوفلاين' : 'Offline Zirhlı Bölge'}
                     </div>
-                    <h3 style={{ fontWeight: 900, color: '#3730a3', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <h3 style={{ fontWeight: 900, color: '#065f46', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <ArrowUpRight size={18} /> {isAR ? 'تسجيل إدخال / إخراج مستودع' : 'Yeni Merkez Girişi / Çıkışı Ekle'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -270,8 +271,8 @@ export default function StokDepoKarargahi() {
                         <button onClick={() => setFormAcik(false)} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: 'white', fontWeight: 800, cursor: 'pointer', color: '#475569' }}>
                             {isAR ? 'إلغاء' : 'İPTAL ET'}
                         </button>
-                        <button onClick={stokHareketiKaydet} disabled={loading} style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#4f46e5', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer' }}>
-                            {loading ? '...' : (isAR ? 'حفظ في المستودع' : 'DEPOYA MÜHÜRLE')}
+                        <button onClick={stokHareketiKaydet} disabled={loading} style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
+                            {loading ? '...' : (isAR ? 'حفظ في المستودع' : 'Kaydet')}
                         </button>
                     </div>
                 </div>

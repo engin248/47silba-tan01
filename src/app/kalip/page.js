@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { BookOpen, Plus, CheckCircle2, AlertTriangle, Ruler, Layers, ChevronRight, Trash2, Tag, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const HEDEF_KITLE = ['kadin', 'erkek', 'cocuk', 'unisex'];
@@ -15,7 +16,7 @@ const BOSH_KALIP = { model_id: '', kalip_adi: '', bedenler: ['S', 'M', 'L', 'XL'
 export default function KalipSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [sekme, setSekme] = useState('modeller'); // modeller | kaliplar
     const [modeller, setModeller] = useState([]);
     const [kaliplar, setKaliplar] = useState([]);

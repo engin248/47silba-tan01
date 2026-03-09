@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { TRANSLATIONS as TX } from '@/lib/lang';
 import { useAuth } from '@/lib/auth';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { useLang } from '@/lib/langContext';
 
 // =========================================================================
 // M1: AR-GE & TREND ARAŞTIRMASI
@@ -35,7 +36,7 @@ const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: '
 export default function ArgeSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const t = TX[lang];
     const isAR = lang === 'ar';
     const formatTarih = (iso) => { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); };
@@ -55,17 +56,8 @@ export default function ArgeSayfasi() {
     const [aiSonuclar, setAiSonuclar] = useState(null);
     const [aiPanelAcik, setAiPanelAcik] = useState(false);
 
-    // Dil bilgisini parent layout'tan al
-    useEffect(() => {
-        const el = document.querySelector('[data-lang]');
-        if (el) setLang(el.getAttribute('data-lang') || 'tr');
-        const obs = new MutationObserver(() => {
-            const updated = document.querySelector('[data-lang]');
-            if (updated) setLang(updated.getAttribute('data-lang') || 'tr');
-        });
-        if (el) obs.observe(el, { attributes: true });
-        return () => obs.disconnect();
-    }, []);
+    // Dil Context'ten geliyor — MutationObserver gerekmez
+
 
     useEffect(() => {
         // GÜÇLENDİRİLDİ: Karargâh ile Eşzamanlı SessionStorage ve Base64 Şifre Çözücü Mimarisine geçildi.

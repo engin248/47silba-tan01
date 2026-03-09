@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DollarSign, Lock, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Clock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const HAREKET_TIPLERI = ['tahsilat', 'iade_odeme', 'cek', 'senet', 'avans', 'diger'];
 const ODEME_YONTEMLERI = ['nakit', 'eft', 'kredi_karti', 'cek', 'senet', 'diger'];
@@ -26,6 +27,8 @@ const TIP_ICON = {
 
 export default function KasaSayfasi() {
     const { kullanici } = useAuth();
+    const { lang } = useLang();
+    const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [hareketler, setHareketler] = useState([]);
     const [musteriler, setMusteriler] = useState([]);
@@ -170,7 +173,7 @@ export default function KasaSayfasi() {
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) return (
-        <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: 16, margin: '2rem' }}>
+        <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: 16, margin: '2rem' }}>
             <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
             <h2 style={{ color: '#b91c1c', fontWeight: 900 }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
             <p style={{ color: '#7f1d1d', fontWeight: 600 }}>Kasa & Finans verileri gizlidir. Üretim PİN girişi zorunludur.</p>
@@ -186,8 +189,8 @@ export default function KasaSayfasi() {
                         <DollarSign size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Kasa & Finans</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Tahsilat → Onay → Bakiye → Çek/Senet Takibi</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'الصندوق والمالية' : 'Kasa & Finans'}</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'التحصيل → الموافقة → الرصيد → متابعة الشيكات' : 'Tahsilat → Onay → Bakiye → Çek/Senet Takibi'}</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

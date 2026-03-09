@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Search, Award, Clock, TrendingUp, Trash2, AlertCircle, CheckCircle2, Star, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useLang } from '@/lib/langContext';
 
 const ROLLER = ['duz_makinaci', 'overlokcu', 'resmeci', 'kesimci', 'utucu', 'paketci', 'ustabasi', 'koordinator', 'muhasebeci', 'depocu'];
 const ROL_LABEL = {
@@ -25,7 +26,7 @@ const BOSH_FORM = {
 export default function PersonelSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [lang, setLang] = useState('tr');
+    const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [personeller, setPersoneller] = useState([]);
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
@@ -383,7 +384,7 @@ export default function PersonelSayfasi() {
             {/* BAŞLIK */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#0369a1,#0284c7)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Users size={24} color="white" />
                     </div>
                     <div>
@@ -396,11 +397,11 @@ export default function PersonelSayfasi() {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => setSekme('liste')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'liste' ? '#0369a1' : '#e5e7eb', background: sekme === 'liste' ? '#0369a1' : 'white', color: sekme === 'liste' ? 'white' : '#374151' }}>👥 Personel</button>
+                    <button onClick={() => setSekme('liste')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'liste' ? '#047857' : '#e5e7eb', background: sekme === 'liste' ? '#047857' : 'white', color: sekme === 'liste' ? 'white' : '#374151' }}>👥 Personel</button>
                     <button onClick={() => setSekme('devam')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'devam' ? '#f59e0b' : '#e5e7eb', background: sekme === 'devam' ? '#f59e0b' : 'white', color: sekme === 'devam' ? 'white' : '#374151' }}>📅 Devam</button>
                     <button onClick={() => setSekme('prim')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'prim' ? '#059669' : '#e5e7eb', background: sekme === 'prim' ? '#059669' : 'white', color: sekme === 'prim' ? 'white' : '#374151' }}>💰 Prim</button>
                     {sekme === 'liste' && <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(!formAcik); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0369a1', color: 'white', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(3,105,161,0.4)', fontSize: '0.85rem' }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#047857', color: 'white', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)', fontSize: '0.85rem' }}>
                         <Plus size={16} /> {isAR ? 'موظف جديد' : 'Yeni Personel'}
                     </button>}
                     {sekme === 'devam' && <button onClick={() => { setDevamFormAcik(!devamFormAcik); setDevamDuzenleId(null); }}
@@ -408,8 +409,8 @@ export default function PersonelSayfasi() {
                         <Plus size={16} /> Devam Ekle
                     </button>}
                     <a href="/muhasebe" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#10b981', color: 'white', border: 'none', padding: '10px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
-                            📊 M9 Gider
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#d97706', color: 'white', border: 'none', padding: '10px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
+                            📊 M8 Muhasebe
                         </button>
                     </a>
                 </div>
@@ -418,10 +419,10 @@ export default function PersonelSayfasi() {
             {/* İSTATİSTİKLER */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 {[
-                    { label: 'Toplam Personel', val: personeller.length, color: '#0369a1', bg: '#f0f9ff' },
-                    { label: '✅ Aktif', val: aktifSayisi, color: '#10b981', bg: '#ecfdf5' },
+                    { label: 'Toplam Personel', val: personeller.length, color: '#047857', bg: '#ecfdf5' },
+                    { label: '✅ Aktif', val: aktifSayisi, color: '#10b981', bg: '#f0fdf4' },
                     { label: '🏖️ İzinli', val: personeller.filter(p => p.durum === 'izinli').length, color: '#f59e0b', bg: '#fffbeb' },
-                    { label: 'Günlük Maaş', val: `₺${toplamUcretGun.toFixed(0)}`, color: '#7c3aed', bg: '#f5f3ff' },
+                    { label: 'Günlük Maaş', val: `₺${toplamUcretGun.toFixed(0)}`, color: '#D4AF37', bg: '#fffbeb' },
                 ].map((s, i) => (
                     <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                         <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
@@ -439,8 +440,8 @@ export default function PersonelSayfasi() {
 
             {/* FORM */}
             {formAcik && (
-                <div style={{ background: 'white', border: '2px solid #0369a1', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(3,105,161,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#0c4a6e', marginBottom: '1rem', fontSize: '1rem' }}>
+                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.08)' }}>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>
                         {duzenleId ? '✏️ Personel Düzenle' : '👤 Yeni Personel Ekle'}
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.875rem' }}>
@@ -506,7 +507,7 @@ export default function PersonelSayfasi() {
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: '1rem' }}>
                         <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#0369a1', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
                             {loading ? '...' : (duzenleId ? 'Güncelle' : 'Kaydet')}
                         </button>
                     </div>
@@ -520,9 +521,9 @@ export default function PersonelSayfasi() {
                         <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                         <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)} placeholder="Ad veya kod ara..." style={{ ...inp, paddingLeft: 32 }} />
                     </div>
-                    <button onClick={() => setFiltreRol('hepsi')} style={{ padding: '7px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', borderColor: filtreRol === 'hepsi' ? '#0369a1' : '#e5e7eb', background: filtreRol === 'hepsi' ? '#0369a1' : 'white', color: filtreRol === 'hepsi' ? 'white' : '#374151' }}>Tümü</button>
+                    <button onClick={() => setFiltreRol('hepsi')} style={{ padding: '7px 14px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', borderColor: filtreRol === 'hepsi' ? '#047857' : '#e5e7eb', background: filtreRol === 'hepsi' ? '#047857' : 'white', color: filtreRol === 'hepsi' ? 'white' : '#374151' }}>Tümü</button>
                     {ROLLER.map(r => (
-                        <button key={r} onClick={() => setFiltreRol(r)} style={{ padding: '7px 12px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem', borderColor: filtreRol === r ? '#0369a1' : '#e5e7eb', background: filtreRol === r ? '#0369a1' : 'white', color: filtreRol === r ? 'white' : '#374151' }}>
+                        <button key={r} onClick={() => setFiltreRol(r)} style={{ padding: '7px 12px', border: '2px solid', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem', borderColor: filtreRol === r ? '#047857' : '#e5e7eb', background: filtreRol === r ? '#047857' : 'white', color: filtreRol === r ? 'white' : '#374151' }}>
                             {ROL_LABEL[r]}
                         </button>
                     ))}
