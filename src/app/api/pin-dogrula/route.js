@@ -43,10 +43,14 @@ export async function POST(request) {
         return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
     }
 
+    const coordPin = process.env.COORDINATOR_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
+    const uretimPin = process.env.URETIM_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
+    const genelPin = process.env.GENEL_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
+
     const PINLER = {
-        [process.env.COORDINATOR_PIN?.trim() || '4747']: 'tam',
-        [process.env.URETIM_PIN?.trim() || '1244']: 'uretim',
-        [process.env.GENEL_PIN?.trim() || '8888']: 'genel',
+        [coordPin || '4747']: 'tam',
+        [uretimPin || '1244']: 'uretim',
+        [genelPin || '8888']: 'genel',
     };
 
     const grup = PINLER[pin] || null;
