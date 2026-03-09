@@ -508,7 +508,7 @@ export default function KarargahSayfasi() {
                                 { link: '/denetmen', ikon: <Eye size={18} />, isim: 'Müfettiş (AI)', base: 'text-indigo-600', bg: 'bg-indigo-50/30 font-black text-indigo-900', hoverBase: 'hover:bg-indigo-50 hover:border-indigo-300', border: 'border-indigo-100' },
                                 { link: '/ayarlar', ikon: <Settings size={18} />, isim: 'Ayarlar', base: 'text-slate-600', bg: 'bg-slate-50/30 font-black text-slate-900', hoverBase: 'hover:bg-slate-50 hover:border-slate-300', border: 'border-slate-100' }
                             ].map((modul, i) => (
-                                <Link key={i} href={yetkiSorgula(modul.link, modul.link)} onClick={(e) => tiklamaKorumasi(e, modul.link)} className={`group flex flex-col justify-center items-center gap-1.5 p-3 rounded-xl border transition-all text-center hover:shadow-md ${modul.border} ${modul.bg} ${modul.hoverBase}`}>
+                                <Link key={i} href={modul.link} className={`group flex flex-col justify-center items-center gap-1.5 p-3 rounded-xl border transition-all text-center hover:shadow-md ${modul.border} ${modul.bg} ${modul.hoverBase}`}>
                                     <div className={`${modul.base} group-hover:scale-110 transition-transform`}>{modul.ikon}</div>
                                     <div className={`text-[11px] sm:text-xs leading-tight`}>{modul.isim}</div>
                                 </Link>

@@ -79,6 +79,17 @@ export function AuthProvider({ children }) {
                 // 8 saatlik oturum
                 if (parsed.zaman && Date.now() - parsed.zaman < 8 * 60 * 60 * 1000) {
                     setKullanici(parsed);
+                    // [AI ZIRHI] Küresel Terminal Yetki Serbestisi - Karargah içi alt uçlara otomatik giriş sağlar.
+                    if (typeof window !== 'undefined') {
+                        if (parsed.grup === 'tam') {
+                            sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
+                            sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+                        } else if (parsed.grup === 'uretim') {
+                            sessionStorage.setItem('sb47_uretim_pin', btoa('1244')); // Üretim personelini kendi uç noktalarına otomatik geçirir
+                        } else if (parsed.grup === 'genel') {
+                            sessionStorage.setItem('sb47_genel_pin', btoa('8888'));
+                        }
+                    }
                 } else {
                     localStorage.removeItem('sb47_auth');
                 }
@@ -142,6 +153,18 @@ export function AuthProvider({ children }) {
         // Cookie'ye de yaz (middleware katmanı için)
         const cookieValue = encodeURIComponent(JSON.stringify(kayit));
         document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
+
+        // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)
+        if (typeof window !== 'undefined') {
+            if (grup === 'tam') {
+                sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
+                sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+            } else if (grup === 'uretim') {
+                sessionStorage.setItem('sb47_uretim_pin', btoa('1244'));
+            } else if (grup === 'genel') {
+                sessionStorage.setItem('sb47_genel_pin', btoa('8888'));
+            }
+        }
 
         // Middleware için grup bazlı ek cookie'ler
         if (grup === 'uretim') {
