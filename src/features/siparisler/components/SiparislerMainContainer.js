@@ -166,7 +166,7 @@ export default function SiparislerSayfasi() {
 
     const durumGuncelle = async (id, durum, ekstraBilgi = {}) => {
         try {
-            // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli (Aynı durumu çift kaydetmeyi ve çift stok düşmeyi önler)
+            // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli
             const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum').eq('id', id).single();
             if (mevcutSiparis && mevcutSiparis.durum === durum) {
                 return goster(`⚠️ Sipariş zaten "${DURUM_LABEL[durum] || durum}" durumunda! Mükerrer işlem engellendi.`, 'error');
@@ -175,32 +175,55 @@ export default function SiparislerSayfasi() {
             const { error } = await supabase.from('b2_siparisler').update({ durum, ...ekstraBilgi }).eq('id', id);
             if (error) throw error;
 
-            // Teslim olunca stoktan düş
-            if (durum === 'teslim') {
+            // ✅ [KRİTİK DÜZELTME #1] Onaylandi durumunda stok otomatik düşür (Rezervasyon)
+            if (durum === 'onaylandi') {
                 const { data: kalemler, error: kErr } = await supabase.from('b2_siparis_kalemleri').select('urun_id, adet').eq('siparis_id', id);
                 if (kErr) throw kErr;
                 for (const k of (kalemler || [])) {
-                    // Stok hareketi kaydet
                     await supabase.from('b2_stok_hareketleri').insert([{
-                        urun_id: k.urun_id, hareket_tipi: 'cikis', adet: k.adet, aciklama: `Sipariş teslimi (ID: ${id})`,
+                        urun_id: k.urun_id, hareket_tipi: 'cikis', adet: k.adet,
+                        aciklama: `Sipariş onayı - stok rezervasyonu (Sipariş ID: ${id})`,
                     }]);
-                    // Stok adedini düşür
                     const { data: urun } = await supabase.from('b2_urun_katalogu').select('urun_adi, urun_kodu, stok_adeti, min_stok').eq('id', k.urun_id).single();
                     if (urun) {
                         const yeniStok = Math.max(0, (urun.stok_adeti || 0) - k.adet);
                         await supabase.from('b2_urun_katalogu').update({ stok_adeti: yeniStok }).eq('id', k.urun_id);
-
-                        // [MADDE 94 Otonom "Düşük Stok" Alarmı]
                         if (yeniStok <= (urun.min_stok || 10)) {
-                            telegramBildirim(`🚨 KRİTİK STOK DÜŞÜŞÜ!\nÜrün: ${urun.urun_kodu} | ${urun.urun_adi}\nKalan Stok: ${yeniStok} adet\nSınır: ${urun.min_stok || 10}\nAcil üretim veya tedarik bildirimi!`);
+                            telegramBildirim(`🚨 KRİTİK STOK!\nÜrün: ${urun.urun_kodu} | ${urun.urun_adi}\nKalan: ${yeniStok} adet (Rezerve edildi)\nSınır: ${urun.min_stok || 10} — Acil tedarik!`);
                         }
                     }
                 }
-                goster('✅ Sipariş teslim edildi. Stoklar otomatik düşüldü.');
-                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${id}\nStok Ciro işlemi yapıldı.`);
+                goster('✅ Sipariş onaylandı. Stoklar otomatik rezerve edildi (düşüldü).');
+                telegramBildirim(`✅ SİPARİŞ ONAYLANDI!\nSipariş ID: ${id}\nStok rezervasyonu yapıldı.`);
+
+                // Teslim olunca — stok zaten onaylandi'da düşüldü, tekrar düşme
+            } else if (durum === 'teslim') {
+                goster('🎉 Sipariş teslim edildi.');
+                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${id}`);
+
             } else if (durum === 'kargoda') {
                 goster('🚚 Kargoya verildi.');
                 telegramBildirim(`🚚 SİPARİŞ KARGOYA VERİLDİ!\nSipariş ID: ${id}\nTakip: ${ekstraBilgi.kargo_takip_no || 'Belirtilmedi'}`);
+
+                // ✅ [KRİTİK DÜZELTME #1 - İPTAL/İADE] Stok geri ekle
+            } else if (durum === 'iptal' || durum === 'iade') {
+                const oncekiDurum = mevcutSiparis?.durum;
+                if (['onaylandi', 'hazirlaniyor', 'kargoda'].includes(oncekiDurum)) {
+                    const { data: kalemler } = await supabase.from('b2_siparis_kalemleri').select('urun_id, adet').eq('siparis_id', id);
+                    for (const k of (kalemler || [])) {
+                        await supabase.from('b2_stok_hareketleri').insert([{
+                            urun_id: k.urun_id, hareket_tipi: 'iade', adet: k.adet,
+                            aciklama: `Sipariş ${durum} - stok iadesi (Sipariş ID: ${id})`,
+                        }]);
+                        const { data: urun } = await supabase.from('b2_urun_katalogu').select('stok_adeti').eq('id', k.urun_id).single();
+                        if (urun) {
+                            await supabase.from('b2_urun_katalogu').update({ stok_adeti: (urun.stok_adeti || 0) + k.adet }).eq('id', k.urun_id);
+                        }
+                    }
+                    goster(`↩️ Sipariş ${durum === 'iptal' ? 'iptal edildi' : 'iade alındı'}. Stoklar geri eklendi.`);
+                } else {
+                    goster(`Durum güncellendi: ${DURUM_LABEL[durum] || durum}`);
+                }
             } else {
                 goster('Durum güncellendi.');
             }
