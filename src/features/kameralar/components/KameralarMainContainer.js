@@ -12,17 +12,21 @@ import { supabase } from '@/lib/supabase';
 import { telegramBildirim, formatTarih } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';
 
-// Varsayılan kameralar (DB'den gelene kadar veya tablo yoksa)
+// ── NVR Gerçek Kamera Listesi (Neutron NEU-NVR116-SHD @ 192.168.1.200) ──
+// RTSP: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c{n}/s{0=main,1=sub}/live
 const VARSAYILAN_KAMERALAR = [
-    { id: 1, name: 'Kesim Masası A', src: 'cam_1', role: 'processing', status: 'online', work_center: 'Kesimhane' },
-    { id: 2, name: 'Dikim Bandı 1', src: 'cam_2', role: 'processing', status: 'online', work_center: 'İmalat' },
-    { id: 3, name: 'Dikim Bandı 2', src: 'cam_3', role: 'processing', status: 'online', work_center: 'İmalat' },
-    { id: 4, name: 'Kalite Kontrol', src: 'cam_4', role: 'qa', status: 'online', work_center: 'KK Birimi' },
-    { id: 5, name: 'Ütü & Paketleme', src: 'cam_5', role: 'qa', status: 'online', work_center: 'KK Birimi' },
-    { id: 6, name: 'Kumaş Deposu', src: 'cam_6', role: 'storage', status: 'online', work_center: 'Depo' },
-    { id: 7, name: 'Yükleme Alanı', src: 'cam_7', role: 'storage', status: 'online', work_center: 'Depo' },
-    { id: 8, name: 'Koridor 1', src: 'cam_8', role: 'security', status: 'online', work_center: 'Güvenlik' },
-    { id: 9, name: 'Ana Giriş', src: 'cam_9', role: 'security', status: 'online', work_center: 'Güvenlik' },
+    { id: 1, nvr_kanal: 'D1', name: 'Ana Giriş', src: 'd1', role: 'security', status: 'offline', work_center: 'Güvenlik', ip: '192.168.1.201' },
+    { id: 2, nvr_kanal: 'D2', name: 'Kesim Masası A', src: 'd2', role: 'processing', status: 'online', work_center: 'Kesimhane', ip: '192.168.1.202' },
+    { id: 3, nvr_kanal: 'D3', name: 'Dikim Bandı 1', src: 'd3', role: 'processing', status: 'online', work_center: 'İmalat', ip: '192.168.1.203' },
+    { id: 4, nvr_kanal: 'D4', name: 'Dikim Bandı 2', src: 'd4', role: 'processing', status: 'online', work_center: 'İmalat', ip: '192.168.1.204' },
+    { id: 5, nvr_kanal: 'D5', name: 'Kalite Kontrol', src: 'd5', role: 'qa', status: 'online', work_center: 'KK Birimi', ip: '192.168.1.205' },
+    { id: 6, nvr_kanal: 'D6', name: 'Ütü & Paketleme', src: 'd6', role: 'qa', status: 'online', work_center: 'KK Birimi', ip: '192.168.1.206' },
+    { id: 7, nvr_kanal: 'D7', name: 'Kumaş Deposu', src: 'd7', role: 'storage', status: 'online', work_center: 'Depo', ip: '192.168.1.207' },
+    { id: 8, nvr_kanal: 'D8', name: 'Yükleme Alanı', src: 'd8', role: 'storage', status: 'online', work_center: 'Depo', ip: '192.168.1.208' },
+    { id: 9, nvr_kanal: 'D9', name: 'Üretim Koridoru', src: 'd9', role: 'security', status: 'online', work_center: 'Güvenlik', ip: '192.168.1.209' },
+    { id: 10, nvr_kanal: 'D10', name: 'Depo Girişi', src: 'd10', role: 'storage', status: 'online', work_center: 'Depo', ip: '192.168.1.210' },
+    { id: 11, nvr_kanal: 'D11', name: 'Makine Alanı', src: 'd11', role: 'processing', status: 'online', work_center: 'İmalat', ip: '192.168.1.211' },
+    { id: 12, nvr_kanal: 'D12', name: 'Ofis / Yönetim', src: 'd12', role: 'security', status: 'online', work_center: 'Güvenlik', ip: '192.168.1.212' },
 ];
 
 const ROL_ETİKET = {
@@ -295,7 +299,7 @@ export default function KameralarMainContainer() {
                         </div>
                     </div>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: 'black' }}>
-                        <CameraPlayer src={`${odakliKamera.src}_main`} type="main" />
+                        <CameraPlayer src={odakliKamera.src} type="main" kameraAdi={odakliKamera.name} offline={odakliKamera.status === 'offline'} />
                     </div>
                 </div>
             )}
@@ -341,7 +345,7 @@ export default function KameralarMainContainer() {
                             {/* Video Alanı */}
                             <div style={{ width: '100%', aspectRatio: '16/9', background: '#020617', position: 'relative' }}>
                                 {(!odakliKamera || odakliKamera.id !== kam.id) ? (
-                                    <CameraPlayer src={`${kam.src}_sub`} type="sub" />
+                                    <CameraPlayer src={kam.src} type="sub" kameraAdi={kam.name} offline={kam.status === 'offline'} />
                                 ) : (
                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8', fontWeight: 800, fontSize: '0.8rem', gap: 6 }}>
                                         <Video size={16} /> TAM EKRANDA AÇIK

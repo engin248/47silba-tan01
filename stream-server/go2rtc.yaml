@@ -1,0 +1,63 @@
+version: "2"
+
+# ─── Neutron NEU-NVR116-SHD @ 192.168.1.200 ───────────────────────────────
+# 12 Kanal IP Kamera Sistemi
+# Ana Stream (s0): 1080p/2K @ 25fps — Odak görüntüsü için
+# Alt Stream (s1): 360p @ 10fps — Grid izleme için
+# go2rtc başlatma: ./go2rtc -config go2rtc.yaml
+# Web arayüzü: http://localhost:1984
+
+rtsp:
+  disable_auth: true
+
+api:
+  origin: "*"
+
+streams:
+  # ── D1: Ana Giriş (OFFLINE) ─────────────────────────────────────────────
+  d1_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c1/s0/live
+  d1_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c1/s1/live
+
+  # ── D2: Kesim Masası A ───────────────────────────────────────────────────
+  d2_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c2/s0/live
+  d2_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c2/s1/live
+
+  # ── D3: Dikim Bandı 1 ────────────────────────────────────────────────────
+  d3_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c3/s0/live
+  d3_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c3/s1/live
+
+  # ── D4: Dikim Bandı 2 ────────────────────────────────────────────────────
+  d4_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c4/s0/live
+  d4_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c4/s1/live
+
+  # ── D5: Kalite Kontrol ────────────────────────────────────────────────────
+  d5_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c5/s0/live
+  d5_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c5/s1/live
+
+  # ── D6: Ütü & Paketleme ──────────────────────────────────────────────────
+  d6_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c6/s0/live
+  d6_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c6/s1/live
+
+  # ── D7: Kumaş Deposu ─────────────────────────────────────────────────────
+  d7_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c7/s0/live
+  d7_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c7/s1/live
+
+  # ── D8: Yükleme Alanı ────────────────────────────────────────────────────
+  d8_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c8/s0/live
+  d8_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c8/s1/live
+
+  # ── D9: Üretim Koridoru ──────────────────────────────────────────────────
+  d9_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c9/s0/live
+  d9_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c9/s1/live
+
+  # ── D10: Depo Girişi ─────────────────────────────────────────────────────
+  d10_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c10/s0/live
+  d10_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c10/s1/live
+
+  # ── D11: Makine Alanı ────────────────────────────────────────────────────
+  d11_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c11/s0/live
+  d11_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c11/s1/live
+
+  # ── D12: Ofis / Yönetim ──────────────────────────────────────────────────
+  d12_main: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c12/s0/live
+  d12_sub:  rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c12/s1/live
