@@ -87,6 +87,7 @@ export const siparisSchema = z.object({
     kanal: z.enum(['trendyol', 'amazon', 'magaza', 'toptan', 'diger']),
     notlar: z.string().max(300).optional().nullable(),
     acil: z.boolean().default(false),
+    para_birimi: z.enum(['TL', 'USD', 'EUR']).default('TL'),
     toplam_tutar_tl: z.number().nonnegative().default(0),
 });
 
@@ -119,6 +120,8 @@ export const musteriSchema = z.object({
     telefon: z.string().max(20).optional().nullable(),
     email: z.string().email("Geçerli e-posta giriniz").optional().nullable().or(z.literal('')),
     adres: z.string().max(500).optional().nullable(),
+    ulke: z.string().max(100).default('Türkiye'),
+    bolge_sehir: z.string().max(100).optional().nullable(),
     musteri_tipi: z.enum(['bireysel', 'kurumsal', 'toptan']).default('bireysel'),
     aktif: z.boolean().default(true),
     notlar: z.string().max(500).optional().nullable(),
@@ -128,7 +131,7 @@ export const musteriSchema = z.object({
 export const stokHareketiSchema = z.object({
     urun_id: z.string().uuid("Ürün seçilmeli"),
     hareket_tipi: z.enum(['giris', 'cikis', 'sayim', 'iade', 'fire']),
-    miktar: z.number().int().positive("Miktar en az 1 olmalı"),
+    adet: z.number().int().positive("Adet en az 1 olmalı"),
     aciklama: z.string().max(300).optional().nullable(),
     referans_no: z.string().max(50).optional().nullable(),
 });

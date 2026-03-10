@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 import './globals.css';
 import {
     LayoutDashboard, Scissors, Activity, FileSearch, Settings, Users, Bot,
     Layers, Cpu, BookOpen, TrendingUp, ShoppingBag, ShoppingCart, Package,
-    Wallet, UserCheck, BarChart3, Shield, ClipboardList, PieChart, LogOut, Zap
+    Wallet, UserCheck, BarChart3, Shield, ClipboardList, PieChart, LogOut, Zap, Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -12,6 +12,10 @@ import { AuthProvider, useAuth, ERISIM_MATRISI } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { bekleyenleriGetir, offlineSenkronizasyonuBaslat } from '@/lib/offlineKuyruk';
 import { LangProvider, useLang } from '@/lib/langContext';
+import { YetkiProvider } from '@/lib/yetki';
+import { TasarimProvider } from '@/lib/TasarimContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import BildirimZili from '@/lib/components/ui/BildirimZili';
 
 // ─── NAV YAPISI ───────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -30,6 +34,7 @@ const NAV_ITEMS = [
     { href: '/siparisler', icon: ShoppingCart, labelTR: 'Siparişler', labelAR: 'إدارة الطلبات', badge: 'M10', group: 'birim2' },
     { href: '/stok', icon: Package, labelTR: 'Stok & Sevkiyat', labelAR: 'الجرد والشحن', badge: 'M11', group: 'birim2' },
     { href: '/kasa', icon: Wallet, labelTR: 'Kasa & Tahsilat', labelAR: 'الصندوق والتحصيل', badge: 'M12', group: 'birim2' },
+    { href: '/kameralar', icon: Camera, labelTR: 'Kameralar (AI)', labelAR: 'الكاميرات', badge: 'M18', group: 'birim2' },
     // YÖNETİM
     { href: '/musteriler', icon: UserCheck, labelTR: 'Müşteri CRM', labelAR: 'إدارة العملاء', badge: 'M13', group: 'yonetim' },
     { href: '/personel', icon: Users, labelTR: 'Personel & Prim', labelAR: 'الموظفون', badge: 'M14', group: 'yonetim' },
@@ -169,10 +174,10 @@ function LayoutInner({ children }) {
         window.addEventListener('online', onOnline);
         window.addEventListener('offline', onOffline);
 
-        // ─── PWA SERVICE WORKER ───
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .catch(err => console.error('PWA SW Hata:', err));
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('[SW] Kayitli'))
+                .catch(err => console.error('[SW] Hata:', err));
         }
 
         return () => {
@@ -279,7 +284,7 @@ function LayoutInner({ children }) {
                             {/* ÖLÜ ALAN TEMİZLENDİ (AR-GE İMALAT MAĞAZA vb. MENÜ METİNLERİ KALDIRILDI) */}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                         {!internetVar ? (
                             <span className="badge badge-warning" style={{ background: '#fef3c7', color: '#b45309' }}>
                                 ⚡ {bekleyenIslemAdeti > 0 ? `${bekleyenIslemAdeti} Bekliyor` : 'Çevrimdışı'}
@@ -289,6 +294,7 @@ function LayoutInner({ children }) {
                                 {isAR ? 'النظام نشط' : 'Sistem Aktif'}
                             </span>
                         )}
+                        <BildirimZili />
                         <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
                             {kullanici?.gosterge} {kullanici?.label}
                         </span>
@@ -333,10 +339,18 @@ function LayoutInner({ children }) {
 // ─── ANA EXPORT: CLIENT LAYOUT SARMALAYICI ────────────────────
 export default function ClientLayout({ children }) {
     return (
-        <AuthProvider>
-            <LangProvider>
-                <LayoutInner>{children}</LayoutInner>
-            </LangProvider>
-        </AuthProvider>
+        <ErrorBoundary modulAd="Uygulama Çekirdeği">
+            <AuthProvider>
+                <YetkiProvider>
+                    <TasarimProvider>
+                        <LangProvider>
+                            <ErrorBoundary modulAd="Ana Layout">
+                                <LayoutInner>{children}</LayoutInner>
+                            </ErrorBoundary>
+                        </LangProvider>
+                    </TasarimProvider>
+                </YetkiProvider>
+            </AuthProvider>
+        </ErrorBoundary>
     );
 }

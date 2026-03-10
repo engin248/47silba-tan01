@@ -77,17 +77,19 @@ export function AuthProvider({ children }) {
             if (kayit) {
                 const parsed = JSON.parse(kayit);
                 // 8 saatlik oturum
-                if (parsed.zaman && Date.now() - parsed.zaman < 8 * 60 * 60 * 1000) {
+                if (parsed.zaman && Date.now() - parsed.zaman < 4 * 60 * 60 * 1000) { // [S-05] 8h → 4h
                     setKullanici(parsed);
                     // [AI ZIRHI] Küresel Terminal Yetki Serbestisi - Karargah içi alt uçlara otomatik giriş sağlar.
                     if (typeof window !== 'undefined') {
+                        const _uPin = process.env.NEXT_PUBLIC_URETIM_PIN || 'uretim';
+                        const _gPin = process.env.NEXT_PUBLIC_GENEL_PIN || 'genel';
                         if (parsed.grup === 'tam') {
-                            sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
-                            sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+                            sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
+                            sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
                         } else if (parsed.grup === 'uretim') {
-                            sessionStorage.setItem('sb47_uretim_pin', btoa('1244')); // Üretim personelini kendi uç noktalarına otomatik geçirir
+                            sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
                         } else if (parsed.grup === 'genel') {
-                            sessionStorage.setItem('sb47_genel_pin', btoa('8888'));
+                            sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
                         }
                     }
                 } else {
@@ -108,6 +110,7 @@ export function AuthProvider({ children }) {
 
         // ─── SERVER-SIDE PIN DOĞRULAMA ────────────────────────────────────
         let grup = null;
+        let veri = null; // B-01 FIX: try dışında tanımla — scope hatası giderildi
         try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 8000);
@@ -119,7 +122,7 @@ export function AuthProvider({ children }) {
             });
             clearTimeout(timeout);
             if (res.ok) {
-                const veri = await res.json();
+                veri = await res.json(); // artık dış scope'a atanıyor
                 grup = veri.grup || null;
             }
         } catch {
@@ -154,15 +157,23 @@ export function AuthProvider({ children }) {
         const cookieValue = encodeURIComponent(JSON.stringify(kayit));
         document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
 
+        // JWT Token cookie'ye yaz (middleware JWT doğrulaması için)
+        if (veri.token) {
+            document.cookie = `sb47_jwt_token=${veri.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
+        }
+
+
         // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)
         if (typeof window !== 'undefined') {
+            const _uPin = process.env.NEXT_PUBLIC_URETIM_PIN || 'uretim';
+            const _gPin = process.env.NEXT_PUBLIC_GENEL_PIN || 'genel';
             if (grup === 'tam') {
-                sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
-                sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+                sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
+                sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
             } else if (grup === 'uretim') {
-                sessionStorage.setItem('sb47_uretim_pin', btoa('1244'));
+                sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
             } else if (grup === 'genel') {
-                sessionStorage.setItem('sb47_genel_pin', btoa('8888'));
+                sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
             }
         }
 
@@ -190,6 +201,7 @@ export function AuthProvider({ children }) {
         document.cookie = 'sb47_auth_session=; path=/; max-age=0; SameSite=Strict';
         document.cookie = 'sb47_uretim_pin=; path=/; max-age=0; SameSite=Strict';
         document.cookie = 'sb47_genel_pin=; path=/; max-age=0; SameSite=Strict';
+        document.cookie = 'sb47_jwt_token=; path=/; max-age=0; SameSite=Strict'; // B-02 FIX: JWT cookie çıkışta temizleniyor
     };
 
     const sayfaErisim = (href) => {

@@ -8,27 +8,66 @@ const BOT_IMZALARI = [
     'semrushbot', 'dotbot', 'mj12bot', 'petalbot',
 ];
 
-// ─── BLOKLANMIŞ IP LİSTESİ (Gerektiğinde eklenebilir) ──────────
-const ENGELLI_IP_LISTESI = [
-    // '1.2.3.4',  // Örnek - gerektiğinde buraya ekle
+// ─── İMZASIZ JWT DOĞRULAMA (Edge Runtime — SubtleCrypto) ────────
+async function jwtDogrula(token, sirri) {
+    if (!token || !sirri) return null;
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+
+        const header = parts[0];
+        const payload = parts[1];
+        const signature = parts[2];
+
+        // İmza doğrulama
+        const encoder = new TextEncoder();
+        const key = await crypto.subtle.importKey(
+            'raw',
+            encoder.encode(sirri),
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['verify']
+        );
+
+        const veri = encoder.encode(`${header}.${payload}`);
+        const imzaBuf = Uint8Array.from(
+            atob(signature.replace(/-/g, '+').replace(/_/g, '/')),
+            c => c.charCodeAt(0)
+        );
+
+        const gecerli = await crypto.subtle.verify('HMAC', key, imzaBuf, veri);
+        if (!gecerli) return null;
+
+        // Payload çözümle
+        const payloadJson = JSON.parse(
+            atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+        );
+
+        // Süre kontrolü
+        if (payloadJson.exp && Date.now() / 1000 > payloadJson.exp) return null;
+
+        return payloadJson;
+    } catch {
+        return null;
+    }
+}
+
+// ─── PUBLIC (korumasız) API ROUTE'LAR ──────────────────────────
+const PUBLIC_API_ROTALAR = [
+    '/api/pin-dogrula',
+    '/api/telegram-bildirim',
+    '/api/cron-ajanlar',
 ];
 
-export function middleware(request) {
+export async function middleware(request) {
     const url = request.nextUrl.pathname;
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
 
-    // ─── 1. ENGELLİ IP KONTROLÜ ───────────────────────────────
-    if (ENGELLI_IP_LISTESI.includes(ip)) {
-        return new NextResponse('Erişim Engellendi', { status: 403 });
-    }
-
-    // ─── 2. BOT/CRAWLER TESPİTİ ───────────────────────────────
-    // API route'larına zararlı bot erişimi engelle
+    // ─── 1. BOT/CRAWLER TESPİTİ ───────────────────────────────
     if (url.startsWith('/api/')) {
         const botTespitEdildi = BOT_IMZALARI.some(imza => userAgent.includes(imza));
         if (botTespitEdildi) {
-            console.warn(`[MIDDLEWARE] Bot engellendi: ${userAgent.slice(0, 80)} | IP: ${ip}`);
             return new NextResponse(
                 JSON.stringify({ hata: 'Bot erişimi engellendi.' }),
                 { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -36,30 +75,94 @@ export function middleware(request) {
         }
     }
 
-    // ─── 3. KORUNAN SAYFA AUTH KONTROLÜ ───────────────────────
-    const korunanRotalar = [
+    // ─── 2. KORUNAN API ROUTE'LAR — JWT Zorunlu ───────────────
+    const korunanApiRotalar = [
+        '/api/ajan-calistir',
+        '/api/ajan-tetikle',
+        '/api/musteri-ekle',
+        '/api/siparis-ekle',
+        '/api/stok-hareket-ekle',
+        '/api/gorev-ekle',
+        '/api/is-emri-ekle',
+        '/api/kumas-ekle',
+        '/api/personel-ekle',
+        '/api/stok-alarm',
+    ];
+    const apiKorumalı = korunanApiRotalar.some(r => url.startsWith(r));
+
+    if (apiKorumalı) {
+        // İç servis anahtarı varsa — geç (cron, sunucu-sunucu çağrıları)
+        const dahiliKey = request.headers.get('x-internal-api-key');
+        if (dahiliKey && dahiliKey === process.env.INTERNAL_API_KEY) {
+            // iç çağrı — geç
+        } else {
+            // JWT Doğrulama
+            const authHeader = request.headers.get('authorization') || '';
+            const cookieToken = request.cookies.get('sb47_jwt_token')?.value;
+            const token = authHeader.replace('Bearer ', '') || cookieToken;
+
+            const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
+            const payload = await jwtDogrula(token, sirri);
+
+            // Ajan route'ları sadece 'tam' (koordinatör), yazma route'ları 'tam' veya 'uretim'
+            const sadeceTamRotalar = ['/api/ajan-calistir', '/api/ajan-tetikle'];
+            const sadeceTam = sadeceTamRotalar.some(r => url.startsWith(r));
+            const yetkiliGrup = sadeceTam
+                ? payload?.grup === 'tam'
+                : (payload?.grup === 'tam' || payload?.grup === 'uretim');
+
+            if (!payload || !yetkiliGrup) {
+                return NextResponse.json(
+                    { hata: 'Yetkisiz — JWT geçersiz veya süresi dolmuş.' },
+                    { status: 401 }
+                );
+            }
+        }
+    }
+
+    // ─── 3. KORUNAN SAYFA ROUTE'LAR — Cookie Auth ─────────────
+    const korunanSayfaRotalar = [
         '/imalat', '/kesim', '/modelhane', '/muhasebe', '/kasa',
         '/ayarlar', '/guvenlik', '/denetmen', '/personel', '/arge',
         '/kumas', '/kalip', '/maliyet', '/uretim', '/musteriler',
         '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar'
     ];
 
-    const eslesenRota = korunanRotalar.find(rota => url.startsWith(rota));
+    const eslesenRota = korunanSayfaRotalar.find(rota => url.startsWith(rota));
 
     if (eslesenRota) {
         const authCookie = request.cookies.get('sb47_auth_session');
         const uretimPin = request.cookies.get('sb47_uretim_pin');
         const genelPin = request.cookies.get('sb47_genel_pin');
 
-        let patronMu = false;
-        try {
-            if (authCookie?.value) {
-                const kul = JSON.parse(decodeURIComponent(authCookie.value));
-                if (kul.grup === 'tam') patronMu = true;
-            }
-        } catch (e) { }
+        let yetkiliMi = false;
 
-        if (!patronMu && !uretimPin && !genelPin) {
+        // Önce JWT token cookie'sini dene (güvenli yol)
+        const jwtCookie = request.cookies.get('sb47_jwt_token')?.value;
+        if (jwtCookie) {
+            const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
+            const payload = await jwtDogrula(jwtCookie, sirri);
+            if (payload?.grup) yetkiliMi = true;
+        }
+
+        // Fallback: Eski session cookie (geriye dönük uyumluluk)
+        if (!yetkiliMi) {
+            try {
+                if (authCookie?.value) {
+                    const kul = JSON.parse(decodeURIComponent(authCookie.value));
+                    if (kul.grup && (kul.grup === 'tam' || kul.grup === 'uretim' || kul.grup === 'genel')) {
+                        yetkiliMi = true;
+                    }
+                }
+            } catch { }
+        }
+
+        // Ek pin cookie'ler
+        if (!yetkiliMi && (uretimPin?.value || genelPin?.value)) {
+            yetkiliMi = true;
+        }
+
+        if (!yetkiliMi) {
             const geriDonusUrl = new URL('/?hata=yetkisiz_erisim_middleware_kalkani', request.url);
             return NextResponse.redirect(geriDonusUrl);
         }
@@ -72,6 +175,7 @@ export function middleware(request) {
     response.headers.set('X-XSS-Protection', '1; mode=block');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    response.headers.set('X-Powered-By', 'THE ORDER / NIZAM v2');
 
     return response;
 }
@@ -81,3 +185,5 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons/).*)',
     ],
 };
+
+

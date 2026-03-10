@@ -1,40 +1,124 @@
-// /api/pin-dogrula — Server-side PIN doğrulama
-// PIN'ler artık sadece bu server-side fonksiyonda okunur
-// Client browser'da hiçbir zaman PIN göremez
+// /api/pin-dogrula — Kurumsal 3 Katmanlı PIN Güvenlik Sistemi
+// Katman 1: Sunucu tarafı PIN doğrulama (client hiçbir zaman PIN göremez)
+// Katman 2: Upstash Redis rate limiting (5 hatalı deneme → 15 dk ban)
+// Katman 3: JWT session token (8 saat süre, imzalı)
 
 import { NextResponse } from 'next/server';
 
-// Rate limiting basit in-memory (serverless ortamda her request yeni — production'da Redis kullan)
-const DENEME_KAYDI = new Map();
+// ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
+// Upstash env varları yoksa in-memory fallback (geliştirme ortamı)
+let ratelimit = null;
+try {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        const { Ratelimit } = await import('@upstash/ratelimit');
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
+        ratelimit = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(5, '15m'), // 15 dakikada 5 deneme
+            analytics: false,
+            prefix: 'pin_giris',
+        });
+    }
+} catch { /* Upstash yoksa devam */ }
+
+// In-memory fallback (Upstash olmadığında)
+const BELLEK_KILIT = new Map();
 const MAX_DENEME = 5;
-const KILIT_SURESI = 30 * 1000; // 30 saniye
+const KILIT_SURESI_MS = 15 * 60 * 1000; // 15 dakika
 
-export async function POST(request) {
-    const ip = request.headers.get('x-forwarded-for') ||
-        request.headers.get('x-real-ip') ||
-        'unknown';
-
-    // Rate limiting kontrolü
+function belleKileKontrol(ip) {
     const simdi = Date.now();
-    const kayit = DENEME_KAYDI.get(ip) || { sayi: 0, son: 0, kilitli: false, kilitBitis: 0 };
+    const kayit = BELLEK_KILIT.get(ip);
+    if (!kayit) return { izinli: true };
+    if (kayit.kilitBitis && simdi < kayit.kilitBitis) {
+        const kalanSaniye = Math.ceil((kayit.kilitBitis - simdi) / 1000);
+        return { izinli: false, kalanSaniye };
+    }
+    if (kayit.kilitBitis && simdi >= kayit.kilitBitis) BELLEK_KILIT.delete(ip);
+    return { izinli: true };
+}
 
-    if (kayit.kilitli && simdi < kayit.kilitBitis) {
-        const kalan = Math.ceil((kayit.kilitBitis - simdi) / 1000);
-        return NextResponse.json(
-            { hata: `Çok fazla hatalı deneme. ${kalan} saniye bekleyin.` },
-            { status: 429 }
+function bellekHataliDeneme(ip) {
+    const simdi = Date.now();
+    const kayit = BELLEK_KILIT.get(ip) || { sayi: 0 };
+    kayit.sayi += 1;
+    if (kayit.sayi >= MAX_DENEME) {
+        kayit.kilitBitis = simdi + KILIT_SURESI_MS;
+        kayit.sayi = 0;
+    }
+    BELLEK_KILIT.set(ip, kayit);
+    return MAX_DENEME - kayit.sayi;
+}
+
+// ── JWT YARDIMCILARI ────────────────────────────────────────────────
+async function jwtOlustur(grup) {
+    const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY || 'sb47-gizli-anahtar-degistir';
+    const baslik = { alg: 'HS256', typ: 'JWT' };
+    const icerik = {
+        grup,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (8 * 3600), // 8 saat
+        iss: 'sb47-karargah',
+    };
+
+    const enc = (obj) => btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const veri = `${enc(baslik)}.${enc(icerik)}`;
+
+    // Web Crypto API ile HMAC-SHA256 imzalama
+    try {
+        const anahtar = await crypto.subtle.importKey(
+            'raw',
+            new TextEncoder().encode(sirri),
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign']
         );
+        const imzaBuffer = await crypto.subtle.sign('HMAC', anahtar, new TextEncoder().encode(veri));
+        const imza = btoa(String.fromCharCode(...new Uint8Array(imzaBuffer)))
+            .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        return `${veri}.${imza}`;
+    } catch {
+        // Crypto API yoksa basit token dön
+        return btoa(`${grup}:${Date.now() + 8 * 3600 * 1000}`);
+    }
+}
+
+// ── ANA HANDLER ────────────────────────────────────────────────────
+export async function POST(request) {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        || request.headers.get('x-real-ip')
+        || 'bilinmeyen';
+
+    // ── Rate Limit Kontrolü ──
+    if (ratelimit) {
+        const { success, remaining } = await ratelimit.limit(`ip:${ip}`);
+        if (!success) {
+            return NextResponse.json(
+                { hata: 'Çok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
+                { status: 429 }
+            );
+        }
+    } else {
+        // In-memory fallback
+        const durum = belleKileKontrol(ip);
+        if (!durum.izinli) {
+            return NextResponse.json(
+                { hata: `Çok fazla hatalı deneme. ${Math.ceil(durum.kalanSaniye / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+                { status: 429 }
+            );
+        }
     }
 
-    // Kilit süresi geçti mi?
-    if (kayit.kilitli && simdi >= kayit.kilitBitis) {
-        DENEME_KAYDI.delete(ip);
-    }
-
-    let pin;
+    // ── İstek Gövdesi ──
+    let pin, tip;
     try {
         const body = await request.json();
-        pin = body.pin?.trim();
+        pin = body?.pin?.trim();
+        tip = body?.tip || 'uretim'; // 'uretim' | 'genel' | 'tam'
     } catch {
         return NextResponse.json({ hata: 'Geçersiz istek formatı.' }, { status: 400 });
     }
@@ -43,42 +127,63 @@ export async function POST(request) {
         return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
     }
 
-    const coordPin = process.env.COORDINATOR_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
-    const uretimPin = process.env.URETIM_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
-    const genelPin = process.env.GENEL_PIN?.replace(/["']/g, '')?.replace(/\\r\\n/g, '')?.trim();
+    // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
+    const temizle = (v) => v?.replace(/['"]/g, '').trim();
 
-    const PINLER = {
-        [coordPin || '4747']: 'tam',
-        [uretimPin || '1244']: 'uretim',
-        [genelPin || '8888']: 'genel',
-        '4747': 'tam',
-        '1244': 'uretim',
-    };
+    // En yüksek yetki önce — aynı PIN birden fazla gruba denk gelirse tam > uretim > genel
+    const YETKI_SIRASI = [
+        { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },
+        { pin: temizle(process.env.TEST_COORDINATOR_PIN), grup: 'tam' }, // geçici test
+        { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
+        { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
+    ];
 
-    const grup = PINLER[pin] || null;
+    const eslesen = YETKI_SIRASI.find(({ pin: p }) => p && p !== 'undefined' && p === pin);
+    const grup = eslesen ? eslesen.grup : null;
 
     if (!grup) {
-        // Başarısız deneme kaydı
-        const yeniKayit = DENEME_KAYDI.get(ip) || { sayi: 0, son: 0, kilitli: false, kilitBitis: 0 };
-        yeniKayit.sayi += 1;
-        yeniKayit.son = simdi;
+        // Hatalı deneme kaydet
+        if (!ratelimit) bellekHataliDeneme(ip);
 
-        if (yeniKayit.sayi >= MAX_DENEME) {
-            yeniKayit.kilitli = true;
-            yeniKayit.kilitBitis = simdi + KILIT_SURESI;
-            yeniKayit.sayi = 0;
-        }
-
-        DENEME_KAYDI.set(ip, yeniKayit);
+        // Sisteme log yaz (Supabase bağlantısı varsa)
+        try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const sb = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL,
+                process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            );
+            await sb.from('b0_sistem_loglari').insert([{
+                olay: 'PIN_HATALI_GIRIS',
+                detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
+                seviye: 'uyari',
+            }]);
+        } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
         return NextResponse.json(
-            { basarili: false, grup: null, kalanDeneme: MAX_DENEME - (yeniKayit.sayi) },
+            { basarili: false, grup: null, mesaj: 'Yanlış PIN.' },
             { status: 401 }
         );
     }
 
-    // Başarılı — deneme sayacını sıfırla
-    DENEME_KAYDI.delete(ip);
+    // ── Başarılı Giriş — JWT Token Oluştur ──
+    const token = await jwtOlustur(grup);
 
-    return NextResponse.json({ basarili: true, grup }, { status: 200 });
+    // Başarılı girişi logla
+    try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const sb = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        );
+        await sb.from('b0_sistem_loglari').insert([{
+            olay: 'PIN_BASARILI_GIRIS',
+            detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
+            seviye: 'bilgi',
+        }]);
+    } catch { /* Log başarısız olsa bile sistemi engelleme */ }
+
+    return NextResponse.json(
+        { basarili: true, grup, token, tokenSuresi: 8 * 3600 },
+        { status: 200 }
+    );
 }
