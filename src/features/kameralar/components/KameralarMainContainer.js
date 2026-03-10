@@ -59,11 +59,9 @@ export default function KameralarMainContainer() {
 
     // ── Yetki Kontrolü ─────────────────────────────────────────
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); }
-        catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
-        const adminMi = kullanici?.grup === 'tam';
-        if (uretimPin || adminMi) {
+        // tam veya uretim grubuyla giriş yapan herkes erişebilir
+        const yetkiliGrup = kullanici?.grup === 'tam' || kullanici?.grup === 'uretim';
+        if (yetkiliGrup) {
             setYetkili(true);
             kameraErisimLogAt('SİSTEM GİRİŞİ');
         } else {
