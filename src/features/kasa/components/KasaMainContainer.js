@@ -12,6 +12,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 // [A-03] CSV Export
 const kasaCsvIndir = (hareketler, filtreTip, filtreOnay) => {
@@ -76,6 +77,7 @@ export default function KasaSayfasi() {
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtreTip, setFiltreTip] = useState('hepsi');
     const [filtreOnay, setFiltreOnay] = useState('hepsi');
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -158,8 +160,11 @@ export default function KasaSayfasi() {
     };
 
     const onayDegistir = async (id, yeniOnay) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b2_kasa_hareketleri', 'UPDATE', { id, onay_durumu: yeniOnay });
+            setIslemdeId(null);
             return goster('⚡ Çevrimdışı: Onay değişikliği kuyruğa alındı.');
         }
         try {
@@ -167,20 +172,23 @@ export default function KasaSayfasi() {
             if (error) throw error;
             goster(yeniOnay === 'onaylandi' ? '✅ Tahsilat onaylandı!' : '❌ İptal edildi.'); yukle();
         } catch (e) { goster('Onay hatası: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sil = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Silme işlemi Yönetici yetkisi gerektirir. PIN:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error');
-        if (!confirm('Bu kasa kaydı silinsin mi?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error'); }
+        if (!confirm('Bu kasa kaydı silinsin mi?')) { setIslemdeId(null); return; }
 
         // KRİTER 114: Kasa Sabitlenip Kilitlendi mi? Kasa Log Değiştirilemez!
         const kasaKaydi = hareketler.find((h) => h.id === id);
         if (kasaKaydi?.onay_durumu === 'onaylandi') {
-            return goster('🔒 DİJİTAL ADALET KİLİDİ: Banka güvenlik regülasyonları gereği Onaylanmış Kasa hareketleri ASLA SİLİNEMEZ!', 'error');
+            setIslemdeId(null); return goster('🔒 DİJİTAL ADALET KİLİDİ: Banka güvenlik regülasyonları gereği Onaylanmış Kasa hareketleri ASLA SİLİNEMEZ!', 'error');
         }
 
         // [AI ZIRHI]: B0 Kara Kutu silme logu (Kriter 25)
@@ -197,6 +205,7 @@ export default function KasaSayfasi() {
             if (error) throw error;
             goster('Kayıt silindi.'); yukle();
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // Hesaplamalar
@@ -284,19 +293,19 @@ export default function KasaSayfasi() {
                 <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}> GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
-                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.2rem', marginBottom: 4 }}>Bugün Tahsilat: ₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu==='onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</div>
+                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.2rem', marginBottom: 4 }}>Bugün Tahsilat: ₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
                     </div>
                     <button onClick={() => window.print()} style={{ background: '#0f172a', color: 'white', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Gün Sonu Kes </button>
                 </div>
-                
+
                 <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}> MÜŞTERİ BORÇ RİSKİ</div>
                         <div style={{ fontWeight: 900, color: '#ef4444', fontSize: '1.2rem', marginBottom: 4 }}>Açık / Riskliler: {(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>Bakiye riski &gt; 10.000 TL olan cari hesaplar.</div>
                     </div>
-                    <a href="/musteriler" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 16px', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'none' }}>Müşteriler Görüntüle </a>
+                    <Link href="/musteriler" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 16px', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'none' }}>Müşteriler Görüntüle </Link>
                 </div>
             </div>
             {/* MESAJ */}
@@ -425,9 +434,9 @@ export default function KasaSayfasi() {
                                 ₺{parseFloat(h.tutar_tl || 0).toFixed(2)}
                             </div>
                             {h.onay_durumu === 'bekliyor' && (
-                                <button onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
-                                    style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <CheckCircle size={12} /> Onayla
+                                <button disabled={islemdeId === h.id} onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
+                                    style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === h.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4, opacity: islemdeId === h.id ? 0.5 : 1 }}>
+                                    <CheckCircle size={12} /> {islemdeId === h.id ? '...' : 'Onayla'}
                                 </button>
                             )}
                             <span style={{
@@ -437,7 +446,7 @@ export default function KasaSayfasi() {
                             }}>
                                 {h.onay_durumu === 'onaylandi' ? '✅ Onaylı' : h.onay_durumu === 'iptal' ? '❌ İptal' : '⏳ Bekliyor'}
                             </span>
-                            <button onClick={() => sil(h.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: 'pointer' }}>
+                            <button disabled={islemdeId === h.id} onClick={() => sil(h.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: islemdeId === h.id ? 'wait' : 'pointer', opacity: islemdeId === h.id ? 0.5 : 1 }}>
                                 <Trash2 size={13} />
                             </button>
                         </div>

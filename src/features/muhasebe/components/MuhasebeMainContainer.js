@@ -13,6 +13,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 export default function MuhasebeSayfasi() {
     const { kullanici } = useAuth();
@@ -27,6 +28,7 @@ export default function MuhasebeSayfasi() {
     const [aramaMetni, setAramaMetni] = useState('');
     const [duzenleModal, setDuzenleModal] = useState(null); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
     const [duzenleForm, setDuzenleForm] = useState({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '' });
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -34,8 +36,9 @@ export default function MuhasebeSayfasi() {
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
-            const kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+            // [AI ZIRHI]: WebSocket dinleyicisi sadece b1_muhasebe_raporlari na daraltıldı.
+            const kanal = supabase.channel('muhasebe-gercek-zamanli')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_muhasebe_raporlari' }, () => { yukle(); })
                 .subscribe();
             yukle();
             return () => { supabase.removeChannel(kanal); };
@@ -89,9 +92,12 @@ export default function MuhasebeSayfasi() {
     };
 
     const durumGuncelle = async (id, yeniDurum) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_muhasebe_raporlari', 'UPDATE', { id, rapor_durumu: yeniDurum, ...(yeniDurum === 'onaylandi' ? { onay_tarihi: new Date().toISOString() } : {}) });
             if (secilenRapor?.id === id) setSecilenRapor(prev => ({ ...prev, rapor_durumu: yeniDurum }));
+            setIslemdeId(null);
             return goster('⚡ Çevrimdışı: Durum değişikliği kuyruğa alındı.');
         }
         try {
@@ -104,19 +110,23 @@ export default function MuhasebeSayfasi() {
             if (secilenRapor?.id === id) setSecilenRapor(prev => ({ ...prev, rapor_durumu: yeniDurum }));
             telegramBildirim(`📋 MUHASEBE GÜNCELLEMESİ:\nBir raporun durumu değiştirildi: ${yeniDurum.toUpperCase()}`);
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const devirKapat = async (rapor) => {
+        if (islemdeId === 'devir_' + rapor.id) return;
+        setIslemdeId('devir_' + rapor.id);
         const { yetkili: dYetkili, mesaj: dYetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Devir işlemi Koordinatör yetkisi gerektirir. PIN giriniz:'
         );
-        if (!dYetkili) return goster(dYetkiMesaj || 'Yetkisiz işlem.', 'error');
-        if (!confirm('Bu raporu onaylıyor ve 2. Birime devir için kilitleniyor musunuz?')) return;
+        if (!dYetkili) { setIslemdeId(null); return goster(dYetkiMesaj || 'Yetkisiz işlem.', 'error'); }
+        if (!confirm('Bu raporu onaylıyor ve 2. Birime devir için kilitleniyor musunuz?')) { setIslemdeId(null); return; }
 
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_muhasebe_raporlari', 'UPDATE', { id: rapor.id, rapor_durumu: 'kilitlendi', devir_durumu: true, onay_tarihi: new Date().toISOString() });
             setSecilenRapor(null);
+            setIslemdeId(null);
             return goster('⚡ Çevrimdışı: Devir kilitlenme komutu kuyruğa yazıldı!');
         }
 
@@ -135,6 +145,7 @@ export default function MuhasebeSayfasi() {
             goster('✅ Rapor kilitlendi. 2. Birime devir tamamlandı!'); yukle(); setSecilenRapor(null);
             telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi.`);
         } catch (error) { goster('Devir hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const uretimdenRaporOlustur = async (model) => {
@@ -213,13 +224,15 @@ export default function MuhasebeSayfasi() {
 
     // ─── YENİ: SİL ───────────────────────────────────────────────────────────────
     const raporSil = async (rapor) => {
-        if (rapor.rapor_durumu === 'kilitlendi') return goster('Kilitli raporlar silinemez! Devir tamamlanmış.', 'error');
+        if (islemdeId === 'sil_' + rapor.id) return;
+        setIslemdeId('sil_' + rapor.id);
+        if (rapor.rapor_durumu === 'kilitlendi') { setIslemdeId(null); return goster('Kilitli raporlar silinemez! Devir tamamlanmış.', 'error'); }
         const { yetkili: sYetkili, mesaj: sYetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Raporu silmek için Yönetici PIN girin:'
         );
-        if (!sYetkili) return goster(sYetkiMesaj || 'Yetkisiz işlem.', 'error');
-        if (!confirm(`"${rapor.model_kodu || rapor.id.slice(0, 8)}" raporunu siliyorsunuz. Emin misiniz?`)) return;
+        if (!sYetkili) { setIslemdeId(null); return goster(sYetkiMesaj || 'Yetkisiz işlem.', 'error'); }
+        if (!confirm(`"${rapor.model_kodu || rapor.id.slice(0, 8)}" raporunu siliyorsunuz. Emin misiniz?`)) { setIslemdeId(null); return; }
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
@@ -235,6 +248,7 @@ export default function MuhasebeSayfasi() {
             yukle();
             telegramBildirim(`🗑️ MUHASEBE RAPORU SİLİNDİ\nModel: ${rapor.model_kodu || '-'}`);
         } catch (error) { goster('Silme hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const isAR = lang === 'ar';
@@ -297,11 +311,11 @@ export default function MuhasebeSayfasi() {
                     </p>
                 </div>
                 <div style={{ marginLeft: 'auto' }}>
-                    <a href="/" style={{ textDecoration: 'none' }}>
+                    <Link href="/" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                             Ana Sayfaya Dön
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -477,8 +491,8 @@ export default function MuhasebeSayfasi() {
                                                         style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
                                                         <Edit2 size={11} style={{ display: 'inline', marginRight: 2 }} />Düzenle
                                                     </button>
-                                                    <button onClick={() => raporSil(r)}
-                                                        style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem' }}>
+                                                    <button disabled={islemdeId === 'sil_' + r.id} onClick={() => raporSil(r)}
+                                                        style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + r.id ? 'wait' : 'pointer', fontSize: '0.7rem', opacity: islemdeId === 'sil_' + r.id ? 0.5 : 1 }}>
                                                         <Trash2 size={11} />
                                                     </button>
                                                 </div>
@@ -545,21 +559,21 @@ export default function MuhasebeSayfasi() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {secilenRapor.rapor_durumu === 'taslak' && (
-                                <button onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
-                                    style={{ padding: '10px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: 'pointer' }}>
-                                    📤 Şef Onayına Gönder
+                                <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
+                                    style={{ padding: '10px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === secilenRapor.id ? 'wait' : 'pointer', opacity: islemdeId === secilenRapor.id ? 0.5 : 1 }}>
+                                    {islemdeId === secilenRapor.id ? '...' : '📤 Şef Onayına Gönder'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'sef_onay_bekliyor' && (
-                                <button onClick={() => durumGuncelle(secilenRapor.id, 'onaylandi')}
-                                    style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: 'pointer' }}>
-                                    ✅ Şef Onayı Ver
+                                <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'onaylandi')}
+                                    style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === secilenRapor.id ? 'wait' : 'pointer', opacity: islemdeId === secilenRapor.id ? 0.5 : 1 }}>
+                                    {islemdeId === secilenRapor.id ? '...' : '✅ Şef Onayı Ver'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'onaylandi' && (
-                                <button onClick={() => devirKapat(secilenRapor)}
-                                    style={{ padding: '10px', background: 'linear-gradient(135deg,#0f172a,#1e293b)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                    <Lock size={16} /> Kilitle & 2. Birime Devret
+                                <button disabled={islemdeId === 'devir_' + secilenRapor.id} onClick={() => devirKapat(secilenRapor)}
+                                    style={{ padding: '10px', background: 'linear-gradient(135deg,#0f172a,#1e293b)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'devir_' + secilenRapor.id ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: islemdeId === 'devir_' + secilenRapor.id ? 0.5 : 1 }}>
+                                    <Lock size={16} /> {islemdeId === 'devir_' + secilenRapor.id ? 'Kilitleniyor...' : 'Kilitle & 2. Birime Devret'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'kilitlendi' && (
