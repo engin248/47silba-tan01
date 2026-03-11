@@ -180,12 +180,13 @@ export default function ArgeSayfasi() {
 
     const aiTrendKaydet = async (sonuc) => {
         try {
+            const baslik = sonuc.satilacak_urun || sonuc.baslik || 'Belirsiz Ürün';
             const { data: mevcutlar } = await supabase.from('b1_arge_trendler')
-                .select('id').eq('baslik', sonuc.baslik);
+                .select('id').eq('baslik', baslik);
 
             // U Kriteri Onarımı (Mükerrerlik ve Link Araması)
             let referansMevcut = false;
-            if (sonuc.kaynak) {
+            if (sonuc.kaynak && typeof sonuc.kaynak === 'string' && sonuc.kaynak.startsWith('http')) {
                 const { data: linkler } = await supabase.from('b1_arge_trendler').select('id').contains('referans_linkler', [sonuc.kaynak]);
                 if (linkler && linkler.length > 0) referansMevcut = true;
             }
@@ -194,15 +195,22 @@ export default function ArgeSayfasi() {
                 return goster('⚠️ Bu trend (veya internet linki) zaten sisteme kaydedilmiş! Mükerrer kayıt engellendi.', 'error');
             }
 
+            const hermes_detay = `🔥 MODEL TÜRÜ: ${sonuc.model_turu || '-'}
+🧵 KUMAŞ TÜRÜ: ${sonuc.kumas_turu || '-'}
+🧷 AKSESUAR: ${sonuc.aksesuar_turu || '-'}
+💰 FİYAT ARALIĞI: ${sonuc.fiyat_araligi || '-'}
+🎯 HEDEF MÜŞTERİ: ${sonuc.hedef_musteri || '-'}
+📝 HERMES NOTU: ${sonuc.aciklama || '-'}`.trim();
+
             const { error } = await supabase.from('b1_arge_trendler').insert([{
-                baslik: sonuc.baslik,
+                baslik: baslik,
                 platform: PLATFORMLAR.includes(sonuc.platform) ? sonuc.platform : 'diger',
-                kategori: 'diger',
+                kategori: sonuc.kategori || 'diger',
                 hedef_kitle: 'kadın',
                 talep_skoru: parseInt(sonuc.talep_skoru) || 5,
                 zorluk_derecesi: 5,
-                referans_linkler: sonuc.kaynak ? [sonuc.kaynak] : null,
-                aciklama: sonuc.aciklama || null,
+                referans_linkler: sonuc.kaynak && sonuc.kaynak.startsWith('http') ? [sonuc.kaynak] : null,
+                aciklama: hermes_detay,
                 durum: 'inceleniyor',
             }]);
 
@@ -625,20 +633,46 @@ export default function ArgeSayfasi() {
                                 💡 {aiSonuclar.ozet}
                             </div>
                         )}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: '0.625rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '1rem' }}>
                             {(aiSonuclar.sonuclar || []).map((s, i) => (
-                                <div key={i} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '0.875rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                                        <span style={{ fontSize: '0.6rem', background: '#04785720', color: '#34d399', padding: '2px 7px', borderRadius: 4, fontWeight: 800, textTransform: 'uppercase' }}>{s.platform}</span>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 900, color: s.talep_skoru >= 8 ? '#34d399' : s.talep_skoru >= 5 ? '#fbbf24' : '#f87171' }}>★ {s.talep_skoru}/10</span>
+                                <div key={i} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                                        <span style={{ fontSize: '0.75rem', background: '#047857', color: '#fff', padding: '4px 10px', borderRadius: 6, fontWeight: 900, textTransform: 'uppercase' }}>{s.satilacak_urun || s.baslik}</span>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: s.talep_skoru >= 8 ? '#34d399' : s.talep_skoru >= 5 ? '#fbbf24' : '#f87171' }}>★ {s.talep_skoru}/10</span>
                                     </div>
-                                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.88rem', marginBottom: 4 }}>{s.baslik}</div>
-                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: 8, lineHeight: 1.5 }}>{s.aciklama}</div>
+
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: 16 }}>
+                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
+                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>KUMAŞ TÜRÜ</strong>
+                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.kumas_turu || '-'}</span>
+                                        </div>
+                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
+                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>MODEL TÜRÜ</strong>
+                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.model_turu || '-'}</span>
+                                        </div>
+                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
+                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>AKSESUAR (DÜĞME/FERMUAR)</strong>
+                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.aksesuar_turu || '-'}</span>
+                                        </div>
+                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
+                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>SATIŞ FİYAT ARALIĞI</strong>
+                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.fiyat_araligi || '-'}</span>
+                                        </div>
+                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 100%', display: 'flex', flexDirection: 'column' }}>
+                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>BÖLGESEL HEDEF MÜŞTERİ</strong>
+                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.hedef_musteri || '-'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 }}>{s.aciklama}</div>
+
                                     <button
                                         onClick={() => aiTrendKaydet(s)}
-                                        style={{ width: '100%', padding: '6px', background: '#10b981', color: 'white', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}
+                                        style={{ width: '100%', padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, transition: 'background 0.2s' }}
+                                        onMouseOver={e => e.currentTarget.style.background = '#2563eb'}
+                                        onMouseOut={e => e.currentTarget.style.background = '#3b82f6'}
                                     >
-                                        + Sisteme Kaydet
+                                        <CheckCircle2 size={16} /> HERMES REÇETESİNİ (ONAYLA) VE KAYDET
                                     </button>
                                 </div>
                             ))}

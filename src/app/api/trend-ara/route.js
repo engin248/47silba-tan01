@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Basit in-memory rate limiter (production'da Redis kullan)
 const istekSayaci = new Map();
 function rateLimitKontrol(ip) {
     const simdi = Date.now();
@@ -9,51 +8,84 @@ function rateLimitKontrol(ip) {
         istekSayaci.set(ip, { sayi: 1, baslangic: simdi });
         return true;
     }
-    if (kayit.sayi >= 30) return false; // 1 dakikada max 30 istek
+    if (kayit.sayi >= 30) return false;
     istekSayaci.set(ip, { ...kayit, sayi: kayit.sayi + 1 });
     return true;
 }
 
 export async function POST(request) {
-    // Rate limit kontrolü
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     if (!rateLimitKontrol(ip)) {
         return NextResponse.json({ error: 'Çok fazla istek. 1 dakika bekleyin.' }, { status: 429 });
     }
 
-    // API Key doğrulama (internal servislere karşı)
-    const authHeader = request.headers.get('x-internal-key');
-    const beklenenKey = process.env.INTERNAL_API_KEY;
-    if (beklenenKey && authHeader !== beklenenKey) {
-        // API key eksikse bile çalışmaya devam et (backward compat) — sadece logla
-        console.warn('[trend-ara] İç API key eksik/hatalı — IP:', ip);
-    }
-
     const { sorgu } = await request.json();
 
-    if (!sorgu?.trim()) {
-        return NextResponse.json({ error: 'Sorgu boş olamaz' }, { status: 400 });
-    }
-
-    // Input uzunluk limiti
-    if (sorgu.length > 500) {
-        return NextResponse.json({ error: 'Sorgu en fazla 500 karakter olabilir' }, { status: 400 });
-    }
+    if (!sorgu?.trim()) return NextResponse.json({ error: 'Sorgu boş olamaz' }, { status: 400 });
+    if (sorgu.length > 500) return NextResponse.json({ error: 'Sorgu en fazla 500 karakter olabilir' }, { status: 400 });
 
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey || apiKey.includes('BURAYA')) {
         return NextResponse.json({
-            error: 'Perplexity API key eksik. .env.local dosyasına PERPLEXITY_API_KEY ekleyin.',
+            error: 'Perplexity API key eksik. .env.local dosyasına eklendiğinde Hermes AI çalışacaktır.',
             demo: true,
+            ozet: "Hermes Mimarisi API Anahtarı Bekliyor...",
             sonuclar: [
-                { baslik: '2026 Yaz Trendleri: Pastel Renkler', platform: 'trendyol', talep_skoru: 8, aciklama: 'Açık pembe, buz mavisi, lavanta renkleri öne çıkıyor. Hafif kumaşlarla kombine ediliyor.', kaynak: 'https://trendyol.com' },
-                { baslik: 'Oversize Linen Gömlek', platform: 'instagram', talep_skoru: 9, aciklama: 'Keten kumaş oversize kesim. Hem günlük hem ofis kullanımına uygun.', kaynak: 'https://instagram.com' },
-                { baslik: 'Wide Leg Pantolon', platform: 'pinterest', talep_skoru: 7, aciklama: 'Yüksek bel geniş paça. Özellikle 25-40 yaş kadın segmentinde yüksek talep.', kaynak: 'https://pinterest.com' },
+                {
+                    satilacak_urun: "Oversize Keten Gömlek",
+                    model_turu: "Geniş kesim, düşük omuz, günlük kullanım",
+                    kumas_turu: "%100 Ham Keten (Yaz Sezonu)",
+                    aksesuar_turu: "Hindistan cevizi düğme, gizli astar",
+                    fiyat_araligi: "850 TL - 1200 TL / Perakende",
+                    hedef_musteri: "Avrupa ve Türkiye, 18-35 yaş grubu",
+                    platform: "instagram",
+                    kategori: "gomlek",
+                    talep_skoru: 9,
+                    aciklama: "Instagram ve TikTok verilerine göre yaz sezonu için yüksek talep.",
+                    kaynak: "https://instagram.com"
+                }
             ]
         });
     }
 
     try {
+        const prompt = `Sen "Hermes" kod adlı kusursuz bir tekstil, moda ve veri analizi ajanısın. 
+Görevin, Türkiye fason üretim işletmesi için hiçbir insan tahmini katmadan saf "veri odaklı" karar almaktır.
+
+AŞAĞIDAKİ ADIMLARI ZİHNİNDE PARALEL OLARAK İŞLE:
+1. Google Arama Trendleri, Pinterest, Instagram, TikTok ve Moda Haftası raporlarını tara.
+2. Amazon, Zara, H&M, Trendyol, Shopify, Etsy, Alibaba ve Aliexpress sitelerinin "En çok satan, en hızlı tükenen, en yüksek yorum alan" ürünlerini süz.
+3. Rakiplerin fiyatlarını, kumaş tercihlerini, üretim sayılarını ve pazar rekabet seviyesini (Kızıl veya Mavi okyanus) ölç.
+4. T-shirt, Sweatshirt, Hoodie, Elbise, Pantolon, Ceket, Gömlek kategorilerinden birine karar ver.
+5. Kullanılacak doğru kumaş türünü, kumaş dokusunu, düğme, fermuar ve baskı gibi net aksesuarları seç.
+6. Ürünün Hangi Sezona (Yaz, Kış, Bahar, Sonbahar) ve Hangi Bölgeye (Avrupa, Amerika, Türkiye, Orta Doğu, Asya) uygun olduğunu belirle.
+7. Satış hacmi, tahmini üretim maliyeti, potansiyel kâr marjı ve satış fiyatı aralığını hesapla.
+
+Bana sadece aşağıdaki JSON CİKCİPİNİ (Schema) döndür! Başka MERHABA VEYA AÇIKLAMA YAZMA:
+{
+  "ozet": "Analiz özeti ve karar gerekçesi (Maksimum 3 cümle)",
+  "sonuclar": [
+    {
+      "satilacak_urun": "Örn: Baggy Cargo Pantolon",
+      "model_turu": "Örn: Geniş kesim, 6 cepli, dizden pensli",
+      "kumas_turu": "Örn: %100 Pamuk Gabardin veya Paraşüt Kumaş",
+      "aksesuar_turu": "Örn: Nikel stoper, cırt cırt, çıtçıt düğme",
+      "fiyat_araligi": "Örn: 900 TL - 1400 TL",
+      "hedef_musteri": "Örn: Avrupa Bölgesi, Z Kuşağı",
+      "platform": "trendyol/amazon/instagram/pinterest/diger (hangisi baskınsa)",
+      "kategori": "gomlek/pantolon/elbise/dis_giyim/spor/ic_giyim/aksesuar/diger",
+      "talep_skoru": 1 ile 10 arasında matematiksel puan,
+      "aciklama": "Seçim nedenine dair kısa argüman",
+      "kaynak": "Ref URL veya ana veri platformu adı"
+    }
+  ]
+}
+
+ARAŞTIRILACAK KONU: ${sorgu}
+Odak: 2025-2026 Sezonu Moda Dinamikleri.
+JSON FORMATI DIŞINDA ASLA BİRŞEY YAZMA.
+`;
+
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
@@ -63,46 +95,24 @@ export async function POST(request) {
             body: JSON.stringify({
                 model: 'sonar',
                 messages: [
-                    {
-                        role: 'system',
-                        content: `Sen bir tekstil ve moda trendleri analistisin. Türkiye fason tekstil sektörü için trend araştırması yapıyorsun.
-Kullanıcının verdiği konu veya kategoriye göre güncel moda trendlerini araştır.
-Cevabını MUTLAKA şu JSON formatında ver (başka bir şey yazma):
-{
-  "ozet": "genel trend özeti 2-3 cümle",
-  "sonuclar": [
-    {
-      "baslik": "trend başlığı",
-      "platform": "trendyol/instagram/pinterest/amazon/diger",
-      "talep_skoru": 1-10 arasında sayı,
-      "aciklama": "kısa açıklama",
-      "kaynak": "url veya platform adı"
-    }
-  ]
-}`
-                    },
-                    {
-                        role: 'user',
-                        content: `Şu konuda güncel tekstil/moda trendlerini araştır: ${sorgu}\n\nÖzellikle Türkiye pazarına uygun, 2025-2026 sezonu için geçerli trendlere odaklan.`
-                    }
+                    { role: 'system', content: prompt }
                 ],
-                max_tokens: 1000,
-                temperature: 0.2,
+                max_tokens: 1500,
+                temperature: 0.2, // Yüksek tutarlılık (Halüsinasyon engelleyici)
             }),
         });
 
         if (!response.ok) {
             const hata = await response.text();
-            return NextResponse.json({ error: `Perplexity hatası: ${response.status} - ${hata}` }, { status: 500 });
+            return NextResponse.json({ error: `Perplexity hermes ajan hatası: ${response.status} - ${hata}` }, { status: 500 });
         }
 
         const data = await response.json();
         const icerik = data.choices?.[0]?.message?.content || '';
 
-        // JSON parse
         const jsonMatch = icerik.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-            return NextResponse.json({ error: 'AI yanıtı parse edilemedi', ham: icerik }, { status: 500 });
+            return NextResponse.json({ error: 'Hermes ajanı yanıtı veri formatına (JSON) oturtamadı', ham: icerik }, { status: 500 });
         }
 
         const parsed = JSON.parse(jsonMatch[0]);
