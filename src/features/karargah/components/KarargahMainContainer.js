@@ -7,7 +7,8 @@
  */
 import {
     Activity, ShieldCheck, Database, PlusSquare,
-    Settings, Zap, AlertCircle, TrendingUp, Users, Scissors
+    Settings, Zap, AlertCircle, TrendingUp, Users, Scissors,
+    Bot, Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -37,6 +38,8 @@ export default function KarargahSayfasi() {
     const [stats, setStats] = useState({ ciro: 0, maliyet: 0, personel: 0, fire: 0, yukleniyor: true });
     const [alarms, setAlarms] = useState([]);
     const [commandText, setCommandText] = useState('');
+    const [aiSorgu, setAiSorgu] = useState('');
+    const [isAiLoading, setIsAiLoading] = useState(false);
 
     useEffect(() => {
         // [Optimizasyon] 1.5 Saniyede Tüm Veriyi Yükleme Kuralı
@@ -65,35 +68,70 @@ export default function KarargahSayfasi() {
 
                     {/* KATMAN 1: DURUM RADARI (4 Sütun) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-[#16a34a] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02]">
-                            <span className="text-sm font-bold opacity-90 uppercase truncate">Günlük Ciro</span>
-                            <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.ciro)}</span>
-                        </div>
-                        <div className="bg-[#2563eb] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02]">
-                            <span className="text-sm font-bold opacity-90 uppercase truncate">Toplam Maliyet</span>
-                            <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.maliyet)}</span>
-                        </div>
-                        <div className="bg-[#7c3aed] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02]">
-                            <span className="text-sm font-bold opacity-90 uppercase truncate">Personel Gider</span>
-                            <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.personel)}</span>
-                        </div>
-                        <div className="bg-[#dc2626] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02]">
-                            <span className="text-sm font-bold opacity-90 uppercase truncate">Fire / Zayiat</span>
-                            <span className="text-2xl font-black truncate">%{stats.yukleniyor ? '...' : stats.fire}</span>
-                        </div>
+                        <Link href="/raporlar" passHref>
+                            <div className="bg-[#16a34a] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02] cursor-pointer cursor-pointer border border-[#16a34a] hover:border-white/20">
+                                <span className="text-sm font-bold opacity-90 uppercase truncate">Günlük Ciro</span>
+                                <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.ciro)}</span>
+                            </div>
+                        </Link>
+                        <Link href="/maliyet" passHref>
+                            <div className="bg-[#2563eb] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02] cursor-pointer cursor-pointer border border-[#2563eb] hover:border-white/20">
+                                <span className="text-sm font-bold opacity-90 uppercase truncate">Toplam Maliyet</span>
+                                <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.maliyet)}</span>
+                            </div>
+                        </Link>
+                        <Link href="/personel" passHref>
+                            <div className="bg-[#7c3aed] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02] cursor-pointer cursor-pointer border border-[#7c3aed] hover:border-white/20">
+                                <span className="text-sm font-bold opacity-90 uppercase truncate">Personel Gider</span>
+                                <span className="text-2xl font-black truncate">₺ {stats.yukleniyor ? '...' : fm(stats.personel)}</span>
+                            </div>
+                        </Link>
+                        <Link href="/maliyet" passHref>
+                            <div className="bg-[#dc2626] p-4 rounded-xl flex flex-col justify-between shadow-lg h-28 transform transition-transform hover:scale-[1.02] cursor-pointer cursor-pointer border border-[#dc2626] hover:border-white/20">
+                                <span className="text-sm font-bold opacity-90 uppercase truncate">Fire / Zayiat</span>
+                                <span className="text-2xl font-black truncate">%{stats.yukleniyor ? '...' : stats.fire}</span>
+                            </div>
+                        </Link>
                     </div>
 
-                    {/* KATMAN 2: OPERASYON KOMUTA (1 Saniyede Görev) */}
-                    <div className="bg-[#1e293b] p-5 md:p-6 rounded-2xl shadow-lg border border-slate-700/50 flex flex-col sm:flex-row gap-3">
-                        <input
-                            value={commandText}
-                            onChange={(e) => setCommandText(e.target.value)}
-                            placeholder="Komut ver (Örn: 100 adet pantolon kesim başlat)"
-                            className="flex-1 bg-[#0f172a] text-white px-4 py-3 rounded-xl border border-slate-600 focus:outline-none focus:border-emerald-500 transition-colors text-sm sm:text-base font-semibold placeholder-slate-500"
-                        />
-                        <button className="bg-[#22c55e] hover:bg-[#16a34a] text-white px-6 py-3 rounded-xl font-bold transition-colors whitespace-nowrap shadow-lg shadow-emerald-500/20">
-                            YAYINLA
-                        </button>
+                    {/* KATMAN 2: OPERASYON KOMUTA VE YAPAY ZEKA */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Hızlı Görev Atama */}
+                        <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50 flex flex-col gap-3">
+                            <h3 className="text-xs font-bold uppercase text-slate-400 flex items-center gap-2 mb-1 tracking-wider"><Zap size={14} /> Hızlı Görev Atama</h3>
+                            <div className="flex gap-2">
+                                <input
+                                    value={commandText}
+                                    onChange={(e) => setCommandText(e.target.value)}
+                                    placeholder="Örn: 100 adet pantolon kesim başlat"
+                                    className="flex-1 bg-[#0f172a] text-white px-4 py-2 rounded-xl border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors text-sm font-semibold placeholder-slate-500"
+                                />
+                                <button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-xl font-bold transition-colors shadow-lg text-sm tracking-wide">
+                                    BAŞLAT
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* AI / Ar-Ge Komuta */}
+                        <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50 flex flex-col gap-3">
+                            <h3 className="text-xs font-bold uppercase text-emerald-500 flex items-center gap-2 mb-1 tracking-wider"><Bot size={14} /> AI / Ar-Ge Komuta Merkezi</h3>
+                            <div className="flex gap-2">
+                                <input
+                                    value={aiSorgu}
+                                    onChange={(e) => setAiSorgu(e.target.value)}
+                                    placeholder="Örn: 2026 İlkbahar Keten Trendi"
+                                    className="flex-1 bg-[#0f172a] text-white px-4 py-2 rounded-xl border border-emerald-900 focus:outline-none focus:border-emerald-500 transition-colors text-sm font-semibold placeholder-slate-500"
+                                />
+                                <Link href="/arge">
+                                    <button
+                                        onClick={() => { setIsAiLoading(true); setTimeout(() => setIsAiLoading(false), 2000); }}
+                                        className="bg-[#10b981] hover:bg-[#059669] text-white px-5 py-2 rounded-xl font-bold transition-colors shadow-lg shadow-emerald-500/20 whitespace-nowrap text-sm tracking-wide"
+                                    >
+                                        {isAiLoading ? 'Analiz...' : 'ANALİZ ET'}
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
                     </div>
 
                     {/* KATMAN 2.2: ANA SİSTEM MODÜLLERİ (12 Widget Kuralı) */}
@@ -112,9 +150,24 @@ export default function KarargahSayfasi() {
                 {/* SAĞ BÖLÜM: GÖZLEM VE KONTROL WIDGETLARI (%25 MASAÜSTÜ GENİŞLİĞİ) */}
                 <div className="flex flex-col gap-4">
 
-                    {/* WIDGET 1: Aktif Alarmlar */}
+                    {/* WIDGET 1: Aktif Alarmlar & Kriz Paneli */}
                     <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
-                        <h3 className="text-xs font-black uppercase text-slate-400 mb-3 flex items-center gap-2"><AlertCircle size={14} /> Aktif Alarmlar</h3>
+                        <h3 className="text-xs font-black uppercase text-slate-400 mb-3 flex items-center gap-2"><ShieldCheck size={14} /> Güvenlik & Kriz Paneli</h3>
+
+                        {/* Edge AI Kamera Uyarı Kesiti */}
+                        <Link href="/kameralar" passHref>
+                            <div className="mb-4 bg-slate-800 p-3 rounded-xl border border-rose-900/50 flex gap-3 items-center cursor-pointer hover:bg-slate-700 transition-colors">
+                                <div className="w-16 h-12 bg-black rounded flex items-center justify-center text-rose-500 relative overflow-hidden shrink-0 border border-slate-700">
+                                    <Camera size={18} className="absolute z-10" />
+                                    <div className="absolute inset-0 bg-rose-500/20 animate-pulse"></div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-rose-400 flex items-center gap-1"><Bot size={10} /> Edge AI Tetikte</span>
+                                    <span className="text-[11px] text-slate-300 font-semibold leading-tight mt-0.5">Kameralar dinleniyor. Kriz anında bildirim düşecektir.</span>
+                                </div>
+                            </div>
+                        </Link>
+
                         {alarms.length === 0 ? (
                             <div className="text-emerald-400 font-bold text-sm bg-emerald-900/40 p-3 rounded-lg border border-emerald-800">✅ Alarm yok, sistem temiz.</div>
                         ) : (
