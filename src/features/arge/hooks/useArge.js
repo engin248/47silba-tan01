@@ -51,8 +51,7 @@ export function useArge(kullanici, isAR = false) {
     }, []);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         if (!(kullanici?.grup === 'tam' || uretimPin)) return;
 
         verileriCek();

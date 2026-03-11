@@ -76,8 +76,7 @@ export default function ArgeSayfasi() {
 
     useEffect(() => {
         // GÜÇLENDİRİLDİ: Karargâh ile Eşzamanlı SessionStorage ve Base64 Şifre Çözücü Mimarisine geçildi.
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
 
         setYetkiliMi(kullanici?.grup === 'tam' || uretimPin);
 

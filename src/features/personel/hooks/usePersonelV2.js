@@ -75,8 +75,7 @@ export function usePersonelV2(kullanici) {
     }, []);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         if (!(kullanici?.grup === 'tam' || uretimPin)) return;
         yukle(); yukleAyarlar();
         const kanal = supabase.channel('personel-gercek-zamanli').on('postgres_changes', { event: '*', schema: 'public' }, yukle).subscribe();
@@ -84,8 +83,7 @@ export function usePersonelV2(kullanici) {
     }, [kullanici]);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         const yetkili = kullanici?.grup === 'tam' || uretimPin;
         if (sekme === 'devam' && yetkili) yukleDevam();
     }, [sekme, kullanici]);

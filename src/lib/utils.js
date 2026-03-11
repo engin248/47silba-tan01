@@ -69,9 +69,9 @@ export const formatTarih = (iso) => {
 export const yetkiKontrol = (kullanici) => {
     if (kullanici?.grup === 'tam') return true;
     try {
-        return !!atob(sessionStorage.getItem('sb47_uretim_pin') || '');
+        return !!sessionStorage.getItem('sb47_uretim_token');
     } catch {
-        return !!sessionStorage.getItem('sb47_uretim_pin');
+        return false;
     }
 };
 

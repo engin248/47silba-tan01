@@ -37,8 +37,7 @@ export default function KalipSayfasi() {
     const [secilenModel, setSecilenModel] = useState(null);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         const erisebilir = kullanici?.grup === 'tam' || uretimPin;
         setYetkiliMi(erisebilir);
 

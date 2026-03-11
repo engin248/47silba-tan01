@@ -51,8 +51,7 @@ export default function PersonelSayfasi() {
     const [sistemAyarlari, setSistemAyarlari] = useState({ dakika_basi_ucret: 2.50, prim_orani: 0.15, yillik_izin_hakki: 15 });
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         const erisebilir = kullanici?.grup === 'tam' || uretimPin;
         setYetkiliMi(erisebilir);
 

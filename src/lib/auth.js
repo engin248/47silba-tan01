@@ -27,11 +27,11 @@ export function pindenGrupBul(pin) {
 
     // Dinamik PIN'ler (Koordinatör tarafından Karargah'tan atananlar)
     if (typeof window !== 'undefined') {
-        const dinamikUretim = localStorage.getItem('sb47_uretim_pin');
-        if (dinamikUretim && dinamikUretim === p) return 'uretim';
+        const dinamikUretim = localStorage.getItem('sb47_uretim_token');
+        if (dinamikUretim && dinamikUretim === 'true') return 'uretim';
 
-        const dinamikGenel = localStorage.getItem('sb47_genel_pin');
-        if (dinamikGenel && dinamikGenel === p) return 'genel';
+        const dinamikGenel = localStorage.getItem('sb47_genel_token');
+        if (dinamikGenel && dinamikGenel === 'true') return 'genel';
     }
 
     // PIN doğrulaması artık /api/pin-dogrula endpoint'i üzerinden yapılır
@@ -83,15 +83,15 @@ export function AuthProvider({ children }) {
                     setKullanici(parsed);
                     // [AI ZIRHI] Küresel Terminal Yetki Serbestisi - Karargah içi alt uçlara otomatik giriş sağlar.
                     if (typeof window !== 'undefined') {
-                        const _uPin = process.env.NEXT_PUBLIC_URETIM_PIN || 'uretim';
-                        const _gPin = process.env.NEXT_PUBLIC_GENEL_PIN || 'genel';
-                        if (parsed.grup === 'tam') {
-                            sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
-                            sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
-                        } else if (parsed.grup === 'uretim') {
-                            sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
-                        } else if (parsed.grup === 'genel') {
-                            sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
+                        if (typeof window !== 'undefined') {
+                            if (parsed.grup === 'tam') {
+                                sessionStorage.setItem('sb47_uretim_token', 'true');
+                                sessionStorage.setItem('sb47_genel_token', 'true');
+                            } else if (parsed.grup === 'uretim') {
+                                sessionStorage.setItem('sb47_uretim_token', 'true');
+                            } else if (parsed.grup === 'genel') {
+                                sessionStorage.setItem('sb47_genel_token', 'true');
+                            }
                         }
                     }
                 } else {
@@ -167,15 +167,13 @@ export function AuthProvider({ children }) {
 
         // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)
         if (typeof window !== 'undefined') {
-            const _uPin = process.env.NEXT_PUBLIC_URETIM_PIN || 'uretim';
-            const _gPin = process.env.NEXT_PUBLIC_GENEL_PIN || 'genel';
             if (grup === 'tam') {
-                sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
-                sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
+                sessionStorage.setItem('sb47_uretim_token', 'true');
+                sessionStorage.setItem('sb47_genel_token', 'true');
             } else if (grup === 'uretim') {
-                sessionStorage.setItem('sb47_uretim_pin', btoa(_uPin));
+                sessionStorage.setItem('sb47_uretim_token', 'true');
             } else if (grup === 'genel') {
-                sessionStorage.setItem('sb47_genel_pin', btoa(_gPin));
+                sessionStorage.setItem('sb47_genel_token', 'true');
             }
         }
 

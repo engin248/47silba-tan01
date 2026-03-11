@@ -43,8 +43,7 @@ export default function ModelhaneSayfasi() {
     useEffect(() => { sekmeRef.current = sekme; }, [sekme]);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
 
         setYetkiliMi(kullanici?.grup === 'tam' || uretimPin);
         if (kullanici?.grup === 'tam' || uretimPin) {
