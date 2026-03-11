@@ -4,7 +4,7 @@
  * Kaynak: app/kumas/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useKumas.js
  */
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Layers, Plus, Search, AlertTriangle, CheckCircle2, Image, Package, Scissors, X, ChevronDown, Tag, Trash2, Eye, Lock, QrCode } from 'lucide-react';
@@ -15,6 +15,7 @@ import { useLang } from '@/lib/langContext';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import SilBastanModal from '@/lib/components/ui/SilBastanModal';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 const SEKMELER = [
     { id: 'kumas', label_tr: '🧵 Kumaşlar', label_ar: 'الأقمشة' },
@@ -52,6 +53,7 @@ export default function KumasArsiviSayfasi() {
     // BARKOD MODAL STATE
     const [barkodModaliAcik, setBarkodModaliAcik] = useState(false);
     const [seciliKumas, setSeciliKumas] = useState(null);
+    const [islemdeId, setIslemdeId] = useState(null);
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -60,9 +62,10 @@ export default function KumasArsiviSayfasi() {
 
         let kanal;
         if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34) (Schema public Kısıtlaması Eklenmiştir)
             kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_kumas_arsivi' }, () => { yukle(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_aksesuar_arsivi' }, () => { yukle(); })
                 .subscribe();
         }
 
@@ -70,7 +73,7 @@ export default function KumasArsiviSayfasi() {
 
         return () => { if (kanal) supabase.removeChannel(kanal); };
 
-    }, [sekme, kullanici]);
+    }, [sekme, kullanici?.id, kullanici?.grup]);
 
     const telegramBildirim = (mesaj_metni) => {
         const controller = new AbortController();
@@ -227,14 +230,17 @@ export default function KumasArsiviSayfasi() {
     };
 
     const sil = async (tablo, id) => {
+        if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
+        setIslemdeId('sil_' + id);
+
         // GÜVENLİK: Sunucu taraflı PIN doğrulama
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Bu veriyi silmek için Yönetici PIN kodunu girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
-        if (!confirm('Silmek istediğinize çok emin misiniz? (Bu işlem geri alınamaz)')) return;
+        if (!confirm('Silmek istediğinize çok emin misiniz? (Bu işlem geri alınamaz)')) { setIslemdeId(null); return; }
 
         try {
 
@@ -255,6 +261,8 @@ export default function KumasArsiviSayfasi() {
             if (tablo === 'b1_aksesuar_arsivi') telegramBildirim(`📂 AKSESUAR ARŞİVE KALDIRILDI\nBir aksesuar pasif arşive çekildi (soft delete).`);
         } catch (error) {
             goster('Silme hatası: ' + error.message, 'error');
+        } finally {
+            setIslemdeId(null);
         }
     };
 
@@ -346,11 +354,11 @@ export default function KumasArsiviSayfasi() {
                         <Plus size={18} /> {isAR ? 'إضافة جديد' : 'Yeni Ekle'}
                     </button>
                     {/* CC Kriteri (M3 - Kalıp'a geçiş için akış rotası) */}
-                    <a href="/kalip" style={{ textDecoration: 'none' }}>
+                    <Link href="/kalip" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             📐 Kalıp & Serileme (M3) Geç
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -539,7 +547,7 @@ export default function KumasArsiviSayfasi() {
                                             <div style={{ display: 'flex', gap: 4 }}>
                                                 <button onClick={() => { setSeciliKumas(k); setBarkodModaliAcik(true); }} title="Barkod Çıkart" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><QrCode size={14} /></button>
                                                 <button onClick={() => duzenleKumas(k)} style={{ background: '#ecfdf5', border: 'none', color: '#047857', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
-                                                <button onClick={() => sil('b1_kumas_arsivi', k.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
+                                                <button onClick={() => sil('b1_kumas_arsivi', k.id)} disabled={islemdeId === 'sil_' + k.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + k.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + k.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.75rem' }}>
@@ -602,7 +610,7 @@ export default function KumasArsiviSayfasi() {
                                         </div>
                                         <div style={{ display: 'flex', gap: 4 }}>
                                             <button onClick={() => { setAksForm({ aksesuar_kodu: a.aksesuar_kodu, aksesuar_adi: a.aksesuar_adi, aksesuar_adi_ar: a.aksesuar_adi_ar || '', tip: a.tip, birim: a.birim, birim_maliyet_tl: String(a.birim_maliyet_tl || ''), stok_adet: String(a.stok_adet || ''), min_stok: String(a.min_stok || '100'), fotograf_url: a.fotograf_url || '', tedarikci_adi: a.tedarikci_adi || '' }); setDuzenleId(a.id); setDuzenleTip('aksesuar'); setSekme('aksesuar'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#b45309', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
-                                            <button onClick={() => sil('b1_aksesuar_arsivi', a.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
+                                            <button onClick={() => sil('b1_aksesuar_arsivi', a.id)} disabled={islemdeId === 'sil_' + a.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + a.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + a.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.375rem', margin: '0.5rem 0', flexWrap: 'wrap' }}>
