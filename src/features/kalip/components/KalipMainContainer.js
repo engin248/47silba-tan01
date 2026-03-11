@@ -4,7 +4,7 @@
  * Kaynak: app/kalip/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useKalip.js
  */
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, CheckCircle2, AlertTriangle, Ruler, Layers, ChevronRight, Trash2, Tag, Lock } from 'lucide-react';
@@ -13,6 +13,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const HEDEF_KITLE = ['kadin', 'erkek', 'cocuk', 'unisex'];
@@ -35,6 +36,7 @@ export default function KalipSayfasi() {
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [secilenModel, setSecilenModel] = useState(null);
+    const [islemdeId, setIslemdeId] = useState(null);
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -43,16 +45,17 @@ export default function KalipSayfasi() {
 
         let kanal;
         if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+            // [AI ZIRHI]: Realtime Websocket (Hedeflenmiş Tablolar)
+            kanal = supabase.channel('islem-gercek-zamanli-ai-kalip')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, () => { yukle(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, () => { yukle(); })
                 .subscribe();
         }
 
         yukle();
 
         return () => { if (kanal) supabase.removeChannel(kanal); };
-    }, [sekme, kullanici]);
+    }, [sekme, kullanici?.id, kullanici?.grup]);
 
     const telegramBildirim = (mesaj_metni) => {
         const controller = new AbortController();
@@ -216,12 +219,15 @@ export default function KalipSayfasi() {
     };
 
     const sil = async (tablo, id) => {
+        if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
+        setIslemdeId('sil_' + id);
+
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Bu veriyi Silmek için Yönetici PIN kodunu girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz İşlem!', 'error');
-        if (!confirm('Silmek istediğinize çok emin misiniz? (Bu işlem geri alınamaz)')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz İşlem!', 'error'); }
+        if (!confirm('Silmek istediğinize çok emin misiniz? (Bu işlem geri alınamaz)')) { setIslemdeId(null); return; }
 
         try {
 
@@ -240,6 +246,8 @@ export default function KalipSayfasi() {
             yukle(); goster('Silindi');
         } catch (error) {
             goster('Silme hatası: ' + error.message, 'error');
+        } finally {
+            setIslemdeId(null);
         }
     };
 
@@ -301,11 +309,11 @@ export default function KalipSayfasi() {
                         <Plus size={18} /> {sekme === 'modeller' ? (isAR ? 'نموذج جديد' : 'Yeni Model') : (isAR ? 'قالب جديد' : 'Yeni Kalıp')}
                     </button>
                     {/* CC Kriteri (M4 Modelhane'ye geçiş akış rotası) */}
-                    <a href="/modelhane" style={{ textDecoration: 'none' }}>
+                    <Link href="/modelhane" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#10b981', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
                             🧵 Modelhaneye (M4) Geç
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -439,7 +447,7 @@ export default function KalipSayfasi() {
                                     </div>
                                     <div style={{ display: 'flex', gap: 4 }}>
                                         <button onClick={() => { setFormModel({ model_kodu: m.model_kodu, model_adi: m.model_adi, model_adi_ar: m.model_adi_ar || '', trend_id: m.trend_id || '', hedef_kitle: m.hedef_kitle, sezon: m.sezon, aciklama: m.aciklama || '' }); setSekme('modeller'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
-                                        <button onClick={() => sil('b1_model_taslaklari', m.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
+                                        <button onClick={() => sil('b1_model_taslaklari', m.id)} disabled={islemdeId === 'sil_' + m.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + m.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + m.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
@@ -497,7 +505,7 @@ export default function KalipSayfasi() {
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                         <button onClick={() => { setFormKalip({ model_id: k.model_id || '', kalip_adi: k.kalip_adi, bedenler: k.bedenler || [], pastal_boyu_cm: String(k.pastal_boyu_cm || ''), pastal_eni_cm: String(k.pastal_eni_cm || ''), fire_orani_yuzde: String(k.fire_orani_yuzde || '5'), versiyon: k.versiyon || 'v1.0', kalip_dosya_url: k.kalip_dosya_url || '' }); setSekme('kaliplar'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '5px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
-                                        <button onClick={() => sil('b1_model_kaliplari', k.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                        <button onClick={() => sil('b1_model_kaliplari', k.id)} disabled={islemdeId === 'sil_' + k.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === 'sil_' + k.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + k.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
                                     </div>
                                 </div>
                             );
