@@ -4,7 +4,7 @@
  * Kaynak: app/maliyet/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useMaliyet.js
  */
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DollarSign, Plus, Trash2, BarChart2, Edit2, X, TrendingUp, Package, Calculator, Upload, ChevronDown, Lock } from 'lucide-react';
@@ -13,6 +13,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 const MALIYET_TIPLERI = ['personel_iscilik', 'hammadde_kumas', 'isletme_gideri', 'sarf_malzeme', 'fire_kaybi', 'sabit_gider', 'nakliye_lojistik'];
 const MALIYET_RENK = { personel_iscilik: '#3b82f6', hammadde_kumas: '#8b5cf6', isletme_gideri: '#f59e0b', sarf_malzeme: '#10b981', fire_kaybi: '#ef4444', sabit_gider: '#06b6d4', nakliye_lojistik: '#f97316' };
@@ -45,6 +46,7 @@ export default function MaliyetSayfasi() {
     const [csvModal, setCsvModal] = useState(false);
     const [csvText, setCsvText] = useState('');
     const [aramaMetni, setAramaMetni] = useState('');
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -151,20 +153,25 @@ export default function MaliyetSayfasi() {
     };
 
     const onayla = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('b1_maliyet_kayitlari').update({ onay_durumu: 'onaylandi' }).eq('id', id);
             if (error) throw error;
             yukle(); goster('Maliyet onaylandı');
         } catch (error) { goster('Onay hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sil = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Maliyet kalemini silmek için Yönetici PIN girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Hatalı yetki!', 'error');
-        if (!confirm('Bu maliyet kalemi silinsin mi?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Hatalı yetki!', 'error'); }
+        if (!confirm('Bu maliyet kalemi silinsin mi?')) { setIslemdeId(null); return; }
         try {
             // [AI ZIRHI]: B0 Kara Kutu (Kriter 25)
             await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_maliyet_kayitlari', islem_tipi: 'SILME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { id } }]).catch(() => { });
@@ -173,6 +180,7 @@ export default function MaliyetSayfasi() {
             yukle(); goster('Silindi');
             telegramBildirim('🗑️ MALİYET SİLİNDİ');
         } catch (error) { goster('Silme hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const csvYukle = async () => {
@@ -198,13 +206,15 @@ export default function MaliyetSayfasi() {
     };
 
     const tumunuSil = async () => {
+        if (islemdeId === 'tumunu_sil') return;
+        setIslemdeId('tumunu_sil');
         const { yetkili: tYetkili, mesaj: tYetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'TÜM kayıtları silmek için Yönetici PIN girin:'
         );
-        if (!tYetkili) return goster(tYetkiMesaj || 'Hatalı yetki!', 'error');
-        if (!confirm(`DİKKAT: ${maliyetler.length} kayıt silinecek!`)) return;
-        if (!confirm('Son onay: Bu işlem geri alınamaz!')) return;
+        if (!tYetkili) { setIslemdeId(null); return goster(tYetkiMesaj || 'Hatalı yetki!', 'error'); }
+        if (!confirm(`DİKKAT: ${maliyetler.length} kayıt silinecek!`)) { setIslemdeId(null); return; }
+        if (!confirm('Son onay: Bu işlem geri alınamaz!')) { setIslemdeId(null); return; }
         try {
             const { error } = await supabase.from('b1_maliyet_kayitlari').delete().neq('id', '00000000-0000-0000-0000-000000000000');
             if (error) throw error;
@@ -212,6 +222,7 @@ export default function MaliyetSayfasi() {
             telegramBildirim('🚨 TÜM MALİYET KAYITLARI SİLİNDİ!');
             yukle();
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const toplamlar = MALIYET_TIPLERI.reduce((acc, tip) => {
@@ -284,14 +295,14 @@ export default function MaliyetSayfasi() {
                                 style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', borderTop: '1px solid #f1f5f9' }}>
                                 <Upload size={15} color="#8b5cf6" /> Gider Toplu Yükle (CSV)
                             </button>
-                            <a href="/muhasebe" style={{ textDecoration: 'none', display: 'block', borderTop: '1px solid #f1f5f9' }}>
+                            <Link href="/muhasebe" style={{ textDecoration: 'none', display: 'block', borderTop: '1px solid #f1f5f9' }}>
                                 <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#16a34a' }}>
                                     <BarChart2 size={15} color="#16a34a" /> Muhasebe (M8)
                                 </button>
-                            </a>
-                            <button onClick={() => { setMenuAcik(false); tumunuSil(); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', borderTop: '1px solid #f1f5f9', borderRadius: '0 0 10px 10px' }}>
-                                <Trash2 size={15} color="#dc2626" /> Tüm Kayıtları Sil
+                            </Link>
+                            <button disabled={islemdeId === 'tumunu_sil'} onClick={() => { setMenuAcik(false); tumunuSil(); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: islemdeId === 'tumunu_sil' ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', borderTop: '1px solid #f1f5f9', borderRadius: '0 0 10px 10px', opacity: islemdeId === 'tumunu_sil' ? 0.5 : 1 }}>
+                                <Trash2 size={15} color="#dc2626" /> {islemdeId === 'tumunu_sil' ? 'Siliniyor...' : 'Tüm Kayıtları Sil'}
                             </button>
                         </div>
                     )}
@@ -434,8 +445,8 @@ export default function MaliyetSayfasi() {
                                     <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.1rem', textAlign: 'right' }}>₺{parseFloat(m.tutar_tl).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
                                     <div style={{ display: 'flex', gap: 4, flexDirection: 'column' }}>
                                         <button onClick={() => duzenle(m)} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '4px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }}><Edit2 size={11} /> Düzenle</button>
-                                        {!onaylandi && <button onClick={() => onayla(m.id)} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#065f46', padding: '4px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>✅ Onayla</button>}
-                                        <button onClick={() => sil(m.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontSize: '0.72rem' }}><Trash2 size={11} /></button>
+                                        {!onaylandi && <button disabled={islemdeId === m.id} onClick={() => onayla(m.id)} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#065f46', padding: '4px 10px', borderRadius: 6, fontWeight: 700, cursor: islemdeId === m.id ? 'wait' : 'pointer', fontSize: '0.72rem', opacity: islemdeId === m.id ? 0.5 : 1 }}>✅ {islemdeId === m.id ? '...' : 'Onayla'}</button>}
+                                        <button disabled={islemdeId === m.id} onClick={() => sil(m.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 10px', borderRadius: 6, cursor: islemdeId === m.id ? 'wait' : 'pointer', fontSize: '0.72rem', opacity: islemdeId === m.id ? 0.5 : 1 }}><Trash2 size={11} /></button>
                                     </div>
                                 </div>
                             );
