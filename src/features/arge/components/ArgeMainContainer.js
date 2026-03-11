@@ -40,7 +40,7 @@ const DURUM_CONFIG = {
     iptal: { color: '#ef4444', bg: '#fef2f2', label_tr: 'İptal', label_ar: 'ملغي', icon: XCircle },
 };
 
-const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: 'gomlek', hedef_kitle: 'kadın', talep_skoru: 5, zorluk_derecesi: 5, referans_link: '', gorsel_url: '', aciklama: '', aciklama_ar: '' };
+const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: 'gomlek', hedef_kitle: 'kadın', talep_skoru: 5, zorluk_derecesi: 5, referans_link: '', gorsel_url: '', gorsel_dosyasi: null, aciklama: '', aciklama_ar: '' };
 
 export default function ArgeSayfasi() {
     const { kullanici, yukleniyor: authYukleniyor } = useAuth();
@@ -248,6 +248,32 @@ export default function ArgeSayfasi() {
                 return goster('⚠️ Bu isimde bir ar-ge kaydı zaten mevcut!', 'error');
             }
 
+            // GÖRSEL STORAGE UPLOAD (Sıfıra Yakın Yük - Base64 Silici ve Tablo Ferahlatıcı)
+            let nihaiGorselUrl = form.gorsel_url?.trim() || null;
+
+            if (form.gorsel_dosyasi && navigator.onLine) {
+                const dosyaUzantisi = form.gorsel_dosyasi.name?.split('.').pop() || 'jpg';
+                const dosyaAdi = `${Date.now()}_${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('arge_gorselleri')
+                    .upload(`trendler/${dosyaAdi}`, form.gorsel_dosyasi, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (uploadError) {
+                    setLoading(false);
+                    return goster('Görsel Storage\'a yüklenemedi: ' + uploadError.message, 'error');
+                }
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('arge_gorselleri')
+                    .getPublicUrl(`trendler/${dosyaAdi}`);
+
+                nihaiGorselUrl = publicUrlData.publicUrl;
+            }
+
             const payload = {
                 baslik: form.baslik.trim(),
                 baslik_ar: form.baslik_ar.trim() || null,
@@ -257,7 +283,7 @@ export default function ArgeSayfasi() {
                 talep_skoru: parseInt(form.talep_skoru),
                 zorluk_derecesi: parseInt(form.zorluk_derecesi) || 5,
                 referans_linkler: form.referans_link ? [form.referans_link.trim()] : null,
-                gorsel_url: form.gorsel_url.trim() || null,
+                gorsel_url: nihaiGorselUrl,
                 aciklama: form.aciklama.trim() || null,
                 aciklama_ar: form.aciklama_ar.trim() || null,
                 durum: 'inceleniyor',
@@ -790,7 +816,7 @@ export default function ArgeSayfasi() {
                                         if (file) {
                                             if (file.size > 500 * 1024) return goster('Dosya çok büyük! Veritabanı sağlığı için maksimum 500 KB resim yükleyebilirsiniz.', 'error');
                                             const reader = new FileReader();
-                                            reader.onloadend = () => setForm({ ...form, gorsel_url: reader.result });
+                                            reader.onloadend = () => setForm({ ...form, gorsel_url: reader.result, gorsel_dosyasi: file }); // Görsel Storage için yedeği özel değişkende tutulur
                                             reader.readAsDataURL(file);
                                         }
                                     }}

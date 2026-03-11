@@ -4,10 +4,11 @@
  * Kaynak: app/modelhane/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useModelhane.js
  */
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Video, Plus, Lock, Unlock, CheckCircle2, AlertTriangle, Trash2, Play, FileText, Clock, ChevronRight, Camera } from 'lucide-react';
+import NextLink from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -37,7 +38,8 @@ export default function ModelhaneSayfasi() {
     const [galeriNumuneler, setGaleriNumuneler] = useState([]);
     const [galeridFiltre, setGaleridFiltre] = useState('hepsi');
 
-
+    const sekmeRef = useRef(sekme);
+    useEffect(() => { sekmeRef.current = sekme; }, [sekme]);
 
     useEffect(() => {
         let uretimPin = false;
@@ -45,25 +47,28 @@ export default function ModelhaneSayfasi() {
 
         setYetkiliMi(kullanici?.grup === 'tam' || uretimPin);
         if (kullanici?.grup === 'tam' || uretimPin) {
-
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            // [AI ZIRHI]: Websocket RAM Sızıntısı & Closure Kapanı Çözüldü
             const kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(sekmeRef.current); })
                 .subscribe();
-
-            yukle();
 
             return () => { supabase.removeChannel(kanal); };
         }
-    }, [sekme, kullanici]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [kullanici]);
+
+    useEffect(() => {
+        if (yetkiliMi) yukle(sekme);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sekme, yetkiliMi]);
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 6000); };
 
-    const yukle = async () => {
+    const yukle = async (aktifSekme = sekme) => {
         setLoading(true);
         try {
             const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 saniye)')), 10000));
-            if (sekme === 'numuneler') {
+            if (aktifSekme === 'numuneler') {
                 const [nRes, mRes] = await Promise.race([
                     Promise.allSettled([
                         supabase.from('b1_numune_uretimleri').select('*, b1_model_taslaklari(model_adi,model_kodu), b1_model_kaliplari(kalip_adi,versiyon)').neq('onay_durumu', 'iptal').order('created_at', { ascending: false }).limit(200),
@@ -73,7 +78,7 @@ export default function ModelhaneSayfasi() {
                 ]);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
                 if (mRes.status === 'fulfilled' && mRes.value.data) setModeller(mRes.value.data);
-            } else if (sekme === 'talimatlar') {
+            } else if (aktifSekme === 'talimatlar') {
                 const [tRes, nRes] = await Promise.race([
                     Promise.allSettled([
                         supabase.from('b1_dikim_talimatlari').select('*, b1_numune_uretimleri(numune_beden, b1_model_taslaklari(model_adi,model_kodu))').eq('aktif', true).order('created_at', { ascending: false }).limit(200),
@@ -83,7 +88,7 @@ export default function ModelhaneSayfasi() {
                 ]);
                 if (tRes.status === 'fulfilled' && tRes.value.data) setTalimatlar(tRes.value.data);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
-            } else if (sekme === 'galeri') {
+            } else if (aktifSekme === 'galeri') {
                 const [gRes, tumNRes, mRes] = await Promise.race([
                     Promise.allSettled([
                         supabase.from('b1_numune_uretimleri').select('id, numune_beden, onay_durumu, fotograflar, b1_model_taslaklari(model_kodu, model_adi)').neq('onay_durumu', 'iptal').order('created_at', { ascending: false }).limit(200),
@@ -295,6 +300,10 @@ export default function ModelhaneSayfasi() {
             const uzanti = dosya.name.split('.').pop().toLowerCase();
             if (!['jpg', 'jpeg', 'png', 'webp', 'heic'].includes(uzanti)) {
                 goster('Sadece JPG, PNG, WEBP, HEIC formatları desteklenir.', 'error');
+                continue;
+            }
+            if (dosya.size > 5 * 1024 * 1024) {
+                goster('Dosya çok büyük! Veritabanı (Storage) sağlığı için Maksimum 5MB resim yükleyebilirsiniz.', 'error');
                 continue;
             }
             const yol = `numune-${numuneId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${uzanti}`;
@@ -639,11 +648,11 @@ export default function ModelhaneSayfasi() {
 
                                 {/* CC Kriteri Onarımı (İş Akış Zinciri) */}
                                 {videoVar && (
-                                    <a href="/imalat" style={{ textDecoration: 'none', display: 'block', marginTop: '1rem' }}>
+                                    <NextLink href="/imalat" style={{ textDecoration: 'none', display: 'block', marginTop: '1rem' }}>
                                         <button style={{ width: '100%', padding: '10px 14px', background: '#047857', color: 'white', border: '1px solid #065f46', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                                             🚀 Üretime / İmalata Geç (M3)
                                         </button>
-                                    </a>
+                                    </NextLink>
                                 )}
                             </div>
                         );
