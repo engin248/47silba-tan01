@@ -12,6 +12,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import Link from 'next/link';
 
 const MUSTERI_TIPLERI = ['bireysel', 'toptan', 'magaza'];
 const TIP_LABEL = { bireysel: '👤 Bireysel', toptan: '🏭 Toptan', magaza: '🏪 Mağaza' };
@@ -41,6 +42,7 @@ export default function MusterilerSayfasi() {
     const [timelineLoglari, setTimelineLoglari] = useState([]);
     const [yeniNot, setYeniNot] = useState('');
     const [notEkleniyor, setNotEkleniyor] = useState(false);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -75,15 +77,17 @@ export default function MusterilerSayfasi() {
     };
 
     const kaydet = async () => {
+        if (islemdeId === 'kayit') return;
+        setIslemdeId('kayit');
         // [AI ZIRHI]: Validasyon Zırhı (Kriter V)
-        if (!form.musteri_kodu.trim()) return goster('Müşteri kodu zorunludur!', 'error');
-        if (form.musteri_kodu.length > 30) return goster('Müşteri kodu en fazla 30 karakter!', 'error');
-        if (!form.ad_soyad.trim()) return goster('Ad Soyad zorunludur!', 'error');
-        if (form.ad_soyad.length > 200) return goster('Ad Soyad çok uzun!', 'error');
-        if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return goster('Geçersiz e-posta formatı!', 'error');
-        if (form.telefon && form.telefon.length > 20) return goster('Telefon numarası çok uzun!', 'error');
-        if (form.vergi_no && form.vergi_no.length > 50) return goster('Vergi no çok uzun!', 'error');
-        if (form.risk_limiti && isNaN(parseFloat(form.risk_limiti))) return goster('Risk limiti sayısal olmalı!', 'error');
+        if (!form.musteri_kodu.trim()) { setIslemdeId(null); return goster('Müşteri kodu zorunludur!', 'error'); }
+        if (form.musteri_kodu.length > 30) { setIslemdeId(null); return goster('Müşteri kodu en fazla 30 karakter!', 'error'); }
+        if (!form.ad_soyad.trim()) { setIslemdeId(null); return goster('Ad Soyad zorunludur!', 'error'); }
+        if (form.ad_soyad.length > 200) { setIslemdeId(null); return goster('Ad Soyad çok uzun!', 'error'); }
+        if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { setIslemdeId(null); return goster('Geçersiz e-posta formatı!', 'error'); }
+        if (form.telefon && form.telefon.length > 20) { setIslemdeId(null); return goster('Telefon numarası çok uzun!', 'error'); }
+        if (form.vergi_no && form.vergi_no.length > 50) { setIslemdeId(null); return goster('Vergi no çok uzun!', 'error'); }
+        if (form.risk_limiti && isNaN(parseFloat(form.risk_limiti))) { setIslemdeId(null); return goster('Risk limiti sayısal olmalı!', 'error'); }
 
         const payload = {
             musteri_kodu: form.musteri_kodu.trim().toUpperCase(),
@@ -104,6 +108,7 @@ export default function MusterilerSayfasi() {
             await cevrimeKuyrugaAl('b2_musteriler', duzenleId ? 'UPDATE' : 'INSERT', duzenleId ? { id: duzenleId, ...payload } : payload);
             goster('⚡ Çevrimdışı: Müşteri kaydı kuyruğa alındı.');
             setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null);
+            setIslemdeId(null);
             return;
         }
 
@@ -133,7 +138,7 @@ export default function MusterilerSayfasi() {
             }
             setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); yukle();
         } catch (e) { goster('Kayıt hatası: ' + e.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     // B-05: Geçmiş (Timeline) Fonksiyonları
@@ -153,6 +158,8 @@ export default function MusterilerSayfasi() {
 
     const notEkle = async () => {
         if (!yeniNot.trim() || !seciliMusteri) return;
+        if (islemdeId === 'notEkle') return;
+        setIslemdeId('notEkle');
         setNotEkleniyor(true);
         try {
             await supabase.from('b0_sistem_loglari').insert([{
@@ -165,7 +172,7 @@ export default function MusterilerSayfasi() {
             timelineAc(seciliMusteri); // Listeyi yenile
             goster('Not eklendi.', 'success');
         } catch (e) { goster('Not eklenemedi.', 'error'); }
-        setNotEkleniyor(false);
+        finally { setNotEkleniyor(false); setIslemdeId(null); }
     };
 
     const duzenle = (m) => {
@@ -188,6 +195,8 @@ export default function MusterilerSayfasi() {
     };
 
     const karaListeDegistir = async (id, yeniDurum) => {
+        if (islemdeId === 'kliste_' + id) return;
+        setIslemdeId('kliste_' + id);
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b2_musteriler', 'UPDATE', { id, kara_liste: yeniDurum });
             return goster('⚡ Çevrimdışı: Kara liste değişikliği kuyruğa alındı.');
@@ -199,14 +208,17 @@ export default function MusterilerSayfasi() {
             if (yeniDurum) telegramBildirim(`🚫 KARA LİSTE UYARISI\nBir müşteri kara listeye alındı. ID: ${id}`);
             yukle();
         } catch (e) { goster('İşlem hatası: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sil = async (id, kod) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         if (kullanici?.grup !== 'tam') {
             const pin = prompt('Müşteri silme Yönetici yetkisi gerektirir. PİN:');
-            if (pin !== (process.env.NEXT_PUBLIC_ADMIN_PIN || '9999')) return goster('Yetkisiz işlem!', 'error');
+            if (pin !== (process.env.NEXT_PUBLIC_ADMIN_PIN || '9999')) { setIslemdeId(null); return goster('Yetkisiz işlem!', 'error'); }
         }
-        if (!confirm(`"${kod}" müşterisi silinsin mi? İlişkili siparişler etkilenebilir!`)) return;
+        if (!confirm(`"${kod}" müşterisi silinsin mi? İlişkili siparişler etkilenebilir!`)) { setIslemdeId(null); return; }
 
         // [AI ZIRHI]: B0 Kara Kutu silme logu (Kriter 25)
         try {
@@ -222,6 +234,7 @@ export default function MusterilerSayfasi() {
             if (error) throw error;
             goster(`"${kod}" silindi.`); yukle();
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // Filtreleme
@@ -444,11 +457,11 @@ export default function MusterilerSayfasi() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
-                            <a href={`/siparisler?musteri_kodu=${m.musteri_kodu}`} style={{ textDecoration: 'none' }}>
+                            <Link href={`/siparisler?musteri_kodu=${m.musteri_kodu}`} style={{ textDecoration: 'none' }}>
                                 <button title='Sipariş Geçmişi (MUS-01)' style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
                                     📋 Siparişler
                                 </button>
-                            </a>
+                            </Link>
                             <button onClick={() => timelineAc(m)} title='İletişim Geçmişi (B-05)' style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
                                 <History size={14} /> Geçmiş
                             </button>
@@ -459,7 +472,7 @@ export default function MusterilerSayfasi() {
                             <button onClick={() => duzenle(m)} style={{ background: '#fefce8', border: '1px solid #fde68a', color: '#d97706', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
                                 <Edit3 size={14} /> Düzenle
                             </button>
-                            <button onClick={() => sil(m.id, m.musteri_kodu)} style={{ background: '#f1f5f9', border: 'none', color: '#ef4444', padding: '8px', borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = '#fee2e2'} onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                            <button disabled={islemdeId === 'sil_' + m.id} onClick={() => sil(m.id, m.musteri_kodu)} style={{ background: '#f1f5f9', border: 'none', color: '#ef4444', padding: '8px', borderRadius: 8, cursor: islemdeId === 'sil_' + m.id ? 'wait' : 'pointer', transition: 'all 0.2s', opacity: islemdeId === 'sil_' + m.id ? 0.5 : 1 }} onMouseEnter={e => { if (islemdeId !== 'sil_' + m.id) e.currentTarget.style.background = '#fee2e2' }} onMouseLeave={e => { if (islemdeId !== 'sil_' + m.id) e.currentTarget.style.background = '#f1f5f9' }}>
                                 <Trash2 size={16} />
                             </button>
                         </div>

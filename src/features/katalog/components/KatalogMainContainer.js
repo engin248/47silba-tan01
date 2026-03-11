@@ -15,6 +15,7 @@ import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula'; // [B-08 FIX]
 import SilBastanModal from '@/lib/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import * as XLSX from 'xlsx'; // B-04: Excel/CSV Import kütüphanesi eklendi
+import Link from 'next/link';
 
 const USD_KUR_VARSAYILAN = 32.5; // [A-02] Yedek değer — /api/kur erişilemezse kullanılır
 
@@ -87,6 +88,7 @@ export default function KatalogSayfasi() {
     // KAT-04 (B-04): Toplu Ürün Yükleme (Excel/CSV)
     const [topluYuklemeAcik, setTopluYuklemeAcik] = useState(false);
     const [topluYukleniyor, setTopluYukleniyor] = useState(false);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         setMounted(true);
@@ -171,9 +173,11 @@ export default function KatalogSayfasi() {
     };
 
     const kaydet = async () => {
-        if (!form.urun_kodu.trim()) return goster('Ürün Kodu zorunludur.', 'error');
-        if (!form.urun_adi.trim()) return goster('Ürün Adı zorunludur.', 'error');
-        if (!form.satis_fiyati_tl || form.satis_fiyati_tl <= 0) return goster('Geçerli bir Satış Fiyatı girin.', 'error');
+        if (islemdeId === 'kayit') return;
+        setIslemdeId('kayit');
+        if (!form.urun_kodu.trim()) { setIslemdeId(null); return goster('Ürün Kodu zorunludur.', 'error'); }
+        if (!form.urun_adi.trim()) { setIslemdeId(null); return goster('Ürün Adı zorunludur.', 'error'); }
+        if (!form.satis_fiyati_tl || form.satis_fiyati_tl <= 0) { setIslemdeId(null); return goster('Geçerli bir Satış Fiyatı girin.', 'error'); }
 
         setLoading(true);
         const payload = {
@@ -202,10 +206,11 @@ export default function KatalogSayfasi() {
         } else { payload.kar_marji_yuzde = 0; }
 
         if (!navigator.onLine) {
-            cevrimeKuyrugaAl('b2_urun_katalogu', payload);
+            await cevrimeKuyrugaAl('b2_urun_katalogu', payload);
             goster('✅ Çevrimdışı: Ürün kuyruğa eklendi. Bağlantı gelince yollanacak.', 'success');
             setForm(BOSH_URUN); setFormAcik(false); setDuzenleId(null);
             setLoading(false);
+            setIslemdeId(null);
             return;
         }
 
@@ -215,6 +220,7 @@ export default function KatalogSayfasi() {
                 const { data: mevcut } = await supabase.from('b2_urun_katalogu').select('id').eq('urun_kodu', payload.urun_kodu);
                 if (mevcut && mevcut.length > 0) {
                     setLoading(false);
+                    setIslemdeId(null);
                     return goster('⚠️ Bu Ürün Kodu zaten katalogda mevcut!', 'error');
                 }
             }
@@ -234,7 +240,7 @@ export default function KatalogSayfasi() {
         } catch (error) {
             goster('Hata oluştu: ' + error.message, 'error');
         }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     // ==========================================
@@ -356,13 +362,15 @@ export default function KatalogSayfasi() {
     };
 
     const sil = async (id, m_kodu) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Bu ürünü silmek için Yönetici PIN girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
-        if (!confirm('Ürünü katalogdan SİLERSENİZ, bağlantılı siparişlerde hata olabilir. Emin misiniz?')) return;
+        if (!confirm('Ürünü katalogdan SİLERSENİZ, bağlantılı siparişlerde hata olabilir. Emin misiniz?')) { setIslemdeId(null); return; }
 
         try {
             try {
@@ -379,6 +387,7 @@ export default function KatalogSayfasi() {
             if (error.code === '23503') goster('HATA: Bu ürün Siparişlerde (M10) kullanıldığı için silinemez. Durumunu Pasif yapın.', 'error');
             else goster('Silme hatası: ' + error.message, 'error');
         }
+        finally { setIslemdeId(null); }
     };
 
     const isAR = mounted && lang === 'ar';
@@ -445,11 +454,11 @@ export default function KatalogSayfasi() {
                             </button>
                         </div>
                     )}
-                    <a href="/siparisler" style={{ textDecoration: 'none' }}>
+                    <Link href="/siparisler" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             📋 Siparişler (M10)
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -639,7 +648,7 @@ export default function KatalogSayfasi() {
                                         {erisim === 'full' && (
                                             <>
                                                 <button onClick={() => { setForm({ urun_kodu: u.urun_kodu, urun_adi: u.urun_adi, urun_adi_ar: u.urun_adi_ar || '', satis_fiyati_tl: u.satis_fiyati_tl, birim_maliyet_tl: u.birim_maliyet_tl || '', bedenler: u.bedenler || '', renkler: u.renkler || '', stok_adeti: u.stok_adeti, min_stok: u.min_stok, durum: u.durum, kategori_ust: u.kategori_ust || '', kategori_alt: u.kategori_alt || '', fotograf_url: u.fotograf_url || '', fotograf_url2: u.fotograf_url2 || '', fotograf_url3: u.fotograf_url3 || '' }); setDuzenleId(u.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '5px 7px', borderRadius: 7, cursor: 'pointer' }}>✏️</button>
-                                                <button onClick={() => sil(u.id, u.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 7px', borderRadius: 7, cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                <button disabled={islemdeId === 'sil_' + u.id} onClick={() => sil(u.id, u.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 7px', borderRadius: 7, cursor: islemdeId === 'sil_' + u.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + u.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
                                             </>
                                         )}
                                     </div>
