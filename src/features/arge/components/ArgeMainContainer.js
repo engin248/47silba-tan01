@@ -68,6 +68,9 @@ export default function ArgeSayfasi() {
     const [aiSonuclar, setAiSonuclar] = useState(null);
     const [aiPanelAcik, setAiPanelAcik] = useState(false);
 
+    // [SPAM ZIRHI]: Perplexity API'sini art arda basmalara karşı koruma
+    const sonAramaZamaniRef = useRef(0);
+
     // Dil Context'ten geliyor — MutationObserver gerekmez
 
 
@@ -82,17 +85,25 @@ export default function ArgeSayfasi() {
 
         verileriCek();
 
-        // CANLI AKIŞ WEBSOCKET (REALTIME) BAĞLANTISI YAPILDI
+        // CANLI AKIŞ WEBSOCKET (REALTIME) BAĞLANTISI YAPILDI (Optimizasyonlu)
         const kanal = supabase.channel('m1-arge-gercek-zamanli')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, () => {
-                verileriCek();
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, (payload) => {
+                // [BANDWIDTH ZIRHI]: 15MB'lik verineriCek() çağrısı yerine, yalnızca değişen satır state'e enjekte edildi (2KB)
+                if (payload.eventType === 'INSERT') {
+                    setTrendler(prev => [payload.new, ...prev]);
+                } else if (payload.eventType === 'UPDATE') {
+                    setTrendler(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));
+                } else if (payload.eventType === 'DELETE') {
+                    setTrendler(prev => prev.filter(t => t.id !== payload.old.id));
+                }
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(kanal);
         }
-    }, [kullanici]);
+        // [RENDER ZIRHI]: Dependency dizisi objeden primitive (saf kimlik) değişkenlere indirildi
+    }, [kullanici?.id, kullanici?.grup]);
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -119,8 +130,14 @@ export default function ArgeSayfasi() {
     };
 
     const trendAra = async () => {
-        if (!aiSorgu.trim() || aiAraniyor) return; // 🟢 SPAM ENGELİ
+        const suAn = Date.now();
+        // 🟢 SPAM ENGELİ (COOLDOWN ZIRHI): En az 3 saniye bekleme zorunluluğu
+        if (suAn - sonAramaZamaniRef.current < 3000) return goster('Lütfen botun işlemini tamamlaması için bekleyin (Anti-Spam Koruması).', 'error');
+
+        if (!aiSorgu.trim() || aiAraniyor) return;
         if (aiSorgu.trim().length > 150) return goster('Arama sorgusu 150 karakterden uzun olamaz!', 'error'); // X Kriteri (Limit)
+
+        sonAramaZamaniRef.current = suAn;
 
         const uyariMetni = isAR ? "⚠️ تنبيه: ستترتب على هذه العملية (بحث واجهة برمجة التطبيقات) تكاليف مالية على الشركة.\n\nإذا كان هذا البحث غير ضروري أو غير هام، يرجى الإلغاء لتوفير التكاليف.\n\nهل تريد بدأ البحث والموافقة على التكلفة؟" : "⚠️ DİKKAT: Bu işlem (Yapay Zeka / Perplexity API) işletmeye FİNANSAL YÜK oluşturacaktır.\n\nEğer bu araştırma gereksiz veya önemli değilse lütfen İPTAL ederek maliyetten tasarruf sağlayın.\n\nİşlemi başlatmak ve maliyeti onaylamak istiyor musunuz?";
         if (!window.confirm(uyariMetni)) return;
