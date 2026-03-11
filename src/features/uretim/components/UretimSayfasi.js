@@ -11,6 +11,7 @@ import YetkisizEkran from '@/components/shared/YetkisizEkran';
 import MesajBanner from '@/components/shared/MesajBanner';
 import SayfaBasligi from '@/components/ui/SayfaBasligi';
 import DurumBadge from '@/components/ui/DurumBadge';
+import Link from 'next/link';
 
 export default function UretimSayfasi() {
     const { kullanici } = useAuth();
@@ -27,6 +28,7 @@ export default function UretimSayfasi() {
         durumGuncelle, baslat, durdur, formatSure, barkodlaOtonomIslemYap,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
+        islemdeId, setIslemdeId, // [SPAM ZIRHI]
     } = useIsEmri(kullanici);
 
     // Yetki kontrolü
@@ -89,11 +91,11 @@ export default function UretimSayfasi() {
                     </button>
                 ))}
                 <div style={{ marginLeft: 'auto', paddingLeft: '1rem', borderLeft: '2px solid #e5e7eb' }}>
-                    <a href="/raporlar" style={{ textDecoration: 'none' }}>
+                    <Link href="/raporlar" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
                             <FileCheck size={16} /> Muhasebe Raporu (M8)
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -151,8 +153,8 @@ export default function UretimSayfasi() {
                                             </div>
                                             {seciliSiparisler.length > 0 && (
                                                 <div style={{ display: 'flex', gap: 6 }}>
-                                                    <button onClick={() => topluDurumGuncelleAction('in_progress')} style={{ padding: '6px 12px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem' }}>⚡ Toplu Başlat</button>
-                                                    <button onClick={() => topluDurumGuncelleAction('completed')} style={{ padding: '6px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem' }}>✅ Toplu Bitti</button>
+                                                    <button disabled={islemdeId === 'toplu_guncelle'} onClick={() => topluDurumGuncelleAction('in_progress')} style={{ padding: '6px 12px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: islemdeId === 'toplu_guncelle' ? 'wait' : 'pointer', fontSize: '0.75rem', opacity: islemdeId === 'toplu_guncelle' ? 0.5 : 1 }}>⚡ Toplu Başlat</button>
+                                                    <button disabled={islemdeId === 'toplu_guncelle'} onClick={() => topluDurumGuncelleAction('completed')} style={{ padding: '6px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: islemdeId === 'toplu_guncelle' ? 'wait' : 'pointer', fontSize: '0.75rem', opacity: islemdeId === 'toplu_guncelle' ? 0.5 : 1 }}>✅ Toplu Bitti</button>
                                                 </div>
                                             )}
                                         </div>
@@ -172,10 +174,10 @@ export default function UretimSayfasi() {
                                                     </div>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                    {o.status === 'pending' && <button onClick={() => durumGuncelle(o.id, 'in_progress')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>▶ Başlat</button>}
-                                                    {o.status === 'in_progress' && <button onClick={() => durumGuncelle(o.id, 'completed')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>✅ Tamamla</button>}
+                                                    {o.status === 'pending' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'in_progress')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>▶ Başlat</button>}
+                                                    {o.status === 'in_progress' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'completed')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>✅ Tamamla</button>}
                                                     <button onClick={() => duzenleIsEmri(o)} style={{ background: '#fefce8', border: '1px solid #fde68a', color: '#d97706', padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>✏️</button>
-                                                    <button onClick={() => silIsEmri(o.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                    <button disabled={islemdeId === 'sil_' + o.id} onClick={() => silIsEmri(o.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === 'sil_' + o.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + o.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -320,7 +322,7 @@ export default function UretimSayfasi() {
                                         <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: 4 }}>Adet: {o.quantity} | Maliyet: <strong>₺{pt.toFixed(2)}</strong></div>
                                     </div>
                                     {!raporVar
-                                        ? <button onClick={() => devirYap(o.id)} style={{ padding: '8px 16px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Mağazaya Sevket</button>
+                                        ? <button disabled={islemdeId === 'devir_' + o.id} onClick={() => devirYap(o.id)} style={{ padding: '8px 16px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'devir_' + o.id ? 'wait' : 'pointer', opacity: islemdeId === 'devir_' + o.id ? 0.5 : 1 }}>Mağazaya Sevket</button>
                                         : <span style={{ fontWeight: 800, color: '#10b981' }}>✅ M8 Raporunda</span>
                                     }
                                 </div>

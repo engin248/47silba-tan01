@@ -60,6 +60,7 @@ export function useIsEmri(kullanici) {
     const [duzenleId, setDuzenleId] = useState(null);
     const [barkodOkutulanIsId, setBarkodOkutulanIsId] = useState('');
     const [seciliSiparisler, setSeciliSiparisler] = useState([]);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     const timerRef = useRef({});
     const barkodInputRef = useRef(null);
@@ -116,8 +117,11 @@ export function useIsEmri(kullanici) {
 
     // ── DURUM GÜNCELLE ─────────────────────────────────────────────────────
     const durumGuncelle = async (id, status) => {
+        if (islemdeId === 'durum_' + id) return;
+        setIslemdeId('durum_' + id);
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('production_orders', 'UPDATE', { id, status });
+            setIslemdeId(null);
             return goster('⚡ Çevrimdışı: Durum kuyruğa alındı.');
         }
         try {
@@ -128,6 +132,7 @@ export function useIsEmri(kullanici) {
             if (status === 'completed') telegramBildirim('✅ ÜRETİM TAMAMLANDI');
             yukle();
         } catch (e) { goster('Durum hatası: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // ── KRONOMETREyi DURDUR + PERFORMANS PUANLA ────────────────────────────
@@ -179,14 +184,17 @@ export function useIsEmri(kullanici) {
 
     // ── YENİ / DÜZENLE İŞ EMRİ ─────────────────────────────────────────────
     const yeniIsEmri = async () => {
-        if (!formOrder.model_id) return goster('Model seçiniz!', 'error');
-        if (!formOrder.quantity || parseInt(formOrder.quantity) < 1) return goster('Adet giriniz!', 'error');
+        if (islemdeId === 'kayit') return;
+        setIslemdeId('kayit');
+        if (!formOrder.model_id) { setIslemdeId(null); return goster('Model seçiniz!', 'error'); }
+        if (!formOrder.quantity || parseInt(formOrder.quantity) < 1) { setIslemdeId(null); return goster('Adet giriniz!', 'error'); }
         setLoading(true);
         try {
             if (duzenleId) {
                 const { data: eskiKayit } = await supabase.from('production_orders').select('status').eq('id', duzenleId).single();
                 if (eskiKayit?.status === 'completed') {
                     setLoading(false);
+                    setIslemdeId(null);
                     return goster('🔒 DİJİTAL ADALET: Tamamlanmış paket güncellenemez.', 'error');
                 }
                 const { error } = await supabase.from('production_orders').update({
@@ -200,7 +208,7 @@ export function useIsEmri(kullanici) {
             } else {
                 const { data: mevcut } = await supabase.from('production_orders')
                     .select('id').eq('model_id', formOrder.model_id).in('status', ['pending', 'in_progress']);
-                if (mevcut?.length > 0) { setLoading(false); return goster('⚠️ Bu model için bekleyen iş emri mevcut!', 'error'); }
+                if (mevcut?.length > 0) { setLoading(false); setIslemdeId(null); return goster('⚠️ Bu model için bekleyen iş emri mevcut!', 'error'); }
                 const { error } = await supabase.from('production_orders').insert([{
                     model_id: formOrder.model_id, quantity: parseInt(formOrder.quantity), status: 'pending',
                     planned_start_date: formOrder.planned_start_date || null,
@@ -213,7 +221,7 @@ export function useIsEmri(kullanici) {
                 } else throw error;
             }
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     const duzenleIsEmri = (o) => {
@@ -229,8 +237,10 @@ export function useIsEmri(kullanici) {
         else setSeciliSiparisler(gorunenSiparisler.map(o => o.id));
     };
     const topluDurumGuncelleAction = async (yeniDurum) => {
-        if (seciliSiparisler.length === 0) return goster('Lütfen sipariş seçin!', 'error');
-        if (!confirm(`${seciliSiparisler.length} siparişi toplu güncellemek istiyorsunuz?`)) return;
+        if (islemdeId === 'toplu_guncelle') return;
+        setIslemdeId('toplu_guncelle');
+        if (seciliSiparisler.length === 0) { setIslemdeId(null); return goster('Lütfen sipariş seçin!', 'error'); }
+        if (!confirm(`${seciliSiparisler.length} siparişi toplu güncellemek istiyorsunuz?`)) { setIslemdeId(null); return; }
         setLoading(true);
         try {
             const { error } = await supabase.from('production_orders').update({ status: yeniDurum }).in('id', seciliSiparisler);
@@ -239,14 +249,16 @@ export function useIsEmri(kullanici) {
             telegramBildirim(`📦 TOPLU İŞLEM\n${seciliSiparisler.length} iş emri güncellendi.`);
             setSeciliSiparisler([]); yukle();
         } catch (e) { goster('Toplu hata: ' + e.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     // ── SİL / ARŞİVLE ──────────────────────────────────────────────────────
     const silIsEmri = async (id) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yMsg } = await silmeYetkiDogrula(kullanici, 'Yönetici PIN kodunuzu girin:');
-        if (!yetkili) return goster(yMsg || 'Yetkisiz.', 'error');
-        if (!confirm('İş emri arşive (iptal) kaldırılsın mı?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yMsg || 'Yetkisiz.', 'error'); }
+        if (!confirm('İş emri arşive (iptal) kaldırılsın mı?')) { setIslemdeId(null); return; }
         try {
             await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { is_emri_id: id } }]).catch(() => { });
             const { error } = await supabase.from('production_orders').update({ status: 'cancelled' }).eq('id', id);
@@ -255,6 +267,7 @@ export function useIsEmri(kullanici) {
             telegramBildirim('🗑️ İŞ EMRİ İPTALİ\nBir iş emri arşive kaldırıldı.');
             yukle();
         } catch (e) { goster('Arşivleme hatası: ' + e.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // ── KRONOMETREyİ BAŞLAT / DURDUR ───────────────────────────────────────
@@ -271,9 +284,11 @@ export function useIsEmri(kullanici) {
 
     // ── MALİYET KAYDET ─────────────────────────────────────────────────────
     const maliyetKaydet = async () => {
-        if (!maliyetForm.order_id) return goster('İş emri seçiniz!', 'error');
-        if (!maliyetForm.tutar_tl || parseFloat(maliyetForm.tutar_tl) <= 0) return goster('Tutar giriniz!', 'error');
-        if (!maliyetForm.kalem_aciklama.trim()) return goster('Açıklama zorunlu!', 'error');
+        if (islemdeId === 'maliyet_kayit') return;
+        setIslemdeId('maliyet_kayit');
+        if (!maliyetForm.order_id) { setIslemdeId(null); return goster('İş emri seçiniz!', 'error'); }
+        if (!maliyetForm.tutar_tl || parseFloat(maliyetForm.tutar_tl) <= 0) { setIslemdeId(null); return goster('Tutar giriniz!', 'error'); }
+        if (!maliyetForm.kalem_aciklama.trim()) { setIslemdeId(null); return goster('Açıklama zorunlu!', 'error'); }
         setLoading(true);
         try {
             const { error } = await supabase.from('b1_maliyet_kayitlari').insert([{
@@ -286,18 +301,20 @@ export function useIsEmri(kullanici) {
                 setMaliyetForm(BOSH_MALIYET_FORM); setMaliyetFormAcik(false); yukle();
             } else throw error;
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     // ── DEVİR YAP ─────────────────────────────────────────────────────────
     const devirYap = async (orderId) => {
+        if (islemdeId === 'devir_' + orderId) return;
+        setIslemdeId('devir_' + orderId);
         const { yetkili, mesaj: yMsg } = await silmeYetkiDogrula(kullanici, 'Devir için PIN girin:');
-        if (!yetkili) return goster(yMsg || 'Yetkisiz.', 'error');
-        if (!confirm('Bu partiyi 2. Birime devredeceksiniz. Onaylıyor musunuz?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yMsg || 'Yetkisiz.', 'error'); }
+        if (!confirm('Bu partiyi 2. Birime devredeceksiniz. Onaylıyor musunuz?')) { setIslemdeId(null); return; }
         setLoading(true);
         try {
             const { data: mevcut } = await supabase.from('b1_muhasebe_raporlari').select('id').eq('order_id', orderId);
-            if (mevcut?.length > 0) { setLoading(false); return goster('⚠️ Bu iş emri için devir raporu zaten mevcut!', 'error'); }
+            if (mevcut?.length > 0) { setLoading(false); setIslemdeId(null); return goster('⚠️ Bu iş emri için devir raporu zaten mevcut!', 'error'); }
             const pt = maliyetler.filter(m => m.order_id === orderId).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
             const { error } = await supabase.from('b1_muhasebe_raporlari').insert([{
                 order_id: orderId, gerceklesen_maliyet_tl: pt, net_uretilen_adet: 0, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
@@ -305,7 +322,7 @@ export function useIsEmri(kullanici) {
             if (!error) { goster('Devir başlatıldı. M8 Muhasebede rapor oluşturuldu.'); yukle(); }
             else throw error;
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     return {
@@ -315,6 +332,7 @@ export function useIsEmri(kullanici) {
         kronometer, sure, maliyetForm, setMaliyetForm, maliyetFormAcik, setMaliyetFormAcik,
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, duzenleId,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
+        islemdeId, setIslemdeId, // [SPAM ZIRHI]
         // Fonksiyonlar
         yukle, durumGuncelle, baslat, durdur, formatSure, barkodlaOtonomIslemYap,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
