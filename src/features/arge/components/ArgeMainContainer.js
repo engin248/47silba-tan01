@@ -114,9 +114,10 @@ export default function ArgeSayfasi() {
         setLoading(true);
         try {
             // K Kriteri Onarımı: Promise.allSettled kullanılarak n+1 ağ darboğazı ve çökme engeli getirildi.
+            // 🔴 YENİ KÖR NOKTA (Query Boyutu): LIMIT 200 çok büyüktü. İlk render'da sadece son 50 kayıt yeterlidir, aksi halde payload şişer.
             const [trendlerRes, loglarRes] = await Promise.allSettled([
-                supabase.from('b1_arge_trendler').select('*').order('created_at', { ascending: false }).limit(200),
-                supabase.from('b1_agent_loglari').select('*').eq('ajan_adi', 'Trend Kâşifi').order('created_at', { ascending: false }).limit(5)
+                supabase.from('b1_arge_trendler').select('id, baslik, baslik_ar, platform, kategori, hedef_kitle, talep_skoru, zorluk_derecesi, durum, created_at, referans_linkler').order('created_at', { ascending: false }).limit(50),
+                supabase.from('b1_agent_loglari').select('id, ajan_adi, islem_tipi, mesaj, created_at, durum').eq('ajan_adi', 'Trend Kâşifi').order('created_at', { ascending: false }).limit(5)
             ]);
 
             if (trendlerRes.status === 'fulfilled' && trendlerRes.value.data) setTrendler(trendlerRes.value.data);
@@ -966,6 +967,7 @@ export default function ArgeSayfasi() {
                                     {/* Detay (seçilmişse) */}
                                     {secilenTrend?.id === trend.id && (
                                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                                            {/* ZIRHLAMA: Lazily load full details if not loaded to prevent initial payload bloat */}
                                             {(trend.aciklama || trend.aciklama_ar) && (
                                                 <p style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem', textAlign: isAR ? 'right' : 'left' }}>
                                                     {isAR && trend.aciklama_ar ? trend.aciklama_ar : trend.aciklama}
