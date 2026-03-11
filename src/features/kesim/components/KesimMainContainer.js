@@ -4,7 +4,7 @@
  * Kaynak: app/kesim/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useKesim.js
  */
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Scissors, Plus, Search, CheckCircle2, AlertTriangle, Trash2, ShieldAlert, QrCode } from 'lucide-react';
@@ -15,6 +15,7 @@ import { useLang } from '@/lib/langContext';
 import SilBastanModal from '@/lib/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 const BOSH_KESIM = {
     model_taslak_id: '', pastal_kat_sayisi: '', kesilen_net_adet: '',
@@ -41,6 +42,7 @@ export default function KesimhaneSayfasi() {
     const [barkodAcik, setBarkodAcik] = useState(false);
     const [seciliKesim, setSeciliKesim] = useState(null);
     const [duzenleId, setDuzenleId] = useState(null);
+    const [islemdeId, setIslemdeId] = useState(null);
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -51,13 +53,13 @@ export default function KesimhaneSayfasi() {
 
         let kanal;
         if (erisebilir) {
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+            kanal = supabase.channel('islem-gercek-zamanli-ai-kesim')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_kesim_operasyonlari' }, () => { yukle(); })
                 .subscribe();
         }
         yukle();
         return () => { if (kanal) supabase.removeChannel(kanal); };
-    }, [kullanici]);
+    }, [kullanici?.id, kullanici?.grup]);
 
     const telegramBildirim = (mesaj_metni) => {
         const controller = new AbortController();
@@ -157,14 +159,17 @@ export default function KesimhaneSayfasi() {
 
     // ─── M3 → M4 VERİ KÖPRÜSÜ ───────────────────────────────────────────────────
     const isEmriOlustur = async (k) => {
+        if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
         if (k.durum !== 'tamamlandi') return goster('Sadece tamamlanan kesimler M4\'e aktarılabilir!', 'error');
         if (!confirm(`"${k.b1_model_taslaklari?.model_kodu}" için Üretim İş Emri oluşturulsun mu?\nAdet: ${k.kesilen_net_adet}`)) return;
         setLoading(true);
+        setIslemdeId('emr_' + k.id);
         try {
             const { data: mevcut } = await supabase.from('production_orders')
                 .select('id').eq('model_id', k.model_taslak_id).in('status', ['pending', 'in_progress']);
             if (mevcut && mevcut.length > 0) {
                 setLoading(false);
+                setIslemdeId(null);
                 return goster('⚠️ Bu model için zaten aktif bir iş emri var!', 'error');
             }
             const { error } = await supabase.from('production_orders').insert([{
@@ -178,10 +183,13 @@ export default function KesimhaneSayfasi() {
             telegramBildirim(`🔗 M3→M4 KÖPRÜ\nKesimden Üretime: ${k.b1_model_taslaklari?.model_kodu}\nAdet: ${k.kesilen_net_adet}\nİş emri "Bekliyor" olarak açıldı.`);
         } catch (error) { goster('İş emri hatası: ' + error.message, 'error'); }
         setLoading(false);
+        setIslemdeId(null);
     };
 
     const durumGuncelle = async (id, yeniDurum, model_kodu) => {
+        if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
         if (!navigator.onLine) return goster('İnternet Yok: Durum güncellemesi sadece online iken yapılabilir!', 'error');
+        setIslemdeId('durum_' + id);
         try {
             await supabase.from('b1_kesim_operasyonlari').update({ durum: yeniDurum }).eq('id', id);
             yukle();
@@ -189,15 +197,18 @@ export default function KesimhaneSayfasi() {
                 telegramBildirim(`✂️ KESİM TAMAMLANDI\nModel: ${model_kodu} için kesim işlemi tamamlandı. Üretim Bandına (M4) sevke hazır.`);
             }
         } catch (error) { goster('Durum güncellenemedi!', 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sil = async (id, m_kodu) => {
+        if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Kesim kaydını silmek için Yönetici PIN girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
-        if (!confirm('Bu kesim kaydını fiziksel silmek yerine arşive (iptal) kaldırmak istediğinize emin misiniz?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
+        if (!confirm('Bu kesim kaydını fiziksel silmek yerine arşive (iptal) kaldırmak istediğinize emin misiniz?')) { setIslemdeId(null); return; }
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
@@ -209,6 +220,7 @@ export default function KesimhaneSayfasi() {
             yukle(); goster('Kayıt arşive (iptal durumuna) alındı.');
             telegramBildirim(`🗑️ KESİM İPTAL EDİLDİ\n${m_kodu} modeline ait kesim kaydı yönetici onayıyla arşive kaldırıldı.`);
         } catch (error) { goster('Silme/Arşivleme hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const isAR = mounted && lang === 'ar';
@@ -264,11 +276,11 @@ export default function KesimhaneSayfasi() {
                         style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                         <Plus size={18} /> {isAR ? 'قص جديد' : 'Yeni Kesim'}
                     </button>
-                    <a href="/uretim" style={{ textDecoration: 'none' }}>
+                    <Link href="/uretim" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             ⚙️ Üretim Bandı (M4)
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -463,7 +475,7 @@ export default function KesimhaneSayfasi() {
                                     <div style={{ display: 'flex', gap: 6 }}>
                                         <button onClick={() => { setSeciliKesim(k); setBarkodAcik(true); }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a', padding: '6px 8px', borderRadius: 8, cursor: 'pointer', display: 'flex' }}><QrCode size={16} /></button>
                                         <button onClick={() => duzenleKesim(k)} style={{ background: '#ecfdf5', border: 'none', color: '#047857', padding: '6px 8px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>✏️</button>
-                                        <button onClick={() => sil(k.id, k.b1_model_taslaklari?.model_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 8px', borderRadius: 8, cursor: 'pointer' }}><Trash2 size={15} /></button>
+                                        <button onClick={() => sil(k.id, k.b1_model_taslaklari?.model_kodu)} disabled={islemdeId === 'sil_' + k.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 8px', borderRadius: 8, cursor: islemdeId === 'sil_' + k.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + k.id ? 0.5 : 1 }}><Trash2 size={15} /></button>
                                     </div>
                                 </div>
 
@@ -495,8 +507,8 @@ export default function KesimhaneSayfasi() {
 
                                 {/* İŞ AKIŞI: DURUM GEÇİŞLERİ */}
                                 {k.durum === 'kesimde' && (
-                                    <button onClick={() => durumGuncelle(k.id, 'tamamlandi', k.b1_model_taslaklari?.model_kodu)}
-                                        style={{ width: '100%', padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                    <button onClick={() => durumGuncelle(k.id, 'tamamlandi', k.b1_model_taslaklari?.model_kodu)} disabled={islemdeId === 'durum_' + k.id}
+                                        style={{ width: '100%', padding: '10px', background: islemdeId === 'durum_' + k.id ? '#9ca3af' : '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: islemdeId === 'durum_' + k.id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                                         <CheckCircle2 size={16} /> Kesimi Tamamla (M4 İlet)
                                     </button>
                                 )}
@@ -505,8 +517,8 @@ export default function KesimhaneSayfasi() {
                                         <div style={{ width: '100%', padding: '8px 10px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', borderRadius: 8, fontWeight: 800, textAlign: 'center', fontSize: '0.82rem' }}>
                                             ✅ Kesim Tamamlandı
                                         </div>
-                                        <button onClick={() => isEmriOlustur(k)}
-                                            style={{ width: '100%', padding: '9px', background: 'linear-gradient(135deg,#d97706,#92400e)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 900, cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
+                                        <button onClick={() => isEmriOlustur(k)} disabled={islemdeId === 'emr_' + k.id}
+                                            style={{ width: '100%', padding: '9px', background: islemdeId === 'emr_' + k.id ? '#9ca3af' : 'linear-gradient(135deg,#d97706,#92400e)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 900, cursor: islemdeId === 'emr_' + k.id ? 'not-allowed' : 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                                             🔗 M4 Üretim İş Emri Oluştur
                                         </button>
                                     </div>
