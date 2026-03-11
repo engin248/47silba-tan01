@@ -22,6 +22,7 @@ import { faturaYazdir } from '@/lib/utils/faturaYazdir';
 import { useHermAi } from '@/hooks/useHermAi';
 import HermAiAciklama from '@/components/ui/HermAiAciklama';
 import { siparisHermAi } from '../services/hermAi';
+import Link from 'next/link';
 
 const KANALLAR = ['trendyol', 'amazon', 'magaza', 'toptan', 'diger'];
 const DURUMLAR = ['beklemede', 'onaylandi', 'hazirlaniyor', 'kargoda', 'teslim', 'iptal', 'iade'];
@@ -53,6 +54,7 @@ export default function SiparislerSayfasi() {
     const [kargoModal, setKargoModal] = useState(null);
     const [kargoNo, setKargoNo] = useState('');
     const [aramaMetni, setAramaMetni] = useState('');
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         let satisPin = false;
@@ -62,9 +64,9 @@ export default function SiparislerSayfasi() {
 
         let kanal;
         if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+            // [AI ZIRHI]: Realtime Websocket sadece b2_siparisler tablosuna daraltıldı
+            kanal = supabase.channel('siparis-gercek-zamanli')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_siparisler' }, () => { yukle(); })
                 .subscribe();
         }
 
@@ -162,10 +164,12 @@ export default function SiparislerSayfasi() {
             telegramBildirim(`📦 YENİ SİPARİŞ ALINDI!\nSipariş No: ${form.siparis_no}\nTutar: ₺${toplam.toFixed(2)}\nDurum: BEKLEMEDE`);
             setForm(BOSH_FORM); setKalemler([]); setFormAcik(false); yukle();
         } catch (error) { goster('Kayıt Hatası: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); }
     };
 
     const durumGuncelle = async (id, durum, ekstraBilgi = {}) => {
+        if (islemdeId === 'durum_' + id) return;
+        setIslemdeId('durum_' + id);
         try {
             // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli
             const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum').eq('id', id).single();
@@ -232,6 +236,7 @@ export default function SiparislerSayfasi() {
             yukle();
             if (aktifSiparis?.id === id) setAktifSiparis(prev => ({ ...prev, durum, ...ekstraBilgi }));
         } catch (error) { goster('Durum Güncelleme Hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const kargoGonder = async () => {
@@ -243,13 +248,15 @@ export default function SiparislerSayfasi() {
     };
 
     const siparisSil = async (id) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Bu siparişi silmek için Yönetici PIN kodunu girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
-        if (!confirm('Sipariş ve tüm kalemleri silinsin mi?')) return;
+        if (!confirm('Sipariş ve tüm kalemleri silinsin mi?')) { setIslemdeId(null); return; }
 
         // KRİTER 113: Satış Verisi Kriptolumu Kilitli mi? (80 liralık fatura 60'a düşürülemez/silinemez)
         const anaSiparis = siparisler.find(s => s.id === id);
@@ -274,6 +281,7 @@ export default function SiparislerSayfasi() {
             if (error) throw error;
             goster('Sipariş silindi.'); if (aktifSiparis?.id === id) setAktifSiparis(null); yukle();
         } catch (error) { goster('Silinemedi: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const detayAc = async (siparis) => {
@@ -394,11 +402,11 @@ export default function SiparislerSayfasi() {
                             style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
                             <Plus size={18} /> Yeni Sipariş
                         </button>
-                        <a href="/stok" style={{ textDecoration: 'none' }}>
+                        <Link href="/stok" style={{ textDecoration: 'none' }}>
                             <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                                 📦 Stoklar (M11)
                             </button>
-                        </a>
+                        </Link>
                     </>
                 }
             />
@@ -482,11 +490,11 @@ export default function SiparislerSayfasi() {
                         </div>
                         {/* SIP-02: Katalog bağlantısı */}
                         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                            <a href='/katalog' target='_blank' style={{ textDecoration: 'none', width: '100%' }}>
+                            <Link href='/katalog' target='_blank' style={{ textDecoration: 'none', width: '100%' }}>
                                 <button type='button' style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg,#047857,#065f46)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.82rem' }}>
                                     📋 Katalog'dan Ürün Seç (SIP-02)
                                 </button>
-                            </a>
+                            </Link>
                         </div>
                         <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Notlar</label><textarea maxLength={300} rows={1} value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })} style={{ ...inp, resize: 'none' }} /></div>
                         <div style={{ gridColumn: '1/-1' }}>
@@ -623,7 +631,7 @@ export default function SiparislerSayfasi() {
                             <h3 style={{ fontWeight: 900, color: '#0f172a', margin: 0, fontSize: '0.95rem' }}>📋 {aktifSiparis.siparis_no}</h3>
                             <div style={{ display: 'flex', gap: 6 }}>
                                 <button onClick={() => faturaYazdir(aktifSiparis)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f0fdf4', border: '1px solid #10b981', color: '#059669', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}><Printer size={12} /> Fatura</button>
-                                <button onClick={() => siparisSil(aktifSiparis.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>🗑 Sil</button>
+                                <button disabled={islemdeId === 'sil_' + aktifSiparis.id} onClick={() => siparisSil(aktifSiparis.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 10px', borderRadius: 6, cursor: islemdeId === 'sil_' + aktifSiparis.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.72rem', opacity: islemdeId === 'sil_' + aktifSiparis.id ? 0.5 : 1 }}>🗑 {islemdeId === 'sil_' + aktifSiparis.id ? '...' : 'Sil'}</button>
                                 <button onClick={() => setAktifSiparis(null)} style={{ background: '#f1f5f9', border: 'none', color: '#64748b', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>✕</button>
                             </div>
                         </div>
@@ -633,11 +641,11 @@ export default function SiparislerSayfasi() {
 
                         {/* Durum Aksiyonları */}
                         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                            {aktifSiparis.durum === 'beklemede' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>✅ Onayla</button>}
-                            {aktifSiparis.durum === 'onaylandi' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#065f46', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>⚙️ Hazırlığa Al</button>}
-                            {aktifSiparis.durum === 'hazirlaniyor' && <button onClick={() => { setKargoModal(aktifSiparis); setKargoNo(''); }} style={{ padding: '6px 14px', background: '#D4AF37', color: '#0f172a', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>🚛 Kargoya Ver</button>}
-                            {aktifSiparis.durum === 'kargoda' && <button onClick={() => durumGuncelle(aktifSiparis.id, 'teslim')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>🎉 Teslim Edildi</button>}
-                            {!['teslim', 'iptal'].includes(aktifSiparis.durum) && <button onClick={() => durumGuncelle(aktifSiparis.id, 'iptal')} style={{ padding: '6px 14px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>❌ İptal</button>}
+                            {aktifSiparis.durum === 'beklemede' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>✅ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Onayla'}</button>}
+                            {aktifSiparis.durum === 'onaylandi' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#065f46', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>⚙️ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Hazırlığa Al'}</button>}
+                            {aktifSiparis.durum === 'hazirlaniyor' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => { setKargoModal(aktifSiparis); setKargoNo(''); }} style={{ padding: '6px 14px', background: '#D4AF37', color: '#0f172a', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>🚛 {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Kargoya Ver'}</button>}
+                            {aktifSiparis.durum === 'kargoda' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'teslim')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>🎉 {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Teslim Edildi'}</button>}
+                            {!['teslim', 'iptal'].includes(aktifSiparis.durum) && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'iptal')} style={{ padding: '6px 14px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>❌ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'İptal'}</button>}
                             {/* [FAZ 5] HermAI Analiz Butonu */}
                             <button
                                 onClick={async () => {

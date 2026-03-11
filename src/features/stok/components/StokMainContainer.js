@@ -14,6 +14,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { Package, Plus, Search, ArrowUpRight, ArrowDownRight, AlertTriangle, ShieldAlert, Boxes, Database, Trash2, ArrowRightLeft } from 'lucide-react';
 import MesajBanner from '@/components/shared/MesajBanner';
+import Link from 'next/link';
 
 const BOSH_HAREKET = { urun_id: '', hareket_tipi: 'giris', adet: '', aciklama: '', raf_konumu: '' };
 
@@ -33,6 +34,7 @@ export default function StokDepoKarargahi() {
     const [yeniHareket, setYeniHareket] = useState(BOSH_HAREKET);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [arama, setArama] = useState('');
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
 
@@ -92,8 +94,10 @@ export default function StokDepoKarargahi() {
     };
 
     const stokHareketiKaydet = async () => {
-        if (!yeniHareket.urun_id) return showMessage('Lütfen bir depo ürünü seçin!', 'error');
-        if (!yeniHareket.adet || yeniHareket.adet <= 0) return showMessage('Adet bilgisi sıfırdan büyük olmalı!', 'error');
+        if (islemdeId === 'kayit') return;
+        setIslemdeId('kayit');
+        if (!yeniHareket.urun_id) { setIslemdeId(null); return showMessage('Lütfen bir depo ürünü seçin!', 'error'); }
+        if (!yeniHareket.adet || yeniHareket.adet <= 0) { setIslemdeId(null); return showMessage('Adet bilgisi sıfırdan büyük olmalı!', 'error'); }
 
         setLoading(true);
         const payload = {
@@ -111,6 +115,7 @@ export default function StokDepoKarargahi() {
             setYeniHareket(BOSH_HAREKET);
             setFormAcik(false);
             setLoading(false);
+            setIslemdeId(null);
             return;
         }
 
@@ -148,17 +153,19 @@ export default function StokDepoKarargahi() {
         } catch (error) {
             showMessage('Sunucu hatası: ' + error.message, 'error');
         }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     const hareketSilB0Log = async (id, urun_kodu) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Bu hareketi iptal etmek için Yönetici PIN kodunu girin:'
         );
-        if (!yetkili) return showMessage(yetkiMesaj || 'Yetkisiz işlem.', 'error');
+        if (!yetkili) { setIslemdeId(null); return showMessage(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
-        if (!confirm('DİKKAT! Bu hareket fiziksel olarak silinecektir. Emin misiniz?')) return;
+        if (!confirm('DİKKAT! Bu hareket fiziksel olarak silinecektir. Emin misiniz?')) { setIslemdeId(null); return; }
 
         try {
             try {
@@ -177,6 +184,7 @@ export default function StokDepoKarargahi() {
         } catch (error) {
             showMessage('Hata: ' + error.message, 'error');
         }
+        finally { setIslemdeId(null); }
     };
 
     if (!mounted) return null;
@@ -257,11 +265,11 @@ export default function StokDepoKarargahi() {
                             <Plus size={18} /> {isAR ? 'إضافة حركة جديدة' : 'Yeni Hareket (Giriş/Çıkış)'}
                         </button>
                     )}
-                    <a href="/siparisler" style={{ textDecoration: 'none' }}>
+                    <Link href="/siparisler" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
                             {isAR ? 'الطلبات (M10)' : 'Siparişler (M10)'}
                         </button>
-                    </a>
+                    </Link>
                     {/* [A-06] Kritik Stok Alarm */}
                     <button
                         onClick={async () => {
@@ -432,7 +440,7 @@ export default function StokDepoKarargahi() {
                                         <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(h.created_at).toLocaleString('tr-TR')}</td>
                                         {erisim === 'full' && (
                                             <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>
-                                                <button onClick={() => hareketSilB0Log(h.id, h.b2_urun_katalogu?.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#ef4444', padding: '6px', borderRadius: 6, cursor: 'pointer' }}>
+                                                <button disabled={islemdeId === 'sil_' + h.id} onClick={() => hareketSilB0Log(h.id, h.b2_urun_katalogu?.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#ef4444', padding: '6px', borderRadius: 6, cursor: islemdeId === 'sil_' + h.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + h.id ? 0.5 : 1 }}>
                                                     <Trash2 size={16} />
                                                 </button>
                                             </td>
