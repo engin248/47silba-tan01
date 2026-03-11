@@ -23,6 +23,7 @@ export default function GuvenlikSayfasi() {
     const [yetkiState, setYetkiState] = useState({ uretim: '', genel: '' });
     const [pinDegistir, setPinDegistir] = useState({ grup: 'uretim', eskiPin: '', yeniPin: '', yeniPin2: '' });
     const [hataliGirisler, setHataliGirisler] = useState({}); // GVN-02: { grup: count }
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         try {
@@ -56,12 +57,16 @@ export default function GuvenlikSayfasi() {
         if (pinDegistir.yeniPin.length > 20) return goster('Kod en fazla 20 haneli olabilir!', 'error');
 
         try {
+            if (islemdeId === 'pinDegistir') return;
+            setIslemdeId('pinDegistir');
+
             const mevcut = localStorage.getItem(`sb47_${pinDegistir.grup}_pin`);
             if (mevcut && mevcut !== pinDegistir.eskiPin) {
                 // [B-14 FIX] NEXT_PUBLIC_ADMIN_PIN kaldırıldı — admin PIN artık sunucu tarafında
                 // Client tarafında admin bypassı yok — güvenli
                 telegramBildirim(`🚨 YETKİSİZ İŞLEM\nGüvenlik sayfasında hatalı PIN değiştirme denemesi yapıldı.\nGrup: ${pinDegistir.grup.toUpperCase()}`);
                 setHataliGirisler(p => ({ ...p, [pinDegistir.grup]: (p[pinDegistir.grup] || 0) + 1 }));
+                setIslemdeId(null);
                 return goster(`Mevcut kod hatalı! (${(hataliGirisler[pinDegistir.grup] || 0)}/5 deneme)`, 'error');
             }
 
@@ -71,6 +76,7 @@ export default function GuvenlikSayfasi() {
             setPinDegistir({ grup: 'uretim', eskiPin: '', yeniPin: '', yeniPin2: '' });
             goster('✅ Kod başarıyla güncellendi!');
         } catch (error) { goster('PIN değiştirilemedi: ' + error.message, 'error'); }
+        setIslemdeId(null);
     };
 
     const goster = (text, type = 'success') => {
@@ -86,10 +92,14 @@ export default function GuvenlikSayfasi() {
         );
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem. Loglar silinemedi.', 'error');
 
+        if (islemdeId === 'logTemizle') return;
+        setIslemdeId('logTemizle');
+
         localStorage.removeItem('sb47_giris_log');
         setLoglar([]);
         goster('✅ Log kayıtları yetkiyle temizlendi');
         telegramBildirim(`🚨 KRİTİK İŞLEM\nGüvenlik (Giriş) logları Yönetici yetkisi kullanılarak silindi!`);
+        setIslemdeId(null);
     };
 
     // Sadece "tam" erişim grubu bu sayfayı görür
@@ -342,9 +352,9 @@ export default function GuvenlikSayfasi() {
                                 <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod (Tekrar)</label>
                                 <input type="password" maxLength={20} value={pinDegistir.yeniPin2} onChange={e => setPinDegistir({ ...pinDegistir, yeniPin2: e.target.value })} style={inp} />
                             </div>
-                            <button onClick={handlePinDegistir}
-                                style={{ background: '#6366f1', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem' }}>
-                                Kodu Güncelle
+                            <button disabled={islemdeId === 'pinDegistir'} onClick={handlePinDegistir}
+                                style={{ background: '#6366f1', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1 }}>
+                                {islemdeId === 'pinDegistir' ? 'Güncelleniyor...' : 'Kodu Güncelle'}
                             </button>
                         </div>
                     </div>
@@ -356,9 +366,9 @@ export default function GuvenlikSayfasi() {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>{loglar.length} kayıt</span>
-                        <button onClick={logTemizle}
-                            style={{ background: 'white', border: '1px solid #e5e7eb', color: '#64748b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <RefreshCw size={12} /> Temizle
+                        <button disabled={islemdeId === 'logTemizle'} onClick={logTemizle}
+                            style={{ background: 'white', border: '1px solid #e5e7eb', color: '#64748b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'logTemizle' ? 'wait' : 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'logTemizle' ? 0.5 : 1 }}>
+                            <RefreshCw size={12} /> {islemdeId === 'logTemizle' ? 'Temizleniyor...' : 'Temizle'}
                         </button>
                     </div>
                     {loglar.length === 0 && (

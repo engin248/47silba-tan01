@@ -148,7 +148,7 @@ export default function ArgeSayfasi() {
 
         // DÜZELTİLDİ: M1 AI Motoruna 'AbortController' (Kilitlenme Önleyici Zaman Aşımı) eklendi [Q4 Kriteri]
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 Saniye Sınırı
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 Saniye Sınırı (Queue Mimarisi için Uzatıldı)
 
         try {
             const res = await fetch('/api/trend-ara', {
@@ -170,7 +170,7 @@ export default function ArgeSayfasi() {
         } catch (e) {
             clearTimeout(timeoutId);
             if (e.name === 'AbortError') {
-                goster('Ajan bağlantısı zaman aşımına uğradı (15 saniye limiti aşıldı). Lütfen tekrar deneyin!', 'error');
+                goster('Ajan bağlantısı zaman aşımına uğradı (60 saniye limiti aşıldı/Queue bekliyor). Lütfen tekrar deneyin!', 'error');
             } else {
                 goster('Bağlantı hatası: ' + e.message, 'error');
             }
@@ -1032,10 +1032,14 @@ export default function ArgeSayfasi() {
                                             {/* Onay/İptal/Sil + Düzenle Butonları */}
                                             {trend.durum === 'inceleniyor' && (
                                                 <div style={{ display: 'flex', gap: '0.5rem', flexDirection: isAR ? 'row-reverse' : 'row', flexWrap: 'wrap' }}>
-                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'onaylandi'); }}
+                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const kumasOnay = window.confirm(isAR ? "⚠️ نقطة تفتيش:\nهل تم فحص وتأكيد القماش فعليًا من قبل خبير؟" : "⚠️ M2 GATEWAY CHECKPOINT (BAŞ DENETMEN KURALI):\n\nYapay Zekanın sunduğu kumaş/aksesuar planı sadece bir 'TAHMİN ve İÇGÖRÜDÜR'.\n\nModelhane (M2) üretim bandına aktarmadan önce; Fiziksel kumaşın (gramaj, tuşe ve çekmezlik) Satınalma / Baş Kalıpçı tarafından EL İLE kontrol edilip, fiziksel imalata uygun olduğu KESİN OLARAK DOĞRULANDI MI?\n\n(Tamam'a basarsanız sorumluluk İnsan Onayına geçer ve M2 Şasesi açılır)");
+                                                        if (kumasOnay) durumGuncelle(trend.id, 'onaylandi');
+                                                    }}
                                                         style={{ flex: 1, padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
                                                         <CheckCircle2 size={15} />
-                                                        {isAR ? 'موافقة → إرسال للتصميم' : 'Onayla → Tasarıma Gönder'}
+                                                        {isAR ? 'موافقة وتأكيد القماش → تصميم' : 'Kumaşı Fiziken Doğrula → M2\'ye Aktar'}
                                                     </button>
                                                     <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'iptal'); }}
                                                         style={{ padding: '10px 16px', background: 'white', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '8px', fontWeight: 700, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
@@ -1059,9 +1063,9 @@ export default function ArgeSayfasi() {
                                             )}
                                             {trend.durum !== 'inceleniyor' && (
                                                 <div style={{ display: 'flex', gap: 6, flexDirection: 'column' }}>
-                                                    {/* CC Kriteri Onarımı (İş Akış Zinciri) */}
+                                                    {/* CC Kriteri Onarımı (İş Akış Zinciri) - YENİ MİMARİ M2 GATEWAY V2 */}
                                                     {trend.durum === 'onaylandi' && (
-                                                        <NextLink href="/modelhane" style={{ textDecoration: 'none', width: '100%' }}>
+                                                        <NextLink href={`/modelhane?trend_id=${trend.id}`} style={{ textDecoration: 'none', width: '100%' }}>
                                                             <button style={{ width: '100%', padding: '10px 14px', background: '#3b82f6', color: 'white', border: '1px solid #2563eb', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 }}>
                                                                 🚀 {isAR ? 'الذهاب إلى غرفة الرسم (M2)' : 'Modelhane/Kalıphane\'ye Geç (M2)'}
                                                             </button>

@@ -57,6 +57,7 @@ export default function KameralarMainContainer() {
     // Optimizasyon: Sekme gizliliği ve hareketsizlik takibi
     const [isTabHidden, setIsTabHidden] = useState(false);
     const [isIdle, setIsIdle] = useState(false);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -214,6 +215,9 @@ export default function KameralarMainContainer() {
 
     // ── Snapshot + Telegram ──────────────────────────────────
     const snapshotGonder = async (kam) => {
+        if (islemdeId === 'snap_' + kam.id) return;
+        setIslemdeId('snap_' + kam.id);
+
         goster(`📸 ${kam.name} bağından anlık görüntü çekiliyor...`, 'success');
 
         try {
@@ -248,6 +252,8 @@ export default function KameralarMainContainer() {
                 video_url: null,
             }]);
         } catch { /* tablo yoksa geç */ }
+
+        setIslemdeId(null);
     };
 
     // ── Filtrelenmiş Kameralar ──────────────────────────────
@@ -391,9 +397,9 @@ export default function KameralarMainContainer() {
                             </span>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <button onClick={() => snapshotGonder(odakliKamera)}
-                                style={{ background: '#0ea5e9', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Download size={13} /> Snapshot → Telegram
+                            <button disabled={islemdeId === 'snap_' + odakliKamera.id} onClick={() => snapshotGonder(odakliKamera)}
+                                style={{ background: '#0ea5e9', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 8, cursor: islemdeId === 'snap_' + odakliKamera.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4, opacity: islemdeId === 'snap_' + odakliKamera.id ? 0.5 : 1 }}>
+                                <Download size={13} /> {islemdeId === 'snap_' + odakliKamera.id ? 'Gönderiliyor...' : 'Snapshot → Telegram'}
                             </button>
                             <button onClick={() => setOdakliKamera(null)}
                                 style={{ background: '#ef4444', border: 'none', color: 'white', padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 800 }}>
@@ -441,8 +447,8 @@ export default function KameralarMainContainer() {
                                 </div>
                                 <div style={{ display: 'flex', gap: 4 }}>
                                     {/* Snapshot */}
-                                    <button onClick={() => snapshotGonder(kam)} title="Telegram'a Snapshot Gönder"
-                                        style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center' }}>
+                                    <button disabled={islemdeId === 'snap_' + kam.id} onClick={() => snapshotGonder(kam)} title="Telegram'a Snapshot Gönder"
+                                        style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', cursor: islemdeId === 'snap_' + kam.id ? 'wait' : 'pointer', padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', opacity: islemdeId === 'snap_' + kam.id ? 0.3 : 1 }}>
                                         <Download size={13} />
                                     </button>
                                     {/* Büyüt */}
