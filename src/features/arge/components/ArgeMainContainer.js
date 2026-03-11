@@ -67,6 +67,7 @@ export default function ArgeSayfasi() {
     const [aiAraniyor, setAiAraniyor] = useState(false);
     const [aiSonuclar, setAiSonuclar] = useState(null);
     const [aiPanelAcik, setAiPanelAcik] = useState(false);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     // [SPAM ZIRHI]: Perplexity API'sini art arda basmalara karşı koruma
     const sonAramaZamaniRef = useRef(0);
@@ -247,7 +248,12 @@ export default function ArgeSayfasi() {
             }
         }
 
+        if (islemdeId === 'kaydet_modal') {
+            return goster('Bir kayıt işlemi zaten devam ediyor...', 'error');
+        }
+
         setLoading(true);
+        setIslemdeId('kaydet_modal');
         try {
             const { data: mevcutlar } = await supabase.from('b1_arge_trendler')
                 .select('id').eq('baslik', form.baslik.trim());
@@ -330,9 +336,13 @@ export default function ArgeSayfasi() {
             goster((isAR ? 'خطأ: ' : 'Bağlantı Hatası: ') + (error?.message || 'Bilinmeyen hata'), 'error');
         }
         setLoading(false);
+        setIslemdeId(null);
     };
 
     const durumGuncelle = async (id, yeniDurum) => {
+        if (islemdeId === 'durum_' + id) return;
+        setIslemdeId('durum_' + id);
+
         const { error } = await supabase
             .from('b1_arge_trendler')
             .update({ durum: yeniDurum })
@@ -383,6 +393,7 @@ export default function ArgeSayfasi() {
                 goster('Veritabanıyla bağlantı koptu ama log silinmedi.', 'error');
             }
         }
+        setIslemdeId(null);
     };
 
     const sil = async (id) => {
@@ -401,6 +412,9 @@ export default function ArgeSayfasi() {
             goster(isAR ? '⚠️ تم جدولة الحذف دون اتصال.' : '⚠️ İnternet Yok: Silme komutu idb belleğine alındı, bağlantı gelince silinecek.');
             return;
         }
+
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
 
         try {
             // 25. KRİTER ONARIMI: "KARA KUTU / İZCİ" (Soft Delete Simülasyonu)
@@ -423,6 +437,7 @@ export default function ArgeSayfasi() {
         } catch (error) {
             goster('Silme işlemi başarısız: ' + error.message, 'error');
         }
+        setIslemdeId(null);
     };
 
     // ── ZAMANSAL DOĞRULAMA FONKSİYONLARI ──────────────────────────────
@@ -908,11 +923,11 @@ export default function ArgeSayfasi() {
                         </button>
                         <button
                             onClick={kaydet}
-                            disabled={loading}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.4)' }}
+                            disabled={loading || islemdeId === 'kaydet_modal'}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: (loading || islemdeId === 'kaydet_modal') ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: (loading || islemdeId === 'kaydet_modal') ? 'wait' : 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.4)', opacity: islemdeId === 'kaydet_modal' ? 0.5 : 1 }}
                         >
                             <CheckCircle2 size={16} />
-                            {loading ? (isAR ? 'جار الحفظ...' : 'Kaydediliyor...') : (isAR ? 'حفظ الاتجاه' : 'Trendi Kaydet')}
+                            {(loading || islemdeId === 'kaydet_modal') ? (isAR ? 'جار الحفظ...' : 'Kaydediliyor...') : (isAR ? 'حفظ الاتجاه' : 'Trendi Kaydet')}
                         </button>
                     </div>
                 </div>
@@ -1017,13 +1032,13 @@ export default function ArgeSayfasi() {
                                             {/* Onay/İptal/Sil + Düzenle Butonları */}
                                             {trend.durum === 'inceleniyor' && (
                                                 <div style={{ display: 'flex', gap: '0.5rem', flexDirection: isAR ? 'row-reverse' : 'row', flexWrap: 'wrap' }}>
-                                                    <button onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'onaylandi'); }}
-                                                        style={{ flex: 1, padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'onaylandi'); }}
+                                                        style={{ flex: 1, padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
                                                         <CheckCircle2 size={15} />
                                                         {isAR ? 'موافقة → إرسال للتصميم' : 'Onayla → Tasarıma Gönder'}
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'iptal'); }}
-                                                        style={{ padding: '10px 16px', background: 'white', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'iptal'); }}
+                                                        style={{ padding: '10px 16px', background: 'white', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '8px', fontWeight: 700, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
                                                         <XCircle size={15} />
                                                         {isAR ? 'إلغاء' : 'İptal Et'}
                                                     </button>
@@ -1034,8 +1049,8 @@ export default function ArgeSayfasi() {
                                                                 style={{ padding: '10px 14px', background: '#eff6ff', color: '#2563eb', border: '2px solid #bfdbfe', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem' }}>
                                                                 ✏️ {isAR ? 'تعديل' : 'Düzenle'}
                                                             </button>
-                                                            <button onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
-                                                                style={{ padding: '10px 14px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: 'pointer' }}>
+                                                            <button disabled={islemdeId === 'sil_' + trend.id} onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
+                                                                style={{ padding: '10px 14px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: islemdeId === 'sil_' + trend.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + trend.id ? 0.5 : 1 }}>
                                                                 <Trash2 size={15} />
                                                             </button>
                                                         </>
@@ -1060,13 +1075,14 @@ export default function ArgeSayfasi() {
                                                                 style={{ flex: 1, padding: '8px 14px', background: '#eff6ff', color: '#2563eb', border: '2px solid #bfdbfe', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
                                                                 ✏️ {isAR ? 'تعديل' : 'Düzenle'}
                                                             </button>
-                                                            <button onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
-                                                                style={{ padding: '8px 16px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                            <button disabled={islemdeId === 'sil_' + trend.id} onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
+                                                                style={{ padding: '8px 16px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: islemdeId === 'sil_' + trend.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'sil_' + trend.id ? 0.5 : 1 }}>
                                                                 <Trash2 size={13} /> {isAR ? 'حذف' : 'Sil'}
                                                             </button>
                                                             <button
+                                                                disabled={islemdeId === 'durum_' + trend.id}
                                                                 onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'arsivlendi'); }}
-                                                                style={{ width: '100%', padding: '8px 14px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}
+                                                                style={{ width: '100%', padding: '8px 14px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}
                                                             >
                                                                 🗃️ Arşivle — Zamansal Doğrulama için Kaydet
                                                             </button>
