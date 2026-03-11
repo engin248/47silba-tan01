@@ -59,6 +59,8 @@ export default function ArgeSayfasi() {
     const [secilenTrend, setSecilenTrend] = useState(null);
     const [agentLoglari, setAgentLoglari] = useState([]);
     const [duzenleId, setDuzenleId] = useState(null);
+    // Zamansal Doğrulama
+    const [yenidenAraniyor, setYenidenAraniyor] = useState(null);
     // AI ARAMA
     const [aiSorgu, setAiSorgu] = useState('');
     const [aiAraniyor, setAiAraniyor] = useState(false);
@@ -370,13 +372,105 @@ export default function ArgeSayfasi() {
         }
     };
 
-    const filtreliTrendler = filtre === 'tumu' ? trendler : trendler.filter(t => t.durum === filtre);
+    // ── ZAMANSAL DOĞRULAMA FONKSİYONLARI ──────────────────────────────
+    // Gerçek sonuç kaydet (imalat yapıldıysa satış verisi, yapılmadıysa karşılaştırma)
+    const gercekSonucKaydet = async (trendId, gercekSonuc) => {
+        const { error } = await supabase.from('b1_arge_trendler').update({
+            gercek_sonuc: gercekSonuc,
+            dogrulama_tarihi: new Date().toISOString(),
+            dogrulama_durumu: 'yapildi',
+        }).eq('id', trendId);
+        if (!error) goster('✅ Sonuç kaydedildi', 'success');
+        else goster('Hata: ' + error.message, 'error');
+    };
+
+    // Doğrulama periyodunu ayarla (15 / 30 / 45 / 90 gün)
+    const dogrulamaPeriyoduAyarla = async (trendId, gun) => {
+        const dogrulamaZamani = new Date(Date.now() + gun * 86400000).toISOString();
+        const { error } = await supabase.from('b1_arge_trendler').update({
+            dogrulama_periyodu: gun,
+            dogrulama_zamani: dogrulamaZamani,
+            dogrulama_durumu: 'bekliyor',
+        }).eq('id', trendId);
+        if (!error) goster(`⏰ ${gun} gün sonra doğrulama planlandı`, 'success');
+        else goster('Hata: ' + error.message, 'error');
+    };
+
+    // Aynı ürünü bugün yeniden araştır — Perplexity ile
+    const zamanYenidenArastir = async (trend) => {
+        if (!trend?.baslik) return;
+        setYenidenAraniyor(trend.id);
+        try {
+            const gunFark = trend.arsiv_tarihi
+                ? Math.floor((Date.now() - new Date(trend.arsiv_tarihi)) / 86400000) : 30;
+            const orijinalKarar = trend.herm_karari || 'Belirtilmemiş';
+            const orijinalSkor = trend.talep_skoru || '?';
+            const platform = trend.platform || 'genel';
+            const kategori = trend.kategori || 'tekstil';
+
+            const sorgu = [
+                'Aşağıdaki soruları yanıtla. Türkiye tekstil/moda pazarı için gerçek piyasa verilerine dayan.',
+                '',
+                'ÜRÜN: ' + trend.baslik,
+                'KATEGORİ: ' + kategori + ' | PLATFORM: ' + platform,
+                'İLK ARAŞTIRMA: ' + gunFark + ' gün önce | O ZAMANKİ HermAI KARARI: ' + orijinalKarar + ' (Talep Skoru: ' + orijinalSkor + '/10)',
+                '',
+                '=== A) TREND DURUMU ===',
+                '1. Bu ürün hâlâ trend mi? Instagram, TikTok, Pinterest\'te içerik artıyor mu azalıyor mu?',
+                '2. Google Trends sinyali: Son 30 günde bu ürün araması arttı mı düştü mü?',
+                '3. Büyük moda markaları (Zara, H&M, Mango, Shein) bu ürünü son ' + gunFark + ' günde koleksiyona ekledi mi?',
+                '',
+                '=== B) SATIŞ PERFORMANSI ===',
+                '4. SATTI MI SATMADI MI? Trendyol ve Amazon Türkiye\'de bu ürün aktif olarak satılıyor mu? Listeleme sayısı arttı mı azaldı mı?',
+                '5. NE KADAR SATTI? Trendyol\'da "X adet satıldı" göstergeleri, yorum sayısı, satış hızı hakkında ne biliyorsun? Yüksek satış = çok yorum & stok tükenmesi.',
+                '6. HANGİ FİYAT ARALĞINDA? Piyasada bu ürünün ortalama fiyatı nedir? Fiyat yükseldiyse = talep güçlü, düştüyse = piyasada çok ürün var.',
+                '7. STok DURUMU: Herhangi bir marka stok tükendi mi bildirdi? Bu güçlü talep sinyali.',
+                '',
+                '=== C) REKABETÇİ DURUM ===',
+                '8. Rakipler bu ürünü ürettiyse satabildi mi? En çok hangi fiyat segmentinde satıldı?',
+                '9. Türkiye\'nin kendi tekstil markaları (LC Waikiki, Koton, DeFacto, Mavi) bu ürünü koleksiyonlarına eklediyse satış başarısı nasıldı?',
+                '',
+                '=== ÖZET KARAR (bu formatta yaz) ===',
+                'TREND: [GUCLU / ORTA / ZAYIF / BITTI]',
+                'SATIS: [COK_SATTI / ORTA_SATTI / AZ_SATTI / SATMADI / BILGI_YOK]',
+                'ORTALAMA_FIYAT: [rakam veya BILINMIYOR]',
+                'RAKIP_URETTI: [EVET hangi marka / HAYIR / BELIRSIZ]',
+                'HermAI_KARAR_UYUM: [DOGRULANDI / KISMI / YANLIS / BELIRSIZ]',
+                'EN_ONEMLI_BULGU: [tek cümle — en kritik bulgu ne?]'
+            ].join('\n');
+
+            const res = await fetch('/api/perplexity-arama', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sorgu }),
+            });
+            const data = await res.json();
+            const yeniArastirma = data?.sonuc || data?.content || 'Sonuç alınamadı';
+            const { error } = await supabase.from('b1_arge_trendler').update({
+                yeniden_arastirma: yeniArastirma,
+                dogrulama_durumu: 'arastirildi',
+            }).eq('id', trend.id);
+            if (!error) goster('🔄 Yeni araştırma tamamlandı — karşılaştırma hazır', 'success');
+        } catch (e) {
+            goster('Araştırma hatası: ' + e.message, 'error');
+        } finally {
+            setYenidenAraniyor(null);
+        }
+    };
+    // ────────────────────────────────────────────────────────────────────
+
 
     const skorRenk = (skor) => {
         if (skor >= 8) return '#10b981';
         if (skor >= 5) return '#f59e0b';
         return '#ef4444';
     };
+
+    const filtreliTrendler = filtre === 'tumu' ? trendler : trendler.filter(t => t.durum === filtre);
+    const arsivTrendler = trendler.filter(t => t.durum === 'arsivlendi');
+    const dogrulamaGeldi = arsivTrendler.filter(t =>
+        t.dogrulama_zamani && t.dogrulama_durumu !== 'yapildi' && new Date(t.dogrulama_zamani) <= new Date()
+    );
 
     // Auth yükleniyorsa bekle — race condition önlemi
     if (authYukleniyor) {
@@ -890,6 +984,12 @@ export default function ArgeSayfasi() {
                                                                 style={{ padding: '8px 16px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                                                                 <Trash2 size={13} /> {isAR ? 'حذف' : 'Sil'}
                                                             </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'arsivlendi'); }}
+                                                                style={{ width: '100%', padding: '8px 14px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}
+                                                            >
+                                                                🗃️ Arşivle — Zamansal Doğrulama için Kaydet
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -901,6 +1001,185 @@ export default function ArgeSayfasi() {
                         })}
                     </div>
                 </div>
+
+                {/* ARŞİV & ZAMANSAL DOĞRULAMA PANELİ */}
+                {arsivTrendler.length > 0 && (
+                    <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.25rem', marginTop: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <h3 style={{ fontSize: '0.8rem', fontWeight: 900, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                🗃️ Arşiv — Zamansal Doğrulama
+                            </h3>
+                            {dogrulamaGeldi.length > 0 && (
+                                <span style={{ background: '#7c3aed', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '3px 10px', borderRadius: 20 }}>
+                                    ⏰ {dogrulamaGeldi.length} doğrulama bekliyor
+                                </span>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
+                            {arsivTrendler.map(trend => {
+                                const gunFark = trend.arsiv_tarihi
+                                    ? Math.floor((Date.now() - new Date(trend.arsiv_tarihi)) / 86400000) : null;
+                                const dogrulamaGeldiMi = trend.dogrulama_zamani
+                                    && trend.dogrulama_durumu !== 'yapildi'
+                                    && new Date(trend.dogrulama_zamani) <= new Date();
+                                const kalanGun = trend.dogrulama_zamani && trend.dogrulama_durumu === 'bekliyor'
+                                    ? Math.max(0, Math.ceil((new Date(trend.dogrulama_zamani) - Date.now()) / 86400000)) : null;
+
+                                return (
+                                    <div key={trend.id} style={{
+                                        background: dogrulamaGeldiMi ? '#7c3aed08' : '#f8fafc',
+                                        border: '2px solid ' + (dogrulamaGeldiMi ? '#7c3aed' : '#e2e8f0'),
+                                        borderRadius: 12, padding: '12px 14px'
+                                    }}>
+                                        {/* Başlık satırı */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#1e293b' }}>{trend.baslik}</div>
+                                                <div style={{ fontSize: '0.6rem', color: '#64748b', marginTop: 2 }}>
+                                                    {trend.platform} · {trend.kategori}
+                                                    {gunFark !== null && ' · ' + gunFark + ' gün önce arşivlendi'}
+                                                </div>
+                                                {trend.herm_karari && (
+                                                    <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#7c3aed', marginTop: 3 }}>
+                                                        {'🧠 ' + trend.herm_karari + (trend.herm_guven_skoru ? ' · Güven: %' + trend.herm_guven_skoru : '')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button onClick={() => durumGuncelle(trend.id, 'inceleniyor')}
+                                                style={{ padding: '4px 10px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', borderRadius: 6, fontSize: '0.6rem', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8 }}>
+                                                ↩ Geri Al
+                                            </button>
+                                        </div>
+
+                                        {/* Periyot seç — henüz planlanmamışsa */}
+                                        {!trend.dogrulama_zamani ? (
+                                            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, marginBottom: 8 }}>
+                                                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#64748b', marginBottom: 5 }}>⏰ Kaç gün sonra yeniden araştırılsın?</div>
+                                                <div style={{ display: 'flex', gap: 4 }}>
+                                                    {[15, 30, 45, 90].map(gun => (
+                                                        <button key={gun} onClick={() => dogrulamaPeriyoduAyarla(trend.id, gun)}
+                                                            style={{ flex: 1, padding: '5px 0', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: '0.65rem', fontWeight: 800, cursor: 'pointer' }}>
+                                                            {gun + ' gün'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : trend.dogrulama_durumu === 'bekliyor' && (
+                                            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 6, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <div style={{ fontSize: '0.62rem', color: dogrulamaGeldiMi ? '#7c3aed' : '#94a3b8', fontWeight: 700 }}>
+                                                    {dogrulamaGeldiMi ? '🔔 Doğrulama zamanı geldi!' : '⏳ ' + kalanGun + ' gün kaldı'}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Yeniden Araştır */}
+                                        {dogrulamaGeldiMi && (
+                                            <button onClick={() => zamanYenidenArastir(trend)} disabled={yenidenAraniyor === trend.id}
+                                                style={{ width: '100%', padding: '9px', marginBottom: 8, background: '#7c3aed', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: yenidenAraniyor === trend.id ? 'wait' : 'pointer', fontSize: '0.77rem' }}>
+                                                {yenidenAraniyor === trend.id ? '🔄 Araştırılıyor...' : '🔄 ' + (gunFark || '?') + ' gün sonra — Aynı konuyu bugün araştır'}
+                                            </button>
+                                        )}
+
+                                        {/* Karşılaştırma — yeni araştırma varsa */}
+                                        {trend.yeniden_arastirma && (() => {
+                                            const metin = trend.yeniden_arastirma || '';
+                                            const parse = (etiket) => {
+                                                const rx = new RegExp(etiket + '[:\\s]+([^\\n]+)', 'i');
+                                                const m = metin.match(rx);
+                                                return m ? m[1].trim() : null;
+                                            };
+                                            const trendStat = parse('TREND');
+                                            const satisStat = parse('SATIS');
+                                            const fiyat = parse('ORTALAMA_FIYAT');
+                                            const rakip = parse('RAKIP_URETTI');
+                                            const uyum = parse('HermAI_KARAR_UYUM');
+                                            const bulgu = parse('EN_ONEMLI_BULGU');
+
+                                            const trendRenk = trendStat === 'GUCLU' ? '#10b981' : trendStat === 'ORTA' ? '#f59e0b' : trendStat === 'ZAYIF' ? '#ef4444' : '#94a3b8';
+                                            const satisRenk = satisStat === 'COK_SATTI' ? '#10b981' : satisStat === 'ORTA_SATTI' ? '#3b82f6' : satisStat === 'AZ_SATTI' ? '#f59e0b' : satisStat === 'SATMADI' ? '#ef4444' : '#94a3b8';
+
+                                            return (
+                                                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, marginBottom: 8 }}>
+                                                    <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#7c3aed', marginBottom: 8, textTransform: 'uppercase' }}>📊 Karar Karşılaştırması</div>
+
+                                                    {/* O Zaman vs Bugün grid */}
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+                                                        <div style={{ background: '#0f172a', borderRadius: 8, padding: '8px 10px' }}>
+                                                            <div style={{ fontSize: '0.56rem', fontWeight: 900, color: '#7c3aed', marginBottom: 4 }}>{'O ZAMAN (' + gunFark + ' gün önce)'}</div>
+                                                            <div style={{ fontSize: '0.63rem', color: '#cbd5e1', lineHeight: 1.5 }}>{trend.herm_karari || 'Karar yok'}</div>
+                                                            <div style={{ marginTop: 4, fontSize: '0.58rem', color: '#7c3aed' }}>{'Talep Skoru: ' + (trend.talep_skoru || '?') + '/10'}</div>
+                                                        </div>
+                                                        <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '8px 10px' }}>
+                                                            <div style={{ fontSize: '0.56rem', fontWeight: 900, color: '#047857', marginBottom: 4 }}>BUGÜN</div>
+                                                            {trendStat && <div style={{ fontSize: '0.62rem', fontWeight: 900, color: trendRenk, marginBottom: 2 }}>{'Trend: ' + trendStat}</div>}
+                                                            {satisStat && <div style={{ fontSize: '0.62rem', fontWeight: 900, color: satisRenk, marginBottom: 2 }}>{'Satış: ' + satisStat.replace(/_/g, ' ')}</div>}
+                                                            {fiyat && fiyat !== 'BILINMIYOR' && <div style={{ fontSize: '0.6rem', color: '#374151' }}>{'Ort. Fiyat: ' + fiyat}</div>}
+                                                            {rakip && <div style={{ fontSize: '0.6rem', color: '#64748b', marginTop: 2 }}>{'Rakip: ' + rakip}</div>}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* En önemli bulgu */}
+                                                    {bulgu && (
+                                                        <div style={{ background: '#fefce8', border: '1px solid #fde047', borderRadius: 6, padding: '6px 8px', fontSize: '0.62rem', color: '#713f12', fontWeight: 700, marginBottom: 6 }}>
+                                                            {'💡 ' + bulgu}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Tam metin — açılır */}
+                                                    <details>
+                                                        <summary style={{ fontSize: '0.58rem', color: '#94a3b8', cursor: 'pointer', marginBottom: 4 }}>Tam araştırma metnini gör</summary>
+                                                        <div style={{ fontSize: '0.6rem', color: '#374151', lineHeight: 1.6, background: '#f8fafc', borderRadius: 6, padding: '8px', maxHeight: 160, overflowY: 'auto' }}>
+                                                            {metin}
+                                                        </div>
+                                                    </details>
+
+                                                    {/* HermAI uyum değerlendirme */}
+                                                    {!trend.gercek_sonuc && (
+                                                        <div style={{ marginTop: 8 }}>
+                                                            <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, marginBottom: 4 }}>
+                                                                {uyum ? 'Sistem tahmini: ' + uyum + ' — Siz onaylıyor musunuz?' : 'HermAI bu kararında:'}
+                                                            </div>
+                                                            <div style={{ display: 'flex', gap: 4 }}>
+                                                                {[{ v: 'dogru', l: '✅ Haklıydı', c: '#10b981' }, { v: 'kismi', l: '⚠️ Kısmen', c: '#f59e0b' }, { v: 'yanlis', l: '❌ Yanıldı', c: '#ef4444' }].map(btn => (
+                                                                    <button key={btn.v} onClick={() => gercekSonucKaydet(trend.id, btn.v)}
+                                                                        style={{ flex: 1, padding: '5px', background: btn.c + '20', color: btn.c, border: '1px solid ' + btn.c + '40', borderRadius: 6, fontSize: '0.66rem', fontWeight: 800, cursor: 'pointer' }}>
+                                                                        {btn.l}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* İmalat yapıldıysa satış sonucu */}
+                                        {!trend.yeniden_arastirma && !trend.gercek_sonuc && (
+                                            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
+                                                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#64748b', marginBottom: 5 }}>📋 İmalat yaptıysanız gerçek sonuç neydi?</div>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                                    {[
+                                                        { v: 'cok_satti', l: '🔥 Çok Sattı', c: '#10b981' },
+                                                        { v: 'orta_satti', l: '📈 Orta', c: '#3b82f6' },
+                                                        { v: 'az_satti', l: '📉 Az', c: '#f59e0b' },
+                                                        { v: 'satmadi', l: '❌ Satmadı', c: '#ef4444' },
+                                                        { v: 'rakip_uretti_satti', l: '🕵️ Rakip Sattı', c: '#8b5cf6' },
+                                                    ].map(btn => (
+                                                        <button key={btn.v} onClick={() => gercekSonucKaydet(trend.id, btn.v)}
+                                                            style={{ padding: '3px 8px', background: btn.c + '18', color: btn.c, border: '1px solid ' + btn.c + '40', borderRadius: 5, fontSize: '0.6rem', fontWeight: 800, cursor: 'pointer' }}>
+                                                            {btn.l}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* SAĞ PANEL: İSTATİSTİK + AJAN LOG */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

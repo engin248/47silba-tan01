@@ -30,21 +30,23 @@ async function supabaseLog(tip, veri) {
 // ─── Public API ───────────────────────────────────────────────────────────────
 export const logger = {
     /** AI kararı logu — HermAI tarafından kullanılır (Kriter VV3, 80) */
-    aiDecision(veri) {
+    async aiDecision(veri) {
         if (IS_DEV) console.log('[HermAI Karar]', veri);
         // 1. Genel log tablosu
         supabaseLog('AI_KARAR', veri);
         // 2. Özel HermAI karar tablosu (Karargah panelinden görüntülenebilir)
         if (veri?.tip === 'HERM_LOOP' || veri?.tip === 'HERM_REJECTED') {
-            supabase.from('b0_herm_ai_kararlar').insert([{
-                birim: veri.birim || 'genel',
-                aciklama_tr: veri.yerelAciklama || null,
-                genel_ozet: veri.genelOzet || null,
-                durum: veri.tip === 'HERM_REJECTED' ? 'rejected'
-                    : (veri.tutarli ? 'explained' : 'risk'),
-                ana_metrik: veri.anaMetrik || null,
-                gercekcilik: veri.gercekcilikDurumu || 'kontrol_edilmedi',
-            }]).catch(() => { /* log hatası sistemi durdurmamalı */ });
+            try {
+                await supabase.from('b0_herm_ai_kararlar').insert([{
+                    birim: veri.birim || 'genel',
+                    aciklama_tr: veri.yerelAciklama || null,
+                    genel_ozet: veri.genelOzet || null,
+                    durum: veri.tip === 'HERM_REJECTED' ? 'rejected'
+                        : (veri.tutarli ? 'explained' : 'risk'),
+                    ana_metrik: veri.anaMetrik || null,
+                    gercekcilik: veri.gercekcilikDurumu || 'kontrol_edilmedi',
+                }]);
+            } catch { /* log hatası sistemi durdurmamalı */ }
         }
     },
 

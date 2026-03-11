@@ -62,6 +62,8 @@ export const ERISIM_MATRISI = {
     '/denetmen': { tam: 'full', uretim: null, genel: null },
     '/ayarlar': { tam: 'full', uretim: null, genel: null },
     '/gorevler': { tam: 'full', uretim: 'full', genel: 'read' },
+    '/kameralar': { tam: 'full', uretim: 'full', genel: 'read' },
+    '/tasarim': { tam: 'full', uretim: null, genel: null },
 };
 
 // ─── AUTH CONTEXT ─────────────────────────────────────────────

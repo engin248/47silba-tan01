@@ -31,6 +31,22 @@ export const telegramBildirim = (mesaj) => {
         .catch(() => null);
 };
 
+export const telegramFotoGonder = async (blob, mesaj) => {
+    try {
+        const formData = new FormData();
+        formData.append('photo', blob, 'snapshot.jpg');
+        formData.append('caption', mesaj);
+
+        const res = await fetch('/api/telegram-foto', {
+            method: 'POST',
+            body: formData
+        });
+        return await res.json();
+    } catch {
+        return { success: false };
+    }
+};
+
 // ── TARİH FORMATLAYICI ────────────────────────────────────────────────────────
 /**
  * Kullanım: formatTarih('2026-03-10T08:00:00Z') → '10.03.2026 11:00'

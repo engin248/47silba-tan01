@@ -49,3 +49,4 @@ page_output*.html
 .vercel
 
 .env.vercel.check
+.env.vercel.check

@@ -128,7 +128,8 @@ export async function POST(request) {
     }
 
     // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
-    const temizle = (v) => v?.replace(/['"]/g, '').trim();
+    // Newline (\r\n), tırnak ve boşlukları temizle (Vercel CLI bazen ekliyor)
+    const temizle = (v) => v?.replace(/['"\r\n]/g, '').trim();
 
     // En yüksek yetki önce — aynı PIN birden fazla gruba denk gelirse tam > uretim > genel
     const YETKI_SIRASI = [

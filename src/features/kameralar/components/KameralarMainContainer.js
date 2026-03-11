@@ -9,8 +9,10 @@ import {
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { supabase } from '@/lib/supabase';
-import { telegramBildirim, formatTarih } from '@/lib/utils';
+import { telegramBildirim, telegramFotoGonder, formatTarih } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';
+
+const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
 
 // ── NVR Gerçek Kamera Listesi (Neutron NEU-NVR116-SHD @ 192.168.1.200) ──
 // RTSP: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c{n}/s{0=main,1=sub}/live
@@ -52,10 +54,47 @@ export default function KameralarMainContainer() {
     const [loading, setLoading] = useState(false);
     const [streamDurum, setStreamDurum] = useState('kontrol'); // kontrol | aktif | kapali
 
+    // Optimizasyon: Sekme gizliliği ve hareketsizlik takibi
+    const [isTabHidden, setIsTabHidden] = useState(false);
+    const [isIdle, setIsIdle] = useState(false);
+
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
         setTimeout(() => setMesaj({ text: '', type: '' }), 5000);
     };
+
+    // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────
+    useEffect(() => {
+        let idleTimer = null;
+
+        const handleVisibilityChange = () => {
+            setIsTabHidden(document.visibilityState === 'hidden');
+        };
+
+        const resetIdleTimer = () => {
+            setIsIdle(false);
+            if (idleTimer) clearTimeout(idleTimer);
+            // 3 Dakika inaktivite (180000ms)
+            idleTimer = setTimeout(() => setIsIdle(true), 180000);
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('mousemove', resetIdleTimer);
+        window.addEventListener('keydown', resetIdleTimer);
+        window.addEventListener('click', resetIdleTimer);
+        window.addEventListener('touchstart', resetIdleTimer);
+
+        resetIdleTimer();
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('mousemove', resetIdleTimer);
+            window.removeEventListener('keydown', resetIdleTimer);
+            window.removeEventListener('click', resetIdleTimer);
+            window.removeEventListener('touchstart', resetIdleTimer);
+            if (idleTimer) clearTimeout(idleTimer);
+        };
+    }, []);
 
     // ── Yetki Kontrolü ─────────────────────────────────────────
     useEffect(() => {
@@ -95,12 +134,57 @@ export default function KameralarMainContainer() {
     // ── Stream Sunucu Durumu ──────────────────────────────────
     const streamDurumKontrol = async () => {
         try {
-            const res = await fetch('http://localhost:1984/', { signal: AbortSignal.timeout(2000) });
-            setStreamDurum(res.ok ? 'aktif' : 'kapali');
+            const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+            const data = await res.json();
+            setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
         } catch {
             setStreamDurum('kapali');
         }
     };
+
+    // Auto-polling for heartbeat (10s)
+    useEffect(() => {
+        if (!yetkili) return;
+        const interval = setInterval(() => {
+            streamDurumKontrol();
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [yetkili]);
+
+    // ── AI Motoru Gerçek Zamanlı (Realtime) Dinleyicisi ──
+    useEffect(() => {
+        if (!yetkili) return;
+
+        // "camera_events" tablosuna insert atıldığında yakala
+        const anomalyListener = supabase.channel('ai-anomaly-channel')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'camera_events' }, (payload) => {
+                if (payload.new.event_type === 'anomaly') {
+                    // İlgili kamerayı kameralar statinden bul
+                    setKameralar(prevKameralar => {
+                        const kam = prevKameralar.find(k => k.id === payload.new.camera_id);
+                        const kName = kam ? kam.name : `Kamera #${payload.new.camera_id}`;
+
+                        // Kırmızı animasyonlu veya loglu şekilde ekrana yansıt
+                        goster(`🚨 AI TESPİTİ: ${kName} - Bant Hareketsizliği / Anomali!`, 'error');
+
+                        const logEntry = {
+                            kullanici: '🤖 NİZAM AI',
+                            islem: 'ANOMALİ TESPİTİ (BANT HAREKETSİZLİĞİ)',
+                            kamera: kName,
+                            zaman: payload.new.created_at || new Date().toISOString(),
+                        };
+                        setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
+
+                        return prevKameralar;
+                    });
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(anomalyListener);
+        };
+    }, [yetkili]);
 
     // ── Erişim Logu Yaz ──────────────────────────────────────
     const kameraErisimLogAt = useCallback(async (islem, kameraAdi = null) => {
@@ -130,11 +214,32 @@ export default function KameralarMainContainer() {
 
     // ── Snapshot + Telegram ──────────────────────────────────
     const snapshotGonder = async (kam) => {
-        goster(`📸 ${kam.name} anlık görüntü Telegram'a gönderiliyor...`);
-        telegramBildirim(
-            `📸 KAMERA SNAPSHOT\nKamera: ${kam.name}\nKonum: ${kam.work_center || '—'}\nTarih: ${new Date().toLocaleString('tr-TR')}\n\n⚠️ İnsansız görüntü / İşlem dışı alan tespit bildirimleri için bu kanalı takip edin.`
-        );
-        kameraErisimLogAt('SNAPSHOT TELEGRAM', kam.name);
+        goster(`📸 ${kam.name} bağından anlık görüntü çekiliyor...`, 'success');
+
+        try {
+            // go2rtc API üzerinden Native Frame okuma
+            const frameUrl = `${GO2RTC_URL}/api/frame.jpeg?src=${kam.src}_main`;
+            const req = await fetch(frameUrl, { cache: 'no-store' });
+
+            if (!req.ok) throw new Error('Frame alınamadı');
+
+            const blob = await req.blob();
+            const caption = `🚨 KAMERA SNAPSHOT\nKamera: ${kam.name}\nKonum: ${kam.work_center || '—'}\nTarih: ${new Date().toLocaleString('tr-TR')}\n\n⚠️ Görüntü go2rtc native frame üzerinden aktarılmıştır.`;
+
+            const result = await telegramFotoGonder(blob, caption);
+
+            if (result.success) {
+                goster(`✅ Görüntü Telegram'a iletildi!`, 'success');
+                kameraErisimLogAt('SNAPSHOT TELEGRAM', kam.name);
+            } else {
+                goster(`❌ Görüntü gönderilemedi!`, 'error');
+            }
+        } catch (error) {
+            // Hata düşerse fallback (Eski yazılı usül)
+            goster(`⚠️ Sadece metin uyarısı tetiklendi (Frame Hatası).`, 'error');
+            telegramBildirim(`🚨 KAMERA (GÖRÜNTÜ ALINAMADI)\nKamera: ${kam.name}\nTarih: ${new Date().toLocaleString('tr-TR')}\nHata: NVR Frame timeout.`);
+        }
+
         // DB'ye event log
         try {
             await supabase.from('camera_events').insert([{
@@ -297,7 +402,15 @@ export default function KameralarMainContainer() {
                         </div>
                     </div>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: 'black' }}>
-                        <CameraPlayer src={odakliKamera.src} type="main" kameraAdi={odakliKamera.name} offline={odakliKamera.status === 'offline'} />
+                        {(isTabHidden || isIdle) ? (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b', gap: 15, background: '#0f172a' }}>
+                                <Activity size={32} color="#64748b" />
+                                <div style={{ fontWeight: 800, fontSize: '1rem' }}>GÖZLEM BEKLEMEDE (UYKU MODU)</div>
+                                <div style={{ fontSize: '0.8rem', color: '#475569' }}>Sistem ağı korumak için yayını duraklattı. Harekete geçmek için dokunun.</div>
+                            </div>
+                        ) : (
+                            <CameraPlayer src={odakliKamera.src} type="main" kameraAdi={odakliKamera.name} offline={odakliKamera.status === 'offline'} />
+                        )}
                     </div>
                 </div>
             )}
@@ -342,7 +455,13 @@ export default function KameralarMainContainer() {
 
                             {/* Video Alanı */}
                             <div style={{ width: '100%', aspectRatio: '16/9', background: '#020617', position: 'relative' }}>
-                                {(!odakliKamera || odakliKamera.id !== kam.id) ? (
+                                {(isTabHidden || isIdle) ? (
+                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b', gap: 10, background: '#0f172a' }}>
+                                        <Activity size={24} color="#64748b" />
+                                        <div style={{ fontWeight: 700, fontSize: '0.8rem' }}>UYKU MODU</div>
+                                        <div style={{ fontSize: '0.65rem' }}>İzlemeye devam etmek için tıklayın / hareket edin</div>
+                                    </div>
+                                ) : (!odakliKamera || odakliKamera.id !== kam.id) ? (
                                     <CameraPlayer src={kam.src} type="sub" kameraAdi={kam.name} offline={kam.status === 'offline'} />
                                 ) : (
                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8', fontWeight: 800, fontSize: '0.8rem', gap: 6 }}>

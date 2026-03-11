@@ -1,0 +1,102 @@
+﻿git : remote: error: GH013: Re
+pository rule violations found
+ for refs/heads/main.        
+At line:1 char:46
++ ... Desktop\47_SIL_BASTAN_01
+ ; git push origin main > push
+_error.txt 2>&1
++                             
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (remote: e  
+  rror: ...s/main.        :   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+remote: 
+remote: - GITHUB PUSH PROTECTI
+ON        
+remote:   ÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇö        
+remote:     Resolve the follow
+ing violations before pushing 
+again        
+remote: 
+remote:     - Push cannot cont
+ain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to 
+resolve a blocked push        
+remote:      https://docs.gith
+ub.com/code-security/secret-sc
+anning/working-with-secret-sca
+nning-and-push-protection/work
+ing-with-push-protection-from-
+the-command-line#resolving-a-b
+locked-push        
+remote:             
+remote:             
+remote:       ÔÇöÔÇö Perplexit
+y API Key ÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇ
+öÔÇöÔÇöÔÇöÔÇöÔÇö        
+remote:        locations:     
+   
+remote:          - commit: b2c
+6c8302c4b2f79bf907b8188caff176
+a0dbff8        
+remote:            path: .env.
+vercel.check:16        
+remote:             
+remote:        (?) To push, re
+move secret from commit(s) or 
+follow this URL to allow the s
+ecret.        
+remote:        https://github.
+com/engin248/47silba-tan01/sec
+urity/secret-scanning/unblock-
+secret/3AoJfrnyRryT2SOeA827v7I
+lGBD        
+remote:             
+remote:             
+remote:       ÔÇöÔÇö Supabase 
+Secret Key ÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔÇöÔ
+ÇöÔÇöÔÇöÔÇöÔÇö        
+remote:        locations:     
+   
+remote:          - commit: b2c
+6c8302c4b2f79bf907b8188caff176
+a0dbff8        
+remote:            path: .env.
+vercel.check:18        
+remote:             
+remote:        (?) To push, re
+move secret from commit(s) or 
+follow this URL to allow the s
+ecret.        
+remote:        https://github.
+com/engin248/47silba-tan01/sec
+urity/secret-scanning/unblock-
+secret/3AmJsQaWNJhTr9viEH2zQXE
+v5kk        
+remote:             
+remote: 
+remote: 
+To https://github.com/engin248
+/47silba-tan01.git
+ ! [remote rejected] main -> m
+ain (push declined due to repo
+sitory rule violations)
+error: failed to push some ref
+s to 'https://github.com/engin
+248/47silba-tan01.git'

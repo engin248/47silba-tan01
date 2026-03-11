@@ -29,7 +29,7 @@ export function TasarimProvider({ children }) {
                     .from('b0_tasarim_ayarlari')
                     .select('*')
                     .eq('ayar_anahtari', pathname)
-                    .single();
+                    .maybeSingle();
 
                 if (sayfaTasarimi) {
                     uygula(sayfaTasarimi);
@@ -41,7 +41,7 @@ export function TasarimProvider({ children }) {
                     .from('b0_tasarim_ayarlari')
                     .select('*')
                     .eq('ayar_anahtari', 'global_tema')
-                    .single();
+                    .maybeSingle();
 
                 if (globalTasarim) {
                     uygula(globalTasarim);
