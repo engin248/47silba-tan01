@@ -37,6 +37,7 @@ export default function ModelhaneSayfasi() {
     const [fotGaleri, setFotGaleri] = useState(null);
     const [galeriNumuneler, setGaleriNumuneler] = useState([]);
     const [galeridFiltre, setGaleridFiltre] = useState('hepsi');
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI] Telegram / DB Çift tıklama boğulmasını önleme kilidi
 
     const sekmeRef = useRef(sekme);
     useEffect(() => { sekmeRef.current = sekme; }, [sekme]);
@@ -47,15 +48,17 @@ export default function ModelhaneSayfasi() {
 
         setYetkiliMi(kullanici?.grup === 'tam' || uretimPin);
         if (kullanici?.grup === 'tam' || uretimPin) {
-            // [AI ZIRHI]: Websocket RAM Sızıntısı & Closure Kapanı Çözüldü
-            const kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(sekmeRef.current); })
+            // [AI ZIRHI]: Global('*') kirliliği filtrelenerek yalnızca Modelhane tablolarına atandı. 
+            // Başka modüldeki kayıtlar burayı istila edemeyecek.
+            const kanal = supabase.channel('m2-gercek-zamanli-ai')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_numune_uretimleri' }, () => { yukle(sekmeRef.current); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_dikim_talimatlari' }, () => { yukle(sekmeRef.current); })
                 .subscribe();
 
             return () => { supabase.removeChannel(kanal); };
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [kullanici]);
+        // [RENDER ZIRHI]: Auth Refetch Döngüsü bozuldu, Obje yerine ID ve Grup primiti bağlandı.
+    }, [kullanici?.id, kullanici?.grup]);
 
     useEffect(() => {
         if (yetkiliMi) yukle(sekme);
@@ -161,6 +164,9 @@ export default function ModelhaneSayfasi() {
     };
 
     const onayVer = async (id, durum) => {
+        if (islemdeId === id) return; // 🟢 SPAM ENGELİ
+        setIslemdeId(id);
+
         try {
             const { error } = await supabase.from('b1_numune_uretimleri').update({ onay_durumu: durum }).eq('id', id);
             if (!error) {
@@ -189,6 +195,8 @@ export default function ModelhaneSayfasi() {
             }
         } catch (error) {
             goster('Durum güncellenemedi, ağ hatası: ' + error.message, 'error');
+        } finally {
+            setIslemdeId(null);
         }
     };
 
@@ -572,10 +580,10 @@ export default function ModelhaneSayfasi() {
                                         📑 Kopyala
                                     </button>
                                     {n.onay_durumu === 'bekliyor' && (<>
-                                        <button onClick={() => onayVer(n.id, 'onaylandi')} style={{ background: '#ecfdf5', border: '2px solid #10b981', color: '#065f46', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>✅ Onayla</button>
-                                        <button onClick={() => onayVer(n.id, 'revizyon_gerekli')} style={{ background: '#fef2f2', border: '2px solid #ef4444', color: '#991b1b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>🔄 Revizyon</button>
+                                        <button disabled={islemdeId === n.id} onClick={() => onayVer(n.id, 'onaylandi')} style={{ background: '#ecfdf5', border: '2px solid #10b981', color: '#065f46', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: islemdeId === n.id ? 'wait' : 'pointer', fontSize: '0.75rem' }}>✅{islemdeId === n.id ? '...' : ' Onayla'}</button>
+                                        <button disabled={islemdeId === n.id} onClick={() => onayVer(n.id, 'revizyon_gerekli')} style={{ background: '#fef2f2', border: '2px solid #ef4444', color: '#991b1b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: islemdeId === n.id ? 'wait' : 'pointer', fontSize: '0.75rem' }}>🔄{islemdeId === n.id ? '...' : ' Revizyon'}</button>
                                     </>)}
-                                    <button onClick={() => sil('b1_numune_uretimleri', n.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                    <button disabled={islemdeId === n.id} onClick={() => { setIslemdeId(n.id); sil('b1_numune_uretimleri', n.id).finally(() => setIslemdeId(null)); }} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === n.id ? 'wait' : 'pointer' }}><Trash2 size={14} /></button>
                                 </div>
                             </div>
                             <div style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, marginTop: 4 }}>🕐 {formatTarih(n.created_at)}</div>
@@ -623,7 +631,7 @@ export default function ModelhaneSayfasi() {
                                         </div>
                                         <h3 style={{ fontWeight: 800, color: '#0f172a', margin: 0, fontSize: '0.95rem' }}>{t.b1_numune_uretimleri?.b1_model_taslaklari?.model_adi}</h3>
                                     </div>
-                                    <button onClick={() => sil('b1_dikim_talimatlari', t.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                    <button disabled={islemdeId === t.id} onClick={() => { setIslemdeId(t.id); sil('b1_dikim_talimatlari', t.id).finally(() => setIslemdeId(null)); }} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === t.id ? 'wait' : 'pointer' }}><Trash2 size={14} /></button>
                                 </div>
                                 {videoVar && (
                                     <a href={t.talimat_video_url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#0f172a', color: 'white', padding: '6px 14px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none', marginBottom: '0.75rem' }}>
