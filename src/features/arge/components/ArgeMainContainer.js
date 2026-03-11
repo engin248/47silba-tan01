@@ -7,6 +7,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { TrendingUp, Plus, CheckCircle2, XCircle, Clock, ExternalLink, AlertTriangle, Bot, ChevronDown, Globe, BarChart3, Tag, Link, Eye, Trash2, Lock, Camera } from 'lucide-react';
+import NextLink from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { TRANSLATIONS as TX } from '@/lib/lang';
@@ -770,7 +771,7 @@ export default function ArgeSayfasi() {
                                     onChange={(e) => {
                                         const file = e.target.files[0];
                                         if (file) {
-                                            if (file.size > 2 * 1024 * 1024) return goster('Dosya çok büyük! Maksimum 2MB resim yükleyebilirsiniz.', 'error');
+                                            if (file.size > 500 * 1024) return goster('Dosya çok büyük! Veritabanı sağlığı için maksimum 500 KB resim yükleyebilirsiniz.', 'error');
                                             const reader = new FileReader();
                                             reader.onloadend = () => setForm({ ...form, gorsel_url: reader.result });
                                             reader.readAsDataURL(file);
@@ -966,11 +967,11 @@ export default function ArgeSayfasi() {
                                                 <div style={{ display: 'flex', gap: 6, flexDirection: 'column' }}>
                                                     {/* CC Kriteri Onarımı (İş Akış Zinciri) */}
                                                     {trend.durum === 'onaylandi' && (
-                                                        <a href="/modelhane" style={{ textDecoration: 'none', width: '100%' }}>
+                                                        <NextLink href="/modelhane" style={{ textDecoration: 'none', width: '100%' }}>
                                                             <button style={{ width: '100%', padding: '10px 14px', background: '#3b82f6', color: 'white', border: '1px solid #2563eb', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 }}>
                                                                 🚀 {isAR ? 'الذهاب إلى غرفة الرسم (M2)' : 'Modelhane/Kalıphane\'ye Geç (M2)'}
                                                             </button>
-                                                        </a>
+                                                        </NextLink>
                                                     )}
 
                                                     {/* AA KRİTERİ ONARIMI: SİLME YETKİ KONTROLÜ (UI) */}
