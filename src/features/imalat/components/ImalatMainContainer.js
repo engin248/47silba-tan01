@@ -7,6 +7,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { Lock } from 'lucide-react';
+import NextLink from 'next/link';
 
 export default function Birim1AnaKarargah() {
     const { kullanici } = useAuth();
@@ -18,6 +19,7 @@ export default function Birim1AnaKarargah() {
     const [imalatGorunum, setImalatGorunum] = useState('liste'); // 'liste' | 'kanban'
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI] Çift tıklama engeli
 
     // =========================================================================
     // 1. PENCERE: TEKNİK GÖRÜŞ & ÜRÜN KABUL (FİRMADAN GELEN MODEL / DOSYA)
@@ -73,7 +75,8 @@ export default function Birim1AnaKarargah() {
 
             return () => { supabase.removeChannel(kanal); };
         }
-    }, [mainTab, kullanici]);
+        // [RENDER ZIRHI]: Auth Refetch Döngüsü bozuldu, Obje yerine ID ve Grup primiti bağlandı.
+    }, [mainTab, kullanici?.id, kullanici?.grup]);
 
     const telegramBildirim = (mesaj) => {
         const controller = new AbortController();
@@ -217,6 +220,8 @@ export default function Birim1AnaKarargah() {
     };
 
     const sahadakiIsiBaslat = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('v2_order_production_steps').update({ status: 'in_progress', start_time: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
@@ -224,9 +229,12 @@ export default function Birim1AnaKarargah() {
             telegramBildirim(`⏱️ ÜRETİM: Kronometre Başlatıldı. Bant çalışıyor.`);
             yukleSahadakiIsler();
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sahadakiArizayiBildir = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('v2_order_production_steps').update({ status: 'blocked_machine' }).eq('id', id);
             if (error) throw error;
@@ -234,9 +242,12 @@ export default function Birim1AnaKarargah() {
             telegramBildirim(`⚠️ ÜRETİM DURDU!\nMakina Arızası veya Gecikme Bildirildi.`);
             yukleSahadakiIsler();
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const sahadakiIsiBitir = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('v2_order_production_steps').update({ status: 'waiting_for_proof', end_time: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
@@ -244,6 +255,7 @@ export default function Birim1AnaKarargah() {
             telegramBildirim(`✅ ÜRETİM BANDI: Bir operasyon tamamlandı!\nMüfettiş Onayı ve Analiz Bekleniyor.`);
             yukleSahadakiIsler();
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // --- 4. PENCERE FONKSİYONLARI ---
@@ -256,6 +268,8 @@ export default function Birim1AnaKarargah() {
     };
 
     const finaleOnayVerMuhasebeyeYaz = async (islem) => {
+        if (islemdeId === islem.id) return;
+        setIslemdeId(islem.id);
         try {
             const { error } = await supabase.from('v2_order_production_steps').update({ status: 'completed' }).eq('id', islem.id);
             if (error) throw error;
@@ -267,9 +281,12 @@ export default function Birim1AnaKarargah() {
             telegramBildirim(`📊 KALİTE ONAYLANDI: 1 Parti kusursuz üretim Muhasebe ve Finans raporlarına yansıdı!`);
             yukleOnayBekleyenIsler();
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const hataliMalReddet = async (is) => {
+        if (islemdeId === is.id) return;
+        setIslemdeId(is.id);
         try {
             const { error } = await supabase.from('v2_order_production_steps').update({ status: 'assigned', rework_count: (is.rework_count || 0) + 1 }).eq('id', is.id);
             if (error) throw error;
@@ -277,6 +294,7 @@ export default function Birim1AnaKarargah() {
             telegramBildirim(`🚫 KALİTE REDDİ! Üretilen mal kusurlu. Revizyona (Tamire) gönderildi. Fire maliyeti hesaplanıyor.`);
             yukleOnayBekleyenIsler();
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     if (!yetkiliMi) {
@@ -296,12 +314,12 @@ export default function Birim1AnaKarargah() {
                     <h1 className="text-3xl font-black uppercase text-slate-800 tracking-tight">1. BİRİM: İMALAT VE SIFIR İNİSİYATİF ÜRETİM KORİDORU</h1>
                     <p className="text-sm text-gray-600 font-bold mt-1">Sektördeki Fason / Taşeron insiyatifine, bilgi kirliliğine ve plansızlığa son veren 4 Adımlı Tam Denetim Paneli.</p>
                 </div>
-                {/* CC Kriteri (M6 / Depo / Finans rotasına geçiş) */}
-                <a href="/finans" style={{ textDecoration: 'none' }}>
+                {/* CC Kriteri (M6 / Depo / Finans rotasına geçiş) - SPA KORUMASI */}
+                <NextLink href="/finans" style={{ textDecoration: 'none' }}>
                     <button className="flex items-center gap-2 bg-slate-900 text-white border-b-4 border-slate-950 px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-all text-sm uppercase">
                         💼 FİNANS / DEPO (M6) GEÇİŞİ
                     </button>
-                </a>
+                </NextLink>
             </div>
 
             {message.text && (
@@ -511,12 +529,18 @@ export default function Birim1AnaKarargah() {
                                             <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#0f172a' }}>{is.v2_production_orders?.order_code || 'Sipariş'}</div>
                                             <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{is.v2_production_orders?.v2_models?.model_name || '—'}</div>
                                             {kolon.key === 'assigned' && (
-                                                <button onClick={() => sahadakiIsiBaslat(is.id)} style={{ marginTop: 4, fontSize: '0.6rem', fontWeight: 800, background: '#eff6ff', color: '#2563eb', border: 'none', padding: '2px 8px', borderRadius: 4, cursor: 'pointer' }}>▶ Başlat</button>
+                                                <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} style={{ marginTop: 4, fontSize: '0.6rem', fontWeight: 800, background: '#eff6ff', color: '#2563eb', border: 'none', padding: '2px 8px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                    {islemdeId === is.id ? '...' : '▶ Başlat'}
+                                                </button>
                                             )}
                                             {kolon.key === 'in_progress' && (
                                                 <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
-                                                    <button onClick={() => sahadakiIsiBitir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#ecfdf5', color: '#059669', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: 'pointer' }}>✓ Bitir</button>
-                                                    <button onClick={() => sahadakiArizayiBildir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#fef2f2', color: '#dc2626', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: 'pointer' }}>⚠ Arıza</button>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#ecfdf5', color: '#059669', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                        {islemdeId === is.id ? '...' : '✓ Bitir'}
+                                                    </button>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#fef2f2', color: '#dc2626', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                        {islemdeId === is.id ? '...' : '⚠ Arıza'}
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -557,12 +581,14 @@ export default function Birim1AnaKarargah() {
                                             {/* Operasyon Butonları */}
                                             <div className="flex flex-col gap-2 mt-2">
                                                 {is.status === 'assigned' && (
-                                                    <button onClick={() => sahadakiIsiBaslat(is.id)} className="w-full bg-slate-800 text-white py-4 rounded-xl font-black hover:bg-black flex items-center justify-center gap-2 shadow-md"><Clock /> İŞE VE KRONOMETREYE BAŞLA</button>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className="w-full bg-slate-800 text-white py-4 rounded-xl font-black hover:bg-black flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-wait">
+                                                        <Clock /> {islemdeId === is.id ? 'İŞLEMDE...' : 'İŞE VE KRONOMETREYE BAŞLA'}
+                                                    </button>
                                                 )}
                                                 {is.status === 'in_progress' && (
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => sahadakiIsiBitir(is.id)} className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-black hover:bg-emerald-700 shadow-md text-sm"><CheckCircle2 className="inline mr-1" /> İŞ BİTTİ (KAPAT)</button>
-                                                        <button onClick={() => sahadakiArizayiBildir(is.id)} className="flex-1 border-2 border-red-500 text-red-600 py-4 rounded-xl font-black hover:bg-red-50 text-sm"><AlertTriangle className="inline mr-1" /> ARIZA BİLDİR (DUR)</button>
+                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-black hover:bg-emerald-700 shadow-md text-sm disabled:opacity-50 disabled:cursor-wait"><CheckCircle2 className="inline mr-1" /> {islemdeId === is.id ? '...' : 'İŞ BİTTİ (KAPAT)'}</button>
+                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className="flex-1 border-2 border-red-500 text-red-600 py-4 rounded-xl font-black hover:bg-red-50 text-sm disabled:opacity-50 disabled:cursor-wait"><AlertTriangle className="inline mr-1" /> {islemdeId === is.id ? '...' : 'ARIZA BİLDİR (DUR)'}</button>
                                                     </div>
                                                 )}
                                                 {is.status === 'blocked_machine' && (
@@ -662,8 +688,12 @@ export default function Birim1AnaKarargah() {
                                 </div>
 
                                 <div className="flex gap-4">
-                                    <button onClick={() => hataliMalReddet(is)} className="flex-1 bg-white text-red-600 border-2 border-red-300 hover:border-red-600 hover:bg-red-50 py-5 font-black text-lg rounded-xl shadow-sm transition-all flex justify-center items-center gap-2">REDDET & İŞÇİYE GERİ YOLLA</button>
-                                    <button onClick={() => finaleOnayVerMuhasebeyeYaz(is)} className="flex-1 bg-purple-700 text-white hover:bg-purple-800 border-b-4 border-purple-900 py-5 font-black text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 uppercase">Her Şey Doğru! Muhasebeye Fişi Kes</button>
+                                    <button disabled={islemdeId === is.id} onClick={() => hataliMalReddet(is)} className="flex-1 bg-white text-red-600 border-2 border-red-300 hover:border-red-600 hover:bg-red-50 py-5 font-black text-lg rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-wait">
+                                        {islemdeId === is.id ? '...' : 'REDDET & İŞÇİYE GERİ YOLLA'}
+                                    </button>
+                                    <button disabled={islemdeId === is.id} onClick={() => finaleOnayVerMuhasebeyeYaz(is)} className="flex-1 bg-purple-700 text-white hover:bg-purple-800 border-b-4 border-purple-900 py-5 font-black text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait">
+                                        {islemdeId === is.id ? '...' : 'Her Şey Doğru! Muhasebeye Fişi Kes'}
+                                    </button>
                                 </div>
                             </div>
                         ))}
