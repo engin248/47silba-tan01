@@ -175,9 +175,13 @@ function LayoutInner({ children }) {
         window.addEventListener('offline', onOffline);
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(() => console.log('[SW] Kayitli'))
-                .catch(err => console.error('[SW] Hata:', err));
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            }).catch(function (err) {
+                console.error('Service Worker temizleme hatası:', err);
+            });
         }
 
         return () => {
