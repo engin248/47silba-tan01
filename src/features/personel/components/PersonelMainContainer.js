@@ -13,6 +13,7 @@ import { createGoster, telegramBildirim, formatTarih } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import Link from 'next/link';
 
 const ROLLER = ['duz_makinaci', 'overlokcu', 'resmeci', 'kesimci', 'utucu', 'paketci', 'ustabasi', 'koordinator', 'muhasebeci', 'depocu'];
 const ROL_LABEL = {
@@ -49,6 +50,7 @@ export default function PersonelSayfasi() {
     const [devamFormAcik, setDevamFormAcik] = useState(false);
     const [devamDuzenleId, setDevamDuzenleId] = useState(null);
     const [sistemAyarlari, setSistemAyarlari] = useState({ dakika_basi_ucret: 2.50, prim_orani: 0.15, yillik_izin_hakki: 15 });
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -120,17 +122,20 @@ export default function PersonelSayfasi() {
     };
 
     const kaydet = async () => {
-        if (!form.personel_kodu.trim()) return goster('Personel kodu zorunlu!', 'error');
-        if (!form.ad_soyad.trim()) return goster('Ad Soyad zorunlu!', 'error');
-        if (form.ad_soyad.length > 100) return goster('Ad soyad max 100 karakter olmalı!', 'error');
-        if (form.notlar && form.notlar.length > 300) return goster('Notlar max 300 karakter olmalı!', 'error');
-        if (!form.saatlik_ucret_tl || parseFloat(form.saatlik_ucret_tl) <= 0) return goster('Saatlik ücret giriniz!', 'error');
+        if (islemdeId === 'kayit') return;
+        setIslemdeId('kayit');
+        if (!form.personel_kodu.trim()) { setIslemdeId(null); return goster('Personel kodu zorunlu!', 'error'); }
+        if (!form.ad_soyad.trim()) { setIslemdeId(null); return goster('Ad Soyad zorunlu!', 'error'); }
+        if (form.ad_soyad.length > 100) { setIslemdeId(null); return goster('Ad soyad max 100 karakter olmalı!', 'error'); }
+        if (form.notlar && form.notlar.length > 300) { setIslemdeId(null); return goster('Notlar max 300 karakter olmalı!', 'error'); }
+        if (!form.saatlik_ucret_tl || parseFloat(form.saatlik_ucret_tl) <= 0) { setIslemdeId(null); return goster('Saatlik ücret giriniz!', 'error'); }
         setLoading(true);
         try {
             // 🛑 U Kriteri: Mükerrer Personel Engeli
             const { data: mevcutPersonel } = await supabase.from('b1_personel').select('id').eq('personel_kodu', form.personel_kodu.trim().toUpperCase());
             if (!duzenleId && mevcutPersonel && mevcutPersonel.length > 0) {
                 setLoading(false);
+                setIslemdeId(null);
                 return goster('⚠️ Bu personel kodu zaten kullanılıyor! Mükerrer kayıt engellendi.', 'error');
             }
 
@@ -156,6 +161,7 @@ export default function PersonelSayfasi() {
                 const { data: mevcut } = await supabase.from('b1_personel').select('id').eq('personel_kodu', payload.personel_kodu);
                 if (mevcut && mevcut.length > 0) {
                     setLoading(false);
+                    setIslemdeId(null);
                     return goster('⚠️ Bu personel kodu zaten kullanılıyor! Mükerrer kayıt engellendi.', 'error');
                 }
 
@@ -166,7 +172,7 @@ export default function PersonelSayfasi() {
             }
             setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); yukle();
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     const duzenle = (p) => {
@@ -184,12 +190,14 @@ export default function PersonelSayfasi() {
     };
 
     const sil = async (id) => {
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Personel silmek için Yönetici PIN kodunu girin:'
         );
-        if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error');
-        if (!confirm('Personel kalıcı olarak silinsin mi?')) return;
+        if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error'); }
+        if (!confirm('Personel kalıcı olarak silinsin mi?')) { setIslemdeId(null); return; }
         try {
 
             // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
@@ -206,6 +214,7 @@ export default function PersonelSayfasi() {
             if (error) throw error;
             goster('Silindi'); yukle();
         } catch (error) { goster('Silinemedi: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const yukleDevam = async () => {
@@ -219,9 +228,11 @@ export default function PersonelSayfasi() {
     };
 
     const devamKaydet = async () => {
-        if (!devamForm.personel_id) return goster('Personel seçiniz!', 'error');
-        if (!devamForm.tarih) return goster('Tarih zorunlu!', 'error');
-        if (devamForm.notlar && devamForm.notlar.length > 200) return goster('Not max 200 karakter olmalı', 'error');
+        if (islemdeId === 'devam_kayit') return;
+        setIslemdeId('devam_kayit');
+        if (!devamForm.personel_id) { setIslemdeId(null); return goster('Personel seçiniz!', 'error'); }
+        if (!devamForm.tarih) { setIslemdeId(null); return goster('Tarih zorunlu!', 'error'); }
+        if (devamForm.notlar && devamForm.notlar.length > 200) { setIslemdeId(null); return goster('Not max 200 karakter olmalı', 'error'); }
 
         setLoading(true);
         try {
@@ -236,6 +247,7 @@ export default function PersonelSayfasi() {
                 const { data: mevcutDevam } = await supabase.from('b1_personel_devam').select('id').eq('personel_id', devamForm.personel_id).eq('tarih', devamForm.tarih);
                 if (mevcutDevam && mevcutDevam.length > 0) {
                     setLoading(false);
+                    setIslemdeId(null);
                     return goster('⚠️ Bu personel için belirtilen tarihte mesai/devam kaydı zaten mevcut! 2. Kez girilemez.', 'error');
                 }
 
@@ -253,16 +265,18 @@ export default function PersonelSayfasi() {
             setDevamForm({ personel_id: '', tarih: new Date().toISOString().split('T')[0], durum: 'calisti', notlar: '' });
             setDevamFormAcik(false); setDevamDuzenleId(null); yukleDevam();
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
-        setLoading(false);
+        finally { setLoading(false); setIslemdeId(null); }
     };
 
     const devamSil = async (id) => {
+        if (islemdeId === 'devam_sil_' + id) return;
+        setIslemdeId('devam_sil_' + id);
         const { yetkili: dYetkili, mesaj: dYetkiMesaj } = await silmeYetkiDogrula(
             kullanici,
             'Kayıt silmek için Yönetici PIN kodunu girin:'
         );
-        if (!dYetkili) return goster(dYetkiMesaj || 'Yetkisiz işlem!', 'error');
-        if (!confirm('Bu devam kaydı silinsin mi?')) return;
+        if (!dYetkili) { setIslemdeId(null); return goster(dYetkiMesaj || 'Yetkisiz işlem!', 'error'); }
+        if (!confirm('Bu devam kaydı silinsin mi?')) { setIslemdeId(null); return; }
         try {
 
             // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
@@ -279,12 +293,16 @@ export default function PersonelSayfasi() {
             if (error) throw error;
             goster('Silindi.'); yukleDevam();
         } catch (error) { goster('Silme hatası: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const durumGuncelle = async (id, adSoyad, yeniDurum) => {
+        if (islemdeId === 'durum_' + id) return;
+        setIslemdeId('durum_' + id);
         // [AI ZIRHI]: Offline Modu (Kriter J)
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_personel', 'UPDATE', { id, durum: yeniDurum });
+            setIslemdeId(null);
             return goster('⚡ Çevrimdışı: Durum değişikliği kuyruğa alındı.');
         }
         try {
@@ -293,6 +311,7 @@ export default function PersonelSayfasi() {
             yukle();
             telegramBildirim(`⚠️ PERSONEL DURUM DEĞİŞTİ!\nEleman: ${adSoyad}\nYeni Durum: ${yeniDurum.toUpperCase()}`);
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     // Prim hesabı: Günlük ücret = saatlik × (günlük_dk / 60)
@@ -411,11 +430,11 @@ export default function PersonelSayfasi() {
                         style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: 'white', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>
                         <Plus size={16} /> Devam Ekle
                     </button>}
-                    <a href="/muhasebe" style={{ textDecoration: 'none' }}>
+                    <Link href="/muhasebe" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#d97706', color: 'white', border: 'none', padding: '10px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
                             📊 M8 Muhasebe
                         </button>
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -569,10 +588,10 @@ export default function PersonelSayfasi() {
                                 {p.updated_at && p.updated_at !== p.created_at && <span style={{ fontSize: '0.63rem', color: '#f59e0b', background: '#fffbeb', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>✏️ Güncelleme: {formatTarih(p.updated_at)}</span>}
                             </div>
                             <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
-                                {p.durum === 'aktif' && <button onClick={() => durumGuncelle(p.id, p.ad_soyad, 'izinli')} style={{ padding: '4px 8px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700, background: '#fffbeb', color: '#92400e' }}>İzne Al</button>}
-                                {p.durum === 'izinli' && <button onClick={() => durumGuncelle(p.id, p.ad_soyad, 'aktif')} style={{ padding: '4px 8px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700, background: '#ecfdf5', color: '#059669' }}>Aktif Et</button>}
+                                {p.durum === 'aktif' && <button disabled={islemdeId === 'durum_' + p.id} onClick={() => durumGuncelle(p.id, p.ad_soyad, 'izinli')} style={{ padding: '4px 8px', border: 'none', borderRadius: 6, cursor: islemdeId === 'durum_' + p.id ? 'wait' : 'pointer', fontSize: '0.65rem', fontWeight: 700, background: '#fffbeb', color: '#92400e', opacity: islemdeId === 'durum_' + p.id ? 0.5 : 1 }}>İzne Al</button>}
+                                {p.durum === 'izinli' && <button disabled={islemdeId === 'durum_' + p.id} onClick={() => durumGuncelle(p.id, p.ad_soyad, 'aktif')} style={{ padding: '4px 8px', border: 'none', borderRadius: 6, cursor: islemdeId === 'durum_' + p.id ? 'wait' : 'pointer', fontSize: '0.65rem', fontWeight: 700, background: '#ecfdf5', color: '#059669', opacity: islemdeId === 'durum_' + p.id ? 0.5 : 1 }}>Aktif Et</button>}
                                 <button onClick={() => duzenle(p)} style={{ padding: '4px 10px', background: '#eff6ff', border: 'none', color: '#2563eb', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️ Düzenle</button>
-                                <button onClick={() => sil(p.id)} style={{ padding: '4px 8px', background: '#fef2f2', border: 'none', color: '#dc2626', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
+                                <button disabled={islemdeId === 'sil_' + p.id} onClick={() => sil(p.id)} style={{ padding: '4px 8px', background: '#fef2f2', border: 'none', color: '#dc2626', borderRadius: 6, cursor: islemdeId === 'sil_' + p.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + p.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                             </div>
                         </div>
                     ))}
@@ -662,7 +681,7 @@ export default function PersonelSayfasi() {
                                     <span style={{ fontSize: '0.72rem', fontWeight: 800, background: DEVAM_DURUM[d.durum]?.bg, color: DEVAM_DURUM[d.durum]?.color, padding: '3px 10px', borderRadius: 6 }}>{DEVAM_DURUM[d.durum]?.label || d.durum}</span>
                                     <div style={{ display: 'flex', gap: 4 }}>
                                         <button onClick={() => { setDevamForm({ personel_id: d.personel_id, tarih: d.tarih, durum: d.durum, notlar: d.notlar || '' }); setDevamDuzenleId(d.id); setDevamFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '5px 9px', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>✏️</button>
-                                        <button onClick={() => devamSil(d.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 9px', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
+                                        <button disabled={islemdeId === 'devam_sil_' + d.id} onClick={() => devamSil(d.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 9px', borderRadius: 6, cursor: islemdeId === 'devam_sil_' + d.id ? 'wait' : 'pointer', opacity: islemdeId === 'devam_sil_' + d.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                                     </div>
                                 </div>
                             ))}
