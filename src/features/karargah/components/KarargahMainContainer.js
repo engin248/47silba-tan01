@@ -4,8 +4,8 @@
  * Kaynak: app/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useKarargah.js
  */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+
 import {
     ShieldCheck, BarChart3, Database, AlertCircle, TrendingUp,
     Mic, MicOff, KeyRound, Eye, EyeOff, Activity,
@@ -782,7 +782,7 @@ export default function KarargahSayfasi() {
                                 <div key={i} className="flex items-start gap-2 text-xs">
                                     <span className="min-w-[16px] text-center">{akt.ikon}</span>
                                     <div>
-                                        <div className={ont - bold}>{akt.metin}</div>
+                                        <div className="font-bold text-slate-700 text-xs">{akt.metin}</div>
                                         <div className="text-[9px] font-bold text-slate-400 mt-0.5">{akt.zaman}</div>
                                     </div>
                                 </div>

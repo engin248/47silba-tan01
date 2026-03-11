@@ -11,8 +11,8 @@
  *   import { tumUrunleriGetir } from '@/features/katalog/services/katalogApi';
  */
 
-// Birincil bileşen (Tailwind, yeni mimari)
-export { default as KatalogMainContainer } from './components/KatalogRefactored';
+// Birincil bileşen
+export { default as KatalogMainContainer } from './components/KatalogMainContainer';
 
 // Hook + sabitler
 export { useKatalog, ANA_KATEGORILER, ALT_KATEGORILER, DURUMLAR, BOS_URUN } from './hooks/useKatalog';

@@ -42,7 +42,7 @@ const DURUM_CONFIG = {
 const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: 'gomlek', hedef_kitle: 'kadın', talep_skoru: 5, zorluk_derecesi: 5, referans_link: '', gorsel_url: '', aciklama: '', aciklama_ar: '' };
 
 export default function ArgeSayfasi() {
-    const { kullanici } = useAuth();
+    const { kullanici, yukleniyor: authYukleniyor } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const t = TX[lang];
@@ -377,6 +377,16 @@ export default function ArgeSayfasi() {
         if (skor >= 5) return '#f59e0b';
         return '#ef4444';
     };
+
+    // Auth yükleniyorsa bekle — race condition önlemi
+    if (authYukleniyor) {
+        return (
+            <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
+                <div style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTop: '4px solid #047857', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
+                <p style={{ fontWeight: 600 }}>Yükleniyor...</p>
+            </div>
+        );
+    }
 
     // 🟢 EKLENDİ: EĞER PİN YOKSA VE YETKİSİZSE BEYAZ EKRAN DEĞİL, UYARI VER!
     if (!yetkiliMi) {
