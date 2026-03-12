@@ -153,6 +153,7 @@ export default function AjanlarSayfasi() {
     const [filtre, setFiltre] = useState('hepsi');
     const [secilenGorev, setSecilenGorev] = useState(null);
     const [istatistik, setIstatistik] = useState({ toplam: 0, tamamlandi: 0, calisıyor: 0, hata: 0, bekliyor: 0 });
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
     const [konfig, setKonfig] = useState(() => {
         if (typeof window !== 'undefined') {
             const k = localStorage.getItem('ajan_konfig');
@@ -234,6 +235,9 @@ export default function AjanlarSayfasi() {
         if (form.gorev_adi.length > 100) return goster('Görev adı çok uzun!', 'error');
         if (form.gorev_emri.length > 1000) return goster('Görev emri çok uzun (Max 1000)!', 'error');
 
+        if (islemdeId === 'yeniGorev') return;
+        setIslemdeId('yeniGorev');
+
         try {
             // 🛑 U Kriteri: Mükerrer Ajan Görevi Engeli
             const { data: mevcutGorev } = await supabase.from('b1_ajan_gorevler')
@@ -260,6 +264,7 @@ export default function AjanlarSayfasi() {
                 goster('Kayıt hatası: ' + error.message, 'error');
             }
         }
+        setIslemdeId(null);
     };
 
     const gorevCalistir = async (gorev_id) => {
@@ -282,6 +287,10 @@ export default function AjanlarSayfasi() {
         );
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
         if (!confirm('Görevi sil?')) return;
+
+        if (islemdeId === 'sil_' + id) return;
+        setIslemdeId('sil_' + id);
+
         try {
 
             // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
@@ -300,6 +309,7 @@ export default function AjanlarSayfasi() {
             if (secilenGorev?.id === id) setSecilenGorev(null);
             goster('Görev silindi!');
         } catch (error) { goster('Silinemedi: ' + error.message, 'error'); }
+        setIslemdeId(null);
     };
 
     const gorevToggle = (ajanKey, gorevId) => {
@@ -489,8 +499,8 @@ export default function AjanlarSayfasi() {
 
                             <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem', justifyContent: 'flex-end' }}>
                                 <button onClick={() => setFormAcik(false)} style={{ padding: '11px 22px', background: 'transparent', border: '2px solid #334155', borderRadius: 10, color: '#64748b', cursor: 'pointer', fontWeight: 700 }}>İptal</button>
-                                <button onClick={gorevGonder} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 28px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem' }}>
-                                    <Send size={16} /> Görevi Gönder
+                                <button disabled={islemdeId === 'yeniGorev'} onClick={gorevGonder} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 28px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: islemdeId === 'yeniGorev' ? 'wait' : 'pointer', fontSize: '0.95rem', opacity: islemdeId === 'yeniGorev' ? 0.5 : 1 }}>
+                                    <Send size={16} /> {islemdeId === 'yeniGorev' ? 'Gönderiliyor...' : 'Görevi Gönder'}
                                 </button>
                             </div>
                         </div>
@@ -571,8 +581,8 @@ export default function AjanlarSayfasi() {
                                                             <RefreshCw size={11} /> Tekrar
                                                         </button>
                                                     )}
-                                                    <button onClick={() => gorevSil(gorev.id)}
-                                                        style={{ padding: '5px 8px', background: '#f8fafc', color: '#94a3b8', border: '1px solid #e5e7eb', borderRadius: 7, cursor: 'pointer' }}>
+                                                    <button disabled={islemdeId === 'sil_' + gorev.id} onClick={() => gorevSil(gorev.id)}
+                                                        style={{ padding: '5px 8px', background: '#f8fafc', color: '#94a3b8', border: '1px solid #e5e7eb', borderRadius: 7, cursor: islemdeId === 'sil_' + gorev.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + gorev.id ? 0.3 : 1 }}>
                                                         <Trash2 size={11} />
                                                     </button>
                                                 </div>
