@@ -121,16 +121,16 @@ export default function useMotionDetection(kameralar, aktif = true) {
 
     const krizLoguAt = async (kameraId, kameraAdi) => {
         try {
-            // AŞAMA 2/FAZ 4 HAZIRLIĞI: Supabase'e log atılır. Gelecekte AI Vision buradan tetiklenir.
             await supabase.from('camera_events').insert([{
-                camera_id: null, // Test için null geçildi, gerçek DB relation'larına göre revize edilebilir
-                event_type: 'motion_detected', // Hareketsizlik krizi
+                camera_id: kameraId,  // Gerçek kamera ID (cameras tablosundaki SERIAL id)
+                event_type: 'motion_detected',
                 video_url: null,
-                metadata: { kamera_adi: kameraAdi, uyari: `2 Dakikadır [${kameraAdi}] kamerasında HİÇBİR HAREKET YOK!` }
+                metadata: {
+                    kamera_adi: kameraAdi,
+                    uyari: `2 Dakikadır [${kameraAdi}] kamerasinda HICBIR HAREKET YOK!`
+                }
             }]);
-
-            // Opsiyonel Telegram bildirimi eklenebilir
-        } catch (e) { console.error('Kriz logu atılamadı', e); }
+        } catch (e) { console.error('Kriz logu atilamadi', e); }
     };
 
     return hareketDurumlari;
