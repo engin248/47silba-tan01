@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Camera, Maximize, Minimize, ShieldCheck, RefreshCw,
-    Eye, Filter, Clock, Download, AlertTriangle, Wifi, WifiOff,
-    Activity, Video, Lock
+    Camera, Maximize, RefreshCw,
+    Clock, Download, AlertTriangle, Wifi, WifiOff,
+    Activity, Video, Lock, Zap, Eye, TrendingUp, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { supabase } from '@/lib/supabase';
-import { telegramBildirim, telegramFotoGonder, formatTarih } from '@/lib/utils';
+import { telegramBildirim, telegramFotoGonder } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';
+import useMotionDetection from '../hooks/useMotionDetection';
 
 const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
 
@@ -52,12 +53,20 @@ export default function KameralarMainContainer() {
     const [logPanelAcik, setLogPanelAcik] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [loading, setLoading] = useState(false);
-    const [streamDurum, setStreamDurum] = useState('kontrol'); // kontrol | aktif | kapali
+    const [streamDurum, setStreamDurum] = useState('kontrol');
+    const [aiOlaylar, setAiOlaylar] = useState([]);  // [YENİ] DB'den gelen AI event logları
 
-    // Optimizasyon: Sekme gizliliği ve hareketsizlik takibi
+    // Sekme gizliliği ve hareketsizlik takibi
     const [isTabHidden, setIsTabHidden] = useState(false);
     const [isIdle, setIsIdle] = useState(false);
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(null);
+
+    // ── useMotionDetection BAĞLANTISI (CANLI) ────────────────────
+    // Hook: 2 dakika hareketsizlik → Supabase'e camera_events INSERT → Telegram alarm
+    const hareketDurumlari = useMotionDetection(
+        kameralar,
+        yetkili && !isTabHidden && !isIdle && streamDurum === 'aktif'
+    );
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -152,32 +161,49 @@ export default function KameralarMainContainer() {
         return () => clearInterval(interval);
     }, [yetkili]);
 
+    // ── AI Olayları — Sayfa açılışında son 5 kaydı çek ──────────
+    useEffect(() => {
+        if (!yetkili) return;
+        const aiOlaylariGetir = async () => {
+            try {
+                const { data } = await supabase
+                    .from('camera_events')
+                    .select('*')
+                    .in('event_type', ['motion_detected', 'anomaly'])
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                if (data) setAiOlaylar(data);
+            } catch { /* tablo yoksa sessizce geç */ }
+        };
+        aiOlaylariGetir();
+    }, [yetkili]);
+
     // ── AI Motoru Gerçek Zamanlı (Realtime) Dinleyicisi ──
     useEffect(() => {
         if (!yetkili) return;
 
-        // "camera_events" tablosuna insert atıldığında yakala
         const anomalyListener = supabase.channel('ai-anomaly-channel')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'camera_events' }, (payload) => {
-                if (payload.new.event_type === 'anomaly') {
-                    // İlgili kamerayı kameralar statinden bul
-                    setKameralar(prevKameralar => {
-                        const kam = prevKameralar.find(k => k.id === payload.new.camera_id);
-                        const kName = kam ? kam.name : `Kamera #${payload.new.camera_id}`;
+                // Hem anomaly hem motion_detected yakalanır
+                if (['anomaly', 'motion_detected'].includes(payload.new.event_type)) {
+                    const kam = kameralar.find(k => k.id === payload.new.camera_id);
+                    const kName = kam ? kam.name : `Kamera #${payload.new.camera_id}`;
 
-                        // Kırmızı animasyonlu veya loglu şekilde ekrana yansıt
-                        goster(`🚨 AI TESPİTİ: ${kName} - Bant Hareketsizliği / Anomali!`, 'error');
+                    goster(`🚨 AI TESPİTİ: ${kName} — Bant Hareketsizliği!`, 'error');
 
-                        const logEntry = {
-                            kullanici: '🤖 NİZAM AI',
-                            islem: 'ANOMALİ TESPİTİ (BANT HAREKETSİZLİĞİ)',
-                            kamera: kName,
-                            zaman: payload.new.created_at || new Date().toISOString(),
-                        };
-                        setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
+                    // Erişim loguna ekle
+                    const logEntry = {
+                        kullanici: '🤖 NİZAM AI',
+                        islem: 'ANOMALİ TESPİTİ (BANT HAREKETSİZLİĞİ)',
+                        kamera: kName,
+                        zaman: payload.new.created_at || new Date().toISOString(),
+                    };
+                    setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
 
-                        return prevKameralar;
-                    });
+                    // AI Olay panelini de güncelle
+                    setAiOlaylar(prev => [payload.new, ...prev].slice(0, 5));
+
+                    return;
                 }
             })
             .subscribe();
@@ -488,28 +514,104 @@ export default function KameralarMainContainer() {
                 </div>
             )}
 
-            {/* AI BÖLÜMÜ (FAZ 4 Planı) */}
+            {/* AI HAREKET ANALİZ MOTORU (CANLI) */}
             <div style={{ marginTop: '2rem', background: 'linear-gradient(135deg,#0f172a,#1e293b)', border: '1px solid #334155', borderRadius: 16, padding: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem' }}>
-                    <Activity size={18} color="#a78bfa" />
-                    <span style={{ color: 'white', fontWeight: 800, fontSize: '0.9rem' }}>AI Üretim Analiz Motoru (FAZ 4 — Geliştiriliyor)</span>
-                    <span style={{ fontSize: '0.65rem', background: '#312e81', color: '#a78bfa', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>YAKIN</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem', flexWrap: 'wrap' }}>
+                    <Activity size={18} color="#10b981" />
+                    <span style={{ color: 'white', fontWeight: 800, fontSize: '0.9rem' }}>AI Hareket Analiz Motoru</span>
+                    <span style={{ fontSize: '0.65rem', background: '#064e3b', color: '#34d399', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>CANLI</span>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
+                        {streamDurum === 'aktif' ? `${kameralar.filter(k => k.status === 'online').length} kamera taranıyor` : 'Stream kapalı — tarama pasif'}
+                    </span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    {[
-                        { ikon: '🏭', baslik: 'Bant Durma Tespiti', durum: 'Planlandı', renk: '#7c3aed' },
-                        { ikon: '👤', baslik: 'İşçi Yokluğu Alarmı', durum: 'Planlandı', renk: '#7c3aed' },
-                        { ikon: '⚙️', baslik: 'Makine Duruşu', durum: 'Planlandı', renk: '#7c3aed' },
-                        { ikon: '🚨', baslik: 'Güvenlik İhlali', durum: 'Planlandı', renk: '#7c3aed' },
-                    ].map((item, i) => (
-                        <div key={i} style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '0.875rem', display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: '1.2rem' }}>{item.ikon}</span>
-                            <div>
-                                <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.8rem' }}>{item.baslik}</div>
-                                <div style={{ color: item.renk, fontSize: '0.65rem', fontWeight: 700, marginTop: 2 }}>⏱ {item.durum}</div>
+
+                {/* DURUM KARTLARI */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    {kameralar.filter(k => k.status === 'online').map(kam => {
+                        const durum = hareketDurumlari[kam.id];
+                        const hareketVar = durum?.hareketVar;
+                        const yuzde = durum?.yuzde || '0.0';
+                        return (
+                            <div key={kam.id} style={{
+                                background: '#0f172a',
+                                border: `1px solid ${hareketVar ? '#10b981' : durum ? '#f59e0b' : '#1e293b'}`,
+                                borderRadius: 10, padding: '0.75rem',
+                                display: 'flex', alignItems: 'center', gap: 10
+                            }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: '50%',
+                                    background: hareketVar ? '#064e3b' : durum ? '#422006' : '#1e293b',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    {hareketVar
+                                        ? <TrendingUp size={16} color="#10b981" />
+                                        : durum
+                                            ? <AlertCircle size={16} color="#f59e0b" />
+                                            : <Eye size={16} color="#475569" />}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {kam.name}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                                        {durum ? (
+                                            <>
+                                                <div style={{ flex: 1, height: 4, background: '#1e293b', borderRadius: 2 }}>
+                                                    <div style={{
+                                                        width: `${Math.min(parseFloat(yuzde) * 10, 100)}%`,
+                                                        height: '100%',
+                                                        background: hareketVar ? '#10b981' : '#f59e0b',
+                                                        borderRadius: 2,
+                                                        transition: 'width 0.5s ease'
+                                                    }} />
+                                                </div>
+                                                <span style={{ fontSize: '0.6rem', color: hareketVar ? '#10b981' : '#f59e0b', fontWeight: 700, flexShrink: 0 }}>
+                                                    %{yuzde}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span style={{ fontSize: '0.6rem', color: '#475569', fontWeight: 600 }}>
+                                                {streamDurum === 'aktif' ? 'İlk okuma bekleniyor...' : 'Stream kapalı'}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
+                        );
+                    })}
+                </div>
+
+                {/* AI OLAY LOGU (Supabase'den gelen anomali logları) */}
+                <div style={{ borderTop: '1px solid #1e293b', paddingTop: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
+                        <Zap size={14} color="#f59e0b" />
+                        <span style={{ color: '#94a3b8', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>AI Alarm Geçmişi (Son 5 Olay)</span>
+                    </div>
+                    {aiOlaylar.length === 0 ? (
+                        <div style={{ color: '#10b981', fontSize: '0.78rem', fontWeight: 700, background: '#052e16', border: '1px solid #065f46', borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            ✅ Alarm yok — tüm bantlar hareketli
                         </div>
-                    ))}
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {aiOlaylar.slice(0, 5).map((olay, i) => (
+                                <div key={i} style={{ background: '#1c0a00', border: '1px solid #7c2d12', borderRadius: 8, padding: '8px 12px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                                    <AlertTriangle size={14} color="#f97316" style={{ flexShrink: 0, marginTop: 2 }} />
+                                    <div>
+                                        <div style={{ color: '#fed7aa', fontWeight: 700, fontSize: '0.75rem' }}>
+                                            {olay.metadata?.kamera_adi || `Kamera #${olay.camera_id}`}
+                                        </div>
+                                        <div style={{ color: '#94a3b8', fontSize: '0.65rem', marginTop: 2 }}>
+                                            {olay.metadata?.uyari || 'Bant hareketsizliği tespit edildi'}
+                                        </div>
+                                        <div style={{ color: '#475569', fontSize: '0.6rem', marginTop: 4 }}>
+                                            {new Date(olay.created_at).toLocaleString('tr-TR')}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
