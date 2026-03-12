@@ -116,7 +116,7 @@ export default function ArgeSayfasi() {
             // Bu nedenle LIMIT 200 optimumdur. Ancak "SELECT" daraltıldığı için (base64 resimler ve uzun yazılar hariç tutuldu) 200 adet verinin inmesi 50 adet veriyle aynı hıza ve %90 daha düşük milisaniyeye indirgenmiştir.
             const [trendlerRes, loglarRes] = await Promise.allSettled([
                 supabase.from('b1_arge_trendler').select('id, baslik, baslik_ar, platform, kategori, hedef_kitle, talep_skoru, zorluk_derecesi, durum, created_at, referans_linkler').order('created_at', { ascending: false }).limit(200),
-                supabase.from('b1_agent_loglari').select('id, ajan_adi, islem_tipi, mesaj, created_at, durum').eq('ajan_adi', 'Trend Kâşifi').order('created_at', { ascending: false }).limit(5)
+                supabase.from('b1_agent_loglari').select('id, ajan_adi, islem_tipi, mesaj, created_at, sonuc').eq('ajan_adi', 'Trend Kâşifi').order('created_at', { ascending: false }).limit(5)
             ]);
 
             if (trendlerRes.status === 'fulfilled' && trendlerRes.value.data) setTrendler(trendlerRes.value.data);
@@ -369,7 +369,7 @@ export default function ArgeSayfasi() {
                         ajan_adi: 'Trend Kâşifi',
                         islem_tipi: 'Trend Onaylandı',
                         mesaj: `Trend Onaylandı! Onaylayan: ${onaylayanAd}`,
-                        durum: 'basarili',
+                        sonuc: 'basarili',
                         created_at: new Date().toISOString()
                     }]);
 

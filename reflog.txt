@@ -1,5 +1,0 @@
-﻿a0b9663 HEAD@{0}: commit: feat: Karargah Kamera, Ajan Entegrasyonu & Hata Duzeltmeleri (FAZ-3 Tamamlandi)
-b936183 HEAD@{1}: reset: moving to origin/main
-8d81195 HEAD@{2}: commit: feat: Karargah Kamera & AI Edge-Watcher Entegrasyonu (FAZ 3 Tamamlandi)
-5b5e804 HEAD@{3}: commit: fix: env check dosyasi gitignore eklendi
-b2c6c83 HEAD@{4}: commit: fix: tum hatalar duzeltildi - 406 maybeSingle, kameralar erisim matrisi, pin temizle newline

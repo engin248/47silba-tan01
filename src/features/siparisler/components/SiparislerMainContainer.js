@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
-import { telegramBildirim } from '@/lib/utils';
+import { telegramBildirim, formatTarih } from '@/lib/utils';
 import ErisimBariyeri from '@/lib/components/ui/ErisimBariyeri';
 import SayfaBasligi from '@/lib/components/ui/SayfaBasligi';
 import IstatistikKutulari from '@/lib/components/ui/IstatistikKutulari';
