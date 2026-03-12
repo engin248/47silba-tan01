@@ -25,6 +25,16 @@ CREATE TABLE b1_arge_analysis_result (
     hedef_fiyat_min NUMERIC,
     hedef_fiyat_max NUMERIC,
     guven_skoru INTEGER, -- Pazar, Google Trends vs çaprazlama skoru (0-100)
+    
+    -- M1 Ar-Ge Trend ve Fırsat Metrikleri
+    trend_skoru INTEGER,
+    trend_yasi_gun INTEGER,
+    search_growth INTEGER,
+    review_velocity INTEGER,
+    price_stability INTEGER,
+    stock_depletion INTEGER,
+    pazar_metrikleri JSONB DEFAULT '{}'::jsonb, -- AI tarafindan toplanan genis JSON verisi
+
     risk_profili VARCHAR(100),
     -- İNSAN ONAY BARKODU (Gateway: Bu olmadan Modelhane üretemez)
     insan_onayi_var_mi BOOLEAN DEFAULT FALSE,

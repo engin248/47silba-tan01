@@ -43,7 +43,7 @@ export function useGorevler(kullanici) {
         if (!form.baslik?.trim()) return goster('Görev başlığı zorunlu!', 'error');
         setLoading(true);
         try {
-            const payload = { baslik: form.baslik.trim(), aciklama: form.aciklama?.trim() || null, oncelik: form.oncelik || 'normal', durum: form.durum || 'bekliyor', bitis_tarihi: form.bitis_tarihi || null, atanan: form.atanan?.trim() || null };
+            const payload = { baslik: form.baslik.trim(), aciklama: form.aciklama?.trim() || null, oncelik: form.oncelik || 'normal', durum: form.durum || 'bekliyor', bitis_tarihi: form.bitis_tarihi || null, atanan_kisi: form.atanan?.trim() || null };
             if (duzenleId) {
                 const { error } = await supabase.from('b1_gorevler').update(payload).eq('id', duzenleId);
                 if (error) throw error;

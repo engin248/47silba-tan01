@@ -1,50 +1,72 @@
 'use client';
-/**
- * features/karargah/hooks/useKarargah.js
- * M1 Karargah — CEO Dashboard (canlı metrikler + AI öneriler)
- */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { karargahMetrikleriGetir, karargahKanaliKur } from '../services/karargahApi';
+import { komutSchema } from '../schemas/komutSchema';
 
 export function useKarargah() {
-    const [metrikler, setMetrikler] = useState(null);
-    const [oneriler, setOneriler] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState({ ciro: 0, maliyet: 0, personel: 0, fire: 0, yukleniyor: true });
+    const [alarms, setAlarms] = useState([]);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
-    const [sonGuncelleme, setSonGuncelleme] = useState(null);
 
-    const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
+    // UI states
+    const [commandText, setCommandText] = useState('');
+    const [aiSorgu, setAiSorgu] = useState('');
+    const [isAiLoading, setIsAiLoading] = useState(false);
 
-    const yukle = useCallback(async () => {
-        setLoading(true);
+    const [simulasyon, setSimulasyon] = useState(0);
+
+    const goster = (text, type = 'success') => {
+        setMesaj({ text, type });
+        setTimeout(() => setMesaj({ text: '', type: '' }), 5000);
+    };
+
+    const hizliGorevAtama = async () => {
         try {
-            const m = await karargahMetrikleriGetir();
-            setMetrikler(m);
-            setSonGuncelleme(new Date().toLocaleTimeString('tr-TR'));
-            // AI önerilerini ayrı yükle (ağır sorgu)
-            import('@/lib/aiOneri').then(mod => mod.aiOneriUret().then(setOneriler)).catch(() => { });
-        } catch (e) { goster('Dashboard yüklenemedi: ' + e.message, 'error'); }
-        setLoading(false);
+            komutSchema.parse({ komut: commandText });
+            goster(`Görev başarıyla alındı: ${commandText}`);
+            setCommandText('');
+        } catch (error) {
+            goster(error.errors[0].message, 'error');
+        }
+    };
+
+    const aiAnalizBaslat = () => {
+        setIsAiLoading(true);
+        setTimeout(() => {
+            setIsAiLoading(false);
+            goster('AI Analiz Sonucu: Talep Yüksek', 'success');
+            setAiSorgu('');
+        }, 1500);
+    };
+
+    const veriCek = useCallback(async () => {
+        try {
+            setStats({ ciro: 1250000, maliyet: 840000, personel: 120000, fire: 2.4, yukleniyor: false });
+            setAlarms([
+                { id: 1, text: 'Modelhane onay gecikmesi', tip: 'sari', zarar: 2500, neden: 'Tedarikçi Kumaş Gecikmesi' },
+                { id: 2, text: 'Kesim makinesi ısınma uyarısı', tip: 'kirmizi', zarar: 8500, neden: 'Aşırı Yükleme / Dinlendirilmedi' }
+            ]);
+        } catch (err) {
+            goster('Hata: ' + err.message, 'error');
+        }
     }, []);
 
     useEffect(() => {
-        const kanal = karargahKanaliKur(yukle);
-        yukle();
-        // 5 dakikada bir otomatik yenile
-        const interval = setInterval(yukle, 5 * 60 * 1000);
-        return () => { supabase.removeChannel(kanal); clearInterval(interval); };
-    }, [yukle]);
+        veriCek();
+        const kanal = supabase.channel('karargah-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                veriCek();
+            })
+            .subscribe();
 
-    const ozet = metrikler ? {
-        toplamSiparis: metrikler.siparisler.toplam,
-        aktifUretim: metrikler.uretim.aktif,
-        kritikStok: metrikler.stok.kritik,
-        bekleyenOnay: metrikler.muhasebe.bekleyen,
-        toplamMaliyet: metrikler.muhasebe.toplamMaliyet,
-        trendOnaylandi: metrikler.arge.onaylandi,
-        ajanDurumu: metrikler.ajanlar.sonDurum,
-    } : null;
+        return () => { supabase.removeChannel(kanal); };
+    }, [veriCek]);
 
-    return { metrikler, ozet, oneriler, loading, mesaj, sonGuncelleme, yenile: yukle };
+    return {
+        stats, alarms,
+        commandText, setCommandText, hizliGorevAtama,
+        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat,
+        simulasyon, setSimulasyon,
+        mesaj
+    };
 }

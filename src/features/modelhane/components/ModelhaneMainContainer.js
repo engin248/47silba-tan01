@@ -14,6 +14,8 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import M2_GelenIlhamKarti from './M2_GelenIlhamKarti';
+import M2_FizikselMuhendislikFormu from './M2_FizikselMuhendislikFormu';
 
 const BOSH_NUMUNE = { model_id: '', kalip_id: '', numune_beden: 'M', dikim_tarihi: '', notlar: '' };
 const BOSH_TALIMAT = { numune_id: '', talimat_video_url: '', sesli_aciklama_url: '', yazili_adimlari: [] };
@@ -23,7 +25,9 @@ export default function ModelhaneSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
-    const [sekme, setSekme] = useState('numuneler');
+    const [sekme, setSekme] = useState('arge_kuyrugu');
+    const [argeKuyruk, setArgeKuyruk] = useState([]);
+    const [secilenIlham, setSecilenIlham] = useState(null);
     const [numuneler, setNumuneler] = useState([]);
     const [talimatlar, setTalimatlar] = useState([]);
     const [modeller, setModeller] = useState([]);
@@ -69,8 +73,25 @@ export default function ModelhaneSayfasi() {
     const yukle = async (aktifSekme = sekme) => {
         setLoading(true);
         try {
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 saniye)')), 10000));
-            if (aktifSekme === 'numuneler') {
+            if (aktifSekme === 'arge_kuyrugu') {
+                const [aRes] = await Promise.race([
+                    Promise.allSettled([
+                        supabase.from('b1_arge_trendler').select('*').eq('durum', 'onaylandi').order('created_at', { ascending: false }).limit(200)
+                    ]),
+                    timeout
+                ]);
+                if (aRes.status === 'fulfilled' && aRes.value.data) setArgeKuyruk(aRes.value.data);
+
+                // URL'den trend_id yakalama
+                if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search);
+                    const tId = params.get('trend_id');
+                    if (tId && aRes.status === 'fulfilled' && aRes.value.data) {
+                        const bulundu = aRes.value.data.find(t => t.id == tId);
+                        if (bulundu) setSecilenIlham(bulundu);
+                    }
+                }
+            } else if (aktifSekme === 'numuneler') {
                 const [nRes, mRes] = await Promise.race([
                     Promise.allSettled([
                         supabase.from('b1_numune_uretimleri').select('*, b1_model_taslaklari(model_adi,model_kodu), b1_model_kaliplari(kalip_adi,versiyon)').neq('onay_durumu', 'iptal').order('created_at', { ascending: false }).limit(200),
@@ -261,6 +282,43 @@ export default function ModelhaneSayfasi() {
         setLoading(false);
     };
 
+    const urunMuhendislikKaydet = async (muhendislikFormu) => {
+        if (!secilenIlham) return;
+        setIslemdeId('muhendislik_' + secilenIlham.id);
+
+        try {
+            // M2'nin fiziksel onayı b1_model_taslaklari tablosuna kalıcı "Taslak" olarak aktarılır
+            // Şimdilik Gama Timi M2 Master tablosunu henüz kurmadıysa, b1_model_taslaklari olarak gönderiyoruz, 
+            // ya da b1_arge_trendler'in durumunu 'uretime_gecti' yaparak m1 kuyruğundan düşürüyoruz.
+            const modelKodu = 'MDL-' + Math.floor(Math.random() * 10000);
+
+            const { data: yeniModel, error: mError } = await supabase.from('b1_model_taslaklari').insert([{
+                model_kodu: modelKodu,
+                model_adi: secilenIlham.baslik,
+                sezon: '2026-YAZ', // Şimdilik varsayılan
+                notlar: `GERÇEK KUMAŞ: ${muhendislikFormu.gercek_kumas}\nGRAMAJ: ${muhendislikFormu.gercek_gramaj}gr\nFİRE: %${muhendislikFormu.fire_orani}\nZORLUK: ${muhendislikFormu.zorluk_derecesi}/10`
+            }]).select('id').single();
+
+            if (mError) throw mError;
+
+            // Trendi 'uretime_gecti' yapıyoruz ki M1 kuyruğundan düşsün
+            const { error: tError } = await supabase.from('b1_arge_trendler').update({ durum: 'uretime_gecti' }).eq('id', secilenIlham.id);
+            if (tError) throw tError;
+
+            goster('Fiziksel onay başarılı! Model başarıyla M3 (Finans/Satınalma) kuyruğuna gönderildi.', 'success');
+            setSecilenIlham(null);
+
+            // Parametreyi URL'den temizle
+            if (typeof window !== 'undefined') window.history.replaceState({}, document.title, '/modelhane');
+
+            yukle();
+        } catch (error) {
+            goster('Mühendislik formu kaydedilirken hata oluştu: ' + error.message, 'error');
+        } finally {
+            setIslemdeId(null);
+        }
+    };
+
     const sil = async (tablo, id) => {
         // GÜVENLİK: Sunucu taraflı PIN doğrulama
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
@@ -404,14 +462,65 @@ export default function ModelhaneSayfasi() {
             )}
 
             {/* SEKMELER */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-                {[{ id: 'numuneler', tr: 'Numune Kayıtları' }, { id: 'talimatlar', tr: 'Dikim Talimatları' }, { id: 'teknik', tr: 'Teknik Föyler' }, { id: 'galeri', tr: 'Fotoğraf Galerisi' }].map(s => (
-                    <button key={s.id} onClick={() => { setSekme(s.id); setFormAcik(false); }}
-                        style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', borderColor: sekme === s.id ? '#047857' : '#e5e7eb', background: sekme === s.id ? '#047857' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
-                        {s.tr}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.75rem', overflowX: 'auto' }}>
+                {[
+                    { id: 'arge_kuyrugu', tr: '💡 Ar-Ge Kuyruğu (M1 Bekleyenler)', ar: '💡 طابور البحث والتطوير (انتظار M1)' },
+                    { id: 'numuneler', tr: 'Numune Kayıtları', ar: 'سجلات العينات' },
+                    { id: 'talimatlar', tr: 'Dikim Talimatları', ar: 'تعليمات الخياطة' },
+                    { id: 'teknik', tr: 'Teknik Föyler', ar: 'الملفات الفنية' },
+                    { id: 'galeri', tr: 'Fotoğraf Galerisi', ar: 'معرض الصور' }
+                ].map(s => (
+                    <button key={s.id} onClick={() => { setSekme(s.id); setFormAcik(false); setSecilenIlham(null); }}
+                        style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap', borderColor: sekme === s.id ? '#047857' : '#e5e7eb', background: sekme === s.id ? '#047857' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
+                        {isAR ? s.ar : s.tr}
                     </button>
                 ))}
             </div>
+
+            {/* M1'DEN GELENLER (AR-GE KUYRUĞU) */}
+            {sekme === 'arge_kuyrugu' && (
+                <div>
+                    {!secilenIlham ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {loading && argeKuyruk.length === 0 && <div style={{ textAlign: 'center', padding: '2rem', fontWeight: 700, color: '#94a3b8' }}>{isAR ? '...جاري البحث عن مخرجات M1' : 'M1 Çıktıları Aranıyor...'}</div>}
+
+                            {!loading && argeKuyruk.length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #cbd5e1' }}>
+                                    <Clock size={48} color="#94a3b8" style={{ marginBottom: 12 }} />
+                                    <h3 style={{ color: '#475569', fontWeight: 900, marginBottom: 8 }}>{isAR ? 'طابور M1 فارغ' : 'M1 Kuyruğu Boş'}</h3>
+                                    <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>{isAR ? 'لا يوجد منتج جديد ينتظر الموافقة من قسم البحث والتطوير حاليا.' : 'Şu an Ar-Ge tarafından Modelhane onayı bekleyen yeni bir ürün bulunmamaktadır.'}</p>
+                                </div>
+                            )}
+
+                            {argeKuyruk.map(trend => (
+                                <div key={trend.id} onClick={() => setSecilenIlham(trend)} style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: 14, padding: '1.25rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}>
+                                    <div>
+                                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: 6, display: 'inline-block', marginBottom: 6 }}>{isAR ? 'في انتظار الموافقة (الجدار 2)' : 'ONAY BEKLİYOR (DUVAR 2)'}</div>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0' }}>{trend.baslik}</h3>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>{isAR ? 'النقاط:' : 'Skor:'} {trend.talep_skoru} | {isAR ? 'المصدر: وحدة M1 للبحث والتطوير' : 'Geldiği Yer: M1 Ar-Ge Modülü'}</div>
+                                    </div>
+                                    <ChevronRight color="#94a3b8" style={{ transform: isAR ? 'scaleX(-1)' : 'none' }} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <button onClick={() => { setSecilenIlham(null); if (typeof window !== 'undefined') window.history.replaceState({}, document.title, '/modelhane'); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+                                {isAR ? 'العودة إلى الطابور →' : '← Kuyruğa Dön'}
+                            </button>
+
+                            {/* DUVAR 1: READ ONLY */}
+                            <M2_GelenIlhamKarti trendVerisi={secilenIlham} />
+
+                            {/* DUVAR 2 & 3: FORM VE ONAY */}
+                            <M2_FizikselMuhendislikFormu
+                                onKaydet={urunMuhendislikKaydet}
+                                islemde={islemdeId === 'muhendislik_' + secilenIlham.id}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
             {sekme === 'teknik' && (
                 <div style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem' }}>

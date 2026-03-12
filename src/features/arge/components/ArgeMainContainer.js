@@ -15,6 +15,10 @@ import { useAuth } from '@/lib/auth';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import M1_TrendSonucKarti from './M1_TrendSonucKarti';
+import M1_AramaMotoru from './M1_AramaMotoru';
+import M1_UrunRecetesi from './M1_UrunRecetesi';
+
 
 // =========================================================================
 // M1: AR-GE & TREND ARAŞTIRMASI
@@ -201,14 +205,16 @@ export default function ArgeSayfasi() {
 🧷 AKSESUAR: ${sonuc.aksesuar_turu || '-'}
 💰 FİYAT ARALIĞI: ${sonuc.fiyat_araligi || '-'}
 🎯 HEDEF MÜŞTERİ: ${sonuc.hedef_musteri || '-'}
-📝 HERMES NOTU: ${sonuc.aciklama || '-'}`.trim();
+📝 HERMES NOTU: ${sonuc.aciklama || '-'}
+🛡️ RİSK BEYANI: ${sonuc.risk_seviyesi || '-'} (Yaş: ${sonuc.trend_yasi_gun || '-'} Gün)
+📊 METRİKLER: Arama Hacmi %${sonuc.metrics?.search_growth || 0} | Yorum İvmesi %${sonuc.metrics?.review_velocity || 0} | Stok Hızı %${sonuc.metrics?.stock_depletion || 0}`.trim();
 
             const { error } = await supabase.from('b1_arge_trendler').insert([{
                 baslik: baslik,
                 platform: PLATFORMLAR.includes(sonuc.platform) ? sonuc.platform : 'diger',
                 kategori: sonuc.kategori || 'diger',
                 hedef_kitle: 'kadın',
-                talep_skoru: parseInt(sonuc.talep_skoru) || 5,
+                talep_skoru: parseInt(sonuc.trend_skoru || sonuc.talep_skoru) || 5, // Yeni skorlama 
                 zorluk_derecesi: 5,
                 referans_linkler: sonuc.kaynak && sonuc.kaynak.startsWith('http') ? [sonuc.kaynak] : null,
                 aciklama: hermes_detay,
@@ -565,9 +571,9 @@ export default function ArgeSayfasi() {
         <div dir={isAR ? 'rtl' : 'ltr'} style={{ fontFamily: isAR ? 'Tahoma, Arial, sans-serif' : 'inherit' }}>
 
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexDirection: isAR ? 'row-reverse' : 'row' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                 <div style={{ textAlign: isAR ? 'right' : 'left' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexDirection: isAR ? 'row-reverse' : 'row' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #047857, #fbbf24)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <TrendingUp size={24} color="white" />
                         </div>
@@ -581,7 +587,7 @@ export default function ArgeSayfasi() {
                         </div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0, flexDirection: isAR ? 'row-reverse' : 'row' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
                     <span style={{ background: '#ecfdf5', color: '#047857', border: '2px solid #a7f3d0', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Bot size={12} /> {isAR ? 'الوكيل: مُنشَّط' : 'Ajan: Trend Kâşifi'}
                     </span>
@@ -604,104 +610,41 @@ export default function ArgeSayfasi() {
             )}
 
             {/* AI TREND ARAMA KUTUSU */}
-            <div style={{ background: 'linear-gradient(135deg,#022c22,#064e3b)', borderRadius: 16, padding: '1.25rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.875rem' }}>
-                    <Bot size={20} color="#34d399" />
-                    <span style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem' }}>🌐 AI Trend Araştırma — İnternetten Canlı</span>
-                    <span style={{ marginLeft: 'auto', fontSize: '0.65rem', background: '#065f4620', color: '#34d399', border: '1px solid #065f46', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>Perplexity API</span>
-                </div>
-                <div style={{ display: 'flex', gap: '0.625rem' }}>
-                    <input
-                        value={aiSorgu}
-                        onChange={e => setAiSorgu(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && trendAra()}
-                        placeholder="Örn: 2026 yaz elbise trendleri, oversize gömlek Trendyol, keten kumaş moda..."
-                        style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '2px solid #065f46', background: '#1e293b', color: 'white', fontSize: '0.875rem', fontFamily: 'inherit', outline: 'none' }}
-                    />
-                    <button
-                        onClick={trendAra}
-                        disabled={aiAraniyor || !aiSorgu.trim()}
-                        style={{ padding: '10px 22px', background: aiAraniyor ? '#334155' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
-                    >
-                        {aiAraniyor ? '🔍 Arıyor...' : '🔍 Ara'}
-                    </button>
-                </div>
+            <M1_AramaMotoru
+                aiSorgu={aiSorgu}
+                setAiSorgu={setAiSorgu}
+                trendAra={trendAra}
+                aiAraniyor={aiAraniyor}
+                isAR={isAR}
+            />
 
-                {/* HIZLI GÖREV ÇİPLERİ (TEK TIKLA BOT TETİKLEME) */}
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap', flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                    <button onClick={() => { setAiSorgu('Yazlık Oversize Keten Gömlek Trendleri ve ZARA Analizi'); setTimeout(trendAra, 100); }} style={{ background: '#065f4630', color: '#6ee7b7', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #064e3b', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <TrendingUp size={13} /> {isAR ? 'تحليل اتجاهات الموضة' : 'Görsel Trend Analizi'}
-                    </button>
-                    <button onClick={() => { setAiSorgu('2026 Kadın Pantolon Kumaş ve Renk Trendleri Nelerdir?'); setTimeout(trendAra, 100); }} style={{ background: '#065f4630', color: '#6ee7b7', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #064e3b', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Tag size={13} /> {isAR ? 'البحث عن خيارات الأقمشة' : 'Kumaş Seçenekleri Bul'}
-                    </button>
-                    <button onClick={() => { setAiSorgu('Rakip Markaların Son Çeyrek Elbise Fiyatlandırma Stratejileri'); setTimeout(trendAra, 100); }} style={{ background: '#065f4630', color: '#6ee7b7', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #064e3b', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <BarChart3 size={13} /> {isAR ? 'فحص أسعار المنافسين' : 'Rakip Fiyat Taraması'}
-                    </button>
-                </div>
-
-                {/* AI SONUÇLARI */}
-                {aiSonuclar && aiPanelAcik && (
-                    <div style={{ marginTop: '1rem' }}>
-                        {aiSonuclar.ozet && (
-                            <div style={{ background: '#1e293b', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '0.75rem', color: '#cbd5e1', fontSize: '0.82rem', lineHeight: 1.6, borderLeft: '3px solid #059669' }}>
-                                💡 {aiSonuclar.ozet}
-                            </div>
-                        )}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '1rem' }}>
-                            {(aiSonuclar.sonuclar || []).map((s, i) => (
-                                <div key={i} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: '1.25rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                                        <span style={{ fontSize: '0.75rem', background: '#047857', color: '#fff', padding: '4px 10px', borderRadius: 6, fontWeight: 900, textTransform: 'uppercase' }}>{s.satilacak_urun || s.baslik}</span>
-                                        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: s.talep_skoru >= 8 ? '#34d399' : s.talep_skoru >= 5 ? '#fbbf24' : '#f87171' }}>★ {s.talep_skoru}/10</span>
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: 16 }}>
-                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
-                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>KUMAŞ TÜRÜ</strong>
-                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.kumas_turu || '-'}</span>
-                                        </div>
-                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
-                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>MODEL TÜRÜ</strong>
-                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.model_turu || '-'}</span>
-                                        </div>
-                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
-                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>AKSESUAR (DÜĞME/FERMUAR)</strong>
-                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.aksesuar_turu || '-'}</span>
-                                        </div>
-                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 45%', display: 'flex', flexDirection: 'column' }}>
-                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>SATIŞ FİYAT ARALIĞI</strong>
-                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.fiyat_araligi || '-'}</span>
-                                        </div>
-                                        <div style={{ background: '#0f172a', padding: '8px', borderRadius: 8, flex: '1 1 100%', display: 'flex', flexDirection: 'column' }}>
-                                            <strong style={{ color: '#38bdf8', fontSize: '0.65rem', marginBottom: 2 }}>BÖLGESEL HEDEF MÜŞTERİ</strong>
-                                            <span style={{ color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600 }}>{s.hedef_musteri || '-'}</span>
-                                        </div>
-                                    </div>
-
-                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 }}>{s.aciklama}</div>
-
-                                    <button
-                                        onClick={() => aiTrendKaydet(s)}
-                                        style={{ width: '100%', padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, transition: 'background 0.2s' }}
-                                        onMouseOver={e => e.currentTarget.style.background = '#2563eb'}
-                                        onMouseOut={e => e.currentTarget.style.background = '#3b82f6'}
-                                    >
-                                        <CheckCircle2 size={16} /> HERMES REÇETESİNİ (ONAYLA) VE KAYDET
-                                    </button>
-                                </div>
-                            ))}
+            {/* AI SONUÇLARI */}
+            {aiSonuclar && aiPanelAcik && (
+                <div style={{ marginTop: '1rem' }}>
+                    {aiSonuclar.ozet && (
+                        <div style={{ background: '#1e293b', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '0.75rem', color: '#cbd5e1', fontSize: '0.82rem', lineHeight: 1.6, borderLeft: '3px solid #059669' }}>
+                            💡 {aiSonuclar.ozet}
                         </div>
-                        <button onClick={() => setAiPanelAcik(false)} style={{ marginTop: 8, fontSize: '0.72rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer' }}>Sonuçları Kapat</button>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '1rem' }}>
+                        {(aiSonuclar.sonuclar || []).map((s, i) => (
+                            <M1_TrendSonucKarti
+                                key={i}
+                                sonuc={s}
+                                onKaydet={() => aiTrendKaydet(s)}
+                                isAR={isAR}
+                            />
+                        ))}
                     </div>
-                )}
-            </div>
+                    <button onClick={() => setAiPanelAcik(false)} style={{ marginTop: 8, fontSize: '0.72rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer' }}>Sonuçları Kapat</button>
+                </div>
+            )}
 
             {/* YENİ TREND FORMU */}
 
             {formAcik && (
                 <div style={{ background: 'white', border: '2px solid #047857', borderRadius: '16px', padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.15)' }}>
-                    <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#064e3b', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8, textAlign: isAR ? 'right' : 'left', flexDirection: isAR ? 'row-reverse' : 'row' }}>
+                    <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#064e3b', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8, textAlign: isAR ? 'right' : 'left' }}>
                         <TrendingUp size={18} />
                         {isAR ? 'تسجيل اتجاه جديد' : 'Yeni Trend Kaydı'}
                     </h2>
@@ -974,131 +917,27 @@ export default function ArgeSayfasi() {
                     )}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {filtreliTrendler.map(trend => {
-                            const dur = DURUM_CONFIG[trend.durum] || DURUM_CONFIG.inceleniyor;
-                            const DurumIcon = dur.icon;
-                            return (
-                                <div key={trend.id}
-                                    style={{ background: 'white', border: '2px solid', borderColor: secilenTrend?.id === trend.id ? '#047857' : '#f1f5f9', borderRadius: '14px', padding: '1.25rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: secilenTrend?.id === trend.id ? '0 4px 20px rgba(4,120,87,0.2)' : '0 1px 4px rgba(0,0,0,0.04)' }}
-                                    onClick={() => setSecilenTrend(secilenTrend?.id === trend.id ? null : trend)}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                                        <div style={{ flex: 1, textAlign: isAR ? 'right' : 'left' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                                                <h3 style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', margin: 0 }}>
-                                                    {isAR && trend.baslik_ar ? trend.baslik_ar : trend.baslik}
-                                                </h3>
-                                                <span style={{ fontSize: '0.65rem', background: dur.bg, color: dur.color, border: `1px solid ${dur.color}`, padding: '2px 8px', borderRadius: '10px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                    <DurumIcon size={10} />
-                                                    {isAR ? dur.label_ar : dur.label_tr}
-                                                </span>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap', flexDirection: isAR ? 'row-reverse' : 'row' }}>
-                                                <span style={{ fontSize: '0.75rem', background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
-                                                    {trend.platform === 'diger' ? (isAR ? 'ويب عام' : 'GENEL WEB') : trend.platform.toUpperCase()}
-                                                </span>
-                                                <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
-                                                    {KAT_LABEL[lang][trend.kategori] || trend.kategori}
-                                                </span>
-                                                <span title={isAR ? 'مستوى صعوبة الإنتاج' : 'Üretim Zorluk Derecesi'} style={{ fontSize: '0.7rem', background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                    ⚙️ {trend.zorluk_derecesi || 5}/10
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Talep Skoru */}
-                                        <div style={{ width: 52, height: 52, borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `${skorRenk(trend.talep_skoru)}15`, border: `3px solid ${skorRenk(trend.talep_skoru)}`, flexShrink: 0, marginLeft: isAR ? 0 : 12, marginRight: isAR ? 12 : 0 }}>
-                                            <span style={{ fontSize: '1.2rem', fontWeight: 900, color: skorRenk(trend.talep_skoru), lineHeight: 1 }}>{trend.talep_skoru}</span>
-                                            <span style={{ fontSize: '0.5rem', color: skorRenk(trend.talep_skoru), fontWeight: 700 }}>/ 10</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Detay (seçilmişse) */}
-                                    {secilenTrend?.id === trend.id && (
-                                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
-                                            {/* ZIRHLAMA: Lazily load full details if not loaded to prevent initial payload bloat */}
-                                            {(trend.aciklama || trend.aciklama_ar) && (
-                                                <p style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem', textAlign: isAR ? 'right' : 'left' }}>
-                                                    {isAR && trend.aciklama_ar ? trend.aciklama_ar : trend.aciklama}
-                                                </p>
-                                            )}
-                                            {trend.referans_linkler?.length > 0 && (
-                                                <a href={trend.referans_linkler[0]} target="_blank" rel="noreferrer"
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: '#3b82f6', fontWeight: 700, marginBottom: '0.75rem' }}>
-                                                    <ExternalLink size={12} /> {isAR ? 'رابط المرجع' : 'Referans Link'}
-                                                </a>
-                                            )}
-
-                                            {/* Onay/İptal/Sil + Düzenle Butonları */}
-                                            {trend.durum === 'inceleniyor' && (
-                                                <div style={{ display: 'flex', gap: '0.5rem', flexDirection: isAR ? 'row-reverse' : 'row', flexWrap: 'wrap' }}>
-                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const kumasOnay = window.confirm(isAR ? "⚠️ نقطة تفتيش:\nهل تم فحص وتأكيد القماش فعليًا من قبل خبير؟" : "⚠️ M2 GATEWAY CHECKPOINT (BAŞ DENETMEN KURALI):\n\nYapay Zekanın sunduğu kumaş/aksesuar planı sadece bir 'TAHMİN ve İÇGÖRÜDÜR'.\n\nModelhane (M2) üretim bandına aktarmadan önce; Fiziksel kumaşın (gramaj, tuşe ve çekmezlik) Satınalma / Baş Kalıpçı tarafından EL İLE kontrol edilip, fiziksel imalata uygun olduğu KESİN OLARAK DOĞRULANDI MI?\n\n(Tamam'a basarsanız sorumluluk İnsan Onayına geçer ve M2 Şasesi açılır)");
-                                                        if (kumasOnay) durumGuncelle(trend.id, 'onaylandi');
-                                                    }}
-                                                        style={{ flex: 1, padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
-                                                        <CheckCircle2 size={15} />
-                                                        {isAR ? 'موافقة وتأكيد القماش → تصميم' : 'Kumaşı Fiziken Doğrula → M2\'ye Aktar'}
-                                                    </button>
-                                                    <button disabled={islemdeId === 'durum_' + trend.id} onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'iptal'); }}
-                                                        style={{ padding: '10px 16px', background: 'white', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '8px', fontWeight: 700, cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}>
-                                                        <XCircle size={15} />
-                                                        {isAR ? 'إلغاء' : 'İptal Et'}
-                                                    </button>
-                                                    {/* AA KRİTERİ ONARIMI: SİLME YETKİ KONTROLÜ (UI) */}
-                                                    {(kullanici?.grup === 'tam' || sessionStorage.getItem('sb47_uretim_pin')) && (
-                                                        <>
-                                                            <button onClick={(e) => { e.stopPropagation(); setForm({ baslik: trend.baslik, baslik_ar: trend.baslik_ar || '', platform: trend.platform, kategori: trend.kategori, talep_skoru: trend.talep_skoru, zorluk_derecesi: trend.zorluk_derecesi || 5, referans_link: trend.referans_linkler?.[0] || '', gorsel_url: trend.gorsel_url || '', aciklama: trend.aciklama || '', aciklama_ar: trend.aciklama_ar || '' }); setDuzenleId(trend.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                                style={{ padding: '10px 14px', background: '#eff6ff', color: '#2563eb', border: '2px solid #bfdbfe', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem' }}>
-                                                                ✏️ {isAR ? 'تعديل' : 'Düzenle'}
-                                                            </button>
-                                                            <button disabled={islemdeId === 'sil_' + trend.id} onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
-                                                                style={{ padding: '10px 14px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: islemdeId === 'sil_' + trend.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + trend.id ? 0.5 : 1 }}>
-                                                                <Trash2 size={15} />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {trend.durum !== 'inceleniyor' && (
-                                                <div style={{ display: 'flex', gap: 6, flexDirection: 'column' }}>
-                                                    {/* CC Kriteri Onarımı (İş Akış Zinciri) - YENİ MİMARİ M2 GATEWAY V2 */}
-                                                    {trend.durum === 'onaylandi' && (
-                                                        <NextLink href={`/modelhane?trend_id=${trend.id}`} style={{ textDecoration: 'none', width: '100%' }}>
-                                                            <button style={{ width: '100%', padding: '10px 14px', background: '#3b82f6', color: 'white', border: '1px solid #2563eb', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 }}>
-                                                                🚀 {isAR ? 'الذهاب إلى غرفة الرسم (M2)' : 'Modelhane/Kalıphane\'ye Geç (M2)'}
-                                                            </button>
-                                                        </NextLink>
-                                                    )}
-
-                                                    {/* AA KRİTERİ ONARIMI: SİLME YETKİ KONTROLÜ (UI) */}
-                                                    {(kullanici?.grup === 'tam' || sessionStorage.getItem('sb47_uretim_pin')) && (
-                                                        <div style={{ display: 'flex', gap: 6 }}>
-                                                            <button onClick={(e) => { e.stopPropagation(); setForm({ baslik: trend.baslik, baslik_ar: trend.baslik_ar || '', platform: trend.platform, kategori: trend.kategori, talep_skoru: trend.talep_skoru, referans_link: trend.referans_linkler?.[0] || '', gorsel_url: trend.gorsel_url || '', aciklama: trend.aciklama || '', aciklama_ar: trend.aciklama_ar || '' }); setDuzenleId(trend.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                                style={{ flex: 1, padding: '8px 14px', background: '#eff6ff', color: '#2563eb', border: '2px solid #bfdbfe', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
-                                                                ✏️ {isAR ? 'تعديل' : 'Düzenle'}
-                                                            </button>
-                                                            <button disabled={islemdeId === 'sil_' + trend.id} onClick={(e) => { e.stopPropagation(); sil(trend.id); }}
-                                                                style={{ padding: '8px 16px', background: '#fef2f2', color: '#dc2626', border: '2px solid #fecaca', borderRadius: '8px', cursor: islemdeId === 'sil_' + trend.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'sil_' + trend.id ? 0.5 : 1 }}>
-                                                                <Trash2 size={13} /> {isAR ? 'حذف' : 'Sil'}
-                                                            </button>
-                                                            <button
-                                                                disabled={islemdeId === 'durum_' + trend.id}
-                                                                onClick={(e) => { e.stopPropagation(); durumGuncelle(trend.id, 'arsivlendi'); }}
-                                                                style={{ width: '100%', padding: '8px 14px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: islemdeId === 'durum_' + trend.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4, opacity: islemdeId === 'durum_' + trend.id ? 0.5 : 1 }}
-                                                            >
-                                                                🗃️ Arşivle — Zamansal Doğrulama için Kaydet
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {filtreliTrendler.map(trend => (
+                            <M1_UrunRecetesi
+                                key={trend.id}
+                                trend={trend}
+                                isExpanded={secilenTrend?.id === trend.id}
+                                onToggleExpand={() => setSecilenTrend(secilenTrend?.id === trend.id ? null : trend)}
+                                onDurumGuncelle={durumGuncelle}
+                                onSil={sil}
+                                onDuzenle={() => {
+                                    setForm({
+                                        baslik: trend.baslik, baslik_ar: trend.baslik_ar || '', platform: trend.platform,
+                                        kategori: trend.kategori, talep_skoru: trend.talep_skoru, referans_link: trend.referans_linkler?.[0] || '',
+                                        gorsel_url: trend.gorsel_url || '', aciklama: trend.aciklama || '', aciklama_ar: trend.aciklama_ar || ''
+                                    });
+                                    setDuzenleId(trend.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                isAR={isAR}
+                                yetkiliMi={kullanici?.grup === 'tam' || sessionStorage.getItem('sb47_uretim_pin')}
+                                islemdeId={islemdeId}
+                            />
+                        ))}
                     </div>
                 </div>
 
