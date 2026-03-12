@@ -46,8 +46,8 @@ const nextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
+    org: process.env.SENTRY_ORG, // Vercel environment variable
+    project: process.env.SENTRY_PROJECT, // Vercel environment variable
     silent: true,
     widenClientFileUpload: true,
     hideSourceMaps: true,
