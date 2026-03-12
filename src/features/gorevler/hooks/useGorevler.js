@@ -24,7 +24,7 @@ export function useGorevler(kullanici) {
         setLoading(true);
         try {
             const { data, error } = await supabase.from('b1_gorevler')
-                .select('*').order('created_at', { ascending: false }).limit(200);
+                .select('id, baslik, aciklama, atanan_kisi, son_tarih, oncelik, durum, modul').order('created_at', { ascending: false }).limit(200);
             if (error) throw error;
             setGorevler(data || []);
         } catch (e) { goster('Görevler yüklenemedi: ' + e.message, 'error'); }

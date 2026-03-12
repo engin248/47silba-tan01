@@ -369,8 +369,8 @@ export default function KumasArsiviSayfasi() {
                     { label: '⚠️ Kritik Stok', val: kumaslar.filter(k => (k.stok_mt || 0) <= (k.min_stok_mt || 10)).length, color: '#dc2626', bg: '#fef2f2' },
                     { label: 'Aksesuar', val: aksesuarlar.length, color: '#d97706', bg: '#fffbeb' },
                     { label: 'Tedarikçi', val: tedarikciler.length, color: '#374151', bg: '#f8fafc' },
-                ].map((s, i) => (
-                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
+                ].filter(Boolean).map((s, i) => (
+                    <div key={i} style={{ background: s?.bg, border: `1px solid ${s?.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                         <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
                         <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
                     </div>
@@ -579,10 +579,10 @@ export default function KumasArsiviSayfasi() {
                             { label: 'Toplam Kumaş', val: kumaslar.length, color: '#047857' },
                             { label: 'Düşük Stok', val: kumaslar.filter(k => k.stok_mt < k.min_stok_mt).length, color: '#ef4444' },
                             { label: 'Stokta Var', val: kumaslar.filter(k => parseFloat(k.stok_mt) > 0).length, color: '#10b981' },
-                        ].map((s, i) => (
+                        ].filter(Boolean).map((s, i) => (
                             <div key={i} style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 10, padding: '0.75rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{s.label}</span>
-                                <span style={{ fontWeight: 900, fontSize: '1.1rem', color: s.color }}>{s.val}</span>
+                                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{s?.label}</span>
+                                <span style={{ fontWeight: 900, fontSize: '1.1rem', color: s?.color }}>{s?.val}</span>
                             </div>
                         ))}
                     </div>
