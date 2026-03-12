@@ -56,6 +56,7 @@ export default function KumasArsiviSayfasi() {
     const [islemdeId, setIslemdeId] = useState(null);
 
     useEffect(() => {
+        setMounted(true);
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
         const erisebilir = kullanici?.grup === 'tam' || uretimPin;
         setYetkiliMi(erisebilir);
