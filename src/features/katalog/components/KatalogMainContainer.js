@@ -6,7 +6,7 @@
  */
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
-import { BookOpen, ShoppingBag, Plus, RefreshCw, AlertTriangle, CheckCircle2, QrCode, Trash2, Tag, ShieldCheck, Image, Grid3X3, History, Link, Package } from 'lucide-react';
+import { BookOpen, ShoppingBag, Plus, RefreshCw, AlertTriangle, CheckCircle2, QrCode, Trash2, Tag, ShieldCheck, Image, Grid3X3, History, Link as LinkIcon, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
