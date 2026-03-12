@@ -1,11 +1,5 @@
 'use client';
-/**
- * features/arge/components/ArgeMainContainer.js
- * Kaynak: app/arge/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useArge.js
- */
-'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, CheckCircle2, XCircle, Clock, ExternalLink, AlertTriangle, Bot, ChevronDown, Globe, BarChart3, Tag, Link, Eye, Trash2, Lock, Camera } from 'lucide-react';
 import NextLink from 'next/link';
 import { supabase } from '@/lib/supabase';
