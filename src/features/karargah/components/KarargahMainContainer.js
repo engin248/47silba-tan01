@@ -13,19 +13,31 @@ const MODULLER = [
     { name: 'Kalıp', link: '/kalip', renk: 'bg-slate-800' },
     { name: 'Modelhane', link: '/modelhane', renk: 'bg-slate-800' },
     { name: 'Kesim', link: '/kesim', renk: 'bg-indigo-800' },
+    { name: 'İmalat', link: '/imalat', renk: 'bg-indigo-800' },
     { name: 'Üretim', link: '/uretim', renk: 'bg-indigo-800' },
     { name: 'Maliyet', link: '/maliyet', renk: 'bg-rose-800' },
-    { name: 'Rapor', link: '/raporlar', renk: 'bg-orange-800' },
-    { name: 'Ürün', link: '/katalog', renk: 'bg-slate-800' },
-    { name: 'Sipariş', link: '/siparisler', renk: 'bg-blue-800' },
-    { name: 'Sevkiyat', link: '/stok', renk: 'bg-slate-800' },
-    { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-slate-800' }
+    { name: 'Muhasebe', link: '/muhasebe', renk: 'bg-rose-900' },
+    { name: 'Kasa', link: '/kasa', renk: 'bg-amber-800' },
+    { name: 'Stok', link: '/stok', renk: 'bg-slate-800' },
+    { name: 'Katalog', link: '/katalog', renk: 'bg-slate-800' },
+    { name: 'Siparişler', link: '/siparisler', renk: 'bg-blue-800' },
+    { name: 'Müşteriler', link: '/musteriler', renk: 'bg-blue-900' },
+    { name: 'Personel', link: '/personel', renk: 'bg-violet-800' },
+    { name: 'Görevler', link: '/gorevler', renk: 'bg-violet-900' },
+    { name: 'Kameralar', link: '/kameralar', renk: 'bg-cyan-800' },
+    { name: 'Ajanlar', link: '/ajanlar', renk: 'bg-emerald-900' },
+    { name: 'Denetmen', link: '/denetmen', renk: 'bg-orange-800' },
+    { name: 'Raporlar', link: '/raporlar', renk: 'bg-orange-900' },
+    { name: 'Tasarım', link: '/tasarim', renk: 'bg-pink-800' },
+    { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-red-900' },
+    { name: 'Ayarlar', link: '/ayarlar', renk: 'bg-slate-700' },
+    { name: 'Giriş', link: '/giris', renk: 'bg-slate-600' },
 ];
 
 export function KarargahMainContainer() {
     const { kullanici } = useAuth();
     const {
-        stats, alarms,
+        stats, alarms, ping,
         commandText, setCommandText, hizliGorevAtama,
         aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat,
         simulasyon, setSimulasyon,
@@ -236,10 +248,22 @@ export function KarargahMainContainer() {
                     <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
                         <h3 className="text-xs font-black uppercase text-emerald-500 mb-3 flex items-center gap-2"><Activity size={14} /> Sunucu Sağlığı</h3>
                         <div className="flex flex-col gap-2">
-                            <div className="flex justify-between items-center text-xs font-bold"><span>RAM Kullanımı</span> <span className="text-emerald-400">%32</span></div>
-                            <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '32%' }}></div></div>
-                            <div className="flex justify-between items-center text-xs font-bold mt-2"><span>DB Soket (Ms)</span> <span className="text-emerald-400">12ms (Realtime)</span></div>
-                            <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '4%' }}></div></div>
+                            <div className="flex justify-between items-center text-xs font-bold">
+                                <span>DB Soket (ms)</span>
+                                <span className={ping === null ? 'text-slate-400' : ping < 200 ? 'text-emerald-400' : ping < 500 ? 'text-amber-400' : 'text-rose-400'}>
+                                    {ping === null ? 'Ölçülüyor...' : `${ping}ms`}
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-700 rounded-full h-1.5">
+                                <div
+                                    className={`h-1.5 rounded-full transition-all ${ping === null ? 'bg-slate-600' : ping < 200 ? 'bg-emerald-500' : ping < 500 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                    style={{ width: ping === null ? '0%' : `${Math.min(100, (ping / 1000) * 100)}%` }}
+                                />
+                            </div>
+                            <div className="flex justify-between items-center text-xs font-bold mt-2">
+                                <span>Realtime</span>
+                                <span className="text-emerald-400">✅ Aktif</span>
+                            </div>
                         </div>
                     </div>
                 </div>
