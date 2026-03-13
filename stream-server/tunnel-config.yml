@@ -1,0 +1,7 @@
+tunnel: d3d1c0ab-135f-4934-87be-b5b459a292e7
+credentials-file: C:\Users\Admin\.cloudflared\d3d1c0ab-135f-4934-87be-b5b459a292e7.json
+
+ingress:
+  - hostname: kamera.demirtekstiltheonder.com
+    service: http://localhost:1984
+  - service: http_status:404
