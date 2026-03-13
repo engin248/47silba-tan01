@@ -56,8 +56,8 @@ export async function POST(request) {
             } catch { /* Ayarlar okunamazsa gonder */ }
         }
 
-        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || chat_id;
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim();
+        const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || chat_id)?.trim();
 
         if (!TELEGRAM_BOT_TOKEN) {
             return NextResponse.json({ success: false, error: 'Telegram Bot Token ENV dosyasinda bulunamadi.' }, { status: 500 });
