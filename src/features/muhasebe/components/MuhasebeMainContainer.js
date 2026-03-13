@@ -424,7 +424,7 @@ export default function MuhasebeMainContainer() {
                 <div style={{ fontSize: '1.5rem' }}>🚪</div>
                 <div>
                     <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>2. Birime Geçiş Kapısı</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Koordinatör kararı.</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
                 </div>
                 <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>KİLİTLİ RAPOR</div>

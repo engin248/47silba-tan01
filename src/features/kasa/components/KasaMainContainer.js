@@ -257,23 +257,23 @@ export default function KasaMainContainer() {
             {/* ÖZET KUTULARI */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
                 <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>✅ Onaylı Tahsilat</div>
+                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Onaylı Tahsilat</div>
                     <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>₺{tahsilat.toFixed(2)}</div>
                 </div>
                 <div style={{ background: '#fefce8', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>⏳ Bekleyen</div>
+                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Bekleyen</div>
                     <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.35rem' }}>₺{bekleyen.toFixed(2)}</div>
                 </div>
                 <div style={{ background: netBakiye >= 0 ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>💰 NET BAKİYE</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NET BAKİYE</div>
                     <div style={{ fontWeight: 900, color: netBakiye >= 0 ? '#34d399' : '#fca5a5', fontSize: '1.35rem' }}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
                 </div>
                 <div style={{ background: vadesi.length > 0 ? '#fef2f2' : '#f8fafc', border: `2px solid ${vadesi.length > 0 ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>⚠️ Vadesi Geçen</div>
+                    <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Vadesi Geçen</div>
                     <div style={{ fontWeight: 900, color: vadesi.length > 0 ? '#ef4444' : '#0f172a', fontSize: '1.35rem' }}>{vadesi.length} Adet</div>
                 </div>
                 <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>📊 Toplam Kayıt</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Toplam Kayıt</div>
                     <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.35rem' }}>{hareketler.length}</div>
                 </div>
             </div>
@@ -308,7 +308,7 @@ export default function KasaMainContainer() {
             {/* FORM */}
             {formAcik && (
                 <div style={{ background: 'white', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>💰 Yeni Kasa Hareketi</h3>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>Yeni Kasa Hareketi</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
                         <div>
                             <label style={lbl}>Hareket Tipi *</label>
@@ -345,7 +345,7 @@ export default function KasaMainContainer() {
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
                         <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#059669', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
-                            {loading ? '...' : '✅ Kaydet'}
+                            {loading ? '...' : 'Kaydet'}
                         </button>
                     </div>
                 </div>

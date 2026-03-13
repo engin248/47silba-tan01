@@ -73,6 +73,7 @@ export default function ModelhaneSayfasi() {
 
     const yukle = async (aktifSekme = sekme) => {
         setLoading(true);
+        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
         try {
             if (aktifSekme === 'arge_kuyrugu') {
                 const [aRes] = await Promise.race([

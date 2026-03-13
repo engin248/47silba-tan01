@@ -132,7 +132,7 @@ export default function GuvenlikMainContainer() {
     return (
         <div>
             {/* M17 Başlık Bandı */}
-            <div style={{ background: 'linear-gradient(135deg,#4f46e5,#6366f1)', borderRadius: 16, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 16, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)' }}>
                         <Shield size={24} color="white" />
@@ -159,7 +159,7 @@ export default function GuvenlikMainContainer() {
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                 {SEKMELER.map(s => (
                     <button key={s.id} onClick={() => setSekme(s.id)}
-                        style={{ padding: '7px 14px', border: '1px solid', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === s.id ? '#6366f1' : '#e5e7eb', background: sekme === s.id ? '#6366f1' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
+                        style={{ padding: '7px 14px', border: '1px solid', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === s.id ? '#047857' : '#e5e7eb', background: sekme === s.id ? '#047857' : 'white', color: sekme === s.id ? 'white' : '#374151' }}>
                         {s.label}
                     </button>
                 ))}
@@ -338,7 +338,7 @@ export default function GuvenlikMainContainer() {
                                 <input type="password" maxLength={20} value={pinDegistir.yeniPin2} onChange={e => setPinDegistir({ ...pinDegistir, yeniPin2: e.target.value })} style={inp} />
                             </div>
                             <button disabled={islemdeId === 'pinDegistir'} onClick={handlePinDegistir}
-                                style={{ background: '#6366f1', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1 }}>
+                                style={{ background: '#047857', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1 }}>
                                 {islemdeId === 'pinDegistir' ? 'Güncelleniyor...' : 'Kodu Güncelle'}
                             </button>
                         </div>

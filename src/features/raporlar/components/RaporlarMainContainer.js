@@ -209,8 +209,8 @@ export default function RaporlarMainContainer() {
                     </div>
                     {/* [KRİTİK EKSİK] PDF / Yazdır Butonu */}
                     <button onClick={() => window.print()}
-                        style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 2px 8px rgba(124,58,237,0.3)' }}>
-                        🖨️ PDF / Yazdır
+                        style={{ background: '#475569', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 2px 8px rgba(71,85,105,0.3)' }}>
+                        PDF / Yazdır
                     </button>
                     <button onClick={() => { setBaslangic(''); setBitis(''); }}
                         style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
