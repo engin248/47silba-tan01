@@ -29,7 +29,7 @@ const csvIndir = (baslik, satirlar, dosyaAdi) => {
     URL.revokeObjectURL(link.href);
 };
 
-export default function RaporlarSayfasi() {
+export default function RaporlarMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -65,16 +65,7 @@ export default function RaporlarSayfasi() {
         }
     }, [baslangic, bitis, kullanici]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 
@@ -297,7 +288,7 @@ export default function RaporlarSayfasi() {
                         ))}
                     </div>
                     {/* [A-01] RECHARTS GRAFİK ALANI */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                         {/* Sipariş Durumu BAR CHART */}
                         {durumSay && Object.keys(durumSay).length > 0 && (
                             <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 16, padding: '1.25rem' }}>
@@ -404,7 +395,7 @@ export default function RaporlarSayfasi() {
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Cari Ay vs Önceki Ay Oransal Performans Analizi</div>
                         </div>
                     </div>
-                    
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         {[
                             { baslik: 'Toplam İmalat (Adet)', buAy: aktifUretim, gecenAy: Math.max(0, aktifUretim - 5), p: '+%12', pozitif: true },
@@ -417,11 +408,11 @@ export default function RaporlarSayfasi() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                     <div>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>BU AY</div>
-                                        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>{m.buAy > 1000 ? '₺'+m.buAy.toLocaleString('tr-TR') : m.buAy}</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>{m.buAy > 1000 ? '₺' + m.buAy.toLocaleString('tr-TR') : m.buAy}</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>GEÇEN AY</div>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#64748b' }}>{m.gecenAy > 1000 ? '₺'+m.gecenAy.toLocaleString('tr-TR') : m.gecenAy}</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#64748b' }}>{m.gecenAy > 1000 ? '₺' + m.gecenAy.toLocaleString('tr-TR') : m.gecenAy}</div>
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -503,9 +494,9 @@ export default function RaporlarSayfasi() {
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Aktif personel bulunamadı.</p>
                         </div>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', overflowX: 'auto' }}>
                         {personelRapor.map(p => (
-                            <div key={p.id} style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                            <div key={p.id} style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center', minWidth: '500px' }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
                                     <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: 2 }}>{p.personel_kodu} — {(p.rol || '').replace(/_/g, ' ')}</div>

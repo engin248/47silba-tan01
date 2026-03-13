@@ -1,9 +1,4 @@
 ﻿'use client';
-/**
- * features/kasa/components/KasaMainContainer.js
- * [A-03] CSV Export eklendi
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { DollarSign, Lock, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Clock, CheckCircle } from 'lucide-react';
@@ -64,7 +59,7 @@ const TIP_ICON = {
     tahsilat: '📈', iade_odeme: '↩️', cek: '📄', senet: '📋', avans: '💵', diger: '💰',
 };
 
-export default function KasaSayfasi() {
+export default function KasaMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -94,12 +89,7 @@ export default function KasaSayfasi() {
         }
     }, [kullanici]);
 
-    const telegramBildirim = (msg) => {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 10000);
-        fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: msg }), signal: ctrl.signal })
-            .finally(() => clearTimeout(t)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 

@@ -16,6 +16,7 @@ import { YetkiProvider } from '@/lib/yetki';
 import { TasarimProvider } from '@/lib/TasarimContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BildirimZili from '@/lib/components/ui/BildirimZili';
+import MesajBildirimButonu from '@/components/MesajBildirimButonu';
 
 // ─── NAV YAPISI ───────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -328,6 +329,9 @@ function LayoutInner({ children }) {
                     </div>
                 </div>
             )}
+
+            {/* MESAJ BİLDİRİM BUTONU — tüm sayfalarda sabit, okunmamış varsa kırmızı */}
+            <MesajBildirimButonu />
 
             <style>{`
                 .badge-birim1 { background: #1e3a5f; color: #60a5fa; }

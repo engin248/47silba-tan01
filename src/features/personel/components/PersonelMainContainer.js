@@ -32,7 +32,7 @@ const BOSH_FORM = {
     durum: 'aktif', notlar: ''
 };
 
-export default function PersonelSayfasi() {
+export default function PersonelMainContainer() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
@@ -73,16 +73,7 @@ export default function PersonelSayfasi() {
 
     useEffect(() => { if (sekme === 'devam' && yetkiliMi) yukleDevam(); }, [sekme, yetkiliMi]);
 
-    const telegramBildirim = (mesaj) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const yukleAyarlar = async () => {
         try {

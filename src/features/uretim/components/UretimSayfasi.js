@@ -33,7 +33,11 @@ export default function UretimSayfasi() {
 
     // Yetki kontrolü
     let yetkiliMi = false;
-    try { yetkiliMi = kullanici?.grup === 'tam' || !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { yetkiliMi = !!sessionStorage.getItem('sb47_uretim_pin'); }
+    try {
+        if (typeof window !== 'undefined') {
+            yetkiliMi = kullanici?.grup === 'tam' || !!atob(sessionStorage.getItem('sb47_uretim_pin') || '');
+        }
+    } catch { yetkiliMi = typeof window !== 'undefined' && !!sessionStorage.getItem('sb47_uretim_pin'); }
 
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };

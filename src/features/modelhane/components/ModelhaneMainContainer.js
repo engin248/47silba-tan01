@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/modelhane/components/ModelhaneMainContainer.js
  * Kaynak: app/modelhane/page.js → features mimarisine taşındı
@@ -16,6 +16,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import M2_GelenIlhamKarti from './M2_GelenIlhamKarti';
 import M2_FizikselMuhendislikFormu from './M2_FizikselMuhendislikFormu';
+import { ModelMesajGecmisi } from '@/components/mesaj/ModelMesajGecmisi';
 
 const BOSH_NUMUNE = { model_id: '', kalip_id: '', numune_beden: 'M', dikim_tarihi: '', notlar: '' };
 const BOSH_TALIMAT = { numune_id: '', talimat_video_url: '', sesli_aciklama_url: '', yazili_adimlari: [] };
@@ -621,7 +622,7 @@ export default function ModelhaneSayfasi() {
                                 </div>
                             </div>
                             {formT.yazili_adimlari.length === 0 && <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: 8, color: '#94a3b8', fontSize: '0.85rem', fontWeight: 600 }}>Adım yok. + Adım ekleyin.</div>}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowX: 'auto' }}>
                                 {formT.yazili_adimlari.map((adim, i) => (
                                     <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(30px, 40px) 1fr minmax(70px, 100px) minmax(70px, 90px) minmax(60px, 70px) 32px', gap: '0.375rem', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: 8 }}>
                                         <div style={{ textAlign: 'center', fontWeight: 900, color: '#f59e0b', fontSize: '1rem' }}>{i + 1}</div>
@@ -711,6 +712,12 @@ export default function ModelhaneSayfasi() {
                                     </button>
                                 )}
                             </div>
+                            {/* MODEL MESAJ GECMISİ */}
+                            <ModelMesajGecmisi
+                                modelKodu={n.b1_model_taslaklari?.model_kodu}
+                                modelId={String(n.model_id || '')}
+                                modelAdi={n.b1_model_taslaklari?.model_adi}
+                            />
                         </div>
                     ))}
                 </div>

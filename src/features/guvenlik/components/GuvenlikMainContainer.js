@@ -10,10 +10,10 @@ import { useState, useEffect } from 'react';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { Shield, Clock, RefreshCw, CheckCircle2, AlertTriangle, LogOut } from 'lucide-react';
 import { useAuth, ERISIM_GRUPLARI, ERISIM_MATRISI, pindenGrupBul } from '@/lib/auth';
-import { createGoster, formatTarih } from '@/lib/utils';
+import { createGoster, telegramBildirim, formatTarih } from '@/lib/utils';
 
 
-export default function GuvenlikSayfasi() {
+export default function GuvenlikMainContainer() {
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const { kullanici, cikisYap } = useAuth();
@@ -36,16 +36,7 @@ export default function GuvenlikSayfasi() {
         } catch (e) { console.error('Log okuma hatasi', e); }
     }, []);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const handlePinDegistir = () => {
         // GVN-02: Hatalı giriş kilitleme
@@ -102,11 +93,11 @@ export default function GuvenlikSayfasi() {
         setIslemdeId(null);
     };
 
-    // Sadece "tam" erişim grubu bu sayfayı görür
     if (kullanici?.grup !== 'tam') {
         return (
             <div dir={isAR ? 'rtl' : 'ltr'} style={{ textAlign: 'center', padding: '5rem', background: '#f8fafc', borderRadius: 20, border: '2px solid #e2e8f0' }}>
                 <Shield size={44} color="#94a3b8" style={{ marginBottom: '1rem' }} />
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#6366f1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>M17 — Erişim Yönetimi & Güvenlik</div>
                 <h2 style={{ color: '#374151', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem yönetimine aittir</h2>
                 <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.85rem' }}>
                     Erişim ayarları merkezi olarak yönetilmektedir.
@@ -114,6 +105,7 @@ export default function GuvenlikSayfasi() {
             </div>
         );
     }
+
 
     const inp = {
         width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb',
@@ -139,29 +131,22 @@ export default function GuvenlikSayfasi() {
 
     return (
         <div>
-            {/* Başlık */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#6366f1,#4f46e5)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Shield size={22} color="white" />
+            {/* M17 Başlık Bandı */}
+            <div style={{ background: 'linear-gradient(135deg,#4f46e5,#6366f1)', borderRadius: 16, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)' }}>
+                        <Shield size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Erişim Yönetimi</h1>
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Kodlar · Erişim alanları · Giriş kayıtları</p>
+                        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>M17 — ERİŞİM & GÜVENLİK</div>
+                        <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'white', margin: 0 }}>Erişim Yönetimi</h1>
+                        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', margin: '2px 0 0', fontWeight: 600 }}>Kodlar · Yetki grupları · Giriş kayıtları · Güvenlik durumu</p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {/* CC Kriteri Otomatik Rota (Ayarlar Modülüne Geçiş) */}
-                    <a href="/ayarlar" style={{ textDecoration: 'none' }}>
-                        <button style={{ background: '#0f172a', border: '1px solid #334155', color: '#f8fafc', padding: '7px 14px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            ⚙️ Ayarlar (M20)
-                        </button>
-                    </a>
-                    <button onClick={cikisYap}
-                        style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '7px 14px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <LogOut size={14} /> Çıkış
-                    </button>
-                </div>
+                <button onClick={cikisYap}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <LogOut size={14} /> Oturumu Kapat
+                </button>
             </div>
 
             {mesaj.text && (

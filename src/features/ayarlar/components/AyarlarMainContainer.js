@@ -1,10 +1,4 @@
 'use client';
-/**
- * features/ayarlar/components/AyarlarMainContainer.js
- * Kaynak: app/ayarlar/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useAyarlar.js
- */
-﻿'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Save, Settings2, Globe, CheckCircle2, AlertTriangle, Lock } from 'lucide-react';
@@ -34,7 +28,7 @@ const VARSAYILAN = {
     bildirim_personel: false,
 };
 
-export default function AyarlarSayfasi() {
+export default function AyarlarMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -60,16 +54,7 @@ export default function AyarlarSayfasi() {
         }
     }, [kullanici]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 

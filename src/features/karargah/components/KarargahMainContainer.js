@@ -1,11 +1,12 @@
 ﻿'use client';
 import {
-    Activity, ShieldCheck, Zap, Bot, Camera, Info, ArrowRight, PlayCircle, AlertCircle, ServerCrash
+    Activity, ShieldCheck, Zap, Bot, Camera, Info, ArrowRight, PlayCircle, AlertCircle, ServerCrash, Send, CheckCircle, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useKarargah } from '../hooks/useKarargah';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const MODULLER = [
     { name: 'Ar-Ge', link: '/arge', renk: 'bg-emerald-800' },
@@ -19,7 +20,9 @@ const MODULLER = [
     { name: 'Ürün', link: '/katalog', renk: 'bg-slate-800' },
     { name: 'Sipariş', link: '/siparisler', renk: 'bg-blue-800' },
     { name: 'Sevkiyat', link: '/stok', renk: 'bg-slate-800' },
-    { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-slate-800' }
+    { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-slate-800' },
+    { name: '💬 Haberleşme', link: '/haberlesme', renk: 'bg-violet-800' },
+    { name: '📋 Görevler', link: '/gorevler', renk: 'bg-teal-800' },
 ];
 
 export function KarargahMainContainer() {
@@ -33,6 +36,92 @@ export function KarargahMainContainer() {
     } = useKarargah();
 
     const [aiNedenModal, setAiNedenModal] = useState({ acik: false, metin: '', zarar: 0 });
+    const [botLoglar, setBotLoglar] = useState([]);
+    const [botDurum, setBotDurum] = useState('kontrol');
+    const [sonMesajlar, setSonMesajlar] = useState([]);
+    const [mesajSayisi, setMesajSayisi] = useState(0);
+    const [gizlenIzleri, setGizlenIzleri] = useState([]);   // 45-gün kural izleri
+    const [modelArsiv, setModelArsiv] = useState([]);        // kalıcı model arşiv
+    const [izPanelAcik, setIzPanelAcik] = useState(false);
+
+    // ── 45 GÜN KURALI HESAPLAMA ────────────────────────────────────────────
+    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
+    // ── Mesaj verilerini çek ───────────────────────────────────────────────
+    const mesajlariGetir = useCallback(async () => {
+        try {
+            const { count } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id', { count: 'exact', head: true })
+                .is('okundu_at', null);
+            setMesajSayisi(count || 0);
+
+            // Son 3 aktif mesaj (widget)
+            const { data: aktif } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
+                .order('created_at', { ascending: false })
+                .limit(3);
+            setSonMesajlar(aktif || []);
+
+            // Gizlenmiş mesaj izleri — 45 gün içindekiler (urun_id OLMAYAN)
+            // Kural: urun_id varsa → Model Arşiv (kalıcı), yoksa → 45 gün sonra silinir
+            const { data: gizli } = await supabase
+                .from('b1_mesaj_gizli')
+                .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
+                .gte('gizlendi_at', gun45Once)  // sadece son 45 gün
+                .order('gizlendi_at', { ascending: false })
+                .limit(20)
+                .catch(() => ({ data: null }));
+
+            const izler = (gizli?.data || []).filter(g => !g.b1_ic_mesajlar?.urun_id); // model bağlısı ayrı
+            setGizlenIzleri(izler);
+
+            // Model arşiv — urun_id bağlı, HİÇBİR ZAMAN silinmez, koordinatör görebilir
+            const { data: model } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
+                .not('urun_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(50)
+                .catch(() => ({ data: null }));
+            setModelArsiv(model?.data || []);
+
+        } catch { /* sessiz */ }
+    }, []);
+
+    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
+
+    // Realtime — yeni mesaj / gizleme gelince güncelle
+    useEffect(() => {
+        const kanal = supabase.channel('karargah-mesaj')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, mesajlariGetir)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, mesajlariGetir)
+            .subscribe();
+        return () => supabase.removeChannel(kanal);
+    }, [mesajlariGetir]);
+
+    // NİZAMBOT — Son aktiviteleri çek
+    useEffect(() => {
+        const botLogCek = async () => {
+            try {
+                // Bot token doğrulama
+                const res = await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
+                const { data } = await supabase
+                    .from('b1_agent_loglari')
+                    .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
+                    .eq('ajan_adi', 'NİZAMBOT')
+                    .order('created_at', { ascending: false })
+                    .limit(8);
+                setBotLoglar(data || []);
+                setBotDurum('aktif');
+            } catch { setBotDurum('hata'); }
+        };
+        botLogCek();
+        const interval = setInterval(botLogCek, 30000); // 30 sn'de bir güncelle
+        return () => clearInterval(interval);
+    }, []);
+
 
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
 
@@ -233,6 +322,89 @@ export function KarargahMainContainer() {
                         </div>
                     </div>
 
+                    {/* ── SON MESAJLAR WİDGET ──────────────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-violet-900/40">
+                        <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2"><MessageSquare size={13} /> Son Mesajlar</span>
+                            {mesajSayisi > 0 && (
+                                <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                                    {mesajSayisi} OKUNMADI
+                                </span>
+                            )}
+                        </h3>
+                        <div className="flex flex-col gap-1.5">
+                            {sonMesajlar.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-2 font-semibold">✅ Okunmamış mesaj yok</div>
+                            ) : sonMesajlar.map(m => (
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded-lg p-2 border border-white/5 hover:border-violet-500/40 transition-colors">
+                                    <div className="text-[10px] font-black text-white truncate">
+                                        {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🔵'} {m.konu}
+                                        {m.urun_id && <span className="ml-1 text-amber-400">📦</span>}
+                                    </div>
+                                    <div className="text-[9px] text-slate-500 mt-0.5">{m.gonderen_adi}</div>
+                                </Link>
+                            ))}
+                        </div>
+                        <Link href="/haberlesme" className="mt-2 block text-center text-[9px] text-violet-400 font-black hover:text-violet-300 transition-colors">
+                            Haberleşme → Tümünü Gör
+                        </Link>
+                    </div>
+
+                    {/* ── 45-GÜN MESAJ İZ PANELİ ──────────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-amber-900/40">
+                        <button
+                            onClick={() => setIzPanelAcik(v => !v)}
+                            className="w-full flex items-center justify-between text-xs font-black uppercase text-amber-400 mb-1"
+                        >
+                            <span>🗂️ Gizlenen Mesaj İzleri ({gizlenIzleri.length})</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">45 Gün Kuralı</span>
+                        </button>
+                        {izPanelAcik && (
+                            <div className="flex flex-col gap-1 mt-2 max-h-40 overflow-y-auto">
+                                {gizlenIzleri.length === 0 ? (
+                                    <div className="text-[10px] text-slate-500 text-center py-2">Son 45 günde gizlenen iz yok</div>
+                                ) : gizlenIzleri.map((g, i) => (
+                                    <div key={i} className="bg-[#0f172a] rounded p-1.5 border border-amber-900/30">
+                                        <div className="text-[9px] font-black text-amber-300 truncate">
+                                            {g.b1_ic_mesajlar?.konu || 'Bilinmeyen Konu'}
+                                        </div>
+                                        <div className="text-[8px] text-slate-500">
+                                            Gizleyen: {g.kullanici_adi} · {g.b1_ic_mesajlar?.gonderen_modul}
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="text-[8px] text-slate-600 text-center mt-1 font-semibold">
+                                    ⚠️ 45. günden sonra sistem bu izleri otomatik temizler
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── MODEL BİLGİ ARŞİVİ — KALICI ─────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-emerald-900/40">
+                        <h3 className="text-xs font-black uppercase text-emerald-400 mb-2 flex items-center justify-between gap-2">
+                            <span>📦 Model Bilgi Arşivi</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">{modelArsiv.length} kayıt · KALıcı</span>
+                        </h3>
+                        <div className="text-[8px] text-slate-500 mb-2 leading-tight">
+                            Ürün/model bağlı mesajlar hiçbir zaman silinmez. AI ajanlar bu veriyle eğitim alır.
+                            Tek silme yetkisi: Koordinatör (PIN).
+                        </div>
+                        <div className="flex flex-col gap-1 max-h-36 overflow-y-auto">
+                            {modelArsiv.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-2">Model bağlı mesaj yok</div>
+                            ) : modelArsiv.slice(0, 8).map(m => (
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded p-1.5 border border-emerald-900/30 hover:border-emerald-500/40 transition-colors">
+                                    <div className="text-[9px] font-black text-emerald-300 truncate">
+                                        📦 [{m.urun_kodu || '—'}] {m.konu}
+                                    </div>
+                                    <div className="text-[8px] text-slate-500">{m.gonderen_adi} · {new Date(m.created_at).toLocaleDateString('tr-TR')}</div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+
                     <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
                         <h3 className="text-xs font-black uppercase text-emerald-500 mb-3 flex items-center gap-2"><Activity size={14} /> Sunucu Sağlığı</h3>
                         <div className="flex flex-col gap-2">
@@ -242,6 +414,63 @@ export function KarargahMainContainer() {
                             <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '4%' }}></div></div>
                         </div>
                     </div>
+
+                    {/* NİZAMBOT PANELİ */}
+                    <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-violet-900/40">
+                        <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center gap-2 justify-between">
+                            <span className="flex items-center gap-2"><Bot size={14} /> NİZAMBOT</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${botDurum === 'aktif' ? 'bg-emerald-900 text-emerald-400' :
+                                botDurum === 'hata' ? 'bg-red-900 text-red-400' :
+                                    'bg-slate-700 text-slate-400'
+                                }`}>
+                                {botDurum === 'aktif' ? '● AKTİF' : botDurum === 'hata' ? '● HATA' : '● KONTROL'}
+                            </span>
+                        </h3>
+
+                        {/* Bot kimlik bilgisi */}
+                        <div className="bg-[#0f172a] rounded-lg p-2 mb-3 flex items-center gap-2 border border-violet-900/30">
+                            <Bot size={12} className="text-violet-400 shrink-0" />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-violet-300">@Lumora_47bot</span>
+                                <span className="text-[9px] text-slate-500">Sistem Adı: NİZAMBOT</span>
+                            </div>
+                        </div>
+
+                        {/* Son aktiviteler */}
+                        <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+                            {botLoglar.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-3 font-semibold">
+                                    Henüz bot aktivitesi yok
+                                </div>
+                            ) : botLoglar.map((log, i) => (
+                                <div key={i} className="bg-[#0f172a] rounded-lg p-2 border border-white/5">
+                                    <div className="flex items-center justify-between mb-0.5">
+                                        <span className={`text-[9px] font-black flex items-center gap-1 ${log.sonuc === 'basarili' ? 'text-emerald-400' : 'text-red-400'
+                                            }`}>
+                                            {log.sonuc === 'basarili'
+                                                ? <><CheckCircle size={8} /> GÖNDER</>
+                                                : <><AlertCircle size={8} /> HATA</>
+                                            }
+                                        </span>
+                                        <span className="text-[8px] text-slate-500 font-semibold">
+                                            {new Date(log.created_at).toLocaleString('tr-TR', {
+                                                day: '2-digit', month: '2-digit',
+                                                hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <p className="text-[9px] text-slate-400 font-medium leading-tight truncate">
+                                        {log.mesaj || log.islem_tipi}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <Link href="/ajanlar" className="mt-3 block text-center text-[9px] text-violet-400 font-black hover:text-violet-300 transition-colors">
+                            Tüm Bot Kayıtları → Ajanlar Sayfası
+                        </Link>
+                    </div>
+
                 </div>
             </div>
         </div>

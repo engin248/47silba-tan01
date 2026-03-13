@@ -1,7 +1,7 @@
 /**
- * 47 SİL BAŞTAN — TELEGRAM MEDYA BOTU (V2)
+ * THE ORDER / NİZAM — NİZAMBOT (Telegram Medya & Komuta Botu)
  * ==========================================
- * Desteklenen medya: Fotoğraf, Ses, Video, Belge
+ * Bot: @Lumora_47bot | Sistem Adı: NİZAMBOT
  * Medyalar Supabase Storage'a yüklenir
  * İlgili kayıtlar Supabase tablolarına otomatik işlenir
  * 
@@ -42,7 +42,7 @@ if (!BOT_TOKEN || BOT_TOKEN.includes('1234567890')) {
     process.exit(1);
 }
 
-console.log('🤖 47 Sil Baştan — Telegram Medya Botu V2 başlatıldı');
+console.log('🤖 THE ORDER / NİZAM — NİZAMBOT başlatıldı');
 console.log('📡 Fotoğraf | Ses | Video | Belge destekleniyor\n');
 
 let lastUpdateId = 0;
@@ -232,7 +232,7 @@ async function mesajiIsle(message) {
     // ── KOMUTLAR ──────────────────────────────────────────────
     if (text.startsWith('/start')) {
         await mesajGonder(chat_id,
-            '🤖 <b>47 Sil Baştan — Medya Botu V2</b>\n\n' +
+            '🤖 <b>NİZAMBOT — THE ORDER Komuta Merkezi</b>\n\n' +
             '📷 <b>Fotoğraf</b>, 🎵 <b>Ses</b>, 🎬 <b>Video</b> veya 📄 <b>Belge</b> gönderin.\n\n' +
             '<b>Otomatik klasörleme için açıklama yazın:</b>\n' +
             '• <code>numune</code> veya <code>model</code> → Modelhane\n' +
@@ -404,7 +404,7 @@ async function mesajiIsle(message) {
 
         // Her durumda agent log kaydet
         await supabaseKaydet('b1_agent_loglari', {
-            ajan_adi: 'Telegram Bot',
+            ajan_adi: 'NİZAMBOT',
             islem_tipi: `telegram_${medyaTipi}`,
             kaynak_tablo: tablo || 'telegram',
             sonuc: 'basarili',

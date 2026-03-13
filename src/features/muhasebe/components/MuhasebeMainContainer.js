@@ -1,10 +1,4 @@
 ﻿'use client';
-/**
- * features/muhasebe/components/MuhasebeMainContainer.js
- * Kaynak: app/muhasebe/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useMuhasebe.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Trash2, Edit2, Search, X } from 'lucide-react';
@@ -15,7 +9,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 
-export default function MuhasebeSayfasi() {
+export default function MuhasebeMainContainer() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
@@ -45,16 +39,7 @@ export default function MuhasebeSayfasi() {
         }
     }, [kullanici]);
 
-    const telegramBildirim = (mesaj) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 

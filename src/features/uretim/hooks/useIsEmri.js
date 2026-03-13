@@ -102,7 +102,7 @@ export function useIsEmri(kullanici) {
 
     // ── REALTIME BAĞLANTISI ────────────────────────────────────────────────
     useEffect(() => {
-        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
+        const uretimPin = typeof window !== 'undefined' && !!sessionStorage.getItem('sb47_uretim_token');
         const yetkili = kullanici?.grup === 'tam' || uretimPin;
         if (!yetkili) return;
 

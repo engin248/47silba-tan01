@@ -1,0 +1,41 @@
+
+> sil-bastan@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.6
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ┬À clientTraceMetadata
+
+   Creating an optimized production build ...
+[@sentry/nextjs] It appears you've configured a `sentry.server.config.js` file. Please ensure to put this file's content into the `register()` function of a Next.js instrumentation hook instead. To ensure correct functionality of the SDK, `Sentry.init` must be called inside `instrumentation.ts`. Learn more about setting up an instrumentation hook in Next.js: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation. You can safely delete the `sentry.server.config.js` file afterward.
+[@sentry/nextjs] The Sentry SDK has enabled source map generation for your Next.js app. If you don't want to serve Source Maps to your users, either set the `sourcemaps.deleteSourcemapsAfterUpload` option to true, or manually delete the source maps after the build. In future Sentry SDK versions `sourcemaps.deleteSourcemapsAfterUpload` will default to `true`. If you do not want to generate and upload sourcemaps, set the `sourcemaps.disable` option in `withSentryConfig()`.
+ ÔÜá Compiled with warnings in 10.0s
+
+./src/app/api/pin-dogrula/route.js
+Module not found: Can't resolve '@upstash/ratelimit' in 'C:\Users\Admin\Desktop\47_SIL_BASTAN_01\src\app\api\pin-dogrula'
+
+Import trace for requested module:
+./src/app/api/pin-dogrula/route.js
+
+./src/app/api/pin-dogrula/route.js
+Module not found: Can't resolve '@upstash/redis' in 'C:\Users\Admin\Desktop\47_SIL_BASTAN_01\src\app\api\pin-dogrula'
+
+Import trace for requested module:
+./src/app/api/pin-dogrula/route.js
+
+   Linting and checking validity of types ...
+   Collecting page data ...
+Error: SUPABASE_SERVICE_ROLE_KEY eksik! .env.local dosyasina ekleyin.
+    at 49936 (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\app\api\veri-getir\route.js:1:2343)
+    at t (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\webpack-runtime.js:1:485)
+    at t (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\app\api\veri-getir\route.js:1:5791)
+    at <unknown> (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\app\api\veri-getir\route.js:1:5828)
+    at t.X (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\webpack-runtime.js:1:2562)
+    at <unknown> (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\app\api\veri-getir\route.js:1:5804)
+    at Object.<anonymous> (C:\Users\Admin\Desktop\47_SIL_BASTAN_01\.next\server\app\api\veri-getir\route.js:1:5856)
+
+> Build error occurred
+[Error: Failed to collect page data for /api/veri-getir] {
+  type: 'Error'
+}
