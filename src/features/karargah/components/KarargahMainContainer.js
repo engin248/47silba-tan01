@@ -154,7 +154,7 @@ export function KarargahMainContainer() {
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
 
     const SkeletonKutu = () => (
-        <div className="animate-pulse bg-slate-800 p-4 rounded-xl shadow-lg h-28 border border-white/5 flex flex-col justify-between">
+        <div className="animate-pulse bg-slate-100 p-4 rounded-xl shadow-lg h-28 border border-slate-200 flex flex-col justify-between">
             <div className="h-4 bg-slate-700 rounded w-1/2"></div>
             <div className="h-8 bg-slate-700 rounded w-3/4"></div>
         </div>
@@ -163,7 +163,7 @@ export function KarargahMainContainer() {
     const isAdmin = kullanici?.grup === 'tam' || kullanici?.rol === 'admin';
 
     return (
-        <div className="bg-[#162032] min-h-screen p-4 text-white font-sans selection:bg-emerald-500 selection:text-white pb-20">
+        <div className="bg-slate-50 min-h-screen p-4 text-slate-800 font-sans selection:bg-emerald-500 selection:text-white pb-20">
 
             {mesaj.text && (
                 <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 px-8 rounded-lg font-bold shadow-2xl transition-all ${mesaj.type === 'error' ? 'bg-red-600 text-white border-2 border-red-500' : 'bg-emerald-600 text-white'}`}>
@@ -173,17 +173,17 @@ export function KarargahMainContainer() {
 
             {aiNedenModal.acik && (
                 <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
-                    <div className="bg-[#1e293b] w-full max-w-md p-6 rounded-2xl border border-rose-500/50 shadow-2xl relative">
-                        <button onClick={() => setAiNedenModal({ acik: false })} className="absolute top-4 right-4 text-slate-400 hover:text-white font-black text-xl">✕</button>
-                        <h2 className="text-xl font-black text-amber-500 mb-2 flex items-center gap-2"><Bot /> HermAI Yorumlayıcı</h2>
-                        <div className="bg-[#0f172a] p-4 rounded-xl mb-4 border border-white/10">
-                            <p className="text-sm font-semibold text-slate-300">
+                    <div className="bg-white w-full max-w-md p-6 rounded-2xl border border-rose-500/50 shadow-2xl relative">
+                        <button onClick={() => setAiNedenModal({ acik: false })} className="absolute top-4 right-4 text-slate-500 hover:text-white font-black text-xl">✕</button>
+                        <h2 className="text-xl font-black text-amber-600 mb-2 flex items-center gap-2"><Bot /> HermAI Yorumlayıcı</h2>
+                        <div className="bg-white p-4 rounded-xl mb-4 border border-white/10">
+                            <p className="text-sm font-semibold text-slate-600">
                                 <strong className="text-white block mb-1">Tespit Edilen Kök Neden (Kovaryans):</strong>
                                 {aiNedenModal.metin}
                             </p>
                             <p className="mt-3 text-sm">
-                                <strong className="text-rose-400 block mb-1">Günlük Potansiyel Finansal Zarar:</strong>
-                                <span className="text-2xl font-black text-rose-500">₺ {fm(aiNedenModal.zarar)}</span>
+                                <strong className="text-rose-600 block mb-1">Günlük Potansiyel Finansal Zarar:</strong>
+                                <span className="text-2xl font-black text-rose-600">₺ {fm(aiNedenModal.zarar)}</span>
                             </p>
                         </div>
                         <button onClick={() => setAiNedenModal({ acik: false })} className="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-lg font-bold text-white transition-all">Anlaşıldı, Kapat</button>
@@ -233,15 +233,15 @@ export function KarargahMainContainer() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50 flex flex-col gap-4">
+                        <div className="bg-white p-5 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4">
                             <div className="flex flex-col gap-2">
-                                <h3 className="text-xs font-bold uppercase text-slate-400 flex items-center gap-2 tracking-wider"><Zap size={14} /> Görev Arama Motoru (CMD+K)</h3>
+                                <h3 className="text-xs font-bold uppercase text-slate-500 flex items-center gap-2 tracking-wider"><Zap size={14} /> Görev Arama Motoru (CMD+K)</h3>
                                 <div className="flex gap-2">
                                     <input
                                         value={commandText}
                                         onChange={(e) => setCommandText(e.target.value)}
                                         placeholder="/komut (Zod korumalıdır)"
-                                        className="flex-1 bg-[#0f172a] text-white px-4 py-2 rounded-xl border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors text-sm font-semibold placeholder-slate-500"
+                                        className="flex-1 bg-white text-white px-4 py-2 rounded-xl border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors text-sm font-semibold placeholder-slate-500"
                                     />
                                     <button onClick={hizliGorevAtama} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-xl font-bold transition-colors shadow-lg text-sm tracking-wide">BAŞLAT</button>
                                 </div>
@@ -249,7 +249,7 @@ export function KarargahMainContainer() {
 
                             <div className="mt-2 border-t border-white/10 pt-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold text-slate-300">Stratejik What-if Analizi (Fiyatlama):</span>
+                                    <span className="text-xs font-bold text-slate-600">Stratejik What-if Analizi (Fiyatlama):</span>
                                     <span className="text-xs font-black text-emerald-400">%{simulasyon}</span>
                                 </div>
                                 <input
@@ -263,15 +263,15 @@ export function KarargahMainContainer() {
                             </div>
                         </div>
 
-                        <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50 flex flex-col justify-between gap-4">
+                        <div className="bg-white p-5 rounded-2xl shadow-lg border border-slate-200 flex flex-col justify-between gap-4">
                             <div>
-                                <h3 className="text-xs font-bold uppercase text-emerald-500 flex items-center gap-2 tracking-wider mb-2"><Bot size={14} /> Yapay Zeka Komuta Merkezi</h3>
+                                <h3 className="text-xs font-bold uppercase text-emerald-700 flex items-center gap-2 tracking-wider mb-2"><Bot size={14} /> Yapay Zeka Komuta Merkezi</h3>
                                 <div className="flex gap-2">
                                     <input
                                         value={aiSorgu}
                                         onChange={(e) => setAiSorgu(e.target.value)}
                                         placeholder="Pazar Analizi veya Rapor İste..."
-                                        className="flex-1 bg-[#0f172a] text-white px-4 py-2 rounded-xl border border-emerald-900 focus:outline-none focus:border-emerald-500 transition-colors text-sm font-semibold placeholder-slate-500"
+                                        className="flex-1 bg-white text-white px-4 py-2 rounded-xl border border-emerald-900 focus:outline-none focus:border-emerald-500 transition-colors text-sm font-semibold placeholder-slate-500"
                                     />
                                     <button
                                         onClick={aiAnalizBaslat}
@@ -294,8 +294,8 @@ export function KarargahMainContainer() {
                                 </div>
                             )}
 
-                            <div className="bg-[#0f172a] p-3 rounded-lg border border-white/5 flex items-center justify-between mt-auto">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">BANT AKIŞI:</span>
+                            <div className="bg-white p-3 rounded-lg border border-slate-200 flex items-center justify-between mt-auto">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">BANT AKIŞI:</span>
                                 <div className="flex items-center gap-1 flex-1 px-4">
                                     <div className="h-2 flex-1 bg-emerald-500 rounded-l-full relative shadow-[0_0_8px_rgba(16,185,129,0.5)]">
                                         <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-emerald-400">Kesim</span>
@@ -314,7 +314,7 @@ export function KarargahMainContainer() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                         {MODULLER.map((mod, i) => (
                             <Link href={mod.link} key={i}>
-                                <div className={`${mod.renk} hover:opacity-80 transition-all p-3 rounded-xl text-center shadow-md flex items-center justify-center border border-white/5 h-16`}>
+                                <div className={`${mod.renk} hover:opacity-80 transition-all p-3 rounded-xl text-center shadow-md flex items-center justify-center border border-slate-200 h-16`}>
                                     <span className="font-bold text-sm tracking-wide">{mod.name}</span>
                                 </div>
                             </Link>
@@ -325,16 +325,16 @@ export function KarargahMainContainer() {
 
                 <div className="flex flex-col gap-4">
 
-                    <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
-                        <h3 className="text-xs font-black uppercase text-rose-500 mb-3 flex items-center gap-2"><AlertCircle size={14} /> Kriz & Risk Radarı</h3>
+                    <div className="bg-white p-5 rounded-2xl shadow-lg border border-slate-200">
+                        <h3 className="text-xs font-black uppercase text-rose-600 mb-3 flex items-center gap-2"><AlertCircle size={14} /> Kriz & Risk Radarı</h3>
 
                         {alarms.length === 0 ? (
                             <div className="text-emerald-400 font-bold text-sm bg-emerald-900/40 p-3 rounded-lg border border-emerald-800">✅ Risk Tespit Edilmedi.</div>
                         ) : (
                             <div className="space-y-3">
                                 {alarms.map(al => (
-                                    <div key={al.id} className="bg-[#0f172a] p-3 rounded-lg border-l-4 border-rose-500 shadow-xl group">
-                                        <p className="text-xs font-black text-slate-300">{al.text}</p>
+                                    <div key={al.id} className="bg-white p-3 rounded-lg border-l-4 border-rose-500 shadow-xl group">
+                                        <p className="text-xs font-black text-slate-600">{al.text}</p>
                                         <button
                                             onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })}
                                             className="mt-2 text-[10px] bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded text-amber-400 font-bold flex items-center gap-1 w-full justify-between transition-colors"
@@ -348,7 +348,7 @@ export function KarargahMainContainer() {
                         )}
                     </div>
 
-                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-indigo-900/40">
+                    <div className="bg-white p-4 rounded-xl shadow-lg border border-indigo-900/40">
                         <Link href="/kameralar" className="block">
                             <div className={`mb-2 p-2 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${kameraStreamDurum === 'aktif' ? 'bg-indigo-950 hover:bg-indigo-900' : 'bg-slate-900 hover:bg-slate-800'}`}>
                                 <div className={`w-10 h-8 bg-black rounded flex items-center justify-center relative overflow-hidden border ${kameraStreamDurum === 'aktif' ? 'border-indigo-500/30 text-indigo-400' : 'border-red-900/40 text-red-400'}`}>
@@ -360,7 +360,7 @@ export function KarargahMainContainer() {
                                         <PlayCircle size={8} />
                                         {kameraStreamDurum === 'aktif' ? 'Canlı Görüş Aktif' : kameraStreamDurum === 'kapali' ? 'Sunucu Kapalı' : 'Kontrol Ediliyor...'}
                                     </span>
-                                    <span className="text-[9px] text-slate-400 font-semibold leading-tight">
+                                    <span className="text-[9px] text-slate-500 font-semibold leading-tight">
                                         {kameraStreamDurum === 'aktif' ? 'AI 4 kamerayı tarıyor.' : 'go2rtc başlatılmalı → stream-server/BASLAT.bat'}
                                     </span>
                                 </div>
@@ -370,7 +370,7 @@ export function KarargahMainContainer() {
 
 
                     {/* ── SON MESAJLAR WİDGET ──────────────────────── */}
-                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-violet-900/40">
+                    <div className="bg-white p-4 rounded-xl shadow-lg border border-violet-900/40">
                         <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center justify-between gap-2">
                             <span className="flex items-center gap-2"><MessageSquare size={13} /> Son Mesajlar</span>
                             {mesajSayisi > 0 && (
@@ -383,7 +383,7 @@ export function KarargahMainContainer() {
                             {sonMesajlar.length === 0 ? (
                                 <div className="text-[10px] text-slate-500 text-center py-2 font-semibold">✅ Okunmamış mesaj yok</div>
                             ) : sonMesajlar.map(m => (
-                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded-lg p-2 border border-white/5 hover:border-violet-500/40 transition-colors">
+                                <Link key={m.id} href="/haberlesme" className="block bg-white rounded-lg p-2 border border-slate-200 hover:border-violet-500/40 transition-colors">
                                     <div className="text-[10px] font-black text-white truncate">
                                         {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🔵'} {m.konu}
                                         {m.urun_id && <span className="ml-1 text-amber-400">📦</span>}
@@ -398,7 +398,7 @@ export function KarargahMainContainer() {
                     </div>
 
                     {/* ── 45-GÜN MESAJ İZ PANELİ ──────────────────── */}
-                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-amber-900/40">
+                    <div className="bg-white p-4 rounded-xl shadow-lg border border-amber-900/40">
                         <button
                             onClick={() => setIzPanelAcik(v => !v)}
                             className="w-full flex items-center justify-between text-xs font-black uppercase text-amber-400 mb-1"
@@ -411,7 +411,7 @@ export function KarargahMainContainer() {
                                 {gizlenIzleri.length === 0 ? (
                                     <div className="text-[10px] text-slate-500 text-center py-2">Son 45 günde gizlenen iz yok</div>
                                 ) : gizlenIzleri.map((g, i) => (
-                                    <div key={i} className="bg-[#0f172a] rounded p-1.5 border border-amber-900/30">
+                                    <div key={i} className="bg-white rounded p-1.5 border border-amber-900/30">
                                         <div className="text-[9px] font-black text-amber-300 truncate">
                                             {g.b1_ic_mesajlar?.konu || 'Bilinmeyen Konu'}
                                         </div>
@@ -428,7 +428,7 @@ export function KarargahMainContainer() {
                     </div>
 
                     {/* ── MODEL BİLGİ ARŞİVİ — KALICI ─────────────── */}
-                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-emerald-900/40">
+                    <div className="bg-white p-4 rounded-xl shadow-lg border border-emerald-900/40">
                         <h3 className="text-xs font-black uppercase text-emerald-400 mb-2 flex items-center justify-between gap-2">
                             <span>📦 Model Bilgi Arşivi</span>
                             <span className="text-[9px] text-slate-500 font-semibold">{modelArsiv.length} kayıt · KALıcı</span>
@@ -441,7 +441,7 @@ export function KarargahMainContainer() {
                             {modelArsiv.length === 0 ? (
                                 <div className="text-[10px] text-slate-500 text-center py-2">Model bağlı mesaj yok</div>
                             ) : modelArsiv.slice(0, 8).map(m => (
-                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded p-1.5 border border-emerald-900/30 hover:border-emerald-500/40 transition-colors">
+                                <Link key={m.id} href="/haberlesme" className="block bg-white rounded p-1.5 border border-emerald-900/30 hover:border-emerald-500/40 transition-colors">
                                     <div className="text-[9px] font-black text-emerald-300 truncate">
                                         📦 [{m.urun_kodu || '—'}] {m.konu}
                                     </div>
@@ -452,12 +452,12 @@ export function KarargahMainContainer() {
                     </div>
 
 
-                    <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
-                        <h3 className="text-xs font-black uppercase text-emerald-500 mb-3 flex items-center gap-2"><Activity size={14} /> Sunucu Sağlığı</h3>
+                    <div className="bg-white p-5 rounded-2xl shadow-lg border border-slate-200">
+                        <h3 className="text-xs font-black uppercase text-emerald-700 mb-3 flex items-center gap-2"><Activity size={14} /> Sunucu Sağlığı</h3>
                         <div className="flex flex-col gap-2">
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span>DB Soket (ms)</span>
-                                <span className={ping === null ? 'text-slate-400' : ping < 200 ? 'text-emerald-400' : ping < 500 ? 'text-amber-400' : 'text-rose-400'}>
+                                <span className={ping === null ? 'text-slate-500' : ping < 200 ? 'text-emerald-400' : ping < 500 ? 'text-amber-400' : 'text-rose-600'}>
                                     {ping === null ? 'Ölçülüyor...' : `${ping}ms`}
                                 </span>
                             </div>
@@ -475,19 +475,19 @@ export function KarargahMainContainer() {
                     </div>
 
                     {/* NİZAMBOT PANELİ */}
-                    <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-violet-900/40">
+                    <div className="bg-white p-5 rounded-2xl shadow-lg border border-violet-900/40">
                         <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center gap-2 justify-between">
                             <span className="flex items-center gap-2"><Bot size={14} /> NİZAMBOT</span>
                             <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${botDurum === 'aktif' ? 'bg-emerald-900 text-emerald-400' :
                                 botDurum === 'hata' ? 'bg-red-900 text-red-400' :
-                                    'bg-slate-700 text-slate-400'
+                                    'bg-slate-700 text-slate-500'
                                 }`}>
                                 {botDurum === 'aktif' ? '● AKTİF' : botDurum === 'hata' ? '● HATA' : '● KONTROL'}
                             </span>
                         </h3>
 
                         {/* Bot kimlik bilgisi */}
-                        <div className="bg-[#0f172a] rounded-lg p-2 mb-3 flex items-center gap-2 border border-violet-900/30">
+                        <div className="bg-white rounded-lg p-2 mb-3 flex items-center gap-2 border border-violet-900/30">
                             <Bot size={12} className="text-violet-400 shrink-0" />
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-violet-300">@Lumora_47bot</span>
@@ -502,7 +502,7 @@ export function KarargahMainContainer() {
                                     Henüz bot aktivitesi yok
                                 </div>
                             ) : botLoglar.map((log, i) => (
-                                <div key={i} className="bg-[#0f172a] rounded-lg p-2 border border-white/5">
+                                <div key={i} className="bg-white rounded-lg p-2 border border-slate-200">
                                     <div className="flex items-center justify-between mb-0.5">
                                         <span className={`text-[9px] font-black flex items-center gap-1 ${log.sonuc === 'basarili' ? 'text-emerald-400' : 'text-red-400'
                                             }`}>
@@ -518,7 +518,7 @@ export function KarargahMainContainer() {
                                             })}
                                         </span>
                                     </div>
-                                    <p className="text-[9px] text-slate-400 font-medium leading-tight truncate">
+                                    <p className="text-[9px] text-slate-500 font-medium leading-tight truncate">
                                         {log.mesaj || log.islem_tipi}
                                     </p>
                                 </div>

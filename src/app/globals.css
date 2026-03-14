@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --primary: #034E3E;
-  /* Mevcut rekle (#064e3b) / Koyu Zümrüt (#004D40) ortası bir ton */
+  --primary: #02624B;
+  /* Koyu Zümrüt (#004D40) ile Açık Yeşil (#047857) arasında bir ton */
   --primary-light: #047857;
   /* Daha Açık Zümrüt Yeşili (Hover) */
   --secondary: #d4af37;
