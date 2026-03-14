@@ -7,9 +7,9 @@ import { hataBildir } from '@/lib/hataBildirim';
 // ─── POST /api/siparis-ekle ────────────────────────────────────
 export async function POST(request) {
     const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-);
+        process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+    );
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {
@@ -40,6 +40,15 @@ export async function POST(request) {
             .from('b2_siparisler').select('id').eq('siparis_no', siparisDog.data.siparis_no);
         if (mevcut && mevcut.length > 0) {
             return NextResponse.json({ hata: 'Bu sipariş numarası zaten kayıtlı!' }, { status: 409 });
+        }
+
+        // [M12 - ZIRH #1]: Kara Liste (Blacklist) Kontrolü
+        if (siparisDog.data.musteri_id) {
+            const { data: musteriData } = await supabaseAdmin
+                .from('b2_musteriler').select('kara_liste').eq('id', siparisDog.data.musteri_id).single();
+            if (musteriData && musteriData.kara_liste) {
+                return NextResponse.json({ hata: '⛔ DİKKAT: Seçilen müşteri KARA LİSTEDE! Sipariş onaylanamaz. Finans departmanıyla görüşün.' }, { status: 403 });
+            }
         }
 
         // Sipariş başlığı ekle

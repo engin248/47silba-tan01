@@ -37,6 +37,10 @@ echo.
 echo ============================================
 
 cd /d "%~dp0"
-go2rtc.exe -config go2rtc.yaml
+start "go2rtc" /b go2rtc.exe -config go2rtc.yaml
+start "cloudflared" /b "C:\Users\Admin\CUsersAdminDesktop47_SIL_BASTAN_01\stream-server\cloudflared.exe" tunnel --config tunnel-config.yml run d3d1c0ab-135f-4934-87be-b5b459a292e7
 
+echo.
+echo [*] KAMERA YAYIN SISTEMI (LOCAL VE CLOUD) BASLATILDI.
+echo [*] Bu pencere acik kaldigi surece yayin devan edecektir.
 pause

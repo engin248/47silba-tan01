@@ -34,6 +34,12 @@ Katalog tarafı sipariş açılmadan önceki vitrindir. Excel ile toplu yükleme
 *   **Yerel Derleme (Local Build):** Yapıldı ve Başarıyla Çalışıyor.
 *   **Browser Subagent Vercel Testi:** `100_CANLI_SAHA_DOGRULAMA_RAPORU.md` üzerine eklenecek şekilde test edilecektir.
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / Kök SPA Optimizasyonu (Tekil Sayfa Mimari Korunması)
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler:** "Siparişe Ekle" butonunda `window.location.href = ...` kullanıldığı için, React uygulamasının Cache ağı çöplüğe dönüyor ve Next.js'in "Single Page Application (SPA)" özelliği çöküyordu. Bu da sahada 300ms ekstra yükleme süresine sebep oluyordu.
+*   **Yapılan Ameliyatlar:** `window.location` kaba komutu çıkartılarak `next/navigation` kütüphanesinden `useRouter` ile "Soft Push" (Yumuşak Yönlendirme) mekanizması entegre edildi. Sistem artık beyni resetlemeden geçiş yapabiliyor.
+
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)

@@ -200,9 +200,18 @@ export default function KasaMainContainer() {
 
     // Hesaplamalar
     const tahsilat = hareketler.filter(h => h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
+
+    // [LİKİDİTE KÖR NOKTA ÇÖZÜMÜ]: TL Kasası ve Banka (EFT/POS) ayrıştırılarak gerçek nakit tespiti yapıldı.
+    const nakitTahsilat = hareketler.filter(h => h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi' && h.odeme_yontemi === 'nakit').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
+    const bankaEftPos = hareketler.filter(h => h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi' && ['eft', 'kredi_karti'].includes(h.odeme_yontemi)).reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
+    const evrakCekSenet = hareketler.filter(h => ['cek', 'senet'].includes(h.hareket_tipi) && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
+
     const bekleyen = hareketler.filter(h => h.onay_durumu === 'bekliyor').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
-    const iade = hareketler.filter(h => h.hareket_tipi === 'iade_odeme' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
-    const netBakiye = tahsilat - iade;
+
+    // [EKONOMİK KÖR NOKTA ZIRHI]: Bakiye hesaplamasında 'avans' ve 'diger' çıkışları (ödemeler) da kasadan düşmelidir. Yoksa fiziki kasa ile sistem uyuşmaz.
+    const cikislar = hareketler.filter(h => ['iade_odeme', 'avans', 'diger'].includes(h.hareket_tipi) && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
+    const netBakiye = tahsilat - cikislar;
+
     const vadesi = hareketler.filter(h => ['cek', 'senet'].includes(h.hareket_tipi) && h.vade_tarihi && new Date(h.vade_tarihi) < new Date());
 
     const filtreli = hareketler.filter(h => {
@@ -257,24 +266,28 @@ export default function KasaMainContainer() {
             {/* ÖZET KUTULARI */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
                 <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Onaylı Tahsilat</div>
-                    <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>₺{tahsilat.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NAKİT TAHSİLAT</div>
+                    <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>₺{nakitTahsilat.toFixed(2)}</div>
                 </div>
-                <div style={{ background: '#fefce8', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Bekleyen</div>
-                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.35rem' }}>₺{bekleyen.toFixed(2)}</div>
+                <div style={{ background: '#eff6ff', border: '2px solid #bfdbfe', borderRadius: 14, padding: '1rem 1.25rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#1e3a8a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>BANKA / EFT / POS</div>
+                    <div style={{ fontWeight: 900, color: '#2563eb', fontSize: '1.35rem' }}>₺{bankaEftPos.toFixed(2)}</div>
+                </div>
+                <div style={{ background: '#f5f3ff', border: '2px solid #ddd6fe', borderRadius: 14, padding: '1rem 1.25rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#4c1d95', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ÇEK & SENET</div>
+                    <div style={{ fontWeight: 900, color: '#7c3aed', fontSize: '1.35rem' }}>₺{evrakCekSenet.toFixed(2)}</div>
                 </div>
                 <div style={{ background: netBakiye >= 0 ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NET BAKİYE</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NET TL BAKİYE</div>
                     <div style={{ fontWeight: 900, color: netBakiye >= 0 ? '#34d399' : '#fca5a5', fontSize: '1.35rem' }}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
+                </div>
+                <div style={{ background: '#fefce8', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Bekleyen İşlem</div>
+                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.15rem' }}>₺{bekleyen.toFixed(2)}</div>
                 </div>
                 <div style={{ background: vadesi.length > 0 ? '#fef2f2' : '#f8fafc', border: `2px solid ${vadesi.length > 0 ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 14, padding: '1rem 1.25rem' }}>
                     <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Vadesi Geçen</div>
-                    <div style={{ fontWeight: 900, color: vadesi.length > 0 ? '#ef4444' : '#0f172a', fontSize: '1.35rem' }}>{vadesi.length} Adet</div>
-                </div>
-                <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Toplam Kayıt</div>
-                    <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.35rem' }}>{hareketler.length}</div>
+                    <div style={{ fontWeight: 900, color: vadesi.length > 0 ? '#ef4444' : '#0f172a', fontSize: '1.15rem' }}>{vadesi.length} Adet</div>
                 </div>
             </div>
 

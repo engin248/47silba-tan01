@@ -66,17 +66,22 @@ export default function MaliyetMainContainer() {
             if (mErr) throw mErr;
             if (m) setMaliyetler(m);
 
-            const { data: modeller, error: modelErr } = await Promise.race([
-                supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi').order('created_at', { ascending: false }).limit(50),
+            const { data: sifarisler, error: sifErr } = await Promise.race([
+                supabase.from('production_orders')
+                    .select('id, quantity, b1_model_taslaklari(model_kodu, model_adi)')
+                    .order('created_at', { ascending: false }).limit(200),
                 timeout(10000)
             ]);
-            if (modelErr) throw modelErr;
-            if (modeller && modeller.length > 0) {
-                setOrderler(modeller.map(model => ({
-                    id: model.id,
-                    quantity: 1,
-                    b1_model_taslaklari: { model_kodu: model.model_kodu, model_adi: model.model_adi }
+            if (sifErr) throw sifErr;
+
+            if (sifarisler && sifarisler.length > 0) {
+                setOrderler(sifarisler.map(o => ({
+                    id: o.id,
+                    quantity: o.quantity || 1,
+                    b1_model_taslaklari: o.b1_model_taslaklari || { model_kodu: 'KSM-ORD', model_adi: 'Bağlantısız Sipariş' }
                 })));
+            } else {
+                setOrderler([]);
             }
         } catch (error) {
             goster('Yükleme hatası: ' + error.message, 'error');
