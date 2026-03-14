@@ -42,7 +42,7 @@ const DURUM_CONFIG = {
 const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: 'gomlek', hedef_kitle: 'kadın', talep_skoru: 5, zorluk_derecesi: 5, referans_link: '', gorsel_url: '', gorsel_dosyasi: null, aciklama: '', aciklama_ar: '' };
 
 export default function ArgeSayfasi() {
-    const { kullanici, yukleniyor: authYukleniyor } = useAuth();
+    const { kullanici, yukleniyor: authYukleniyor } = /** @type {{ kullanici: any, yukleniyor: boolean }} */ (useAuth());
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const t = TX[lang];
@@ -50,14 +50,14 @@ export default function ArgeSayfasi() {
 
 
 
-    const [trendler, setTrendler] = useState([]);
+    const [trendler, setTrendler] = useState(/** @type {any[]} */([]));
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtre, setFiltre] = useState('tumu');
     const [secilenTrend, setSecilenTrend] = useState(null);
-    const [agentLoglari, setAgentLoglari] = useState([]);
+    const [agentLoglari, setAgentLoglari] = useState(/** @type {any[]} */([]));
     const [duzenleId, setDuzenleId] = useState(null);
     // Zamansal Doğrulama
     const [yenidenAraniyor, setYenidenAraniyor] = useState(null);
