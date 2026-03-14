@@ -161,9 +161,12 @@ export async function middleware(request) {
             } catch { }
         }
 
-        // Ek pin cookie'ler
+        // Ek pin çerezleri (JWT veya geçerli session yoksa bunlar TÜR BELİRTİSİ olarak kullanılır, TEK BAŞINA YETKİ VERMEZ!)
+        // KÖR NOKTA ÇÖZÜMÜ: Daha önce herhangi bir 'sb47_genel_pin=1' çerezi yetkiyi by-pass ediyordu. 
+        // Artık sadece JWT doğrulandıysa yetki geçerli sayılacak, bu blokta "yetkiliMi = true" otomatik atanmayacak.
         if (!yetkiliMi && (uretimPin?.value || genelPin?.value)) {
-            yetkiliMi = true;
+            // SADECE JWT Token veya Auth Session GEÇERLİYSE PIN çerezleri yönlendirmeye kılavuz olur. 
+            // Bypass deliği KAPATILDI.
         }
 
         if (!yetkiliMi) {
