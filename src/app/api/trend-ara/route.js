@@ -106,7 +106,8 @@ Odak: 2025-2026 Sezonu, İşletme Maliyet ve Stok Riskini En Aza İndirecek 119 
             body: JSON.stringify({
                 model: 'sonar',
                 messages: [
-                    { role: 'system', content: prompt }
+                    { role: 'system', content: prompt },
+                    { role: 'user', content: `Şimdi lütfen şu konuyu incele ve sadece belirttiğim JSON formatında çıktı ver: ${sorgu}` }
                 ],
                 max_tokens: 1500,
                 temperature: 0.2, // Yüksek tutarlılık (Halüsinasyon engelleyici)
