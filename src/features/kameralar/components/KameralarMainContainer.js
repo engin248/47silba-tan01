@@ -73,6 +73,37 @@ export default function KameralarMainContainer() {
         setTimeout(() => setMesaj({ text: '', type: '' }), 5000);
     };
 
+    // ── Erişim Logu Yaz ──────────────────────────────────────
+    const kameraErisimLogAt = useCallback(async (islem, kameraAdi = null) => {
+        const logEntry = {
+            kullanici: kullanici?.email || kullanici?.ad || 'Bilinmeyen',
+            islem,
+            kamera: kameraAdi,
+            zaman: new Date().toISOString(),
+        };
+        setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
+        try {
+            await supabase.from('camera_access_log').insert([{
+                user_id: kullanici?.id || null,
+                kullanici_adi: logEntry.kullanici,
+                islem_tipi: islem,
+                kamera_adi: kameraAdi,
+                ip_adresi: 'client',
+            }]);
+        } catch { /* tablo henüz yoksa sessizce geç */ }
+    }, [kullanici]);
+
+    // ── Stream Sunucu Durumu ──────────────────────────────────
+    const streamDurumKontrol = useCallback(async () => {
+        try {
+            const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+            const data = await res.json();
+            setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
+        } catch {
+            setStreamDurum('kapali');
+        }
+    }, []);
+
     // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────
     useEffect(() => {
         let idleTimer = null;
@@ -141,17 +172,6 @@ export default function KameralarMainContainer() {
         streamDurumKontrol();
     }, [yetkili]);
 
-    // ── Stream Sunucu Durumu ──────────────────────────────────
-    const streamDurumKontrol = async () => {
-        try {
-            const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-            const data = await res.json();
-            setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
-        } catch {
-            setStreamDurum('kapali');
-        }
-    };
-
     // Auto-polling for heartbeat (10s)
     useEffect(() => {
         if (!yetkili) return;
@@ -212,26 +232,6 @@ export default function KameralarMainContainer() {
             supabase.removeChannel(anomalyListener);
         };
     }, [yetkili]);
-
-    // ── Erişim Logu Yaz ──────────────────────────────────────
-    const kameraErisimLogAt = useCallback(async (islem, kameraAdi = null) => {
-        const logEntry = {
-            kullanici: kullanici?.email || kullanici?.ad || 'Bilinmeyen',
-            islem,
-            kamera: kameraAdi,
-            zaman: new Date().toISOString(),
-        };
-        setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
-        try {
-            await supabase.from('camera_access_log').insert([{
-                user_id: kullanici?.id || null,
-                kullanici_adi: logEntry.kullanici,
-                islem_tipi: islem,
-                kamera_adi: kameraAdi,
-                ip_adresi: 'client',
-            }]);
-        } catch { /* tablo henüz yoksa sessizce geç */ }
-    }, [kullanici]);
 
     // ── Kamera Büyüt (Focus) ──────────────────────────────────
     const kameraOdakla = (kam) => {
