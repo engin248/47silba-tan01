@@ -136,11 +136,10 @@ export default function ArgeSayfasi() {
 
     const trendAra = async () => {
         const suAn = Date.now();
-        // 🟢 SPAM ENGELİ (COOLDOWN ZIRHI): En az 3 saniye bekleme zorunluluğu
-        if (suAn - sonAramaZamaniRef.current < 3000) return goster('Lütfen botun işlemini tamamlaması için bekleyin (Anti-Spam Koruması).', 'error');
+        if (suAn - sonAramaZamaniRef.current < 3000) return goster(isAR ? 'يرجى انتظار البوت لإكمال عمليته (حماية مكافحة البريد العشوائي).' : 'Lütfen botun işlemini tamamlaması için bekleyin (Anti-Spam Koruması).', 'error');
 
         if (!aiSorgu.trim() || aiAraniyor) return;
-        if (aiSorgu.trim().length > 150) return goster('Arama sorgusu 150 karakterden uzun olamaz!', 'error'); // X Kriteri (Limit)
+        if (aiSorgu.trim().length > 150) return goster(isAR ? 'لا يمكن أن يتجاوز استعلام البحث ١٥٠ حرفًا!' : 'Arama sorgusu 150 karakterden uzun olamaz!', 'error'); // X Kriteri (Limit)
 
         // 🟢 DÜZELTİLDİ: Native 'window.confirm' engellendi, özel Modal tetiklendi.
         setAiOnayModalAcik(true);
@@ -303,7 +302,7 @@ export default function ArgeSayfasi() {
 
             const payload = {
                 baslik: (duzenleId || form.baslik.includes('[MANUEL]')) ? form.baslik.trim() : `[MANUEL] ${form.baslik.trim()}`.substring(0, 150),
-                baslik_ar: form.baslik_ar.trim() || null,
+                baslik_ar: form.baslik_ar.trim() ? ((duzenleId || form.baslik_ar.includes('[يدوي]')) ? form.baslik_ar.trim() : `[يدوي] ${form.baslik_ar.trim()}`.substring(0, 150)) : null,
                 platform: form.platform,
                 kategori: form.kategori,
                 hedef_kitle: form.hedef_kitle,
@@ -312,7 +311,7 @@ export default function ArgeSayfasi() {
                 referans_linkler: form.referans_link ? [form.referans_link.trim()] : null,
                 gorsel_url: nihaiGorselUrl,
                 aciklama: (!duzenleId && !(form.aciklama || '').includes('[AI ONAYSIZ]')) ? `[AI ONAYSIZ / MANUEL KAYIT] ${form.aciklama.trim()}` : form.aciklama.trim() || null,
-                aciklama_ar: form.aciklama_ar.trim() || null,
+                aciklama_ar: form.aciklama_ar.trim() ? ((!duzenleId && !form.aciklama_ar.includes('[بدون موافقة الذكاء الاصطناعي]')) ? `[بدون موافقة الذكاء الاصطناعي / تسجيل يدوي] ${form.aciklama_ar.trim()}` : form.aciklama_ar.trim()) : null,
                 durum: 'inceleniyor',
             };
 
