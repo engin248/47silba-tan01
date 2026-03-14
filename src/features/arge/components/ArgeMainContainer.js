@@ -12,6 +12,7 @@ import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import M1_TrendSonucKarti from './M1_TrendSonucKarti';
 import M1_AramaMotoru from './M1_AramaMotoru';
 import M1_UrunRecetesi from './M1_UrunRecetesi';
+import { ModelMesajGecmisi } from '@/components/mesaj/ModelMesajGecmisi';
 
 
 // =========================================================================

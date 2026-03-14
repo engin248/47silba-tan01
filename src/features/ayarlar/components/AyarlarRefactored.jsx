@@ -55,6 +55,7 @@ export default function AyarlarRefactored() {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Shield size={48} className="text-red-400 mb-4" />
+                <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">M20 — Sistem Ayarları</div>
                 <h2 className="text-xl font-black text-red-700 uppercase">Yetkisiz Giriş Engellendi</h2>
                 <p className="text-slate-500 font-medium mt-2">Sistem Ayarları yalnızca yöneticilere açıktır.</p>
             </div>
@@ -73,19 +74,20 @@ export default function AyarlarRefactored() {
     return (
         <div className="pb-20 max-w-4xl mx-auto">
 
-            {/* BAŞLIK */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
-                        <Settings size={22} className="text-white" />
+            {/* M20 Başlık Bandı */}
+            <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', borderRadius: 16, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 48, height: 48, background: 'rgba(249,115,22,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(249,115,22,0.4)' }}>
+                        <Settings size={24} style={{ color: '#f97316' }} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Sistem Ayarları</h1>
-                        <p className="text-xs text-slate-500 font-semibold">M17 — Yönetici Paneli</p>
+                        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'rgba(249,115,22,0.8)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>M20 — SİSTEM AYARLARI</div>
+                        <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'white', margin: 0 }}>Sistem Ayarları</h1>
+                        <p style={{ fontSize: '0.72rem', color: '#94a3b8', margin: '2px 0 0', fontWeight: 600 }}>Firma profili · Ücretlendirme · Sistem kilitleri · Bildirimler</p>
                     </div>
                 </div>
                 <button onClick={() => setFinansGizli(!finansGizli)}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#94a3b8', padding: '8px 14px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                     {finansGizli ? <><Eye size={14} /> Sayıları Göster</> : <><EyeOff size={14} /> Gizle</>}
                 </button>
             </div>

@@ -9,7 +9,7 @@ import { useLang } from '@/lib/langContext';
 import { Lock } from 'lucide-react';
 import NextLink from 'next/link';
 
-export default function Birim1AnaKarargah() {
+export default function ImalatMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -77,16 +77,7 @@ export default function Birim1AnaKarargah() {
         // [RENDER ZIRHI]: Auth Refetch Döngüsü bozuldu, Obje yerine ID ve Grup primiti bağlandı.
     }, [mainTab, kullanici?.id, kullanici?.grup]);
 
-    const telegramBildirim = (mesaj) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı — redeclaration fix)
 
     const showMessage = (text, type = 'success') => {
         setMessage({ text, type });

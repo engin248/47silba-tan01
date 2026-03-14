@@ -1,10 +1,4 @@
 'use client';
-/**
- * features/denetmen/components/DenetmenMainContainer.js
- * Kaynak: app/denetmen/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useDenetmen.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { ShieldAlert, CheckCircle, XCircle, RefreshCw, Clock, TrendingUp, Package, AlertTriangle, Lock, Camera, UploadCloud, ScanEye, Database } from 'lucide-react';
@@ -31,7 +25,7 @@ const TIP_İKON = {
     diger: { ikon: <AlertTriangle size={14} />, etiket: 'Uyarı' },
 };
 
-export default function DenetmenSayfasi() {
+export default function DenetmenMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -73,16 +67,7 @@ export default function DenetmenSayfasi() {
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const yukle = async () => {
         setLoading(true);
@@ -99,7 +84,7 @@ export default function DenetmenSayfasi() {
     };
 
     const taramaCalistir = async () => {
-        if (tarama) return goster('⏳ Tarama zaten devam ediyor...', 'error');
+        if (tarama) return setMesaj('⏳ Tarama zaten devam ediyor...');
         setTarama(true);
         setMesaj('');
         try {
@@ -179,7 +164,7 @@ export default function DenetmenSayfasi() {
 
     const aiAnalizYap = async () => {
         if (uyarilar.length === 0) { setMesaj('Uyarı yok, önce Tara & Güncelle\'ye basın.'); return; }
-        if (aiYukleniyor) return goster('⏳ AI zaten analiz ediyor...', 'error');
+        if (aiYukleniyor) return setMesaj('⏳ AI zaten analiz ediyor...');
         setAiYukleniyor(true);
         setAiAnaliz(null);
         try {
@@ -219,11 +204,7 @@ export default function DenetmenSayfasi() {
         } catch (error) { setMesaj('Hata: ' + error.message); }
     };
 
-    const formatTarih = (iso) => {
-        if (!iso) return '—';
-        const d = new Date(iso);
-        return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    };
+    // formatTarih → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const filtrelendi = filtre === 'hepsi' ? uyarilar : uyarilar.filter(u => u.seviye === filtre || u.uyari_tipi === filtre);
     const kritikSayisi = uyarilar.filter(u => u.seviye === 'kritik').length;

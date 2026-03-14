@@ -1,10 +1,4 @@
 'use client';
-/**
- * features/kesim/components/KesimMainContainer.js
- * Kaynak: app/kesim/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useKesim.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Scissors, Plus, Search, CheckCircle2, AlertTriangle, Trash2, ShieldAlert, QrCode } from 'lucide-react';
@@ -25,7 +19,7 @@ const BOSH_KESIM = {
 const DURUMLAR = ['kesimde', 'tamamlandi', 'iptal'];
 const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 
-export default function KesimhaneSayfasi() {
+export default function KesimMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const [yetkiliMi, setYetkiliMi] = useState(false);
@@ -61,16 +55,7 @@ export default function KesimhaneSayfasi() {
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici?.id, kullanici?.grup]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 6000); };
 

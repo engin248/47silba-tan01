@@ -36,6 +36,9 @@ export const MALIYET_TIPLERI = [
 
 export const ST_RENK = { pending: '#f59e0b', in_progress: '#3b82f6', completed: '#10b981', cancelled: '#ef4444' };
 export const ST_LABEL = { pending: 'Bekliyor', in_progress: 'Üretimde', completed: 'Tamamlandı', cancelled: 'İptal' };
+// [A1 FIX] status değeri tanımsız gelirse varsayılan renk/etiket döner — TypeError: Cannot read '.bg' of undefined hatası engellendi
+export const getST_RENK = (status) => ST_RENK[status] ?? '#94a3b8';
+export const getST_LABEL = (status) => ST_LABEL[status] ?? status ?? 'Bilinmiyor';
 
 const BOSH_FORM_ORDER = { model_id: '', quantity: '', planned_start_date: '', planned_end_date: '' };
 const BOSH_MALIYET_FORM = { order_id: '', maliyet_tipi: 'personel_iscilik', tutar_tl: '', kalem_aciklama: '' };
@@ -102,7 +105,11 @@ export function useIsEmri(kullanici) {
 
     // ── REALTIME BAĞLANTISI ────────────────────────────────────────────────
     useEffect(() => {
-        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
+        // [A1 FIX] Hem sb47_uretim_token hem sb47_uretim_pin token anahtarları destekleniyor
+        const uretimPin = typeof window !== 'undefined' && (
+            !!sessionStorage.getItem('sb47_uretim_token') ||
+            !!sessionStorage.getItem('sb47_uretim_pin')
+        );
         const yetkili = kullanici?.grup === 'tam' || uretimPin;
         if (!yetkili) return;
 

@@ -5,6 +5,26 @@
             "@/*": [
                 "./src/*"
             ]
-        }
-    }
+        },
+        "checkJs": true,
+        "strictNullChecks": true,
+        "noUnusedLocals": false,
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "preserve",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ]
+    },
+    "include": [
+        "src/**/*.js",
+        "src/**/*.jsx"
+    ],
+    "exclude": [
+        "node_modules",
+        ".next"
+    ]
 }

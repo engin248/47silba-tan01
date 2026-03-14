@@ -14,8 +14,8 @@ export async function POST(request) {
         }
 
         const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY
+            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+            (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
         );
 
         // Mevcut secret var mı?

@@ -1,10 +1,4 @@
 'use client';
-/**
- * features/ajanlar/components/AjanlarMainContainer.js
- * Kaynak: app/ajanlar/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useAjanlar.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useRef } from 'react';
 import { Bot, Plus, Play, Square, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle, Settings, Database, Globe, Cpu, FileText, Trash2, RefreshCw, Zap, Send, ToggleLeft, ToggleRight, Lock } from 'lucide-react';
@@ -138,7 +132,7 @@ const BOS_FORM = {
     koordinator_notu: '',
 };
 
-export default function AjanlarSayfasi() {
+export default function AjanlarMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -190,16 +184,7 @@ export default function AjanlarSayfasi() {
         return () => clearInterval(pollingRef.current);
     }, [gorevler]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/modelhane/components/ModelhaneMainContainer.js
  * Kaynak: app/modelhane/page.js → features mimarisine taşındı
@@ -16,6 +16,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import M2_GelenIlhamKarti from './M2_GelenIlhamKarti';
 import M2_FizikselMuhendislikFormu from './M2_FizikselMuhendislikFormu';
+import { ModelMesajGecmisi } from '@/components/mesaj/ModelMesajGecmisi';
 
 const BOSH_NUMUNE = { model_id: '', kalip_id: '', numune_beden: 'M', dikim_tarihi: '', notlar: '' };
 const BOSH_TALIMAT = { numune_id: '', talimat_video_url: '', sesli_aciklama_url: '', yazili_adimlari: [] };
@@ -70,6 +71,8 @@ export default function ModelhaneSayfasi() {
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 6000); };
 
+    const mkTimeout = () => new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
+
     const yukle = async (aktifSekme = sekme) => {
         setLoading(true);
         try {
@@ -78,7 +81,7 @@ export default function ModelhaneSayfasi() {
                     Promise.allSettled([
                         supabase.from('b1_arge_trendler').select('*').eq('durum', 'onaylandi').order('created_at', { ascending: false }).limit(200)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (aRes.status === 'fulfilled' && aRes.value.data) setArgeKuyruk(aRes.value.data);
 
@@ -97,7 +100,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_numune_uretimleri').select('*, b1_model_taslaklari(model_adi,model_kodu), b1_model_kaliplari(kalip_adi,versiyon)').neq('onay_durumu', 'iptal').order('created_at', { ascending: false }).limit(200),
                         supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
                 if (mRes.status === 'fulfilled' && mRes.value.data) setModeller(mRes.value.data);
@@ -107,7 +110,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_dikim_talimatlari').select('*, b1_numune_uretimleri(numune_beden, b1_model_taslaklari(model_adi,model_kodu))').eq('aktif', true).order('created_at', { ascending: false }).limit(200),
                         supabase.from('b1_numune_uretimleri').select('id,numune_beden, b1_model_taslaklari(model_kodu,model_adi)').eq('onay_durumu', 'onaylandi').limit(200)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (tRes.status === 'fulfilled' && tRes.value.data) setTalimatlar(tRes.value.data);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
@@ -118,7 +121,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_numune_uretimleri').select('id, numune_beden, fotograflar, b1_model_taslaklari(model_kodu, model_adi)').limit(200),
                         supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (gRes.status === 'fulfilled' && gRes.value.data) setGaleriNumuneler(gRes.value.data.filter(n => n.fotograflar && n.fotograflar.length > 0));
                 if (tumNRes.status === 'fulfilled' && tumNRes.value.data) setNumuneler(tumNRes.value.data);
@@ -621,7 +624,7 @@ export default function ModelhaneSayfasi() {
                                 </div>
                             </div>
                             {formT.yazili_adimlari.length === 0 && <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: 8, color: '#94a3b8', fontSize: '0.85rem', fontWeight: 600 }}>Adım yok. + Adım ekleyin.</div>}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowX: 'auto' }}>
                                 {formT.yazili_adimlari.map((adim, i) => (
                                     <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(30px, 40px) 1fr minmax(70px, 100px) minmax(70px, 90px) minmax(60px, 70px) 32px', gap: '0.375rem', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: 8 }}>
                                         <div style={{ textAlign: 'center', fontWeight: 900, color: '#f59e0b', fontSize: '1rem' }}>{i + 1}</div>
@@ -711,6 +714,12 @@ export default function ModelhaneSayfasi() {
                                     </button>
                                 )}
                             </div>
+                            {/* MODEL MESAJ GECMISİ */}
+                            <ModelMesajGecmisi
+                                modelKodu={n.b1_model_taslaklari?.model_kodu}
+                                modelId={String(n.model_id || '')}
+                                modelAdi={n.b1_model_taslaklari?.model_adi}
+                            />
                         </div>
                     ))}
                 </div>

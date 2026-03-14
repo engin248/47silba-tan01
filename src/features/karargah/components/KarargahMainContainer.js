@@ -1,11 +1,12 @@
 ﻿'use client';
 import {
-    Activity, ShieldCheck, Zap, Bot, Camera, Info, ArrowRight, PlayCircle, AlertCircle, ServerCrash
+    Activity, ShieldCheck, Zap, Bot, Camera, Info, ArrowRight, PlayCircle, AlertCircle, ServerCrash, Send, CheckCircle, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useKarargah } from '../hooks/useKarargah';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const MODULLER = [
     { name: 'Ar-Ge', link: '/arge', renk: 'bg-emerald-800' },
@@ -30,6 +31,7 @@ const MODULLER = [
     { name: 'Raporlar', link: '/raporlar', renk: 'bg-orange-900' },
     { name: 'Tasarım', link: '/tasarim', renk: 'bg-pink-800' },
     { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-red-900' },
+    { name: 'Haberleşme', link: '/haberlesme', renk: 'bg-violet-800' },
     { name: 'Ayarlar', link: '/ayarlar', renk: 'bg-slate-700' },
     { name: 'Giriş', link: '/giris', renk: 'bg-slate-600' },
 ];
@@ -39,12 +41,115 @@ export function KarargahMainContainer() {
     const {
         stats, alarms, ping,
         commandText, setCommandText, hizliGorevAtama,
-        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat,
+        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat, aiSonuc,
         simulasyon, setSimulasyon,
         mesaj
     } = useKarargah();
 
     const [aiNedenModal, setAiNedenModal] = useState({ acik: false, metin: '', zarar: 0 });
+    const [botLoglar, setBotLoglar] = useState([]);
+    const [botDurum, setBotDurum] = useState('kontrol');
+    const [sonMesajlar, setSonMesajlar] = useState([]);
+    const [mesajSayisi, setMesajSayisi] = useState(0);
+    const [gizlenIzleri, setGizlenIzleri] = useState([]);
+    const [modelArsiv, setModelArsiv] = useState([]);
+    const [izPanelAcik, setIzPanelAcik] = useState(false);
+    // [C5] Kamera widget için stream durumu
+    const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
+
+    useEffect(() => {
+        const kontrol = async () => {
+            try {
+                const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+                const d = await res.json();
+                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+            } catch {
+                setKameraStreamDurum('kapali');
+            }
+        };
+        kontrol();
+        const iv = setInterval(kontrol, 15000);
+        return () => clearInterval(iv);
+    }, []);
+
+    // ── 45 GÜN KURALI HESAPLAMA ────────────────────────────────────────────
+    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
+    // ── Mesaj verilerini çek ───────────────────────────────────────────────
+    const mesajlariGetir = useCallback(async () => {
+        try {
+            const { count } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id', { count: 'exact', head: true })
+                .is('okundu_at', null);
+            setMesajSayisi(count || 0);
+
+            // Son 3 aktif mesaj (widget)
+            const { data: aktif } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
+                .order('created_at', { ascending: false })
+                .limit(3);
+            setSonMesajlar(aktif || []);
+
+            // Gizlenmiş mesaj izleri — 45 gün içindekiler (urun_id OLMAYAN)
+            // Kural: urun_id varsa → Model Arşiv (kalıcı), yoksa → 45 gün sonra silinir
+            const { data: gizli } = await supabase
+                .from('b1_mesaj_gizli')
+                .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
+                .gte('gizlendi_at', gun45Once)  // sadece son 45 gün
+                .order('gizlendi_at', { ascending: false })
+                .limit(20)
+                .catch(() => ({ data: null }));
+
+            const izler = (gizli?.data || []).filter(g => !g.b1_ic_mesajlar?.urun_id); // model bağlısı ayrı
+            setGizlenIzleri(izler);
+
+            // Model arşiv — urun_id bağlı, HİÇBİR ZAMAN silinmez, koordinatör görebilir
+            const { data: model } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
+                .not('urun_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(50)
+                .catch(() => ({ data: null }));
+            setModelArsiv(model?.data || []);
+
+        } catch { /* sessiz */ }
+    }, []);
+
+    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
+
+    // Realtime — yeni mesaj / gizleme gelince güncelle
+    useEffect(() => {
+        const kanal = supabase.channel('karargah-mesaj')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, mesajlariGetir)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, mesajlariGetir)
+            .subscribe();
+        return () => supabase.removeChannel(kanal);
+    }, [mesajlariGetir]);
+
+    // NİZAMBOT — Son aktiviteleri çek
+    useEffect(() => {
+        const botLogCek = async () => {
+            try {
+                // Bot token doğrulama
+                const res = await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
+                const { data } = await supabase
+                    .from('b1_agent_loglari')
+                    .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
+                    .eq('ajan_adi', 'NİZAMBOT')
+                    .order('created_at', { ascending: false })
+                    .limit(8);
+                setBotLoglar(data || []);
+                setBotDurum('aktif');
+            } catch { setBotDurum('hata'); }
+        };
+        botLogCek();
+        const interval = setInterval(botLogCek, 30000); // 30 sn'de bir güncelle
+        return () => clearInterval(interval);
+    }, []);
+
 
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
 
@@ -178,6 +283,17 @@ export function KarargahMainContainer() {
                                 </div>
                             </div>
 
+                            {/* [C3] AI SONUÇ KUTUSU */}
+                            {aiSonuc && (
+                                <div className="mt-3 bg-[#052e16] border border-emerald-800 rounded-xl p-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Bot size={12} className="text-emerald-400" />
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">AI Analiz Sonucu</span>
+                                    </div>
+                                    <p className="text-xs text-emerald-200 font-semibold leading-relaxed whitespace-pre-wrap">{aiSonuc}</p>
+                                </div>
+                            )}
+
                             <div className="bg-[#0f172a] p-3 rounded-lg border border-white/5 flex items-center justify-between mt-auto">
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">BANT AKIŞI:</span>
                                 <div className="flex items-center gap-1 flex-1 px-4">
@@ -233,17 +349,108 @@ export function KarargahMainContainer() {
                     </div>
 
                     <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-indigo-900/40">
-                        <div className="mb-2 bg-indigo-950 p-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-indigo-900 transition-colors">
-                            <div className="w-10 h-8 bg-black rounded flex items-center justify-center text-indigo-400 relative overflow-hidden border border-indigo-500/30">
-                                <Camera size={14} className="relative z-10" />
-                                <div className="absolute inset-0 bg-indigo-500/20 animate-pulse"></div>
+                        <Link href="/kameralar" className="block">
+                            <div className={`mb-2 p-2 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${kameraStreamDurum === 'aktif' ? 'bg-indigo-950 hover:bg-indigo-900' : 'bg-slate-900 hover:bg-slate-800'}`}>
+                                <div className={`w-10 h-8 bg-black rounded flex items-center justify-center relative overflow-hidden border ${kameraStreamDurum === 'aktif' ? 'border-indigo-500/30 text-indigo-400' : 'border-red-900/40 text-red-400'}`}>
+                                    <Camera size={14} className="relative z-10" />
+                                    <div className={`absolute inset-0 ${kameraStreamDurum === 'aktif' ? 'bg-indigo-500/20 animate-pulse' : 'bg-red-500/10'}`}></div>
+                                </div>
+                                <div className="flex flex-col flex-1 pl-1">
+                                    <span className={`text-[10px] font-black flex items-center gap-1 ${kameraStreamDurum === 'aktif' ? 'text-indigo-300' : 'text-red-400'}`}>
+                                        <PlayCircle size={8} />
+                                        {kameraStreamDurum === 'aktif' ? 'Canlı Görüş Aktif' : kameraStreamDurum === 'kapali' ? 'Sunucu Kapalı' : 'Kontrol Ediliyor...'}
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-semibold leading-tight">
+                                        {kameraStreamDurum === 'aktif' ? 'AI 4 kamerayı tarıyor.' : 'go2rtc başlatılmalı → stream-server/BASLAT.bat'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex flex-col flex-1 pl-1">
-                                <span className="text-[10px] font-black text-indigo-300 flex items-center gap-1"><PlayCircle size={8} /> Canlı Görüş Aktif</span>
-                                <span className="text-[9px] text-slate-400 font-semibold leading-tight">AI 4 kamerayı tarıyor.</span>
+                        </Link>
+                    </div>
+
+
+                    {/* ── SON MESAJLAR WİDGET ──────────────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-violet-900/40">
+                        <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2"><MessageSquare size={13} /> Son Mesajlar</span>
+                            {mesajSayisi > 0 && (
+                                <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                                    {mesajSayisi} OKUNMADI
+                                </span>
+                            )}
+                        </h3>
+                        <div className="flex flex-col gap-1.5">
+                            {sonMesajlar.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-2 font-semibold">✅ Okunmamış mesaj yok</div>
+                            ) : sonMesajlar.map(m => (
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded-lg p-2 border border-white/5 hover:border-violet-500/40 transition-colors">
+                                    <div className="text-[10px] font-black text-white truncate">
+                                        {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🔵'} {m.konu}
+                                        {m.urun_id && <span className="ml-1 text-amber-400">📦</span>}
+                                    </div>
+                                    <div className="text-[9px] text-slate-500 mt-0.5">{m.gonderen_adi}</div>
+                                </Link>
+                            ))}
+                        </div>
+                        <Link href="/haberlesme" className="mt-2 block text-center text-[9px] text-violet-400 font-black hover:text-violet-300 transition-colors">
+                            Haberleşme → Tümünü Gör
+                        </Link>
+                    </div>
+
+                    {/* ── 45-GÜN MESAJ İZ PANELİ ──────────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-amber-900/40">
+                        <button
+                            onClick={() => setIzPanelAcik(v => !v)}
+                            className="w-full flex items-center justify-between text-xs font-black uppercase text-amber-400 mb-1"
+                        >
+                            <span>🗂️ Gizlenen Mesaj İzleri ({gizlenIzleri.length})</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">45 Gün Kuralı</span>
+                        </button>
+                        {izPanelAcik && (
+                            <div className="flex flex-col gap-1 mt-2 max-h-40 overflow-y-auto">
+                                {gizlenIzleri.length === 0 ? (
+                                    <div className="text-[10px] text-slate-500 text-center py-2">Son 45 günde gizlenen iz yok</div>
+                                ) : gizlenIzleri.map((g, i) => (
+                                    <div key={i} className="bg-[#0f172a] rounded p-1.5 border border-amber-900/30">
+                                        <div className="text-[9px] font-black text-amber-300 truncate">
+                                            {g.b1_ic_mesajlar?.konu || 'Bilinmeyen Konu'}
+                                        </div>
+                                        <div className="text-[8px] text-slate-500">
+                                            Gizleyen: {g.kullanici_adi} · {g.b1_ic_mesajlar?.gonderen_modul}
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="text-[8px] text-slate-600 text-center mt-1 font-semibold">
+                                    ⚠️ 45. günden sonra sistem bu izleri otomatik temizler
+                                </div>
                             </div>
+                        )}
+                    </div>
+
+                    {/* ── MODEL BİLGİ ARŞİVİ — KALICI ─────────────── */}
+                    <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-emerald-900/40">
+                        <h3 className="text-xs font-black uppercase text-emerald-400 mb-2 flex items-center justify-between gap-2">
+                            <span>📦 Model Bilgi Arşivi</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">{modelArsiv.length} kayıt · KALıcı</span>
+                        </h3>
+                        <div className="text-[8px] text-slate-500 mb-2 leading-tight">
+                            Ürün/model bağlı mesajlar hiçbir zaman silinmez. AI ajanlar bu veriyle eğitim alır.
+                            Tek silme yetkisi: Koordinatör (PIN).
+                        </div>
+                        <div className="flex flex-col gap-1 max-h-36 overflow-y-auto">
+                            {modelArsiv.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-2">Model bağlı mesaj yok</div>
+                            ) : modelArsiv.slice(0, 8).map(m => (
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#0f172a] rounded p-1.5 border border-emerald-900/30 hover:border-emerald-500/40 transition-colors">
+                                    <div className="text-[9px] font-black text-emerald-300 truncate">
+                                        📦 [{m.urun_kodu || '—'}] {m.konu}
+                                    </div>
+                                    <div className="text-[8px] text-slate-500">{m.gonderen_adi} · {new Date(m.created_at).toLocaleDateString('tr-TR')}</div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
+
 
                     <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-slate-700/50">
                         <h3 className="text-xs font-black uppercase text-emerald-500 mb-3 flex items-center gap-2"><Activity size={14} /> Sunucu Sağlığı</h3>
@@ -266,6 +473,63 @@ export function KarargahMainContainer() {
                             </div>
                         </div>
                     </div>
+
+                    {/* NİZAMBOT PANELİ */}
+                    <div className="bg-[#1e293b] p-5 rounded-2xl shadow-lg border border-violet-900/40">
+                        <h3 className="text-xs font-black uppercase text-violet-400 mb-3 flex items-center gap-2 justify-between">
+                            <span className="flex items-center gap-2"><Bot size={14} /> NİZAMBOT</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${botDurum === 'aktif' ? 'bg-emerald-900 text-emerald-400' :
+                                botDurum === 'hata' ? 'bg-red-900 text-red-400' :
+                                    'bg-slate-700 text-slate-400'
+                                }`}>
+                                {botDurum === 'aktif' ? '● AKTİF' : botDurum === 'hata' ? '● HATA' : '● KONTROL'}
+                            </span>
+                        </h3>
+
+                        {/* Bot kimlik bilgisi */}
+                        <div className="bg-[#0f172a] rounded-lg p-2 mb-3 flex items-center gap-2 border border-violet-900/30">
+                            <Bot size={12} className="text-violet-400 shrink-0" />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-violet-300">@Lumora_47bot</span>
+                                <span className="text-[9px] text-slate-500">Sistem Adı: NİZAMBOT</span>
+                            </div>
+                        </div>
+
+                        {/* Son aktiviteler */}
+                        <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+                            {botLoglar.length === 0 ? (
+                                <div className="text-[10px] text-slate-500 text-center py-3 font-semibold">
+                                    Henüz bot aktivitesi yok
+                                </div>
+                            ) : botLoglar.map((log, i) => (
+                                <div key={i} className="bg-[#0f172a] rounded-lg p-2 border border-white/5">
+                                    <div className="flex items-center justify-between mb-0.5">
+                                        <span className={`text-[9px] font-black flex items-center gap-1 ${log.sonuc === 'basarili' ? 'text-emerald-400' : 'text-red-400'
+                                            }`}>
+                                            {log.sonuc === 'basarili'
+                                                ? <><CheckCircle size={8} /> GÖNDER</>
+                                                : <><AlertCircle size={8} /> HATA</>
+                                            }
+                                        </span>
+                                        <span className="text-[8px] text-slate-500 font-semibold">
+                                            {new Date(log.created_at).toLocaleString('tr-TR', {
+                                                day: '2-digit', month: '2-digit',
+                                                hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <p className="text-[9px] text-slate-400 font-medium leading-tight truncate">
+                                        {log.mesaj || log.islem_tipi}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <Link href="/ajanlar" className="mt-3 block text-center text-[9px] text-violet-400 font-black hover:text-violet-300 transition-colors">
+                            Tüm Bot Kayıtları → Ajanlar Sayfası
+                        </Link>
+                    </div>
+
                 </div>
             </div>
         </div>

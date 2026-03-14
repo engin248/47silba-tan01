@@ -13,28 +13,27 @@ import { supabase } from './supabase';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-// ─── Supabase'e log at (hata durumunda sessizce geç) ─────────────────────────
-async function supabaseLog(tip, veri) {
-    try {
-        await supabase.from('b0_sistem_loglari').insert([{
-            tablo_adi: 'sistem_geneli',
-            islem_tipi: tip.toUpperCase(),
-            kullanici_adi: 'SISTEM_LOGGER',
-            eski_veri: veri,
-        }]);
-    } catch {
-        // Log hatası sistemi durdurmamalı
-    }
+// ─── MIMARI DÜZELTME: Kullanıcı bağlamı enjeksiyonu ────────────────
+// ESKİ: kullanici_adi = 'SISTEM_LOGGER' (tüm loglar aynı isimle)
+// YENİ: Gerçek kullanıcı grubu/zaaman log'a işleniyor
+function supabaseLog(tip, veri, kullanici = null) {
+    const kayit = {
+        tablo_adi: veri?.tablo || 'sistem_geneli',
+        islem_tipi: tip.toUpperCase(),
+        kullanici_adi: kullanici?.grup || kullanici?.label || 'SISTEM',
+        kullanici_zaman: new Date().toISOString(),
+        eski_veri: veri,
+    };
+    // Fire-and-forget — log hatası sistemi durdurmamalı
+    supabase.from('b0_sistem_loglari').insert([kayit]).then().catch(() => { });
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 export const logger = {
     /** AI kararı logu — HermAI tarafından kullanılır (Kriter VV3, 80) */
-    async aiDecision(veri) {
+    async aiDecision(veri, kullanici = null) {
         if (IS_DEV) console.log('[HermAI Karar]', veri);
-        // 1. Genel log tablosu
-        supabaseLog('AI_KARAR', veri);
-        // 2. Özel HermAI karar tablosu (Karargah panelinden görüntülenebilir)
+        supabaseLog('AI_KARAR', veri, kullanici);
         if (veri?.tip === 'HERM_LOOP' || veri?.tip === 'HERM_REJECTED') {
             try {
                 await supabase.from('b0_herm_ai_kararlar').insert([{
@@ -45,33 +44,40 @@ export const logger = {
                         : (veri.tutarli ? 'explained' : 'risk'),
                     ana_metrik: veri.anaMetrik || null,
                     gercekcilik: veri.gercekcilikDurumu || 'kontrol_edilmedi',
+                    yapan_kullanici: kullanici?.grup || 'sistem',
                 }]);
-            } catch { /* log hatası sistemi durdurmamalı */ }
+            } catch { }
         }
     },
 
     /** API hata logu */
-    error(mesaj, veri = {}) {
+    error(mesaj, veri = {}, kullanici = null) {
         if (IS_DEV) console.error('[HATA]', mesaj, veri);
-        supabaseLog('HATA', { mesaj, ...veri });
+        supabaseLog('HATA', { mesaj, ...veri }, kullanici);
     },
 
-    /** Kritik işlem logu (silme, onay, kilit) */
-    kritikIslem(mesaj, veri = {}) {
-        if (IS_DEV) console.warn('[KRİTİK]', mesaj, veri);
-        supabaseLog('KRITIK_ISLEM', { mesaj, ...veri });
+    /** Kritik işlem logu (silme, onay, kilit) — kullanıcı zorunlu */
+    kritikIslem(mesaj, veri = {}, kullanici = null) {
+        if (IS_DEV) console.warn('[KRİTİK]', mesaj, veri, '| Kullanıcı:', kullanici?.grup);
+        supabaseLog('KRITIK_ISLEM', {
+            mesaj,
+            eski_deger: veri?.eski || null,
+            yeni_deger: veri?.yeni || null,
+            ...veri
+        }, kullanici);
     },
 
     /** Kullanıcı işlem logu */
-    kullanici(islem, veri = {}) {
+    kullanici(islem, veri = {}, kullaniciObj = null) {
         if (IS_DEV) console.info('[KULLANICI]', islem, veri);
-        supabaseLog('KULLANICI_ISLEM', { islem, ...veri });
+        supabaseLog('KULLANICI_ISLEM', { islem, ...veri }, kullaniciObj);
     },
 
-    /** Geliştirme ortamı debug logu (production'da sessiz) */
+    /** Geliştirme ortaı debug logu (production'da sessiz) */
     debug(mesaj, veri = {}) {
         if (IS_DEV) console.debug('[DEBUG]', mesaj, veri);
     },
 };
+
 
 export default logger;

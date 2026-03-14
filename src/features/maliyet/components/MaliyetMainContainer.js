@@ -1,10 +1,4 @@
 'use client';
-/**
- * features/maliyet/components/MaliyetMainContainer.js
- * Kaynak: app/maliyet/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useMaliyet.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DollarSign, Plus, Trash2, BarChart2, Edit2, X, TrendingUp, Package, Calculator, Upload, ChevronDown, Lock } from 'lucide-react';
@@ -26,7 +20,7 @@ const SEKMELER = [
     { id: 'satis', label: '💰 Satış Fiyatı', desc: 'Kar marjı & öneri' },
 ];
 
-export default function MaliyetSayfasi() {
+export default function MaliyetMainContainer() {
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -104,11 +98,7 @@ export default function MaliyetSayfasi() {
         }
     }, [kullanici, yukle]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: mesaj_metni }), signal: controller.signal }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const handleMiktarFiyatDegisim = (field, val) => {
         const yeniForm = { ...form, [field]: val };

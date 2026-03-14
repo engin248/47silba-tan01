@@ -56,7 +56,16 @@ function bellekHataliDeneme(ip) {
 
 // ── JWT YARDIMCILARI ────────────────────────────────────────────────
 async function jwtOlustur(grup) {
-    const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY || 'sb47-gizli-anahtar-degistir';
+    // ─── MİMARİ DÜZELTME: Hardcoded fallback kaldırıldı ────────────
+    // ESKİ: || 'sb47-gizli-anahtar-degistir'
+    // Bu plain-text fallback: oluşturulan token farklı sırla imzalanıyor,
+    // middleware farklı (boş) sırla doğrulama yapıyor → TOKEN HİÇBİR ZAMAN GEÇEMEZ.
+    // DOĞRU: JWT_SIRRI ve INTERNAL_API_KEY Vercel ENV'e girilmeli.
+    const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
+    if (!sirri) {
+        console.error('[MİMARİ ALARM] JWT_SIRRI ENV değişkeni eksik! Giriş sistemi devre dışı.');
+        throw new Error('Sistem yapılandırma hatası: JWT anahtarı tanımlı değil.');
+    }
     const baslik = { alg: 'HS256', typ: 'JWT' };
     const icerik = {
         grup,
@@ -150,8 +159,8 @@ export async function POST(request) {
         try {
             const { createClient } = await import('@supabase/supabase-js');
             const sb = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL,
-                process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+                (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
             );
             await sb.from('b0_sistem_loglari').insert([{
                 olay: 'PIN_HATALI_GIRIS',
@@ -173,8 +182,8 @@ export async function POST(request) {
     try {
         const { createClient } = await import('@supabase/supabase-js');
         const sb = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+            (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
         );
         await sb.from('b0_sistem_loglari').insert([{
             olay: 'PIN_BASARILI_GIRIS',

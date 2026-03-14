@@ -4,7 +4,6 @@
  * Kaynak: app/kalip/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useKalip.js
  */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, CheckCircle2, AlertTriangle, Ruler, Layers, ChevronRight, Trash2, Tag, Lock } from 'lucide-react';
@@ -22,7 +21,7 @@ const SEZON = ['ilkbahar', 'yaz', 'sonbahar', 'kis', '4mevsim'];
 const BOSH_MODEL = { model_kodu: '', model_adi: '', model_adi_ar: '', trend_id: '', hedef_kitle: 'kadin', sezon: 'yaz', aciklama: '' };
 const BOSH_KALIP = { model_id: '', kalip_adi: '', bedenler: ['S', 'M', 'L', 'XL'], pastal_boyu_cm: '', pastal_eni_cm: '', fire_orani_yuzde: '5', versiyon: 'v1.0', kalip_dosya_url: '' };
 
-export default function KalipSayfasi() {
+export default function KalipMainContainer() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
@@ -57,16 +56,7 @@ export default function KalipSayfasi() {
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [sekme, kullanici?.id, kullanici?.grup]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı — redeclaration fix)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 

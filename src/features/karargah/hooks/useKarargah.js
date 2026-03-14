@@ -29,23 +29,30 @@ export function useKarargah() {
         }
     };
 
+    const [aiSonuc, setAiSonuc] = useState('');
+
     const aiAnalizBaslat = async () => {
         if (!aiSorgu.trim()) return goster('Sorgu boş olamaz.', 'error');
         setIsAiLoading(true);
+        setAiSonuc('');
         try {
-            const res = await fetch('/api/ajan-tetikle', {
+            const res = await fetch('/api/ajan-calistir', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sorgu: aiSorgu, kaynak: 'karargah' }),
+                body: JSON.stringify({ sorgu_metni: aiSorgu.trim() }),
             });
-            if (!res.ok) throw new Error(`Sunucu hatası: ${res.status}`);
             const data = await res.json();
-            goster(data.sonuc || data.mesaj || 'AI analiz tamamlandı.', 'success');
-            setAiSorgu('');
+            if (data?.basarili && data?.sonuc?.ozet) {
+                setAiSonuc(data.sonuc.ozet);
+                goster('AI analizi tamamlandı.', 'success');
+            } else {
+                goster('AI yanıt veremedi: ' + (data?.error || 'Sunucu hatası'), 'error');
+            }
         } catch (err) {
-            goster('AI hata: ' + err.message, 'error');
+            goster('AI bağlantı hatası: ' + err.message, 'error');
         } finally {
             setIsAiLoading(false);
+            setAiSorgu('');
         }
     };
 
@@ -116,7 +123,7 @@ export function useKarargah() {
     return {
         stats, alarms, ping,
         commandText, setCommandText, hizliGorevAtama,
-        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat,
+        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat, aiSonuc,
         simulasyon, setSimulasyon,
         mesaj
     };

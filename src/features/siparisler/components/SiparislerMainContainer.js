@@ -429,13 +429,44 @@ export default function SiparislerSayfasi() {
                     <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                         📈 Satış Trend Hız Analizi
                     </h3>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ecfdf5', padding: '1rem', borderRadius: 12, border: '1px solid #a7f3d0' }}>
-                        <div>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>Son 7 Gün İvmesi</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#047857' }}>+%34.2 Hızlanış</div>
-                        </div>
-                        <div style={{ fontSize: '2rem' }}>🚀</div>
-                    </div>
+                    {/* [A5 FIX] Hardcode +%34.2 kaldırıldı — gerçek son 7 gün vs önceki 7 gün ciro karşılaştırması */}
+                    {(() => {
+                        const bugun = new Date();
+                        const son7 = siparisler.filter(s => {
+                            const gt = (bugun - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
+                            return gt <= 7 && !['iptal', 'iade'].includes(s.durum);
+                        });
+                        const onceki7 = siparisler.filter(s => {
+                            const gt = (bugun - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
+                            return gt > 7 && gt <= 14 && !['iptal', 'iade'].includes(s.durum);
+                        });
+                        const son7Ciro = son7.reduce((t, s) => t + parseFloat(s.toplam_tutar_tl || 0), 0);
+                        const onceki7Ciro = onceki7.reduce((t, s) => t + parseFloat(s.toplam_tutar_tl || 0), 0);
+                        let ivme = 0, yon = 'flat';
+                        if (onceki7Ciro > 0) { ivme = (son7Ciro - onceki7Ciro) / onceki7Ciro * 100; yon = ivme > 0 ? 'up' : ivme < 0 ? 'down' : 'flat'; }
+                        else if (son7Ciro > 0) { ivme = 100; yon = 'up'; }
+                        const renk = yon === 'up' ? '#047857' : yon === 'down' ? '#dc2626' : '#64748b';
+                        const bg = yon === 'up' ? '#ecfdf5' : yon === 'down' ? '#fef2f2' : '#f8fafc';
+                        const border = yon === 'up' ? '#a7f3d0' : yon === 'down' ? '#fca5a5' : '#e2e8f0';
+                        const emoji = yon === 'up' ? '🚀' : yon === 'down' ? '📉' : '➡️';
+                        const label = yon === 'up' ? 'Hızlanış' : yon === 'down' ? 'Yavaşlama' : 'Sabit';
+                        return (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg, padding: '1rem', borderRadius: 12, border: `1px solid ${border}` }}>
+                                <div>
+                                    <div style={{ fontSize: '0.68rem', fontWeight: 700, color: renk, textTransform: 'uppercase' }}>
+                                        Son 7G: {son7.length} sipariş | Önceki 7G: {onceki7.length} sipariş
+                                    </div>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: renk }}>
+                                        {yon === 'up' ? '+' : ''}{ivme.toFixed(1)}% {label}
+                                    </div>
+                                    <div style={{ fontSize: '0.62rem', color: '#94a3b8', marginTop: 2 }}>
+                                        Son 7G ₺{son7Ciro.toFixed(0)} / Önceki ₺{onceki7Ciro.toFixed(0)}
+                                    </div>
+                                </div>
+                                <div style={{ fontSize: '2rem' }}>{emoji}</div>
+                            </div>
+                        );
+                    })()}
                 </div>
                 <div style={{ background: 'white', padding: '1.25rem', borderRadius: 16, border: '2px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                     <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>

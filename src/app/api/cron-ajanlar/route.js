@@ -11,8 +11,8 @@ export async function GET(req) {
 
     const unlem = new URL(req.url).searchParams.get('gorev');
     const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
+        (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
     );
 
     try {

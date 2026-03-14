@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ClipboardList, Plus, CheckCircle2, AlertTriangle, Trash2, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { formatTarih } from '@/lib/utils';
+import { formatTarih, telegramBildirim } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
@@ -25,7 +25,7 @@ const KANBAN_SUTUNLAR = [
 ];
 const BOSH = { baslik: '', aciklama: '', atanan_kisi: '', son_tarih: '', oncelik: 'normal', modul: 'genel' };
 
-export default function GorevlerSayfasi() {
+export default function GorevlerMainContainer() {
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const { kullanici, sayfaErisim } = useAuth();
@@ -50,9 +50,7 @@ export default function GorevlerSayfasi() {
         return () => { supabase.removeChannel(kanal); };
     }, []);
 
-    const telegramBildirim = (msg) => {
-        fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: msg }) }).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });

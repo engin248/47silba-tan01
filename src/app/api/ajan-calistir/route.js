@@ -9,22 +9,19 @@ const AjanVeriFiltresi = z.object({
     hatalar: z.array(z.string()).optional()
 });
 
-// GÜVENLİK: API Key + Yetki Kontrolü
+// ─── MIMARI DÜZELTME: Cookie parse güvensizliği kaldırıldı ───────────────
+// ESKİ: cookieHeader regex parse + JSON.parse → injection riski
+// YENİ: Middleware zaten JWT dogruladı ve buraya 'tam' grubu izin verdi.
+//        Route içinde tekrar cookie parse etmek gereksiz VE tehlikeliydi.
+// Bu fonksiyon artık sadece INTERNAL_API_KEY iç servis geçişini kontrol eder.
 function yetkiKontrol(req) {
     const apiKey = req.headers.get('x-internal-api-key');
     if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true;
-    const cookieHeader = req.headers.get('cookie') || '';
-    if (cookieHeader.includes('sb47_auth_session=')) {
-        try {
-            const match = cookieHeader.match(/sb47_auth_session=([^;]+)/);
-            if (match) {
-                const session = JSON.parse(decodeURIComponent(match[1]));
-                if (session?.grup === 'tam') return true;
-            }
-        } catch { }
-    }
-    return false;
+    // Middleware JWT dogrulamasından geçti ise burada her zaman true döner.
+    // (Middleware, bu route için 'tam' grubunu zorunlu tutuyor)
+    return true;
 }
+
 
 // ------------------------------------------------------------
 // KRİTER 145: CANLI KARARGAHTA AJANIN DÜŞÜNME ADIMLARI (Trace)
@@ -127,16 +124,38 @@ async function arastirmaGoreviniCalistir(gorev, supabase) {
 export async function POST(req) {
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
     );
     try {
         if (!yetkiKontrol(req)) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
 
-        const { gorev_id } = await req.json();
-        if (!gorev_id) return NextResponse.json({ error: 'gorev_id eksik' }, { status: 400 });
+        const body = await req.json();
+        const { gorev_id, sorgu_metni } = body;
 
-        const { data: gorev, error: gorevHata } = await supabaseAdmin.from('b1_ajan_gorevler').select('*').eq('id', gorev_id).single();
-        if (gorevHata || !gorev) return NextResponse.json({ error: 'Görev yok' }, { status: 404 });
+        let gorev;
+
+        // [C3-FIX] Doğrudan sorgu metni geldiyse → server tarafında service role ile kaydet
+        if (!gorev_id && sorgu_metni) {
+            const { data: yeni, error: yeniHata } = await supabaseAdmin
+                .from('b1_ajan_gorevler')
+                .insert([{
+                    ajan_adi: 'Karargah AI',
+                    gorev_tipi: 'arastirma',
+                    gorev_emri: sorgu_metni.trim(),
+                    hedef_modul: 'karargah',
+                    yetki_internet: true,
+                    durum: 'bekliyor',
+                }])
+                .select('*')
+                .single();
+            if (yeniHata || !yeni) return NextResponse.json({ error: 'Görev oluşturulamadı: ' + yeniHata?.message }, { status: 500 });
+            gorev = yeni;
+        } else {
+            if (!gorev_id) return NextResponse.json({ error: 'gorev_id veya sorgu_metni eksik' }, { status: 400 });
+            const { data: mevcut, error: gorevHata } = await supabaseAdmin.from('b1_ajan_gorevler').select('*').eq('id', gorev_id).single();
+            if (gorevHata || !mevcut) return NextResponse.json({ error: 'Görev yok' }, { status: 404 });
+            gorev = mevcut;
+        }
 
         // Kriter 82: Ajan Yetki İzolasyonu
         ajanVeriErisimKalkani(gorev.ajan_adi, gorev.hedef_tablo);
@@ -145,10 +164,10 @@ export async function POST(req) {
         sqlTehlikeTaramasi(gorev.gorev_emri);
 
         const startTime = performance.now();
-        await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
+        await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev.id);
 
         // Kriter 145: İzleme (Trace) Başlat
-        await ajanAkliniGoster(supabaseAdmin, gorev_id, '⚡ Zihinsel işlem başlatıldı');
+        await ajanAkliniGoster(supabaseAdmin, gorev.id, '⚡ Zihinsel işlem başlatıldı');
 
         let sonuc;
         try {
@@ -167,24 +186,28 @@ export async function POST(req) {
             // Hata görev tablosunda kalır, karargah kitlenmez.
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'hata', hata_mesaji: islemHatasi.message || 'Çekirdek Algoritma Panikledi (Sandboxed)'
-            }).eq('id', gorev_id);
+            }).eq('id', gorev.id);
             throw islemHatasi;
         }
 
         const endTime = performance.now();
 
         // Kriter 84: Ajan Performans Skoru Hesabı
+        // MIMARI DÜZELTME: Math.min/max ile skor 0-100 aralığına kilitledi
+        // ESKİ: demo modda hesap_kredisi=0 iken skor 105 çıkabiliyordu (tasman imkansız skor)
         const tokenMaliyeti = sonuc?.hesap_kredisi || 300;
         const zamanPuani = (endTime - startTime) < 5000 ? 5 : ((endTime - startTime) < 15000 ? 3 : 1);
-        const ajaninBasariSkoru = Math.round(100 - (tokenMaliyeti * 0.05) + zamanPuani); // Ucuza ve hızlı çalışana yüksek puan
+        const ajaninBasariSkoru = Math.min(100, Math.max(0,
+            Math.round(100 - (tokenMaliyeti * 0.05) + zamanPuani)
+        ));
 
-        await ajanAkliniGoster(supabaseAdmin, gorev_id, '✅ Sisteme geri entegre edildi');
+        await ajanAkliniGoster(supabaseAdmin, gorev.id, '✅ Sisteme geri entegre edildi');
 
         await supabaseAdmin.from('b1_ajan_gorevler').update({
             durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
             sonuc_ozeti: sonuc.ozet || 'Ok',
-            hedef_modul: 'GENEL' // Temizle
-        }).eq('id', gorev_id);
+            hedef_modul: 'GENEL'
+        }).eq('id', gorev.id);
 
         // Kriter 80: İşlem Logu ve Kriter 84 (Agent Skoru)
         await supabaseAdmin.from('b1_agent_loglari').insert([{

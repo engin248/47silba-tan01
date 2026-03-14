@@ -1,10 +1,4 @@
 ﻿'use client';
-/**
- * features/muhasebe/components/MuhasebeMainContainer.js
- * Kaynak: app/muhasebe/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useMuhasebe.js
- */
-'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Trash2, Edit2, Search, X } from 'lucide-react';
@@ -15,7 +9,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 
-export default function MuhasebeSayfasi() {
+export default function MuhasebeMainContainer() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
@@ -45,16 +39,7 @@ export default function MuhasebeSayfasi() {
         }
     }, [kullanici]);
 
-    const telegramBildirim = (mesaj) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 
@@ -439,7 +424,7 @@ export default function MuhasebeSayfasi() {
                 <div style={{ fontSize: '1.5rem' }}>🚪</div>
                 <div>
                     <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>2. Birime Geçiş Kapısı</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Koordinatör kararı.</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
                 </div>
                 <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>KİLİTLİ RAPOR</div>

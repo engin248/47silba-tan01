@@ -2,9 +2,11 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-
-    // ─── GÜVENLİK: HTTP BAŞLIKLARI ────────────────────────────────────────
+    // ─── MIMARI DÜZELTME: CSP ortam bazlı ─────────────────────────────────────
+    // ESKİ: 'unsafe-eval' her ortamda açıktı (XSS saldırısında eval() ile kod çalıştırılabilirdi)
+    // YENİ: 'unsafe-eval' sadece dev'de açık (Turbopack büylüe gerçtekiyor), production'da kapalı
     async headers() {
+        const isDev = process.env.NODE_ENV === 'development';
         return [
             {
                 source: '/(.*)',
@@ -18,7 +20,11 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io https://*.sentry.io",
+                            // 'unsafe-eval' sadece dev'de (Turbopack zorunlu kılıyor)
+                            // Production'da kaldırıldı — XSS kalkını güçlendirildi
+                            isDev
+                                ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io"
+                                : "script-src 'self' 'unsafe-inline' https://*.sentry.io",
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
                             "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
                             "img-src 'self' data: blob: https://api.qrserver.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co",
