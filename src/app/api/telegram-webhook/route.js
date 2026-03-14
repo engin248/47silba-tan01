@@ -165,9 +165,35 @@ export async function POST(request) {
             return NextResponse.json({ ok: true });
         }
 
-        // Diğer mesajlar
-        if (text) {
-            await telegramMesaj(chat_id, '📷 Fotoğraf gönderin veya /start yazın.');
+        // === M7 İÇ HABERLEŞME MODÜLÜ ENTEGRASYONU (Sisteme Komuta) ===
+        // Bot'a yazılan düz metin, NİZAM sistemine ACİL durumlu emir olarak düşer.
+        if (text && !text.startsWith('/')) {
+            const yetkiliIdleri = process.env.TELEGRAM_ADMIN_CHAT_ID?.split(',') || [];
+            const isim = yetkiliIdleri.includes(String(chat_id)) ? 'Koordinatör (Telegram)' : 'Saha Görevlisi';
+
+            const { error: dbErr } = await supabase.from('b1_ic_mesajlar').insert({
+                konu: '📱 TELEGRAM SAHA EMRİ',
+                icerik: text,
+                gonderen_adi: isim,
+                oncelik: 'kritik', // Telegram mesajları üretim bandında kırmızı yansın
+                alici_grup: 'hepsi',
+                urun_kodu: 'SAHA-BOT', // Çöp kovası kuralından korumak için referans
+                tip: 'sistem',
+            });
+
+            if (dbErr) {
+                await botLog(supabase, chat_id, 'SISTEME_MESAJ', 'HATA', dbErr.message);
+                await telegramMesaj(chat_id, `❌ Mesaj ERP sistemine aktarılamadı.\nVeri Hatası: ${dbErr.message}`);
+            } else {
+                await botLog(supabase, chat_id, 'SISTEME_MESAJ', 'BASARILI', text.slice(0, 50));
+                await telegramMesaj(chat_id, '🚨 <b>Sistem Uyarıldı!</b>\nMesajınız şu an Karargâh panelinin ana hattına (İç Haberleşme) ACİL uyarısıyla düştü ve sayfaları kırmızıya çevirdi.');
+            }
+            return NextResponse.json({ ok: true });
+        }
+
+        // Bilinmeyen / komutlar
+        if (text && text.startsWith('/')) {
+            await telegramMesaj(chat_id, '⚠️ Anlaşılamayan komut!\nÜretim paneline mesaj veya emir göndermek için direkt olarak düz metin yazıp göndermeniz yeterlidir.');
         }
 
         return NextResponse.json({ ok: true });
