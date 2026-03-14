@@ -40,6 +40,8 @@ export default function ImalatMainContainer() {
     const [islemAdimlari, setIslemAdimlari] = useState([]);
     const [yeniAdim, setYeniAdim] = useState({ islem_adi: '', ideal_sure_dk: '', zorluk_derecesi: 5.0 });
     const [videoKayitAktif, setVideoKayitAktif] = useState(false);
+    const [uretimAdeti, setUretimAdeti] = useState(''); // M6 Dinamik Adet Çözümü
+    const [uretimEmriId, setUretimEmriId] = useState(null); // M3'ten Gelen Emir ID
 
     // =========================================================================
     // 3. PENCERE: ÜRETİM (BAND/FASON) VE PERSONEL GİRDİLERİ
@@ -65,6 +67,9 @@ export default function ImalatMainContainer() {
                     if (mainTab === 'uretim') yukleSahadakiIsler();
                     else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
                 })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'production_orders' }, () => {
+                    if (mainTab === 'teknik_gorus' || mainTab === 'modelhane') yukleTeknikFoyler();
+                })
                 .subscribe();
 
             if (mainTab === 'teknik_gorus') yukleTeknikFoyler();
@@ -88,7 +93,13 @@ export default function ImalatMainContainer() {
     const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 saniye)')), 10000));
     const yukleTeknikFoyler = async () => {
         try {
-            const res = await Promise.race([supabase.from('v2_models').select('*').order('created_at', { ascending: false }).limit(200), timeoutPromise()]);
+            // ZIRH: V2 yerine, M3 Kesim'den düşen GERÇEK iş emirlerini oku! (B1 Jenerasyonu)
+            const res = await Promise.race([
+                supabase.from('production_orders')
+                    .select('*, b1_model_taslaklari(id, model_kodu, model_adi)')
+                    .order('created_at', { ascending: false }).limit(200),
+                timeoutPromise()
+            ]);
             if (res.error) throw res.error;
             if (res.data) setTeknikFoyler(res.data);
         } catch (error) { showMessage('Ağ hatası: ' + error.message, 'error'); }
@@ -98,40 +109,31 @@ export default function ImalatMainContainer() {
         if (!yeniFoy.model_name.trim() || !yeniFoy.maliyet_siniri_tl) {
             return showMessage('Model Adı ve Maliyet Sınırı zorunludur! İnisiyatif kullanılamaz.', 'error');
         }
-        if (yeniFoy.model_name.length > 200) return showMessage('Model adı en fazla 200 karakter olmalı!', 'error');
-
         setLoading(true);
         try {
-            // 🛑 U Kriteri: Mükerrer Kayıt Engelleme
-            const { data: mevcut } = await supabase.from('v2_models')
-                .select('id').eq('model_name', yeniFoy.model_name.trim());
-
+            // 🛑 U Kriteri: Mükerrer Kayıt Engelleme B1
+            const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', yeniFoy.model_name.trim());
             if (mevcut && mevcut.length > 0) {
                 setLoading(false);
-                return showMessage('⚠️ Bu Model Zaten Teknik Föy Olarak Kayıtlı!', 'error');
+                return showMessage('⚠️ Bu Model Zaten Kayıtlı!', 'error');
             }
 
-            const { error } = await supabase.from('v2_models').insert([{
-                model_name: yeniFoy.model_name.trim(),
-                description: `Kumaş İhtiyacı: ${yeniFoy.zorunlu_kumas_miktari_mt} mt, Esneme: %${yeniFoy.esneme_payi_yuzde}. (Görsel URL: ${yeniFoy.orjinal_gorsel_url})`.substring(0, 490),
-                difficulty_score: 5.0,
-                material_cost: parseFloat(yeniFoy.maliyet_siniri_tl)
+            const { error } = await supabase.from('b1_model_taslaklari').insert([{
+                model_kodu: yeniFoy.model_name.trim(),
+                model_adi: yeniFoy.model_name.trim(),
+                iscilik_suresi: 60, // Teknik görüşteki temel veri
+                numune_maliyeti: parseFloat(yeniFoy.maliyet_siniri_tl),
+                notlar: `Kumaş: ${yeniFoy.zorunlu_kumas_miktari_mt}mt, Esneme: %${yeniFoy.esneme_payi_yuzde}. URL: ${yeniFoy.orjinal_gorsel_url}`
             }]);
 
             if (!error) {
-                showMessage('FİRMADAN GELEN MODEL "TEKNİK FÖY" OLARAK KASAYA KİLİTLENDİ!');
+                showMessage('FİRMADAN GELEN MODEL "TEKNİK FÖY" OLARAK B1 KASASINA ATILDI!');
                 setYeniFoy({ model_name: '', orjinal_gorsel_url: '', maliyet_siniri_tl: '', zorunlu_kumas_miktari_mt: '', esneme_payi_yuzde: '' });
                 telegramBildirim(`📁 YENİ TEKNİK FÖY AÇILDI!\nModel: ${yeniFoy.model_name.trim()}\nLimit: ${yeniFoy.maliyet_siniri_tl}₺`);
                 yukleTeknikFoyler();
-            } else {
-                throw error;
-            }
+            } else throw error;
         } catch (error) {
-            if (!navigator.onLine || error.message?.includes('fetch')) {
-                await cevrimeKuyrugaAl({ tablo: 'v2_models', islem_tipi: 'INSERT', veri: { model_name: yeniFoy.model_name.trim(), description: `Kumaş İhtiyacı: ${yeniFoy.zorunlu_kumas_miktari_mt} mt, Esneme: %${yeniFoy.esneme_payi_yuzde}. (Görsel URL: ${yeniFoy.orjinal_gorsel_url})`.substring(0, 490), difficulty_score: 5.0, material_cost: parseFloat(yeniFoy.maliyet_siniri_tl) } });
-                showMessage('İnternet Yok: Yeni Teknik Föy çevrimdışı kuyruğa alındı.', 'success');
-                setYeniFoy({ model_name: '', orjinal_gorsel_url: '', maliyet_siniri_tl: '', zorunlu_kumas_miktari_mt: '', esneme_payi_yuzde: '' });
-            } else showMessage('Sunucu çöktü veya ulaşılamıyor: ' + error.message, 'error');
+            showMessage('Sunucu hatası: ' + error.message, 'error');
         }
         setLoading(false);
     };
@@ -149,22 +151,23 @@ export default function ImalatMainContainer() {
     const uretimBandiVeyaFasonaFirlat = async () => {
         if (!seciliModel || islemAdimlari.length === 0) return showMessage('Model seçmediniz veya sıralı işlem (föy) girmediniz!', 'error');
         if (!videoKayitAktif) return showMessage('DİKKAT! İlk numuneyi dikerken Video kanıtı oluşturmadınız. Şablon onaysız fasona gidemez!', 'error');
+        if (!uretimAdeti || parseFloat(uretimAdeti) <= 0) return showMessage('Geçerli bir Adet girin!', 'error');
 
         setLoading(true);
         try {
-            // 🛑 U Kriteri: Modele ait bekleyen veya devam eden sipariş var mı?
-            const { data: mevcutSiparis } = await supabase.from('v2_production_orders')
-                .select('id').eq('model_id', seciliModel.id).in('status', ['pending', 'in_progress']);
-
-            if (mevcutSiparis && mevcutSiparis.length > 0) {
-                setLoading(false);
-                return showMessage('⚠️ Bu modele ait devam eden veya bekleyen bir üretim emri zaten var!', 'error');
+            // ZIRH: V2 ve B1 köprüsü! 
+            // Shadow Model Yaratımı (Eski tabloların kilitlenmemesi için gölge v2 objesi basılıyor)
+            let modKodu = seciliModel.b1_model_taslaklari ? seciliModel.b1_model_taslaklari.model_kodu : 'BİLİNMİYOR';
+            let { data: shadowModel } = await supabase.from('v2_models').select('id').eq('model_name', modKodu).single();
+            if (!shadowModel) {
+                const { data: yModel } = await supabase.from('v2_models').insert([{ model_name: modKodu, material_cost: 0 }]).select().single();
+                shadowModel = yModel;
             }
 
-            // Sadece örnek sipariş ve ilk adımı banda atıyoruz (Simülasyon)
+            // Gölge Siparişi (Quantity dinamik, M3'ten veya Input'tan beslenir)
             const { data: orderData, error: orderErr } = await supabase
                 .from('v2_production_orders')
-                .insert([{ order_code: 'FASON-ORD-' + Date.now(), model_id: seciliModel.id, quantity: 500, status: 'pending' }])
+                .insert([{ order_code: seciliModel.order_code || 'ORD-' + Date.now(), model_id: shadowModel.id, quantity: parseInt(uretimAdeti), status: 'pending' }])
                 .select().single();
             if (orderErr) throw orderErr;
 
@@ -173,17 +176,23 @@ export default function ImalatMainContainer() {
                 .select().single();
 
             const { data: wfData } = await supabase.from('v2_model_workflows')
-                .insert([{ model_id: seciliModel.id, step_id: stepData.id, step_order: 1 }])
+                .insert([{ model_id: shadowModel.id, step_id: stepData.id, step_order: 1 }])
                 .select().single();
 
             await supabase.from('v2_order_production_steps')
                 .insert([{ order_id: orderData.id, model_workflow_id: wfData.id, status: 'assigned' }]);
 
-            showMessage('İŞLEMLER ONAYLANDI! İlk ürün şablonu ve Kanıt Videosuyla birlikte Fasona / Seri Üretim Bandına fırlatıldı!');
-            telegramBildirim(`🚀 SERİ ÜRETİM BAŞLADI!\nModel: ${seciliModel.model_name}\nAtanan İlk Adım: ${islemAdimlari[0].islem_adi}\nMiktar: 500 Adet`);
+            // GERÇEK SİPARİŞİ DE GÜNCELLE
+            await supabase.from('production_orders').update({ status: 'in_progress' }).eq('id', seciliModel.id);
+
+            showMessage(`İŞLEMLER ONAYLANDI! ${parseInt(uretimAdeti)} Adet Üretim Bandına fırlatıldı!`);
+            telegramBildirim(`🚀 SERİ ÜRETİM BAŞLADI!\nModel: ${modKodu}\nAtanan İlk Adım: ${islemAdimlari[0].islem_adi}\nMiktar: ${parseInt(uretimAdeti)} Adet`);
             setIslemAdimlari([]);
             setSeciliModel(null);
+            setUretimEmriId(null);
+            setUretimAdeti('');
             setVideoKayitAktif(false);
+            yukleTeknikFoyler();
         } catch (error) {
             if (!navigator.onLine || error.message?.includes('fetch')) {
                 showMessage('İnternet Yok: Sistem üretim bandı işlemini çevrimdışı kuyruğa alamıyor (Karmaşık Relasyonlar).', 'error');
@@ -438,14 +447,23 @@ export default function ImalatMainContainer() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Sol Taraf: Model Seçimi ve Kanıt Videosu */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">{isAR ? '1. اختر الموديل لإعداد القالب' : '1. Şablon Çıkarılacak Orijinal Modeli Seç'}</label>
-                            <select className="form-select w-full font-bold text-slate-700 mb-6 border-2 border-slate-300 h-12"
-                                onChange={(e) => setSeciliModel(teknikFoyler.find(m => m.id === e.target.value) || null)}>
-                                <option value="">--- {isAR ? 'اختر الموديل' : 'Model Seçin'} ---</option>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">{isAR ? '1. اختر أمر الإنتاج (M3) لإعداد القالب' : '1. Şablon Çıkarılacak Üretim Emrini (M3) Seç'}</label>
+                            <select className="form-select w-full font-bold text-slate-700 mb-4 border-2 border-slate-300 h-12"
+                                onChange={(e) => {
+                                    const secili = teknikFoyler.find(m => m.id === e.target.value);
+                                    setSeciliModel(secili || null);
+                                    if (secili) setUretimAdeti(secili.quantity || '');
+                                }}>
+                                <option value="">--- {isAR ? 'اختر أمر الإنتاج' : 'Üretim Emri Seçin'} ---</option>
                                 {teknikFoyler.map(m => (
-                                    <option key={m.id} value={m.id}>{m.model_name}</option>
+                                    <option key={m.id} value={m.id}>
+                                        {m.b1_model_taslaklari?.model_kodu || 'BİLİNMİYOR'} — ADET: {m.quantity} ({m.order_code})
+                                    </option>
                                 ))}
                             </select>
+
+                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase text-orange-600">Üretim Adedi (V2 Bant Adedi)</label>
+                            <input type="number" className="form-input w-full font-bold text-orange-600 mb-6 border-2 border-orange-200 h-12" placeholder="Üretime Başlanacak Adet" value={uretimAdeti} onChange={e => setUretimAdeti(e.target.value)} />
 
                             <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6 relative">
                                 <span className="absolute -top-3 left-4 bg-red-600 text-white text-[10px] px-2 py-1 font-black rounded uppercase tracking-wider">Mecburi İşlem</span>

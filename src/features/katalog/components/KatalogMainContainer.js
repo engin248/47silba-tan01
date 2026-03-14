@@ -16,6 +16,7 @@ import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import * as XLSX from 'xlsx'; // B-04: Excel/CSV Import kütüphanesi eklendi
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // [SPA FIX]
 
 const USD_KUR_VARSAYILAN = 32.5; // [A-02] Yedek değer — /api/kur erişilemezse kullanılır
 
@@ -63,6 +64,7 @@ export default function KatalogSayfasi() {
             .catch(() => { }); // hata durumunda varsayılan 32.5 kalır
     }, []);
     const [finansGizli, setFinansGizli] = useState(true);
+    const router = useRouter(); // [SPA FIX]
 
     const [urunler, setUrunler] = useState([]);
     const [formAcik, setFormAcik] = useState(false);
@@ -142,7 +144,8 @@ export default function KatalogSayfasi() {
             fiyat: u.satis_fiyati_tl,
             stok: u.stok_adeti
         });
-        window.location.href = `/siparisler?${params.toString()}`;
+        // [SPA ZIRHI]: Full reload engelleyip React Router ile geçiş yapıldı.
+        router.push(`/siparisler?${params.toString()}`);
     };
 
     // KAT-05: Fiyat Geçmişi yükle

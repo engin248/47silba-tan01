@@ -38,6 +38,15 @@
 
 ---
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / Kasa Ekonomik Kör Nokta Zırhı
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler:** `Net Bakiye` hesaplanırken `avans` (çalışan avansları) ve `diger` (masraflar) çıkışları yok sayılıyordu. Sadece `iade_odeme` çıkış kabul ediliyordu. Bu durum, fiziki kasadan verilen 10.000 TL'lik avansın sistemde bakiye düşmesine yansımamasına ve kasada devasa bir **Ekonomik Kör Nokta (Hesap Açığı)** oluşmasına neden oluyordu.
+*   **Yapılan Ameliyatlar:**
+    1. **Adil Fonksiyon (`cikislar`):** `iade` filtresi genişletilerek `['iade_odeme', 'avans', 'diger']` şekline getirildi. Kasa çıkışları fiziki bakiye mantığıyla tam uyumlu hâle getirildi.
+
+---
+
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)
 *   Finans modülünün CSV dışa aktarma yeteneği (`kasaCsvIndir`) bozulmamalı, çünkü Mali Müşavirlerle iletişim bu fonksiyon üzerinden yürütülüyor.
 *   Onaylanan Tahsilatlara asla "Silinebilir" izni verilmemelidir. NİZAM hukukunda Onaylı Tahsilat değiştirilemez. Hatalıysa önce Onayı "İptal" statüsüne çekilmeli, ardından yeni Tahsilat/Çıkış girilmelidir. Silinme ancak Onaylanmamış fişlerde geçerlidir.

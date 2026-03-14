@@ -195,6 +195,24 @@ export default function KesimMainContainer() {
             yukle();
             if (yeniDurum === 'tamamlandi') {
                 telegramBildirim(`✂️ KESİM TAMAMLANDI\nModel: ${model_kodu} için kesim işlemi tamamlandı. Üretim Bandına (M4) sevke hazır.`);
+
+                // 💥 KASAP OPERASYONU: Kumaş M2 Stoktan Otomatik Düşülecek! (M3->M2 Veri Zırhı)
+                try {
+                    const { data: kData } = await supabase.from('b1_kesim_operasyonlari').select('kumas_topu_no, kullanilan_kumas_mt').eq('id', id).single();
+                    if (kData && kData.kumas_topu_no && parseFloat(kData.kullanilan_kumas_mt) > 0) {
+                        const kumasKodu = kData.kumas_topu_no.trim();
+                        const dusulecek = parseFloat(kData.kullanilan_kumas_mt);
+
+                        const { data: kumas } = await supabase.from('b1_kumas_arsivi').select('id, stok_mt').eq('kumas_kodu', kumasKodu).single();
+                        if (kumas) {
+                            const yeniStok = Math.max(0, parseFloat(kumas.stok_mt || 0) - dusulecek);
+                            await supabase.from('b1_kumas_arsivi').update({ stok_mt: yeniStok }).eq('id', kumas.id);
+                            telegramBildirim(`📉 M3 KESİM STOK DÜŞÜMÜ\nKumaş Kodu: ${kumasKodu}\nDüşülen: ${dusulecek} mt\nKalan Stok: ${yeniStok} mt`);
+                        }
+                    }
+                } catch (stokHata) {
+                    console.error("Stok düşme hatası (Kumaş kaydı olmayabilir):", stokHata);
+                }
             }
         } catch (error) { goster('Durum güncellenemedi!', 'error'); }
         finally { setIslemdeId(null); }
