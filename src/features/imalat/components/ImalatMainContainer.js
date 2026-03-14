@@ -307,8 +307,8 @@ export default function ImalatMainContainer() {
         return (
             <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>M4 İmalat ve Bant verileri gizlidir. Görüntülemek için Üretim PİN girişi yapın.</p>
+                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>{isAR ? 'تم حظر الدخول غير المصرح به' : 'YETKİSİZ GİRİŞ ENGELLENDİ'}</h2>
+                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>{isAR ? 'بيانات الإنتاج والمسارات (M4) سرية. يرجى إدخال رمز PIN للإنتاج للعرض.' : 'M4 İmalat ve Bant verileri gizlidir. Görüntülemek için Üretim PİN girişi yapın.'}</p>
             </div>
         );
     }
@@ -323,7 +323,7 @@ export default function ImalatMainContainer() {
                 {/* CC Kriteri (M6 / Depo / Finans rotasına geçiş) - SPA KORUMASI */}
                 <NextLink href="/finans" style={{ textDecoration: 'none' }}>
                     <button className="flex items-center gap-2 bg-slate-900 text-white border-b-4 border-slate-950 px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-all text-sm uppercase">
-                        💼 FİNANS / DEPO (M6) GEÇİŞİ
+                        💼 {isAR ? 'الانتقال إلى المالية / المستودع (M6)' : 'FİNANS / DEPO (M6) GEÇİŞİ'}
                     </button>
                 </NextLink>
             </div>
@@ -397,16 +397,16 @@ export default function ImalatMainContainer() {
                             </div>
 
                             <button onClick={teknikFoyKaydet} disabled={loading} className="w-full bg-blue-600 text-white font-black text-lg py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2 mt-4">
-                                <Database /> MÜHÜRLE VE TEKNİK FÖY OLARAK KASAYA AT
+                                <Database /> {isAR ? 'ختم وحفظ في الخزنة כملف فني' : 'MÜHÜRLE VE TEKNİK FÖY OLARAK KASAYA AT'}
                             </button>
                         </div>
                     </div>
 
                     {/* Veritabanı Görüntüleme */}
                     <div className="card shadow-xl border border-slate-200 bg-slate-50">
-                        <h2 className="text-xl font-black text-slate-700 mb-4 border-b pb-2 flex items-center gap-2"><Database size={20} /> Onaylanmış Teknik Föyler (Kasa)</h2>
+                        <h2 className="text-xl font-black text-slate-700 mb-4 border-b pb-2 flex items-center gap-2"><Database size={20} /> {isAR ? 'الملفات الفنية المعتمدة' : 'Onaylanmış Teknik Föyler (Kasa)'}</h2>
                         <div className="space-y-3 overflow-y-auto max-h-[600px] pr-2">
-                            {teknikFoyler.length === 0 && <p className="text-center text-gray-400 font-bold p-8">Sistemde teknik görüşü onaylanmış model yok.</p>}
+                            {teknikFoyler.length === 0 && <p className="text-center text-gray-400 font-bold p-8">{isAR ? 'لا يوجد موديلات معتمدة حتى الآن' : 'Sistemde teknik görüşü onaylanmış model yok.'}</p>}
                             {teknikFoyler.map((model) => (
                                 <div key={model.id} className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col gap-2">
                                     <div className="flex justify-between items-start">
@@ -430,18 +430,18 @@ export default function ImalatMainContainer() {
                     <div className="flex items-center gap-3 border-b pb-4 mb-6">
                         <div className="p-3 bg-emerald-100 text-emerald-700 rounded-lg"><CheckSquare size={24} /></div>
                         <div>
-                            <h2 className="text-2xl font-black text-slate-800">İLK ÜRÜN HAZIRLAMA (FASONA ŞABLON ÇIKARMA)</h2>
-                            <p className="text-sm text-gray-500 font-bold mt-1">Teknik Görüşü alınan modelin işlemleri burada saniye saniye belirlenir. İşçi/Fason bu sıranın dışına çıkamaz.</p>
+                            <h2 className="text-2xl font-black text-slate-800">{isAR ? 'تجهيز المنتج الأول (قالب المقاول)' : 'İLK ÜRÜN HAZIRLAMA (FASONA ŞABLON ÇIKARMA)'}</h2>
+                            <p className="text-sm text-gray-500 font-bold mt-1">{isAR ? 'تحديد خطوات الإنتاج بالثانية. لا يمكن للعمال الخروج عن هذا الترتيب.' : 'Teknik Görüşü alınan modelin işlemleri burada saniye saniye belirlenir. İşçi/Fason bu sıranın dışına çıkamaz.'}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Sol Taraf: Model Seçimi ve Kanıt Videosu */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">1. Şablon Çıkarılacak Orijinal Modeli Seç</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">{isAR ? '1. اختر الموديل لإعداد القالب' : '1. Şablon Çıkarılacak Orijinal Modeli Seç'}</label>
                             <select className="form-select w-full font-bold text-slate-700 mb-6 border-2 border-slate-300 h-12"
                                 onChange={(e) => setSeciliModel(teknikFoyler.find(m => m.id === e.target.value) || null)}>
-                                <option value="">--- Model Seçin ---</option>
+                                <option value="">--- {isAR ? 'اختر الموديل' : 'Model Seçin'} ---</option>
                                 {teknikFoyler.map(m => (
                                     <option key={m.id} value={m.id}>{m.model_name}</option>
                                 ))}
@@ -469,23 +469,23 @@ export default function ImalatMainContainer() {
                         </div>
 
                         {/* Sağ Taraf: Fasona gidecek iş sırası */}
-                        <div className="border-l-2 pl-8">
-                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">2. Dinamik İşlemleri (Alt Görevleri) Belirle</label>
-                            <p className="text-xs text-gray-500 font-medium mb-4">Seri üretime/fasona gidecek şablon budur. Bu liste dışı hiçbir iş yapılamaz veya iddia edilemez.</p>
+                        <div className={`border-${isAR ? 'r' : 'l'}-2 p${isAR ? 'r' : 'l'}-8`}>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">{isAR ? '2. تحديد العمليات التفاعلية (المهام الفرعية)' : '2. Dinamik İşlemleri (Alt Görevleri) Belirle'}</label>
+                            <p className="text-xs text-gray-500 font-medium mb-4">{isAR ? 'هذا هو القالب المقرر. لا يُسمح بإجراء أعمال خارج القائمة.' : 'Seri üretime/fasona gidecek şablon budur. Bu liste dışı hiçbir iş yapılamaz veya iddia edilemez.'}</p>
 
                             <div className="flex gap-2 mb-4 bg-slate-100 p-2 rounded-lg">
-                                <input maxLength={150} type="text" className="form-input flex-1 font-bold" placeholder="Örn: Yaka İlikleme veya Baskı" value={yeniAdim.islem_adi} onChange={e => setYeniAdim({ ...yeniAdim, islem_adi: e.target.value })} />
-                                <input type="number" className="form-input w-24 text-center font-bold text-orange-600" placeholder="Tahmini Dk" value={yeniAdim.ideal_sure_dk} onChange={e => setYeniAdim({ ...yeniAdim, ideal_sure_dk: e.target.value })} />
-                                <button onClick={adimEkle} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded font-black uppercase text-sm">Listeye Yaz</button>
+                                <input maxLength={150} type="text" className="form-input flex-1 font-bold" placeholder={isAR ? 'مثال: الطباعة أو التطريز' : 'Örn: Yaka İlikleme veya Baskı'} value={yeniAdim.islem_adi} onChange={e => setYeniAdim({ ...yeniAdim, islem_adi: e.target.value })} />
+                                <input type="number" className="form-input w-24 text-center font-bold text-orange-600" placeholder={isAR ? 'دقيقة' : 'Tahmini Dk'} value={yeniAdim.ideal_sure_dk} onChange={e => setYeniAdim({ ...yeniAdim, ideal_sure_dk: e.target.value })} />
+                                <button onClick={adimEkle} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded font-black uppercase text-sm">{isAR ? 'أضف' : 'Listeye Yaz'}</button>
                             </div>
 
                             <div className="h-48 overflow-y-auto bg-slate-50 border border-slate-200 rounded-lg p-2 mb-6">
-                                {islemAdimlari.length === 0 && <p className="text-center text-gray-400 text-sm font-bold mt-10">Henüz fasona verilecek bir işlem sırası eklenmedi.</p>}
+                                {islemAdimlari.length === 0 && <p className="text-center text-gray-400 text-sm font-bold mt-10">{isAR ? 'لم تتم إضافة خطوات للإنتاج بعد' : 'Henüz fasona verilecek bir işlem sırası eklenmedi.'}</p>}
                                 {islemAdimlari.map((a, i) => (
                                     <div key={a.id} className="flex justify-between items-center border border-slate-200 p-2 text-sm bg-white shadow-sm mb-2 rounded">
-                                        <span className="font-bold text-slate-700"><span className="bg-slate-800 text-white px-2 py-1 rounded mr-2 text-[10px]">ADIM {i + 1}</span>{a.islem_adi}</span>
+                                        <span className="font-bold text-slate-700"><span className={`bg-slate-800 text-white px-2 py-1 rounded m${isAR ? 'l' : 'r'}-2 text-[10px]`}>{isAR ? `خطوة` : `ADIM`} {i + 1}</span>{a.islem_adi}</span>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-orange-600 font-black">{a.ideal_sure_dk} dk limit</span>
+                                            <span className="text-orange-600 font-black">{a.ideal_sure_dk} {isAR ? 'دقيقة' : 'dk limit'}</span>
                                             <button onClick={() => adimSil(a.id)} className="text-red-400 hover:text-red-700 p-1"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
@@ -493,7 +493,7 @@ export default function ImalatMainContainer() {
                             </div>
 
                             <button onClick={uretimBandiVeyaFasonaFirlat} disabled={loading} className="w-full bg-slate-800 text-emerald-400 border-b-4 border-slate-950 font-black text-lg py-5 rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center gap-3">
-                                <PlaySquare size={24} /> ONAYLA VE SERİ ÜRETİME / FASONA YÜKLE!
+                                <PlaySquare size={24} /> {isAR ? 'تأكيد وإرسال إلى خط الإنتاج!' : 'ONAYLA VE SERİ ÜRETİME / FASONA YÜKLE!'}
                             </button>
                         </div>
                     </div>
@@ -657,17 +657,17 @@ export default function ImalatMainContainer() {
                     <div className="flex items-center gap-4 border-b border-purple-200 pb-5 mb-6">
                         <div className="p-4 bg-purple-700 text-white rounded-xl shadow-lg"><Receipt size={32} /></div>
                         <div>
-                            <h2 className="text-3xl font-black text-purple-900 tracking-tight">KAPANIŞ GİŞESİ / MUHASEBE VE ANALİZ RAPORU</h2>
-                            <p className="text-sm text-purple-700 font-bold mt-1">Üretimden çıkan malzemenin harcadığı dakikalar paraya çevrilir. Hatalar kontrol edilir, son onay verilirse finans merkezine faturası yollanır.</p>
+                            <h2 className="text-3xl font-black text-purple-900 tracking-tight">{isAR ? 'شباك الإغلاق / تقرير المحاسبة والتحليل' : 'KAPANIŞ GİŞESİ / MUHASEBE VE ANALİZ RAPORU'}</h2>
+                            <p className="text-sm text-purple-700 font-bold mt-1">{isAR ? 'تتحول دقائق الإنتاج إلى أموال. تُفحص الأخطاء، وترسل الفاتورة للمحاسبة.' : 'Üretimden çıkan malzemenin harcadığı dakikalar paraya çevrilir. Hatalar kontrol edilir, son onay verilirse finans merkezine faturası yollanır.'}</p>
                         </div>
                     </div>
 
                     <div className="space-y-6">
-                        {onayBekleyenIsler.length === 0 && <div className="p-12 text-center text-purple-400 bg-white rounded-xl border-2 border-dashed border-purple-200 font-black text-lg shadow-sm">Gişede onay ve maliyet hesabı bekleyen seri üretim işi yok.</div>}
+                        {onayBekleyenIsler.length === 0 && <div className="p-12 text-center text-purple-400 bg-white rounded-xl border-2 border-dashed border-purple-200 font-black text-lg shadow-sm">{isAR ? 'لا يوجد إنتاج متسلسل ينتظر الموافقة والمحاسبة.' : 'Gişede onay ve maliyet hesabı bekleyen seri üretim işi yok.'}</div>}
 
                         {onayBekleyenIsler.map(is => (
                             <div key={is.id} className="bg-white border-2 border-purple-300 rounded-2xl p-6 shadow-md relative overflow-hidden">
-                                <div className="absolute top-0 right-0 bg-yellow-400 text-slate-800 px-5 py-1 text-[10px] font-black rounded-bl-xl uppercase tracking-widest shadow-sm">Müfettiş Onayı Bekliyor</div>
+                                <div className={`absolute top-0 right-0 bg-yellow-400 text-slate-800 px-5 py-1 text-[10px] font-black rounded-b${isAR ? 'r' : 'l'}-xl uppercase tracking-widest shadow-sm`}>{isAR ? 'بانتظار موافقة المفتش' : 'Müfettiş Onayı Bekliyor'}</div>
 
                                 <div className="flex justify-between items-start mb-6 border-b pb-4">
                                     <div>
@@ -679,26 +679,26 @@ export default function ImalatMainContainer() {
                                 {/* Maliyet ve Analiz Raporu Tablosu */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
-                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Hesaplanan Kronometre</span>
-                                        <div className="font-black text-2xl text-slate-800">42 <span className="text-sm text-gray-400">Dk / Adet</span></div>
+                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'المدة المحسوبة' : 'Hesaplanan Kronometre'}</span>
+                                        <div className="font-black text-2xl text-slate-800">42 <span className="text-sm text-gray-400">{isAR ? 'دقيقة/قطعة' : 'Dk / Adet'}</span></div>
                                     </div>
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
-                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Maliyet Sınırı Delindi mi?</span>
-                                        <div className="font-black text-2xl text-emerald-600">GÜVENLİ</div>
-                                        <span className="text-[10px] font-bold text-emerald-500">Hedef: {is.v2_production_orders?.v2_models?.material_cost || 0}₺</span>
+                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'تجاوز حد التكلفة؟' : 'Maliyet Sınırı Delindi mi?'}</span>
+                                        <div className="font-black text-2xl text-emerald-600">{isAR ? 'آمن' : 'GÜVENLİ'}</div>
+                                        <span className="text-[10px] font-bold text-emerald-500">{isAR ? 'الهدف' : 'Hedef'}: {is.v2_production_orders?.v2_models?.material_cost || 0}₺</span>
                                     </div>
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
-                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Kalite Skoru (Hata)</span>
-                                        <div className="font-black text-2xl text-slate-800">{is.rework_count === 0 ? 'KUSURSUZ' : `${is.rework_count} HATA`}</div>
+                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'نقاط الجودة (الأخطاء)' : 'Kalite Skoru (Hata)'}</span>
+                                        <div className="font-black text-2xl text-slate-800">{is.rework_count === 0 ? (isAR ? 'ممتاز' : 'KUSURSUZ') : `${is.rework_count} ${isAR ? 'خطأ' : 'HATA'}`}</div>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-4">
                                     <button disabled={islemdeId === is.id} onClick={() => hataliMalReddet(is)} className="flex-1 bg-white text-red-600 border-2 border-red-300 hover:border-red-600 hover:bg-red-50 py-5 font-black text-lg rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-wait">
-                                        {islemdeId === is.id ? '...' : 'REDDET & İŞÇİYE GERİ YOLLA'}
+                                        {islemdeId === is.id ? '...' : (isAR ? 'رفض وإعادة للعامل' : 'REDDET & İŞÇİYE GERİ YOLLA')}
                                     </button>
                                     <button disabled={islemdeId === is.id} onClick={() => finaleOnayVerMuhasebeyeYaz(is)} className="flex-1 bg-purple-700 text-white hover:bg-purple-800 border-b-4 border-purple-900 py-5 font-black text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait">
-                                        {islemdeId === is.id ? '...' : 'Her Şey Doğru! Muhasebeye Fişi Kes'}
+                                        {islemdeId === is.id ? '...' : (isAR ? 'مطابق! تحويل للمحاسبة' : 'Her Şey Doğru! Muhasebeye Fişi Kes')}
                                     </button>
                                 </div>
                             </div>
