@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 import Link from 'next/link';
 
 const MUSTERI_TIPLERI = ['bireysel', 'toptan', 'magaza'];

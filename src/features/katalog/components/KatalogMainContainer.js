@@ -12,7 +12,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula'; // [B-08 FIX]
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import * as XLSX from 'xlsx'; // B-04: Excel/CSV Import kütüphanesi eklendi
 import Link from 'next/link';

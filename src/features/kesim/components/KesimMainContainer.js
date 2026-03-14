@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
@@ -150,20 +150,35 @@ export default function KesimMainContainer() {
         setLoading(true);
         setIslemdeId('emr_' + k.id);
         try {
-            const { data: mevcut } = await supabase.from('production_orders')
+            const { data: mevcut } = await supabase.from('v2_production_orders')
                 .select('id').eq('model_id', k.model_taslak_id).in('status', ['pending', 'in_progress']);
             if (mevcut && mevcut.length > 0) {
                 setLoading(false);
                 setIslemdeId(null);
                 return goster('⚠️ Bu model için zaten aktif bir iş emri var!', 'error');
             }
-            const { error } = await supabase.from('production_orders').insert([{
+
+            // 💥 KASAP OPERASYONU: V1 Tablosu V2'ye Yönlendirildi
+            const { data: yeniEmir, error } = await supabase.from('v2_production_orders').insert([{
+                order_code: 'KSM-ORD-' + Date.now(),
                 model_id: k.model_taslak_id,
                 quantity: k.kesilen_net_adet || 0,
-                status: 'pending',
-                planned_start_date: new Date().toISOString().slice(0, 10),
-            }]);
+                status: 'pending'
+            }]).select().single();
             if (error) throw error;
+
+            // 💥 KASAP OPERASYONU: Kesim Firesi Otomatik Maliyete Yansıtılıyor
+            if (parseFloat(k.fire_orani) > 0) {
+                const fireZarari = parseFloat(k.fire_orani) * 15; // Kumaş MT birim fiyat tahmini
+                await supabase.from('b1_maliyet_kayitlari').insert([{
+                    order_id: yeniEmir.id,
+                    maliyet_tipi: 'fire_kaybi',
+                    kalem_aciklama: `KSM-${k.id} Kesim Firesi Otomatik Yansıma (%${k.fire_orani})`,
+                    tutar_tl: fireZarari > 0 ? fireZarari : parseFloat(k.fire_orani),
+                    onay_durumu: 'hesaplandi'
+                }]).catch(() => { });
+            }
+
             goster(`✅ M4 Üretim İş Emri oluşturuldu! ${k.b1_model_taslaklari?.model_kodu} — ${k.kesilen_net_adet} adet`);
             telegramBildirim(`🔗 M3→M4 KÖPRÜ\nKesimden Üretime: ${k.b1_model_taslaklari?.model_kodu}\nAdet: ${k.kesilen_net_adet}\nİş emri "Bekliyor" olarak açıldı.`);
         } catch (error) { goster('İş emri hatası: ' + error.message, 'error'); }

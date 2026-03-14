@@ -12,7 +12,7 @@ import {
     QrCode, Trash2, Tag, Grid3X3, History, Package,
     RefreshCw, Eye, EyeOff,
 } from 'lucide-react';
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import { useKatalog, BOS_URUN, ANA_KATEGORILER, ALT_KATEGORILER, DURUMLAR, USD_KUR } from '../hooks/useKatalog';
 

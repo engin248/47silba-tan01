@@ -1,0 +1,38 @@
+Folder PATH listing
+Volume serial number is 7A97-C2CB
+C:\USERS\ADMIN\DESKTOP\47_SIL_BASTAN_01\SRC\COMPONENTS
+-   CiroGrafigi.js
+-   ErrorBoundary.js
+-   ErrorBoundary.jsx
+-   MesajBildirimButonu.js
+-   
++¦¦¦barkod
+-       BarkodOkuyucu.js
+-       FizikselQRBarkod.js
+-       
++¦¦¦mesaj
+-       ModelMesajGecmisi.js
+-       
++¦¦¦shared
+-       index.js
+-       MesajBanner.js
+-       MesajBanner.jsx
+-       MesajBildirim.jsx
+-       VeriYokEkran.js
+-       YetkisizEkran.js
+-       YetkisizEkran.jsx
+-       YetkisizEkrani.jsx
+-       YukleniyorEkran.js
+-       YukleniyorEkrani.jsx
+-       
+L¦¦¦ui
+        DurumBadge.jsx
+        ErisimBariyeri.js
+        FiltreDugmeleri.js
+        HermAiAciklama.jsx
+        index.js
+        IstatistikKutulari.js
+        SayfaBasligi.js
+        SilBastanModal.js
+        TabloYapisi.jsx
+        

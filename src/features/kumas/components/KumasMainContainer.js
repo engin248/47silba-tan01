@@ -12,7 +12,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 

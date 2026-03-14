@@ -111,7 +111,19 @@ export default function MaliyetMainContainer() {
     const kaydet = async () => {
         if (!form.order_id) return goster('Sipariş seçiniz!', 'error');
         if (!form.kalem_aciklama.trim() || form.kalem_aciklama.length > 250) return goster('Açıklama zorunlu (max 250 karakter)!', 'error');
-        if (!form.tutar_tl || parseFloat(form.tutar_tl) <= 0) return goster('Geçerli tutar giriniz!', 'error');
+
+        // 💥 KASAP OPERASYONU: Mutlak Doğrulama Motoru (Tarayıcı Hile/Bug Zırhı)
+        let gercekTutar = parseFloat(form.tutar_tl) || 0;
+        if (form.miktar && form.birim_fiyat) {
+            const gercekCarpim = parseFloat(form.miktar) * parseFloat(form.birim_fiyat);
+            if (Math.abs(gercekTutar - gercekCarpim) > 0.01) {
+                console.warn("ZIRH: Kullanıcının girdiği tutar eşleşmiyor! Doğru matematik basılıyor.");
+                gercekTutar = parseFloat(gercekCarpim.toFixed(2));
+            }
+        }
+
+        if (gercekTutar <= 0) return goster('Geçerli tutar giriniz!', 'error');
+
         // [AI ZIRHI]: Offline Modu (Kriter J)
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_maliyet_kayitlari', duzenleId ? 'UPDATE' : 'INSERT', form);
@@ -119,7 +131,7 @@ export default function MaliyetMainContainer() {
         }
         setLoading(true);
         try {
-            const payload = { order_id: form.order_id, maliyet_tipi: form.maliyet_tipi, kalem_aciklama: form.kalem_aciklama.trim(), tutar_tl: parseFloat(form.tutar_tl), onay_durumu: 'hesaplandi' };
+            const payload = { order_id: form.order_id, maliyet_tipi: form.maliyet_tipi, kalem_aciklama: form.kalem_aciklama.trim(), tutar_tl: gercekTutar, onay_durumu: 'hesaplandi' };
             if (duzenleId) {
                 const { error } = await supabase.from('b1_maliyet_kayitlari').update(payload).eq('id', duzenleId);
                 if (!error) { goster('✅ Maliyet güncellendi!'); setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); yukle(); }

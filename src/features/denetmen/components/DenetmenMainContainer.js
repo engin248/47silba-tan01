@@ -7,7 +7,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { videoVeResimDenetle } from '@/lib/ai/visionAjanCore';
-import SilBastanModal from '@/lib/components/ui/SilBastanModal';
+import SilBastanModal from '@/components/ui/SilBastanModal';
 
 const SEVİYE_RENK = {
     kritik: { bg: '#fef2f2', border: '#ef4444', text: '#b91c1c', badge: '#ef4444' },
