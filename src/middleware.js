@@ -93,12 +93,15 @@ export async function middleware(request) {
     if (apiKorumalı) {
         // İç servis anahtarı varsa — geç (cron, sunucu-sunucu çağrıları, edge-watcher)
         const dahiliKey = request.headers.get('x-internal-api-key');
-        const sunucuGecerliKey = (process.env.INTERNAL_API_KEY || 'NIZAM_LOKAL_GIZLI_ANAHTAR_47').replace(/\\r\\n/g, '').trim();
+        // ─── MİMARİ DÜZELTME: Hardcoded fallback kaldırıldı ───────────────────
+        // ESKİ: process.env.INTERNAL_API_KEY || 'NIZAM_LOKAL_GIZLI_ANAHTAR_47'
+        // Bu plain-text değer herkes tarafından bilinebilirdi → tüm API bypass.
+        const sunucuGecerliKey = process.env.INTERNAL_API_KEY?.replace(/[\\r\\n'"]/g, '').trim();
 
-        if (dahiliKey && dahiliKey === sunucuGecerliKey) {
-            // iç çağrı — geç
+        if (dahiliKey && sunucuGecerliKey && dahiliKey === sunucuGecerliKey) {
+            // ─── İç servis çağrısı (cron, edge-watcher) — JWT atla ───
         } else {
-            // JWT Doğrulama
+            // ─── Dışarıdan gelen istek — JWT doğrulama zorunlu ────────
             const authHeader = request.headers.get('authorization') || '';
             const cookieToken = request.cookies.get('sb47_jwt_token')?.value;
             const token = authHeader.replace('Bearer ', '') || cookieToken;
@@ -106,7 +109,6 @@ export async function middleware(request) {
             const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
             const payload = await jwtDogrula(token, sirri);
 
-            // Ajan route'ları sadece 'tam' (koordinatör), yazma route'ları 'tam' veya 'uretim'
             const sadeceTamRotalar = ['/api/ajan-calistir', '/api/ajan-tetikle'];
             const sadeceTam = sadeceTamRotalar.some(r => url.startsWith(r));
             const yetkiliGrup = sadeceTam

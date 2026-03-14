@@ -30,7 +30,7 @@ export function KarargahMainContainer() {
     const {
         stats, alarms,
         commandText, setCommandText, hizliGorevAtama,
-        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat,
+        aiSorgu, setAiSorgu, isAiLoading, aiAnalizBaslat, aiSonuc,
         simulasyon, setSimulasyon,
         mesaj
     } = useKarargah();
@@ -40,9 +40,26 @@ export function KarargahMainContainer() {
     const [botDurum, setBotDurum] = useState('kontrol');
     const [sonMesajlar, setSonMesajlar] = useState([]);
     const [mesajSayisi, setMesajSayisi] = useState(0);
-    const [gizlenIzleri, setGizlenIzleri] = useState([]);   // 45-gün kural izleri
-    const [modelArsiv, setModelArsiv] = useState([]);        // kalıcı model arşiv
+    const [gizlenIzleri, setGizlenIzleri] = useState([]);
+    const [modelArsiv, setModelArsiv] = useState([]);
     const [izPanelAcik, setIzPanelAcik] = useState(false);
+    // [C5] Kamera widget için stream durumu
+    const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
+
+    useEffect(() => {
+        const kontrol = async () => {
+            try {
+                const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+                const d = await res.json();
+                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+            } catch {
+                setKameraStreamDurum('kapali');
+            }
+        };
+        kontrol();
+        const iv = setInterval(kontrol, 15000);
+        return () => clearInterval(iv);
+    }, []);
 
     // ── 45 GÜN KURALI HESAPLAMA ────────────────────────────────────────────
     const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
@@ -255,6 +272,17 @@ export function KarargahMainContainer() {
                                 </div>
                             </div>
 
+                            {/* [C3] AI SONUÇ KUTUSU */}
+                            {aiSonuc && (
+                                <div className="mt-3 bg-[#052e16] border border-emerald-800 rounded-xl p-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Bot size={12} className="text-emerald-400" />
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">AI Analiz Sonucu</span>
+                                    </div>
+                                    <p className="text-xs text-emerald-200 font-semibold leading-relaxed whitespace-pre-wrap">{aiSonuc}</p>
+                                </div>
+                            )}
+
                             <div className="bg-[#0f172a] p-3 rounded-lg border border-white/5 flex items-center justify-between mt-auto">
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">BANT AKIŞI:</span>
                                 <div className="flex items-center gap-1 flex-1 px-4">
@@ -310,17 +338,25 @@ export function KarargahMainContainer() {
                     </div>
 
                     <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-indigo-900/40">
-                        <div className="mb-2 bg-indigo-950 p-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-indigo-900 transition-colors">
-                            <div className="w-10 h-8 bg-black rounded flex items-center justify-center text-indigo-400 relative overflow-hidden border border-indigo-500/30">
-                                <Camera size={14} className="relative z-10" />
-                                <div className="absolute inset-0 bg-indigo-500/20 animate-pulse"></div>
+                        <Link href="/kameralar" className="block">
+                            <div className={`mb-2 p-2 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${kameraStreamDurum === 'aktif' ? 'bg-indigo-950 hover:bg-indigo-900' : 'bg-slate-900 hover:bg-slate-800'}`}>
+                                <div className={`w-10 h-8 bg-black rounded flex items-center justify-center relative overflow-hidden border ${kameraStreamDurum === 'aktif' ? 'border-indigo-500/30 text-indigo-400' : 'border-red-900/40 text-red-400'}`}>
+                                    <Camera size={14} className="relative z-10" />
+                                    <div className={`absolute inset-0 ${kameraStreamDurum === 'aktif' ? 'bg-indigo-500/20 animate-pulse' : 'bg-red-500/10'}`}></div>
+                                </div>
+                                <div className="flex flex-col flex-1 pl-1">
+                                    <span className={`text-[10px] font-black flex items-center gap-1 ${kameraStreamDurum === 'aktif' ? 'text-indigo-300' : 'text-red-400'}`}>
+                                        <PlayCircle size={8} />
+                                        {kameraStreamDurum === 'aktif' ? 'Canlı Görüş Aktif' : kameraStreamDurum === 'kapali' ? 'Sunucu Kapalı' : 'Kontrol Ediliyor...'}
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-semibold leading-tight">
+                                        {kameraStreamDurum === 'aktif' ? 'AI 4 kamerayı tarıyor.' : 'go2rtc başlatılmalı → stream-server/BASLAT.bat'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex flex-col flex-1 pl-1">
-                                <span className="text-[10px] font-black text-indigo-300 flex items-center gap-1"><PlayCircle size={8} /> Canlı Görüş Aktif</span>
-                                <span className="text-[9px] text-slate-400 font-semibold leading-tight">AI 4 kamerayı tarıyor.</span>
-                            </div>
-                        </div>
+                        </Link>
                     </div>
+
 
                     {/* ── SON MESAJLAR WİDGET ──────────────────────── */}
                     <div className="bg-[#1e293b] p-4 rounded-xl shadow-lg border border-violet-900/40">

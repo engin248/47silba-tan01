@@ -6,7 +6,7 @@
 import { LayoutList, Play, Square, FileCheck, RefreshCw, AlertTriangle, Plus, Trash2, StopCircle, Clock, Save, DollarSign, Activity, Factory, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
-import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL } from '@/features/uretim/hooks/useIsEmri';
+import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL, getST_RENK, getST_LABEL } from '@/features/uretim/hooks/useIsEmri';
 import YetkisizEkran from '@/components/shared/YetkisizEkran';
 import MesajBanner from '@/components/shared/MesajBanner';
 import SayfaBasligi from '@/components/ui/SayfaBasligi';
@@ -214,7 +214,7 @@ export default function UretimSayfasi() {
                         <div>
                             <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>📋 Aktif İş Emirleri</div>
                             {orders.filter(o => ['pending', 'in_progress'].includes(o.status)).map(o => (
-                                <div key={o.id} style={{ background: 'white', border: `2px solid ${ST_RENK[o.status]}40`, borderRadius: 10, padding: '0.875rem', marginBottom: '0.5rem' }}>
+                                <div key={o.id} style={{ background: 'white', border: `2px solid ${getST_RENK(o.status)}40`, borderRadius: 10, padding: '0.875rem', marginBottom: '0.5rem' }}>
                                     <span style={{ fontSize: '0.62rem', background: '#ecfdf5', color: '#047857', padding: '2px 7px', borderRadius: 4, fontWeight: 800 }}>{o.b1_model_taslaklari?.model_kodu}</span>
                                     <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', marginTop: 4 }}>{o.b1_model_taslaklari?.model_adi}</div>
                                     <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>{o.quantity} adet</div>

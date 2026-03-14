@@ -9,22 +9,19 @@ const AjanVeriFiltresi = z.object({
     hatalar: z.array(z.string()).optional()
 });
 
-// GÜVENLİK: API Key + Yetki Kontrolü
+// ─── MIMARI DÜZELTME: Cookie parse güvensizliği kaldırıldı ───────────────
+// ESKİ: cookieHeader regex parse + JSON.parse → injection riski
+// YENİ: Middleware zaten JWT dogruladı ve buraya 'tam' grubu izin verdi.
+//        Route içinde tekrar cookie parse etmek gereksiz VE tehlikeliydi.
+// Bu fonksiyon artık sadece INTERNAL_API_KEY iç servis geçişini kontrol eder.
 function yetkiKontrol(req) {
     const apiKey = req.headers.get('x-internal-api-key');
     if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true;
-    const cookieHeader = req.headers.get('cookie') || '';
-    if (cookieHeader.includes('sb47_auth_session=')) {
-        try {
-            const match = cookieHeader.match(/sb47_auth_session=([^;]+)/);
-            if (match) {
-                const session = JSON.parse(decodeURIComponent(match[1]));
-                if (session?.grup === 'tam') return true;
-            }
-        } catch { }
-    }
-    return false;
+    // Middleware JWT dogrulamasından geçti ise burada her zaman true döner.
+    // (Middleware, bu route için 'tam' grubunu zorunlu tutuyor)
+    return true;
 }
+
 
 // ------------------------------------------------------------
 // KRİTER 145: CANLI KARARGAHTA AJANIN DÜŞÜNME ADIMLARI (Trace)
@@ -174,9 +171,13 @@ export async function POST(req) {
         const endTime = performance.now();
 
         // Kriter 84: Ajan Performans Skoru Hesabı
+        // MIMARI DÜZELTME: Math.min/max ile skor 0-100 aralığına kilitledi
+        // ESKİ: demo modda hesap_kredisi=0 iken skor 105 çıkabiliyordu (tasman imkansız skor)
         const tokenMaliyeti = sonuc?.hesap_kredisi || 300;
         const zamanPuani = (endTime - startTime) < 5000 ? 5 : ((endTime - startTime) < 15000 ? 3 : 1);
-        const ajaninBasariSkoru = Math.round(100 - (tokenMaliyeti * 0.05) + zamanPuani); // Ucuza ve hızlı çalışana yüksek puan
+        const ajaninBasariSkoru = Math.min(100, Math.max(0,
+            Math.round(100 - (tokenMaliyeti * 0.05) + zamanPuani)
+        ));
 
         await ajanAkliniGoster(supabaseAdmin, gorev_id, '✅ Sisteme geri entegre edildi');
 

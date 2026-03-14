@@ -20,22 +20,14 @@ export const ERISIM_GRUPLARI = {
 };
 
 // PIN → Grup eşleştirmesi (server-side API'ye delege edilir)
-// Client-side PIN'ler ARTIK BU DOSYADA YOK — /api/pin-dogrula endpoint'i kullanılır
+// ─── MİMARİ DÜZELTME: localStorage bypass kaldırıldı ───────────────────
+// ESKİ: localStorage.getItem('sb47_uretim_token') === 'true' → yetki verilişi
+// BU KATİYEN YANLIŞTI: Tarayıcı konsolundan localStorage.setItem('sb47_uretim_token','true')
+// yazan herkes üretim yetkisi kazanıyordu. Artık bu fonksiyon sadece null döndürür.
+// Gerçek yetki kaynağı: /api/pin-dogrula → JWT token → middleware dogrulama.
 export function pindenGrupBul(pin) {
     if (!pin) return null;
-    const p = pin.trim();
-
-    // Dinamik PIN'ler (Koordinatör tarafından Karargah'tan atananlar)
-    if (typeof window !== 'undefined') {
-        const dinamikUretim = localStorage.getItem('sb47_uretim_token');
-        if (dinamikUretim && dinamikUretim === 'true') return 'uretim';
-
-        const dinamikGenel = localStorage.getItem('sb47_genel_token');
-        if (dinamikGenel && dinamikGenel === 'true') return 'genel';
-    }
-
-    // PIN doğrulaması artık /api/pin-dogrula endpoint'i üzerinden yapılır
-    // Bu fonksiyon sadece dinamik PIN eşleşmesi için kullanılır
+    // Yetki belirleme tamamen server-side — client bu işi yapamaz
     return null;
 }
 
@@ -78,8 +70,10 @@ export function AuthProvider({ children }) {
             const kayit = localStorage.getItem('sb47_auth');
             if (kayit) {
                 const parsed = JSON.parse(kayit);
-                // 8 saatlik oturum
-                if (parsed.zaman && Date.now() - parsed.zaman < 4 * 60 * 60 * 1000) { // [S-05] 8h → 4h
+                // MIMARI DÜZELTME: 4 saat → 8 saat — JWT ile senkronize edildi
+                // ESKİ: 4 * 60 * 60 * 1000 (4 saat) — JWT 8 saatti, çelişkiydi
+                // Artık: Client session = JWT süresi = 8 saat
+                if (parsed.zaman && Date.now() - parsed.zaman < 8 * 60 * 60 * 1000) {
                     setKullanici(parsed);
                     // [AI ZIRHI] Küresel Terminal Yetki Serbestisi - Karargah içi alt uçlara otomatik giriş sağlar.
                     if (typeof window !== 'undefined') {

@@ -3,8 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-const MAX_ISTEK = 15;
+const MAX_ISTEK = 5;              // [C2-THROTTLE] Dakikada maksimum 5 mesaj
 const ZAMAN_ARALIGI_SN = 60;
+const DUPLICATE_BEKLEME_SN = 7200; // [C2-DUPLICATE] 2 saat içinde aynı alarm tekrar gitmesin
 
 // [AYR-02] Mesajın hangi kategoriye ait olduğunu belirle
 function kategoriyiBelirle(mesaj) {
@@ -37,6 +38,26 @@ export async function POST(request) {
         }
         if (engellendi) {
             return NextResponse.json({ success: false, error: 'Telegram zirhi devrede. Cok fazla istek.' }, { status: 429 });
+        }
+
+        // [C2-DUPLICATE] Aynı mesajın 2 saat içinde tekrar gidişini engelle
+        const body_raw = await request.clone().json().catch(() => ({}));
+        const mesajOnizleme = (body_raw?.mesaj || '').substring(0, 80);
+        if (mesajOnizleme) {
+            const { data: dupCheck } = await supabase
+                .from('b0_api_spam_kalkani')
+                .select('son_vurus_saati, son_mesaj_ozeti')
+                .eq('son_mesaj_ozeti', mesajOnizleme)
+                .single()
+                .catch(() => ({ data: null }));
+            if (dupCheck) {
+                const gecenSn = (new Date() - new Date(dupCheck.son_vurus_saati)) / 1000;
+                if (gecenSn < DUPLICATE_BEKLEME_SN) {
+                    return NextResponse.json({ success: false, engellendi: true, sebep: `Duplicate koruma: Bu alarm ${Math.round((DUPLICATE_BEKLEME_SN - gecenSn) / 60)} dakika sonra tekrar gönderilebilir.` });
+                }
+            }
+            // Yeni gönderimde özeti kaydet
+            await supabase.from('b0_api_spam_kalkani').upsert([{ ip_adresi: `msg_hash_${mesajOnizleme.replace(/\s/g, '')}`, spam_sayaci: 1, son_vurus_saati: new Date().toISOString(), son_mesaj_ozeti: mesajOnizleme }], { onConflict: 'ip_adresi' });
         }
 
         const body = await request.json();
