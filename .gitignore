@@ -50,3 +50,6 @@ page_output*.html
 
 .env.vercel.check
 .env.vercel.check
+
+stream-server/*.exe
+vercel_out.txt
