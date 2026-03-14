@@ -120,7 +120,7 @@ export default function MuhasebeMainContainer() {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'UPDATE', kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
                     eski_veri: { mesaj: rapor.model_kodu + ' numarali emrin muhasebesi kilitlendi ve devre verildi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from('b1_muhasebe_raporlari').update({
@@ -143,10 +143,22 @@ export default function MuhasebeMainContainer() {
             }
             const { data: maliyetler, error: mErr } = await supabase.from('b1_maliyet_kayitlari').select('tutar_tl').eq('order_id', model.id);
             if (mErr) throw mErr;
-            const toplamMaliyet = (maliyetler || []).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
+            let toplamMaliyet = (maliyetler || []).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
+
+            // [M8 ZIRHI: Stratejik GÜG Körlüğü Kapatıldı]
+            const yuzde15Gider = parseFloat((toplamMaliyet * 0.15).toFixed(2));
+            if (yuzde15Gider > 0) {
+                try {
+                    await supabase.from('b1_maliyet_kayitlari').insert([
+                        { order_id: model.id, maliyet_tipi: 'isletme_gideri', kalem_aciklama: 'Otonom GÜG (%15 İşletme/Amortisman Payı)', tutar_tl: yuzde15Gider, onay_durumu: 'hesaplandi' }
+                    ]);
+                    toplamMaliyet += yuzde15Gider;
+                } catch (e) { }
+            }
+
             const insertData = {
                 order_id: model.id,
-                gerceklesen_maliyet_tl: toplamMaliyet,
+                gerceklesen_maliyet_tl: parseFloat(toplamMaliyet),
                 net_uretilen_adet: model.hedef_adet || 0,
                 zayiat_adet: 0,
                 rapor_durumu: 'sef_onay_bekliyor',
@@ -158,7 +170,7 @@ export default function MuhasebeMainContainer() {
             } else {
                 const { error } = await supabase.from('b1_muhasebe_raporlari').insert([insertData]);
                 if (error) throw error;
-                goster(`✅ ${model.model_adi} için rapor oluşturuldu. Toplam: ₺${toplamMaliyet.toFixed(2)}`); yukle();
+                goster(`✅ ${model.model_adi} için rapor oluşturuldu. GÜG dahil toplam: ₺${toplamMaliyet.toFixed(2)}`); yukle();
             }
         } catch (error) { goster('Rapor oluşturma hatası: ' + error.message, 'error'); }
         setLoading(false);
@@ -179,27 +191,49 @@ export default function MuhasebeMainContainer() {
 
     // ─── YENİ: DÜZENLE ───────────────────────────────────────────────────────────
     const duzenleAc = (rapor) => {
-        if (rapor.rapor_durumu === 'kilitlendi') return goster('Kilitli raporlar düzenlenemez!', 'error');
+        if (rapor.rapor_durumu === 'kilitlendi') return goster('Kilitli raporlar normal yoldan düzenlenemez! Ancak zeyilname (ek fatura) ekleyebilirsiniz.', 'error');
         setDuzenleForm({
             zayiat_adet: String(rapor.zayiat_adet || 0),
             hedeflenen_maliyet_tl: String(rapor.hedeflenen_maliyet_tl || ''),
-            notlar: rapor.notlar || ''
+            notlar: rapor.notlar || '',
+            ek_maliyet_tl: '0'
         });
-        setDuzenleModal(rapor);
+        setDuzenleModal({ ...rapor, zeyilname_modu: false });
+    };
+
+    // [M8 ZIRHI: ZEYİLNAME SİGORTASI]
+    const zeyilnameAc = (rapor) => {
+        if (rapor.rapor_durumu !== 'kilitlendi') return goster('Sadece devri tamamlanıp KİLİTLENMİŞ raporlara sonradan gelen farklar (Zeyilname) yazılabilir.', 'warning');
+        setDuzenleForm({
+            zayiat_adet: String(rapor.zayiat_adet || 0),
+            hedeflenen_maliyet_tl: String(rapor.hedeflenen_maliyet_tl || ''),
+            notlar: rapor.notlar || '',
+            ek_maliyet_tl: String(rapor.ek_maliyet_tl || 0)
+        });
+        setDuzenleModal({ ...rapor, zeyilname_modu: true });
     };
 
     const duzenleKaydet = async () => {
         if (!duzenleModal) return;
         setLoading(true);
         try {
-            const payload = {
-                zayiat_adet: parseInt(duzenleForm.zayiat_adet) || 0,
-                hedeflenen_maliyet_tl: parseFloat(duzenleForm.hedeflenen_maliyet_tl) || 0,
-                notlar: duzenleForm.notlar.trim() || null,
-            };
+            let payload;
+            if (duzenleModal.zeyilname_modu) {
+                payload = {
+                    ek_maliyet_tl: parseFloat(duzenleForm.ek_maliyet_tl) || 0,
+                    notlar: duzenleForm.notlar?.trim() || null,
+                };
+            } else {
+                payload = {
+                    zayiat_adet: parseInt(duzenleForm.zayiat_adet) || 0,
+                    hedeflenen_maliyet_tl: parseFloat(duzenleForm.hedeflenen_maliyet_tl) || 0,
+                    notlar: duzenleForm.notlar?.trim() || null,
+                };
+            }
+
             const { error } = await supabase.from('b1_muhasebe_raporlari').update(payload).eq('id', duzenleModal.id);
             if (error) throw error;
-            goster('✅ Rapor güncellendi!');
+            goster(duzenleModal.zeyilname_modu ? '✅ Zeyilname maliyeti kilitli dosyaya şerh düşüldü.' : '✅ Rapor güncellendi!');
             yukle();
             if (secilenRapor?.id === duzenleModal.id) setSecilenRapor(p => ({ ...p, ...payload }));
             setDuzenleModal(null);
@@ -224,7 +258,7 @@ export default function MuhasebeMainContainer() {
                     tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'SILME',
                     kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
                     eski_veri: { rapor_durumu: rapor.rapor_durumu, model_kodu: rapor.model_kodu }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
             const { error } = await supabase.from('b1_muhasebe_raporlari').delete().eq('id', rapor.id);
             if (error) throw error;
@@ -470,7 +504,7 @@ export default function MuhasebeMainContainer() {
                                                 {pct > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} %{Math.abs(pct)}
                                             </div>
                                             {/* Eylem butonları */}
-                                            {!kilitli && (
+                                            {!kilitli ? (
                                                 <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => duzenleAc(r)}
                                                         style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
@@ -479,6 +513,13 @@ export default function MuhasebeMainContainer() {
                                                     <button disabled={islemdeId === 'sil_' + r.id} onClick={() => raporSil(r)}
                                                         style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + r.id ? 'wait' : 'pointer', fontSize: '0.7rem', opacity: islemdeId === 'sil_' + r.id ? 0.5 : 1 }}>
                                                         <Trash2 size={11} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+                                                    <button onClick={() => zeyilnameAc(r)}
+                                                        style={{ background: '#fffbeb', border: 'none', color: '#b45309', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
+                                                        ➕ Zeyilname (Ek)
                                                     </button>
                                                 </div>
                                             )}
@@ -510,10 +551,10 @@ export default function MuhasebeMainContainer() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '1rem' }}>
                             {[
-                                { label: 'Hedeflenen Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, color: '#374151' },
-                                { label: 'Gerçekleşen Maliyet', val: `₺${parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl) > 0 ? '#dc2626' : '#059669' },
-                                { label: 'Fark (Üretilen-Hedef)', val: `₺${parseFloat(secilenRapor.fark_tl || 0).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl || 0) > 0 ? '#dc2626' : '#059669' },
-                                { label: 'Birim Maliyet/Adet', val: `₺${birimMaliyet(secilenRapor)}`, color: '#D4AF37' },
+                                { label: 'Hedef Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, color: '#374151' },
+                                { label: 'Gerçekleşen', val: `₺${(parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) + parseFloat(secilenRapor.ek_maliyet_tl || 0)).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl) > 0 ? '#dc2626' : '#059669' },
+                                { label: 'Zeyilname (Ek)', val: `₺${parseFloat(secilenRapor.ek_maliyet_tl || 0).toFixed(2)}`, color: '#b45309' },
+                                { label: 'Birim Adet Mal.', val: `₺${birimMaliyet(secilenRapor)}`, color: '#D4AF37' },
                                 { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, color: '#059669' },
                                 { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, color: '#ef4444' },
                             ].map((m, i) => (
@@ -530,17 +571,48 @@ export default function MuhasebeMainContainer() {
                             </div>
                         )}
 
-                        {ilgiliMaliyetler.length > 0 && (
-                            <div style={{ marginBottom: '1rem' }}>
-                                <div style={{ fontWeight: 800, color: '#374151', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Maliyet Kalemleri</div>
-                                {ilgiliMaliyetler.map(m => (
-                                    <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 6, background: '#f8fafc', marginBottom: '0.25rem' }}>
-                                        <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>{m.kalem_aciklama}</span>
-                                        <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.82rem' }}>₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+                        {ilgiliMaliyetler.length > 0 && (() => {
+                            const uMaliyetData = ilgiliMaliyetler.reduce((acc, curr) => {
+                                const tip = curr.maliyet_tipi || 'diger';
+                                acc[tip] = (acc[tip] || 0) + parseFloat(curr.tutar_tl || 0);
+                                return acc;
+                            }, {});
+                            const totalUI = Object.values(uMaliyetData).reduce((a, b) => a + b, 0);
+                            const mRenk = { personel_iscilik: '#3b82f6', isletme_gideri: '#f59e0b', fason_islem: '#8b5cf6', hammadde: '#10b981', diger: '#94a3b8' };
+                            return (
+                                <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '12px', border: '1px solid #e2e8f0', borderRadius: 10 }}>
+                                    <div style={{ fontWeight: 800, color: '#374151', fontSize: '0.8rem', marginBottom: '0.75rem', textTransform: 'uppercase' }}>💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+
+                                    {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
+                                    <div style={{ display: 'flex', height: 16, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
+                                        {Object.entries(uMaliyetData).map(([tip, miktar]) => {
+                                            const w = Math.max((miktar / (totalUI || 1)) * 100, 1); // min 1% for visibility
+                                            return <div key={tip} style={{ width: `${w}%`, background: mRenk[tip] || mRenk.diger, opacity: 0.95 }} title={`${tip}: ₺${miktar.toFixed(2)}`} />;
+                                        })}
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '0.75rem' }}>
+                                        {Object.entries(uMaliyetData).map(([tip, miktar]) => {
+                                            const yuzdeUi = ((miktar / (totalUI || 1)) * 100).toFixed(1);
+                                            return (
+                                                <div key={tip} style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 800, background: 'white', padding: '2px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #cbd5e1' }}>
+                                                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: mRenk[tip] || mRenk.diger }} />
+                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span style={{ color: '#94a3b8' }}>(%{yuzdeUi})</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div style={{ height: 1, background: '#e2e8f0', margin: '8px 0' }} />
+                                    <h5 style={{ margin: '8px 0', color: '#0f172a', fontSize: '0.7rem', fontWeight: 800 }}>Maliyet Detay Dökümü</h5>
+                                    {ilgiliMaliyetler.map(m => (
+                                        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 6, background: 'white', marginBottom: '0.25rem', borderLeft: `3px solid ${mRenk[m.maliyet_tipi] || mRenk.diger}` }}>
+                                            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>{m.kalem_aciklama}</span>
+                                            <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.82rem' }}>₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {secilenRapor.rapor_durumu === 'taslak' && (
@@ -592,23 +664,42 @@ export default function MuhasebeMainContainer() {
                             <button onClick={() => setDuzenleModal(null)} style={{ background: '#f1f5f9', border: 'none', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', color: '#64748b', fontWeight: 700 }}>✕</button>
                         </div>
                         <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 14px', marginBottom: '1rem', fontSize: '0.82rem', fontWeight: 700, color: '#065f46' }}>
-                            📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)}
+                            📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)} {duzenleModal.zeyilname_modu && <span style={{ background: '#fcd34d', color: '#78350f', padding: '2px 6px', borderRadius: 4, marginLeft: 8 }}>M8 Zeyilname Ek Fatura</span>}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                            {!duzenleModal.zeyilname_modu ? (
+                                <>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Zayiat Adet</label>
+                                        <input type="number" min="0" value={duzenleForm.zayiat_adet}
+                                            onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
+                                            style={inp} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Bütçelenen Hedef Maliyet Kapasitesi</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <input type="number" min="0" step="100" value={duzenleForm.hedeflenen_maliyet_tl}
+                                                onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
+                                                style={{ ...inp, paddingLeft: 30 }} />
+                                            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: '#64748b' }}>₺</span>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#b45309', marginBottom: 6, textTransform: 'uppercase' }}>Ek Maliyet Farkı (Zeyilname)</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input type="number" min="0" step="10" value={duzenleForm.ek_maliyet_tl}
+                                            onChange={e => setDuzenleForm({ ...duzenleForm, ek_maliyet_tl: e.target.value })} placeholder="Fason fiyat farkı, kargo vb.."
+                                            style={{ ...inp, paddingLeft: 30, borderColor: '#f59e0b', background: '#fffbeb' }} />
+                                        <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#b45309' }}>₺</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4 }}>Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
+                                </div>
+                            )}
+
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Zayiat Adet</label>
-                                <input type="number" min="0" value={duzenleForm.zayiat_adet}
-                                    onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
-                                    style={inp} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Hedeflenen Maliyet (₺)</label>
-                                <input type="number" step="0.01" min="0" value={duzenleForm.hedeflenen_maliyet_tl}
-                                    onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
-                                    placeholder="0.00" style={inp} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Notlar</label>
+                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6 }}>Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
                                 <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
                                     onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
                                     placeholder="İç not, açıklama..." style={{ ...inp, resize: 'vertical' }} />

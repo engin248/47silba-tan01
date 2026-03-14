@@ -6,8 +6,8 @@ import { hataBildir } from '@/lib/hataBildirim';
 
 export async function POST(request) {
     const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+        process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || '',
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
     );
 
     try {
@@ -36,12 +36,14 @@ export async function POST(request) {
         if (error) throw error;
 
         // Sistem Log İşlemi
-        await supabaseAdmin.from('b0_sistem_loglari').insert([{
-            tablo_adi: 'b2_stok_hareketleri',
-            islem_tipi: 'EKLEME',
-            kullanici_adi: 'Server API (Otonom Zırh)',
-            eski_veri: { urun: payload.urun_id, islem: payload.hareket_tipi, adet: payload.adet }
-        }]).catch(() => { });
+        try {
+            await supabaseAdmin.from('b0_sistem_loglari').insert([{
+                tablo_adi: 'b2_stok_hareketleri',
+                islem_tipi: 'EKLEME',
+                kullanici_adi: 'Server API (Otonom Zırh)',
+                eski_veri: { urun: payload.urun_id, islem: payload.hareket_tipi, adet: payload.adet }
+            }]);
+        } catch (e) { }
 
         return NextResponse.json({ mesaj: 'Başarılı', veri: data });
     } catch (error) {

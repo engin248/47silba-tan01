@@ -49,53 +49,38 @@ export async function POST(request) {
     }
 
     try {
-        const prompt = `Sen 119 Kriterlik Araştırma Modelini kullanan "Hermes (M1 Hücre-1)" kod adlı bir yapay zeka küratörüsün. Tek görevin, pazarda satma ihtimali olan fırsat ürünlerini tespit etmektir. Üretim Kararı asla veremezsin.
+        const prompt = `Sen THE ORDER sisteminin 119 Kriterlik Üretim ve Risk Mimarisiyle donatılmış "Hermes" kod adlı veri madenciliği ajanısın. Tek görevin, istenilen konu hakkında e-ticaret siteleri ve moda platformlarındaki GERÇEK talep verilerini toplamak ve bunu FABRİKAMIZIN 119 KRİTERLİ FİLTRESİNE (Risk, Maliyet, Üretilebilirlik) göre acımasızca süzmektir.
 
-ŞU 4 ANA METRİĞİ (0-100 ARASI) İLİKLERİNE KADAR ARAŞTIR:
-1. Search Growth (Arama Hacmi İvmesi): İnsanlar bu ürünü Google'da ve arama motorlarında ne kadar aratıyor?
-2. Review Velocity (Yorum Artış Hızı): Amazon/Zara gibi sitelerde bu kışlık/yazlık ürünün yorumları hızla artıyor mu?
-3. Stock Depletion (Stok Erime Hızı): Ürünlerin bedenleri hızla tükeniyor mu?
-4. Price Stability (Fiyat İstikrarı): Ürün fiyatı sabit kalarak mı satıyor, yoksa fiyat kırılarak (Clearance) mı satıyor?
+HİÇBİR ZAMAN VARSAYIM YAPMA. Eğer net veri bulamıyorsan uydurma, "Veri Bulunamadı" de. 
 
-ZORUNLU MATEMATİKSEL KURAL (TREND SKORU HESABI): 
-Trend Skoru = (Search Growth * 0.30) + (Review Velocity * 0.30) + (Stock Depletion * 0.20) + (Price Stability * 0.20)
-* Eğer bu formülün sonucu 60'ın altındaysa, ürün "ÜRETİLEMEZ (ÇÖP)" statüsündedir.
-
-TREND YAŞI KONTROLÜ:
-* < 30 gün: Geçici Köpük (Riskli)
-* 30-90 gün: Doğrulanmış Trend (Üretilebilir)
-* > 180 gün: Doygun Pazar / Kırmızı Okyanus (Riskli)
+Pazar araştırmasını şu temel eksende yap ve BİZİM 119 KRİTERİMİZLE değerlendir:
+1. Pazar İlgisi: Bu ürün/model şu anda pazar yerlerinde gerçekten aranıyor mu?
+2. Operasyonel Uyumluluk (119 Kriter Süzgeci): Bu modelin kumaşı ve üretim tarzı bizim fabrikada çok fire verir mi? Düğme/Fermuar gibi yan sanayi detayları maliyet riskimizi artırır mı? İşçiliği zor mu?
+3. Fiyat ve Müşteri: Pazar yerlerinde indirim yapmadan satabiliyorlar mı? Satın alanlar kumaş kalitesinden şikayetçi mi?
 
 Aşağıdaki JSON FORMATINI (Schema) eksiksiz doldur. JSON FORMATI DIŞINDA ASLA BİR ŞEY YAZMA!
 {
-  "ozet": "Kısa istihbarat özeti (Örn: Amazon Best Seller ile Google Hacmi eşleşiyor, Güven %85)",
+  "ozet": "Topladığın verilere dayanarak, bu ürünün pazar talebinin fabrikamızın 119 üretim/risk kriterine uyup uymadığına dair acımasız özet.",
   "sonuclar": [
     {
       "satilacak_urun": "Örn: Oversize Paraşüt Kargo Pantolon",
-      "trend_skoru": 75,
-      "trend_yasi_gun": 45,
-      "risk_seviyesi": "Orta / Doğrulanmış Trend",
-      "pazar_uyumu": "Türkiye / Avrupa (Z Kuşağı)",
-      "kumas_turu": "Örn: İÇGÖRÜ (Manuel Onay Bekler): %100 Pamuk Dokuma veya Paraşüt Kumaş",
-      "aksesuar_turu": "Örn: TAHMİNİ: Cırt cırt paça büzgüsü",
-      "fiyat_araligi": "Örn: 900 TL - 1400 TL",
-      "hedef_musteri": "Örn: 18-25 Yaş Grubu",
-      "platform": "amazon/trendyol/instagram/tiktok",
+      "trend_skoru": "0-100 arası tahmini skor (Pazar talebi ile bizim üretim kriterlerimizin uygunluk ortalaması)",
+      "trend_durumu": "Yeni Yükselen / Doygun / Düşüşte",
+      "pazar_uyumu": "Türkiye / Avrupa vb.",
+      "kumas_turu": "Bu model için en risksiz/uygun kumaş önerisi (119 Kriter uyumlu)",
+      "aksesuar_turu": "Öne çıkan aksesuar detayı (maliyet analizi düşünülerek)",
+      "fiyat_araligi": "Platformlardaki ortalama satış fiyat aralığı (TL)",
+      "hedef_musteri": "Bu modeli en çok hangi kesim alıyor",
+      "platform": "En çok talebi hangi platformda gördün (Örn: Trendyol, Amazon)",
       "kategori": "gomlek/pantolon/elbise/dis_giyim/spor/ic_giyim/aksesuar/diger",
-      "metrics": {
-         "search_growth": 80,
-         "review_velocity": 85,
-         "stock_depletion": 70,
-         "price_stability": 60
-      },
-      "aciklama": "AI'nin Risk Algısı: (Örn: Modal ömrü kısa, stok eritme ihtimali..)",
-      "kaynak": "Ref URL veya çapraz doğrulama veri kaynağı"
+      "aciklama": "AI'nin 119 Kritere dayalı üretim/risk notu (Örn: İşçiliği zor, çok fire verebilir, stokta birikebilir)",
+      "kaynak": "Veriyi/analizi aldığın en önemli 1 referans URL"
     }
   ]
 }
 
 ARAŞTIRILACAK KONU: ${sorgu}
-Odak: 2025-2026 Sezonu, İşletme Maliyet ve Stok Riskini En Aza İndirecek 119 Kriter Mimarisi.`;
+Odak: THE ORDER 119 Kriter Fabrika Üretim ve Risk Mimarisi.`;
 
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',

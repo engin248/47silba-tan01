@@ -481,9 +481,9 @@ export default function HaberlesmeMainContainer() {
                     <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#1e1b4b,#3730a3)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(30,27,75,0.3)' }}>
                         <MessageSquare size={26} color="white" />
                     </div>
-                    <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>NIZAM Haberleşme</h1>
-                        <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                    <div style={{ background: '#1d4ed8', color: 'white', padding: '4px 10px', borderRadius: '4px', display: 'inline-block' }}>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>NIZAM Haberleşme</h1>
+                        <p style={{ fontSize: '0.72rem', color: '#dbeafe', margin: '2px 0 0', fontWeight: 600 }}>
                             Adil · Şeffaf · SHA-256 Damgalı · Silinmez Arşiv
                         </p>
                     </div>

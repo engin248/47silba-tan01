@@ -13,12 +13,15 @@ import { NextResponse } from 'next/server';
  */
 
 const PERPLEXITY_API = 'https://api.perplexity.ai/chat/completions';
-const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { urunAdi, kumasCinsi, hedefKitle, sezon, hermesSkoru } = body;
+
+        const geminiKey = process.env.GEMINI_API_KEY?.trim();
+        if (!geminiKey) return NextResponse.json({ error: 'GEMINI API Anahtarı (.env) bulunamadı!' }, { status: 500 });
+        const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
 
         if (!urunAdi) {
             return NextResponse.json({ error: 'urunAdi zorunlu' }, { status: 400 });
@@ -124,7 +127,7 @@ Yukarıdaki verilere dayanarak SADECEşu JSON formatında yanıt ver (başka hi�
 
         if (!geminiRes.ok) {
             const errText = await geminiRes.text();
-            return NextResponse.json({ error: 'Gemini API hatası', detay: errText }, { status: 502 });
+            return NextResponse.json({ error: 'Gemini API bağlantı hatası (' + geminiRes.status + ')', mesaj: errText }, { status: 502 });
         }
 
         const geminiData = await geminiRes.json();

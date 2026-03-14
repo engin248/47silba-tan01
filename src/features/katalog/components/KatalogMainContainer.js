@@ -83,9 +83,13 @@ export default function KatalogSayfasi() {
     const [fiyatGecmisi, setFiyatGecmisi] = useState([]);
     // KAT-06: Stok sync timestamp
     const [sonSenkron, setSonSenkron] = useState(null);
-    // KAT-04: SKU varyant oluşturucu
     const [skuBedenler, setSkuBedenler] = useState(['S', 'M', 'L', 'XL']);
     const [skuRenkler, setSkuRenkler] = useState(['Siyah', 'Beyaz']);
+    const [varyantStoklar, setVaryantStoklar] = useState({}); // [V3] Varyant Matris { 'S-Siyah': 10 }
+
+    // [V3] Toplu Fiyat Güncelleme
+    const [topluFiyatAcik, setTopluFiyatAcik] = useState(false);
+    const [topluFiyatForm, setTopluFiyatForm] = useState({ yuzde: '', kategori: 'tumu' });
 
     // KAT-04 (B-04): Toplu Ürün Yükleme (Excel/CSV)
     const [topluYuklemeAcik, setTopluYuklemeAcik] = useState(false);
@@ -168,11 +172,167 @@ export default function KatalogSayfasi() {
     };
 
     // KAT-04: SKU Matrisi Ac
-    const skuMatrisiAc = (u) => {
+    const skuMatrisiAc = async (u) => {
         setSeciliUrun(u);
-        if (u.bedenler) setSkuBedenler(u.bedenler.split(',').map(s => s.trim()).filter(Boolean));
-        if (u.renkler) setSkuRenkler(u.renkler.split(',').map(s => s.trim()).filter(Boolean));
+        const bList = u.bedenler ? u.bedenler.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const rList = u.renkler ? u.renkler.split(',').map(s => s.trim()).filter(Boolean) : [];
+        setSkuBedenler(bList);
+        setSkuRenkler(rList);
+        setVaryantStoklar({});
         setSkuAcik(true);
+        try {
+            const { data } = await supabase.from('b2_urun_varyant_stok').select('beden, renk, stok_adeti').eq('urun_id', u.id);
+            if (data && data.length > 0) {
+                const map = {};
+                data.forEach(v => map[`${v.beden}-${v.renk}`] = v.stok_adeti);
+                setVaryantStoklar(map);
+            }
+        } catch (e) { } // tablo yoksa SQL henüz çalışmamıştır sessiz geç
+    };
+
+    const varyantStokKaydet = async () => {
+        if (!seciliUrun) return;
+        setLoading(true);
+        try {
+            const pay = [];
+            skuBedenler.forEach(b => {
+                skuRenkler.forEach(r => {
+                    const key = `${b}-${r}`;
+                    const stok = parseInt(varyantStoklar[key]) || 0;
+                    if (stok >= 0) {
+                        pay.push({ urun_id: seciliUrun.id, beden: b, renk: r, stok_adeti: stok, barkod: `${seciliUrun.urun_kodu}-${b}-${r.substring(0, 2).toUpperCase()}` });
+                    }
+                });
+            });
+            if (pay.length > 0) {
+                const { error } = await supabase.from('b2_urun_varyant_stok').upsert(pay, { onConflict: 'urun_id, beden, renk' });
+                if (error) throw error;
+                goster('✅ Tane Tane Varyant stokları güncellendi. (M10)');
+                yukle();
+            }
+        } catch (e) { goster('Varyant stok kaydı hatası: SQL Enjeksiyonunu (V3) çalıştırdınız mı? ' + e.message, 'error'); }
+        finally { setLoading(false); setSkuAcik(false); }
+    };
+
+    // [M10-M8 KÖPRÜSÜ ZIRHI] - Kilitli Üretim raporlarından (M8) güncel maliyet kancası
+    const maliyetleriGuncelle = async () => {
+        if (islemdeId === 'maliyet_guncelle') return;
+        setIslemdeId('maliyet_guncelle');
+        if (!confirm('M8 Muhasebe Modülündeki KİLİTLİ hesaplamalara göre Katalogdaki Ürün Birim Maliyetleri otonom güncellenecektir. Onaylıyor musunuz?')) { setIslemdeId(null); return; }
+
+        setLoading(true);
+        try {
+            const { data: muhRapor, error: errR } = await supabase
+                .from('b1_muhasebe_raporlari')
+                .select('urun_kodu, toplam_maliyet_tl, net_uretim_miktari, created_at, ek_maliyet_tl')
+                .eq('durum', 'MUHASEBECI_KILITLI')
+                .not('urun_kodu', 'is', null)
+                .order('created_at', { ascending: false });
+
+            if (errR) throw errR;
+            if (!muhRapor || muhRapor.length === 0) {
+                setLoading(false);
+                setIslemdeId(null);
+                return goster('M8 Muhasebe modülünde kilitlenmiş hiçbir maliyet raporu bulunamadı!', 'error');
+            }
+
+            const enGuncelMaliyetler = {};
+            muhRapor.forEach(r => {
+                if (!enGuncelMaliyetler[r.urun_kodu] && r.net_uretim_miktari > 0) {
+                    const topMal = parseFloat(r.toplam_maliyet_tl || 0) + parseFloat(r.ek_maliyet_tl || 0);
+                    enGuncelMaliyetler[r.urun_kodu] = parseFloat((topMal / r.net_uretim_miktari).toFixed(2));
+                }
+            });
+
+            const { data: katalogUrunleri, error: errK } = await supabase.from('b2_urun_katalogu').select('id, urun_kodu, satis_fiyati_tl, birim_maliyet_tl');
+            if (errK) throw errK;
+
+            const guncellenecekler = [];
+            katalogUrunleri.forEach(u => {
+                const yeniMaliyet = enGuncelMaliyetler[u.urun_kodu];
+                if (yeniMaliyet && yeniMaliyet !== parseFloat(u.birim_maliyet_tl)) {
+                    const kar = yeniMaliyet > 0 ? ((parseFloat(u.satis_fiyati_tl) - yeniMaliyet) / yeniMaliyet) * 100 : 0;
+                    guncellenecekler.push({
+                        id: u.id,
+                        birim_maliyet_tl: yeniMaliyet,
+                        kar_marji_yuzde: parseFloat(kar.toFixed(2)),
+                        updated_at: new Date().toISOString()
+                    });
+                }
+            });
+
+            if (guncellenecekler.length === 0) {
+                setLoading(false);
+                setIslemdeId(null);
+                return goster('Katalogdaki ürünlerin maliyetleri zaten güncel.');
+            }
+
+            const sliceSize = 50;
+            for (let i = 0; i < guncellenecekler.length; i += sliceSize) {
+                const chunk = guncellenecekler.slice(i, i + sliceSize);
+                const { error: err2 } = await supabase.from('b2_urun_katalogu').upsert(chunk);
+                if (err2) throw err2;
+            }
+
+            goster(`✅ M8 Entegrasyonu Tamamlandı! ${guncellenecekler.length} adet ürünün birim maliyeti güncellendi.`);
+            telegramBildirim(`🔄 M8-M10 MALİYET KÖPRÜSÜ\n${kullanici?.label || 'Oturum'} tarafından katalogdaki ${guncellenecekler.length} ürünün maliyeti Üretim raporlarına (M8) göre senkronize edildi.`);
+            yukle();
+
+        } catch (e) {
+            goster('Maliyet Senkronizasyon Hatası: ' + e.message, 'error');
+        } finally {
+            setLoading(false);
+            setIslemdeId(null);
+        }
+    };
+
+    // [V3] Toplu Fiyat Uygula Motoru
+    const topluFiyatUygula = async () => {
+        if (islemdeId === 'topluFiyat') return;
+        setIslemdeId('topluFiyat');
+        const yuzde = parseFloat(topluFiyatForm.yuzde);
+        if (!yuzde) { setIslemdeId(null); return goster('Lütfen geçerli bir yüzde girin (-10 veya 15 gibi)', 'error'); }
+        if (!confirm(`DİKKAT! Tüm ${topluFiyatForm.kategori === 'tumu' ? 'ürünlerin' : `'${topluFiyatForm.kategori}'`}' fiyatları %${yuzde > 0 ? '+' : ''}${yuzde} güncellenecek. Lütfen dikkat edin!`)) { setIslemdeId(null); return; }
+
+        try {
+            setLoading(true);
+            let query = supabase.from('b2_urun_katalogu').select('id, satis_fiyati_tl, birim_maliyet_tl');
+            if (topluFiyatForm.kategori !== 'tumu') query = query.eq('kategori_ust', topluFiyatForm.kategori);
+
+            const { data: list, error: err1 } = await query;
+            if (err1) throw err1;
+            if (!list || list.length === 0) { setIslemdeId(null); setLoading(false); return goster('Güncellenecek ürün bulunamadı!', 'error'); }
+
+            const guncellemeler = list.map(u => {
+                const yeniFiyat = u.satis_fiyati_tl * (1 + (yuzde / 100));
+                const kar = u.birim_maliyet_tl > 0 ? ((yeniFiyat - u.birim_maliyet_tl) / u.birim_maliyet_tl) * 100 : 0;
+                return {
+                    id: u.id,
+                    satis_fiyati_tl: parseFloat(yeniFiyat.toFixed(2)),
+                    satis_fiyati_usd: parseFloat((yeniFiyat / usdKur).toFixed(2)),
+                    kar_marji_yuzde: parseFloat(kar.toFixed(2)),
+                    updated_at: new Date().toISOString()
+                };
+            });
+
+            // Splitting for batch updates to avoid connection limits
+            const sliceSize = 50;
+            for (let i = 0; i < guncellemeler.length; i += sliceSize) {
+                const chunk = guncellemeler.slice(i, i + sliceSize);
+                const { error: err2 } = await supabase.from('b2_urun_katalogu').upsert(chunk);
+                if (err2) throw err2;
+            }
+
+            goster(`✅ Toplu fiyat motoru %${yuzde} tetiklendi. ${list.length} adet ürün güncellendi!`);
+            telegramBildirim(`🔄 TOPLU FİYAT DEĞİŞİMİ\nKat: ${topluFiyatForm.kategori}\nDeğişim: %${yuzde}\nEtkilenen: ${list.length} ürün`);
+            setTopluFiyatAcik(false);
+            yukle();
+        } catch (e) {
+            goster('Toplu güncelleme hatası: ' + e.message, 'error');
+        } finally {
+            setIslemdeId(null);
+            setLoading(false);
+        }
     };
 
     const kaydet = async () => {
@@ -188,7 +348,7 @@ export default function KatalogSayfasi() {
             urun_adi: form.urun_adi.trim(),
             urun_adi_ar: form.urun_adi_ar.trim() || null,
             satis_fiyati_tl: parseFloat(form.satis_fiyati_tl) || 0,
-            satis_fiyati_usd: form.satis_fiyati_usd ? parseFloat(form.satis_fiyati_usd) : (parseFloat(form.satis_fiyati_tl) / USD_KUR) || null,
+            satis_fiyati_usd: form.satis_fiyati_usd ? parseFloat(form.satis_fiyati_usd) : (parseFloat(form.satis_fiyati_tl) / usdKur) || null,
             birim_maliyet_tl: parseFloat(form.birim_maliyet_tl) || 0,
             bedenler: form.bedenler.trim() || null,
             renkler: form.renkler.trim() || null,
@@ -312,7 +472,7 @@ export default function KatalogSayfasi() {
                     const u_kodu = row['Ürün Kodu *'].toString().toUpperCase().trim();
                     const s_fiyat = parseFloat(row['Satış Fiyatı (TL) *']) || 0;
                     const maliyet = parseFloat(row['Birim Maliyet (TL)']) || 0;
-                    const usd_fiyati = row['Satış Fiyatı (USD)'] ? parseFloat(row['Satış Fiyatı (USD)']) : (s_fiyat / USD_KUR);
+                    const usd_fiyati = row['Satış Fiyatı (USD)'] ? parseFloat(row['Satış Fiyatı (USD)']) : (s_fiyat / usdKur);
 
                     let kar_orani = 0;
                     if (s_fiyat > 0 && maliyet > 0) kar_orani = ((s_fiyat - maliyet) / maliyet) * 100;
@@ -447,9 +607,18 @@ export default function KatalogSayfasi() {
                     </button>
                     {erisim === 'full' && (
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+                            <button onClick={() => setTopluFiyatAcik(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#d97706', border: '2px solid #d97706', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                                📊 Toplu Fiyat
+                            </button>
                             <button onClick={() => setTopluYuklemeAcik(true)}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#047857', border: '2px solid #047857', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
                                 ⬇️ Excel ile Toplu Yükle
+                            </button>
+                            <button onClick={maliyetleriGuncelle} disabled={loading}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#6366f1', border: '2px solid #6366f1', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                                🔄 M8'den Maliyet Çek
                             </button>
                             <button onClick={() => { setFormAcik(!formAcik); setDuzenleId(null); setForm(BOSH_URUN); }}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
@@ -496,6 +665,38 @@ export default function KatalogSayfasi() {
                                 {topluYukleniyor ? '⏳ Veriler İşleniyor, Lütfen Bekleyin...' : '🚀 Doldurulan Excel Dosyasını Yükle'}
                             </label>
                         </div>
+                    </div>
+                </div>
+            </SilBastanModal>
+
+            {/* [V3] TOPLU FİYAT GÜNCELLEME MODALI */}
+            <SilBastanModal acik={topluFiyatAcik} onClose={() => setTopluFiyatAcik(false)} title="📉 Toplu Fiyat Güncelleme (M10 Motor)">
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
+                    <div style={{ background: '#fffbeb', border: '2px solid #fde68a', borderRadius: 10, padding: '12px', marginBottom: 20 }}>
+                        <h4 style={{ margin: '0 0 6px', color: '#d97706', fontSize: '0.9rem', fontWeight: 800 }}>⚠️ Dikkat</h4>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 600 }}>Tüm ürünlerin fiyatlarını tek bir tıkla değiştirebilirsiniz. Yüzde (%) girmelisiniz, inme (-), veya artma (+) yapabilirsiniz.</p>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div>
+                            <label style={lbl}>Hangi Kategoriler?</label>
+                            <select value={topluFiyatForm.kategori} onChange={e => setTopluFiyatForm({ ...topluFiyatForm, kategori: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                <option value="tumu">— Tüm Kategoriler ve Ürünler —</option>
+                                {ANA_KATEGORILER.map(k => <option key={k} value={k}>{k}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={lbl}>Değişim Yüzdesi (Örn: Zam için 15, İndirim için -10)</label>
+                            <div style={{ position: 'relative' }}>
+                                <input type="number" step="0.1" value={topluFiyatForm.yuzde} onChange={e => setTopluFiyatForm({ ...topluFiyatForm, yuzde: e.target.value })} placeholder="15" style={{ ...inp, paddingLeft: 30, fontSize: '1.2rem', fontWeight: 900, color: '#b91c1c' }} />
+                                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#b91c1c' }}>%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                        <button onClick={() => setTopluFiyatAcik(false)} style={{ padding: '10px 18px', background: 'white', border: '2px solid #e2e8f0', borderRadius: 10, fontWeight: 800, cursor: 'pointer', color: '#475569' }}>İptal</button>
+                        <button onClick={topluFiyatUygula} disabled={loading} style={{ padding: '10px 24px', background: '#d97706', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                            {loading ? 'İşleniyor...' : 'Toplu Fiyatı Uygula Gönder'}
+                        </button>
                     </div>
                 </div>
             </SilBastanModal>
@@ -561,7 +762,7 @@ export default function KatalogSayfasi() {
                             <label style={lbl}>Satış Fiyatı (USD $) <span style={{ fontWeight: 600, color: '#94a3b8', textTransform: 'none', fontSize: '0.65rem' }}>boş bırakılırsa TL/kur otomatik</span></label>
                             <input type="number" dir="ltr" value={form.satis_fiyati_usd}
                                 onChange={e => setForm({ ...form, satis_fiyati_usd: e.target.value })}
-                                placeholder={form.satis_fiyati_tl ? `≈ $${(parseFloat(form.satis_fiyati_tl) / USD_KUR).toFixed(2)}` : '0.00'}
+                                placeholder={form.satis_fiyati_tl ? `≈ $${(parseFloat(form.satis_fiyati_tl) / usdKur).toFixed(2)}` : '0.00'}
                                 style={{ ...inp, borderColor: '#d97706' }} />
                         </div>
                         <div>
@@ -666,7 +867,7 @@ export default function KatalogSayfasi() {
                                             <div>
                                                 <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺{u.satis_fiyati_tl}</div>
                                                 <div style={{ fontWeight: 700, color: '#d97706', fontSize: '0.78rem', marginTop: 1 }}>
-                                                    ${u.satis_fiyati_usd ? parseFloat(u.satis_fiyati_usd).toFixed(2) : (parseFloat(u.satis_fiyati_tl) / USD_KUR).toFixed(2)}
+                                                    ${u.satis_fiyati_usd ? parseFloat(u.satis_fiyati_usd).toFixed(2) : (parseFloat(u.satis_fiyati_tl) / usdKur).toFixed(2)}
                                                 </div>
                                             </div>
                                         )}
@@ -723,10 +924,10 @@ export default function KatalogSayfasi() {
             </SilBastanModal>
 
             {/* KAT-04: SKU MATRİSİ MODALI */}
-            <SilBastanModal acik={skuAcik} onClose={() => setSkuAcik(false)} title={`SKU Matrisi — ${seciliUrun?.urun_kodu}`}>
+            <SilBastanModal acik={skuAcik} onClose={() => setSkuAcik(false)} title={`SKU Matrisi & Stok Deposu — ${seciliUrun?.urun_kodu}`}>
                 {seciliUrun && (
                     <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 12, fontWeight: 600 }}>Beden × Renk kombinasyonları (KAT-04)</p>
+                        <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 12, fontWeight: 600 }}>Beden × Renk kombinasyonları için stok depolayın. (SQL Motoru Otonom Günceller)</p>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.78rem' }}>
                                 <thead>
@@ -739,17 +940,31 @@ export default function KatalogSayfasi() {
                                     {skuBedenler.map((b, bi) => (
                                         <tr key={b} style={{ background: bi % 2 === 0 ? '#f8fafc' : 'white' }}>
                                             <td style={{ padding: '6px 10px', fontWeight: 800, color: '#0f172a', borderRight: '2px solid #e2e8f0' }}>{b}</td>
-                                            {skuRenkler.map(r => (
-                                                <td key={r} style={{ padding: '6px 10px', textAlign: 'center', color: '#059669', fontWeight: 700 }}>
-                                                    {seciliUrun.urun_kodu}-{b}-{r.substring(0, 2).toUpperCase()}
-                                                </td>
-                                            ))}
+                                            {skuRenkler.map(r => {
+                                                const key = `${b}-${r}`;
+                                                return (
+                                                    <td key={r} style={{ padding: '6px 6px', textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>
+                                                        <input
+                                                            type="number" min="0"
+                                                            value={varyantStoklar[key] || ''}
+                                                            onChange={e => setVaryantStoklar({ ...varyantStoklar, [key]: e.target.value })}
+                                                            placeholder="Stok"
+                                                            style={{ width: '60px', padding: '4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: 6, outline: 'none', fontWeight: 800, color: varyantStoklar[key] > 0 ? '#059669' : '#0f172a' }}
+                                                        />
+                                                    </td>
+                                                );
+                                            })}
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                        <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 10 }}>Toplam {skuBedenler.length * skuRenkler.length} SKU kombinasyonu</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+                            <p style={{ fontSize: '0.7rem', color: '#94a3b8', margin: 0 }}>Toplam {skuBedenler.length * skuRenkler.length} SKU</p>
+                            <button onClick={varyantStokKaydet} disabled={loading} style={{ background: '#047857', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                                {loading ? '...' : 'Varyant Stoklarını Kaydet'}
+                            </button>
+                        </div>
                     </div>
                 )}
             </SilBastanModal>

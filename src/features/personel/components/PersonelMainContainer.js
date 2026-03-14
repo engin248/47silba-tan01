@@ -46,6 +46,7 @@ export default function PersonelMainContainer() {
     const [filtreRol, setFiltreRol] = useState('hepsi');
     const [sekme, setSekme] = useState('liste'); // liste | prim | devam
     const [devamlar, setDevamlar] = useState([]);
+    const [avanslar, setAvanslar] = useState([]); // [M13-M7 KÖPRÜSÜ ZIRHI]
     const [devamForm, setDevamForm] = useState({ personel_id: '', tarih: new Date().toISOString().split('T')[0], durum: 'calisti', notlar: '' });
     const [devamFormAcik, setDevamFormAcik] = useState(false);
     const [devamDuzenleId, setDevamDuzenleId] = useState(null);
@@ -102,12 +103,27 @@ export default function PersonelMainContainer() {
         try {
             // [AI ZIRHI]: 10sn timeout DDoS kalkanı (Kriter Q)
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
-            const { data, error } = await Promise.race([
-                supabase.from('b1_personel').select('*').order('created_at', { ascending: false }).limit(200),
-                timeout
-            ]);
+
+            // Personelleri Çek
+            const perRes = supabase.from('b1_personel').select('*').order('created_at', { ascending: false }).limit(200);
+
+            // Kasa Avanslarını Çek (M13-M7 Köprüsü) - Sadece Onaylı olanları
+            const avnRes = supabase.from('b2_kasa_hareketleri')
+                .select('tutar_tl, personel_id')
+                .eq('hareket_tipi', 'avans')
+                .eq('onay_durumu', 'onaylandi')
+                .not('personel_id', 'is', null);
+
+            const { data, error } = await Promise.race([perRes, timeout]);
             if (error) throw error;
             if (data) setPersoneller(data);
+
+            // Avans çekiminde SQL update'i yapılmamışsa sessizce geç
+            try {
+                const { data: aData } = await avnRes;
+                if (aData) setAvanslar(aData);
+            } catch (e) { console.warn('Avans tablosu eksik veya sütun hatası.', e); }
+
         } catch (error) { goster('Bağlantı Hatası: ' + error.message, 'error'); }
         setLoading(false);
     };
@@ -351,7 +367,11 @@ export default function PersonelMainContainer() {
         const uretimDegeri = toplamDk * DAKIKA_BASI_UCRET;
         const asim = uretimDegeri - aylikMaliyet;
         const primHakki = asim > 0 ? asim * PRIM_ORANI : 0;
-        return { aylikMaliyet, uretimDegeri, asim, primHakki };
+
+        // [M13-M7 KÖPRÜSÜ ZIRHI] Personelin kasadan aldığı toplam avans 
+        const avansToplam = avanslar.filter(a => a.personel_id === p.id).reduce((sum, curr) => sum + (parseFloat(curr.tutar_tl) || 0), 0);
+
+        return { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam };
     };
 
     // İZİN BAKİYESİ: Yıllık hak - kullanılan izin
@@ -379,8 +399,9 @@ export default function PersonelMainContainer() {
                 <tr><td>Aylık Üretime Katkı Değeri</td><td style="text-align:right;color:#64748b">₺${uretimDegeri.toFixed(2)}</td></tr>
                 <tr><td>Eşik Aşım Değeri (Fark)</td><td style="text-align:right;color:#64748b">₺${asim > 0 ? asim.toFixed(2) : '0.00'}</td></tr>
                 <tr><td><strong>Performans Primi (%${(PRIM_ORANI * 100).toFixed(0)})</strong></td><td style="text-align:right"><strong>₺${primHakki.toFixed(2)}</strong></td></tr>
+                <tr><td style="color:#ef4444;font-weight:bold;">Kasadan Alınan Avans Kesintisi (-)</td><td style="text-align:right;color:#ef4444;font-weight:bold;">-₺${detaylar.avansToplam.toFixed(2)}</td></tr>
             </table>
-            <h2 style="margin-top:30px;text-align:right;color:#059669">TOPLAM ÖDENECEK KASA ÇIKIŞI: ₺${(aylikMaliyet + primHakki).toFixed(2)}</h2>
+            <h2 style="margin-top:20px;text-align:right;color:#059669">TOPLAM ÖDENECEK NAKİT ÇIKIŞI: ₺${Math.max(0, aylikMaliyet + primHakki - detaylar.avansToplam).toFixed(2)}</h2>
             <div style="margin-top:50px;display:flex;justify-content:space-between">
                 <div>İmza (Yetkili)<br><br>......................</div>
                 <div>İmza (Personel)<br><br>......................</div>
@@ -697,12 +718,14 @@ export default function PersonelMainContainer() {
                         </div>
                         <button
                             onClick={() => {
-                                const baslik = ['Personel Kodu', 'Ad Soyad', 'Görev', 'Aylık Maliyet (₺)', 'Üretim Değeri (₺)', 'Başa Baş Farkı (₺)', 'Hak Edilen Prim (₺)', 'Toplam Ödenecek (₺)'];
+                                const baslik = ['Personel Kodu', 'Ad Soyad', 'Görev', 'Aylık Maliyet (₺)', 'Üretim Değeri (₺)', 'Başa Baş Farkı (₺)', 'Hak Edilen Prim (₺)', 'Avans Kesintisi (₺)', 'Toplam Ödenecek (₺)'];
                                 const veriler = personeller.filter(p => p.durum === 'aktif').map(p => {
-                                    const { aylikMaliyet, uretimDegeri, asim, primHakki } = primHesap(p);
+                                    const { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam } = primHesap(p);
                                     return [
                                         p.personel_kodu, p.ad_soyad, ROL_LABEL[p.rol] || p.rol,
-                                        aylikMaliyet.toFixed(2), uretimDegeri.toFixed(2), asim.toFixed(2), primHakki.toFixed(2), (aylikMaliyet + primHakki).toFixed(2)
+                                        aylikMaliyet.toFixed(2), uretimDegeri.toFixed(2), asim.toFixed(2), primHakki.toFixed(2),
+                                        avansToplam.toFixed(2),
+                                        Math.max(0, aylikMaliyet + primHakki - avansToplam).toFixed(2)
                                     ];
                                 });
                                 // CSV Formatı
@@ -723,7 +746,7 @@ export default function PersonelMainContainer() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '0.875rem' }}>
                         {personeller.filter(p => p.durum === 'aktif').map(p => {
-                            const { aylikMaliyet, uretimDegeri, asim, primHakki } = primHesap(p);
+                            const { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam } = primHesap(p);
                             const yuzdeDolum = Math.min((uretimDegeri / aylikMaliyet) * 100, 150);
                             const esikAsildi = asim > 0;
                             return (
@@ -762,8 +785,20 @@ export default function PersonelMainContainer() {
                                                 {esikAsildi ? `₺${primHakki.toFixed(2)}` : '—'}
                                             </div>
                                         </div>
+                                        {avansToplam > 0 && (
+                                            <div style={{ background: '#fef2f2', borderRadius: 8, padding: '6px 10px', border: '1px solid #fca5a5', gridColumn: '1/-1' }}>
+                                                <div style={{ color: '#ef4444', fontWeight: 800, marginBottom: 2 }}>KASADAN ALINAN AVANS KESİNTİSİ (-)</div>
+                                                <div style={{ fontWeight: 900, fontSize: '0.9rem', color: '#b91c1c' }}>
+                                                    -₺${avansToplam.toFixed(2)}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button onClick={() => bordroYazdir(p, { aylikMaliyet, uretimDegeri, asim, primHakki })} style={{ marginTop: '0.875rem', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#1e293b'} onMouseOut={e => e.currentTarget.style.background = '#0f172a'}>
+                                    <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: '#0f172a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ color: '#94a3b8', fontSize: '0.72rem', fontWeight: 700 }}>NET ÖDENECEK</div>
+                                        <div style={{ color: '#38bdf8', fontSize: '1.2rem', fontWeight: 900 }}>₺{Math.max(0, aylikMaliyet + primHakki - avansToplam).toFixed(2)}</div>
+                                    </div>
+                                    <button onClick={() => bordroYazdir(p, { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam })} style={{ marginTop: '0.5rem', width: '100%', padding: '6px', background: 'transparent', color: '#64748b', border: '2px solid #e5e7eb', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.color = '#0f172a'; e.currentTarget.style.borderColor = '#0f172a'; }} onMouseOut={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e5e7eb'; }}>
                                         🖨️ Bordro Çıktısı Al
                                     </button>
                                 </div>

@@ -1,14 +1,15 @@
 import { GoogleGenAI } from '@google/genai';
 
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const AI_MODEL_VERSION = 'gemini-2.5-flash'; // Kriter 139: Model Versiyon Kontrolü
 
 // Kriter 78, 136, 137, 138: Karar Doğrulama, Semizleme ve Bias Denetimi
 export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 'genel') {
-    if (!process.env.GEMINI_API_KEY) {
-        return { hata: true, mesaj: 'API Anahtarı eksik.', guven_skoru: 0 };
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) {
+        return { hata: true, mesaj: 'API Anahtarı (.env) eksik.', guven_skoru: 0 };
     }
 
+    const genai = new GoogleGenAI({ apiKey });
     const startTime = performance.now();
 
     // 137: Veri Semizleme Algoritması
@@ -32,7 +33,7 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
         const endTime = performance.now();
         const durationMs = endTime - startTime; // Kriter 140: Performans Ölçümü (Zaman)
 
-        let aiKarari = response.text;
+        let aiKarari = response.text || '';
 
         // JSON formatına zorla temizleme ve parse etme
         if (aiKarari.includes('\`\`\`json')) {

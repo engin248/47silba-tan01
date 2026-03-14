@@ -49,6 +49,7 @@ const BOSH_FORM = {
     aciklama: '',
     vade_tarihi: '',
     musteri_id: '',
+    personel_id: '', // [M13-M7 KÖPRÜSÜ ZIRHI]
 };
 
 const TIP_RENK = {
@@ -66,6 +67,7 @@ export default function KasaMainContainer() {
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [hareketler, setHareketler] = useState([]);
     const [musteriler, setMusteriler] = useState([]);
+    const [personeller, setPersoneller] = useState([]); // [M13-M7 KÖPRÜSÜ ZIRHI]
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -98,18 +100,20 @@ export default function KasaMainContainer() {
         try {
             // [AI ZIRHI]: 10sn timeout DDoS kalkanı (Kriter Q)
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
-            const [harRes, musRes] = await Promise.race([
+            const [harRes, musRes, perRes] = await Promise.race([
                 Promise.allSettled([
                     supabase.from('b2_kasa_hareketleri')
-                        .select('*, b2_musteriler:musteri_id(ad_soyad, musteri_kodu)')
+                        .select('*, b2_musteriler:musteri_id(ad_soyad, musteri_kodu), b1_personel:personel_id(ad_soyad, personel_kodu)')
                         .order('created_at', { ascending: false }).limit(300),
                     supabase.from('b2_musteriler').select('id,musteri_kodu,ad_soyad').eq('aktif', true).limit(500),
+                    supabase.from('b1_personel').select('id,personel_kodu,ad_soyad').eq('durum', 'aktif').limit(300),
                 ]),
                 timeout
             ]);
             if (harRes.status === 'fulfilled' && harRes.value.data) setHareketler(harRes.value.data);
             else if (harRes.status === 'fulfilled' && harRes.value.error) throw harRes.value.error;
             if (musRes.status === 'fulfilled' && musRes.value.data) setMusteriler(musRes.value.data);
+            if (perRes.status === 'fulfilled' && perRes.value.data) setPersoneller(perRes.value.data);
         } catch (e) { goster('Kasa verileri alınamadı: ' + e.message, 'error'); }
         setLoading(false);
     };
@@ -126,7 +130,8 @@ export default function KasaMainContainer() {
             tutar_tl: parseFloat(form.tutar_tl),
             aciklama: form.aciklama.trim(),
             vade_tarihi: form.vade_tarihi || null,
-            musteri_id: form.musteri_id || null,
+            musteri_id: form.hareket_tipi === 'avans' ? null : (form.musteri_id || null),
+            personel_id: form.hareket_tipi === 'avans' ? (form.personel_id || null) : null,
             onay_durumu: 'bekliyor',
         };
 
@@ -344,11 +349,18 @@ export default function KasaMainContainer() {
                             <input type="date" value={form.vade_tarihi} onChange={e => setForm({ ...form, vade_tarihi: e.target.value })} style={inp} />
                         </div>
                         <div>
-                            <label style={lbl}>Müşteri</label>
-                            <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
-                                <option value="">— Anonim / Perakende —</option>
-                                {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
-                            </select>
+                            <label style={lbl}>{form.hareket_tipi === 'avans' ? 'İlişkili Personel (Avans için)' : 'Müşteri / Firma (İsteğe Bağlı)'}</label>
+                            {form.hareket_tipi === 'avans' ? (
+                                <select value={form.personel_id} onChange={e => setForm({ ...form, personel_id: e.target.value, musteri_id: '' })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                    <option value="">— Avans Verilen Personeli Seçin —</option>
+                                    {personeller.map(p => <option key={p.id} value={p.id}>{p.personel_kodu} | {p.ad_soyad}</option>)}
+                                </select>
+                            ) : (
+                                <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value, personel_id: '' })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                    <option value="">— Anonim / Perakende —</option>
+                                    {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
+                                </select>
+                            )}
                         </div>
                         <div style={{ gridColumn: '1/-1' }}>
                             <label style={lbl}>Açıklama *</label>
@@ -422,6 +434,9 @@ export default function KasaMainContainer() {
                                     </span>
                                     {h.b2_musteriler?.ad_soyad && (
                                         <span style={{ fontSize: '0.62rem', color: '#3b82f6', fontWeight: 700 }}>👤 {h.b2_musteriler.ad_soyad}</span>
+                                    )}
+                                    {h.b1_personel?.ad_soyad && (
+                                        <span style={{ fontSize: '0.62rem', color: '#8b5cf6', fontWeight: 700 }}>👷 {h.b1_personel.ad_soyad} (Avans)</span>
                                     )}
                                     {h.vade_tarihi && (
                                         <span style={{ fontSize: '0.62rem', fontWeight: 700, color: new Date(h.vade_tarihi) < new Date() ? '#ef4444' : '#f59e0b' }}>

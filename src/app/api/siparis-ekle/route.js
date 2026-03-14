@@ -7,8 +7,8 @@ import { hataBildir } from '@/lib/hataBildirim';
 // ─── POST /api/siparis-ekle ────────────────────────────────────
 export async function POST(request) {
     const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+        process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || '',
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
     );
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
@@ -74,12 +74,50 @@ export async function POST(request) {
         if (kalemErr) throw kalemErr;
 
         // Kara kutu log
-        await supabaseAdmin.from('b0_sistem_loglari').insert([{
-            tablo_adi: 'b2_siparisler',
-            islem_tipi: 'EKLEME',
-            kullanici_adi: 'Server API (Güvenli Sipariş)',
-            eski_veri: { siparis_no: siparisDog.data.siparis_no, kalem_sayisi: kalemler.length }
-        }]).catch(() => { });
+        try {
+            await supabaseAdmin.from('b0_sistem_loglari').insert([{
+                tablo_adi: 'b2_siparisler',
+                islem_tipi: 'EKLEME',
+                kullanici_adi: 'Server API (Güvenli Sipariş)',
+                eski_veri: { siparis_no: siparisDog.data.siparis_no, kalem_sayisi: kalemler.length }
+            }]);
+        } catch (e) { }
+
+        // [M9 - ZIRH #2]: Müşteri Cari Bakiyesi ve M7 Kasa Entegrasyonu (Finans Zırhı)
+        if (siparisDog.data.musteri_id) {
+            const islemTutari = parseFloat(siparisDog.data.toplam_tutar_tl || 0);
+            if (islemTutari > 0) {
+                // Cari Bakiye Güncelle (Tutar kadar borç eklenir, ödeme yaptıysa o an kasa/tahsilatla düşmesi theOrder standardıdır)
+                // Yada peşin ise bakiye değişmez. Biz standart olarak bakiyeye bindirip anında kasadan tahsilat düşebiliriz.
+                // Burada en doğrusu theOrder mantığında: Sipariş cirosunu bakiyeye(borca) ekle.
+                const { data: musteriData } = await supabaseAdmin.from('b2_musteriler').select('toplam_borc_tl').eq('id', siparisDog.data.musteri_id).single();
+                if (musteriData) {
+                    await supabaseAdmin.from('b2_musteriler').update({ toplam_borc_tl: (parseFloat(musteriData.toplam_borc_tl || 0) + islemTutari) }).eq('id', siparisDog.data.musteri_id);
+                }
+            }
+        }
+
+        // M7 Kasa Otomatik Tahsilat (Nakit/Kredi Kartı ise anında tahsilat logu)
+        const islemTutari = parseFloat(siparisDog.data.toplam_tutar_tl || 0);
+        if (islemTutari > 0 && ['nakit', 'kredi_karti', 'eft'].includes(siparisDog.data.odeme_yontemi)) {
+            await supabaseAdmin.from('b2_kasa_hareketleri').insert([{
+                musteri_id: siparisDog.data.musteri_id || null,
+                siparis_id: sipData.id,
+                hareket_tipi: 'tahsilat',
+                odeme_yontemi: siparisDog.data.odeme_yontemi,
+                tutar_tl: islemTutari,
+                aciklama: `Sipariş #${siparisDog.data.siparis_no} (Peşin Tahsilat)`,
+                onay_durumu: 'onaylandi'
+            }]);
+
+            // Otomatik Tahsilat yapıldığı için Müşteri borcunu geri düş (Çünkü peşin verdi)
+            if (siparisDog.data.musteri_id) {
+                const { data: musteriData } = await supabaseAdmin.from('b2_musteriler').select('toplam_borc_tl').eq('id', siparisDog.data.musteri_id).single();
+                if (musteriData) {
+                    await supabaseAdmin.from('b2_musteriler').update({ toplam_borc_tl: Math.max(0, parseFloat(musteriData.toplam_borc_tl || 0) - islemTutari) }).eq('id', siparisDog.data.musteri_id);
+                }
+            }
+        }
 
         return NextResponse.json({ basarili: true, siparis: sipData }, { status: 201 });
 

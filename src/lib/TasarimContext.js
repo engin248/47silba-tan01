@@ -80,7 +80,8 @@ export function TasarimProvider({ children }) {
             const root = document.documentElement;
             root.style.setProperty('--c-ana', yeniTema.ana_renk);
             root.style.setProperty('--c-ikincil', yeniTema.ikincil_renk);
-            root.style.setProperty('--c-arka', yeniTema.arkaplan_renk);
+            // Sayfa zemin rengi %10 açılıyor
+            root.style.setProperty('--c-arka', `color-mix(in srgb, ${yeniTema.arkaplan_renk} 90%, white)`);
             root.style.setProperty('--c-kutu', yeniTema.kutu_arka_plan);
             root.style.setProperty('--f-yazi', yeniTema.yazi_tipi);
             root.style.setProperty('--b-radius', yeniTema.kose_radius);

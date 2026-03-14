@@ -89,6 +89,7 @@ export const siparisSchema = z.object({
     acil: z.boolean().default(false),
     para_birimi: z.enum(['TL', 'USD', 'EUR']).default('TL'),
     toplam_tutar_tl: z.number().nonnegative().default(0),
+    odeme_yontemi: z.enum(['nakit', 'kredi_karti', 'eft', 'cek', 'senet']).default('nakit'),
 });
 
 export const siparisKalemSchema = z.object({

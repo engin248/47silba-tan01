@@ -33,7 +33,7 @@ const PARA_BIRIMLERI = [
     { kod: 'USD', simge: '$', bayrak: '🇺🇸' },
     { kod: 'EUR', simge: '€', bayrak: '🇪🇺' },
 ];
-const BOSH_FORM = { musteri_id: '', siparis_no: '', kanal: 'magaza', notlar: '', acil: false, para_birimi: 'TL' };
+const BOSH_FORM = { musteri_id: '', siparis_no: '', kanal: 'magaza', notlar: '', acil: false, para_birimi: 'TL', odeme_yontemi: 'nakit' };
 
 export default function SiparislerSayfasi() {
     const { kullanici } = useAuth();
@@ -121,6 +121,13 @@ export default function SiparislerSayfasi() {
         if (form.notlar.length > 300) return goster('Notlar çok uzun!', 'error');
         if (kalemler.some(k => !k.urun_id)) return goster('Tüm kalemlerin ürünü seçilmeli!', 'error');
         if (kalemler.some(k => !k.adet || parseInt(k.adet) < 1)) return goster('Tüm kalemlerin adeti 1\'den büyük olmalı!', 'error');
+
+        // [M9 ZIRHI]: %10 Üzeri İskonto Kalkanı
+        const enYuksekIskonto = Math.max(...kalemler.map(k => parseFloat(k.iskonto_pct) || 0));
+        if (enYuksekIskonto > 10 && !yetkiliMi) {
+            return goster('🚨 GÜVENLİK İHLALİ: %10 üzerinde iskonto vermek için KASA/YÖNETİCİ yetkisi zorunludur!', 'error');
+        }
+
         setLoading(true);
         const toplam = toplamHesapla();
         try {
@@ -135,6 +142,7 @@ export default function SiparislerSayfasi() {
                     notlar: form.notlar.trim() || null,
                     acil: form.acil || false,
                     para_birimi: form.para_birimi || 'TL',
+                    odeme_yontemi: form.odeme_yontemi || 'nakit',
                 },
                 kalemler: kalemler.map(k => ({
                     urun_id: k.urun_id,
@@ -507,6 +515,15 @@ export default function SiparislerSayfasi() {
                         <div><label style={lbl}>Kanal *</label>
                             <select value={form.kanal} onChange={e => setForm({ ...form, kanal: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
                                 {KANALLAR.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#047857', marginBottom: 5, textTransform: 'uppercase' }}>Ödeme Yöntemi</label>
+                            <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, border: '2px solid #34d399', background: '#ecfdf5', cursor: 'pointer' }}>
+                                <option value="nakit">💵 Nakit / Peşin</option>
+                                <option value="kredi_karti">💳 Kredi Kartı</option>
+                                <option value="eft">🏦 EFT / Havale</option>
+                                <option value="cek">📜 Çek / Evrak</option>
                             </select>
                         </div>
                         <div><label style={lbl}>Para Birimi</label>
