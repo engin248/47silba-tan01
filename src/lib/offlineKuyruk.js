@@ -32,10 +32,23 @@ export async function cevrimeKuyrugaAl(tabloAdi, operasyonTipi = 'INSERT', veri)
         const transaction = db.transaction(STORE_ADI, 'readwrite');
         const store = transaction.objectStore(STORE_ADI);
 
+        // 💥 KÖR NOKTA ÇÖZÜMÜ: Mükerrer Kaydı (Race Condition) Önlemek İçin 
+        // Veriye istemcide (offline iken) bir UUID basıyoruz ki, internet gelince 
+        // aynı buton tıklamasından 3 kere INSERT atılmasın (Idempotency).
+        const guvenliVeri = { ...veri };
+        if (operasyonTipi === 'INSERT' && !guvenliVeri.id) {
+            guvenliVeri.id = crypto.randomUUID();
+        }
+
+        // V2 Imalatında kullanılan is_offline_sync Sütunu da işaretleniyor:
+        if (operasyonTipi === 'INSERT' || operasyonTipi === 'UPDATE') {
+            guvenliVeri.is_offline_sync = true;
+        }
+
         const islemOzet = {
             tablo: tabloAdi,
             operasyon: operasyonTipi, // 'INSERT', 'UPDATE', 'DELETE'
-            veri: veri,
+            veri: guvenliVeri,
             tarih: new Date().toISOString()
         };
 
@@ -88,7 +101,9 @@ export async function offlineSenkronizasyonuBaslat() {
 
             try {
                 if (islem.operasyon === 'INSERT') {
-                    const { error } = await supabase.from(islem.tablo).insert([islem.veri]);
+                    // MÜKERRER KAYIT ÇÖZÜMÜ: INSERT yerine UPSERT kullanıyoruz ki, UUID çakışırsa 
+                    // yeni satır eklemek yerine var olanı (ilk gideni) ezsin. Böylece çiftlemeler durdu.
+                    const { error } = await supabase.from(islem.tablo).upsert([islem.veri], { onConflict: 'id' });
                     if (error) throw error;
                 } else if (islem.operasyon === 'UPDATE') {
                     const { error } = await supabase.from(islem.tablo).update(islem.veri).eq('id', islem.veri.id);
