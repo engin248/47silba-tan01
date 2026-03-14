@@ -163,7 +163,7 @@ export function KarargahMainContainer() {
     const isAdmin = kullanici?.grup === 'tam' || kullanici?.rol === 'admin';
 
     return (
-        <div className="bg-[#0f172a] min-h-screen p-4 text-white font-sans selection:bg-emerald-500 selection:text-white pb-20">
+        <div className="bg-[#162032] min-h-screen p-4 text-white font-sans selection:bg-emerald-500 selection:text-white pb-20">
 
             {mesaj.text && (
                 <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 px-8 rounded-lg font-bold shadow-2xl transition-all ${mesaj.type === 'error' ? 'bg-red-600 text-white border-2 border-red-500' : 'bg-emerald-600 text-white'}`}>

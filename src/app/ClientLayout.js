@@ -64,7 +64,7 @@ function SidebarInner({ isAR }) {
             <Link href={item.href} className="nav-item"
                 style={{ paddingLeft: isAR ? '8px' : '14px', paddingRight: isAR ? '14px' : '8px', opacity: aktif ? 1 : 0.85, minHeight: '44px' }}>
                 <item.icon size={16} />
-                <span style={{ flex: 1, fontSize: '0.85rem' }}>{isAR ? item.labelAR : item.labelTR}</span>
+                <span style={{ flex: 1, fontSize: '0.94rem' }}>{isAR ? item.labelAR : item.labelTR}</span>
                 {item.badge && (
                     <span style={{ fontSize: '0.55rem', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}
                         className={`badge-${item.group}`}>
@@ -80,7 +80,7 @@ function SidebarInner({ isAR }) {
         if (items.length === 0) return null;
         return (
             <>
-                <div style={{ fontSize: '0.63rem', fontWeight: 800, color, letterSpacing: '0.1em', padding: '10px 8px 3px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color, letterSpacing: '0.1em', padding: '10px 8px 3px', textTransform: 'uppercase' }}>
                     {isAR ? labelAR : label}
                 </div>
                 {items.map(item => <NavItem key={item.href} item={item} />)}
@@ -232,11 +232,11 @@ function LayoutInner({ children }) {
             <aside className={`sidebar${sidebarAcik ? ' mobile-open' : ''}`}>
                 {/* Başlık */}
                 <div style={{ padding: '1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.25rem' }}>
-                    <h1 style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
+                    <h1 style={{ fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
                         <span style={{ color: '#f59e0b' }}>mizanet</span>
                         <span style={{ color: '#6ee7b7' }}>.com</span>
                     </h1>
-                    <p style={{ fontSize: '0.55rem', color: '#94a3b8', margin: '4px 0 0', fontWeight: 600, letterSpacing: '0.06em' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#e2e8f0', margin: '6px 0 0', fontWeight: 700, letterSpacing: '0.05em' }}>
                         Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım
                     </p>
                 </div>
@@ -286,7 +286,9 @@ function LayoutInner({ children }) {
                             </svg>
                         </button>
                         <div>
-                            {/* ÖLÜ ALAN TEMİZLENDİ (AR-GE İMALAT MAĞAZA vb. MENÜ METİNLERİ KALDIRILDI) */}
+                            <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#1e293b', letterSpacing: '0.05em' }}>
+                                KARARGÂH OPERASYON & KOORDİNASYON MERKEZİ
+                            </h2>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
