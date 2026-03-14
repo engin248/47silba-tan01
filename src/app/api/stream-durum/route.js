@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // go2rtc stream sunucu sağlık kontrolü
 export async function GET() {
-    const go2rtcUrl = (process.env.GO2RTC_URL || process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984').trim();
+    const go2rtcUrl = 'https://kamera.demirtekstiltheondercom.com';
 
     try {
         const controller = new AbortController();
