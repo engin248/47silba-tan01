@@ -232,7 +232,7 @@ function LayoutInner({ children }) {
             <aside className={`sidebar${sidebarAcik ? ' mobile-open' : ''}`}>
                 {/* Başlık */}
                 <div style={{ padding: '1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.25rem' }}>
-                    <h1 style={{ fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.05em', margin: 0, textTransform: 'lowercase' }}>
+                    <h1 style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
                         <span style={{ color: '#f59e0b' }}>mizanet</span>
                         <span style={{ color: '#6ee7b7' }}>.com</span>
                     </h1>
