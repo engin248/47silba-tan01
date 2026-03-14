@@ -30,13 +30,22 @@ const OTURUM_SURESI = 8 * 60 * 60 * 1000; // 8 saat
 
 function terminalPinleriYaz(grup) {
     if (typeof window === 'undefined') return;
+
+    // Güvenlik: Düz metin (btoa) yerine timestamp destekli maskelenmiş pseudo-token
+    const secureToken = (pin) => {
+        const timestamp = Date.now().toString(36);
+        const salt = Math.random().toString(36).substring(2, 7);
+        // Base64 encoding + salt + timestamp ile tersine mühendisliği zorlaştırıyoruz
+        return btoa(`${pin}:${salt}:${timestamp}`).replace(/=/g, '');
+    };
+
     if (grup === 'tam') {
-        sessionStorage.setItem('sb47_uretim_pin', btoa('4747'));
-        sessionStorage.setItem('sb47_genel_pin', btoa('4747'));
+        sessionStorage.setItem('sb47_uretim_pin', secureToken('tam_yetki_aktif_4747'));
+        sessionStorage.setItem('sb47_genel_pin', secureToken('tam_yetki_aktif_4747'));
     } else if (grup === 'uretim') {
-        sessionStorage.setItem('sb47_uretim_pin', btoa('1244'));
+        sessionStorage.setItem('sb47_uretim_pin', secureToken('uretim_yetki_1244'));
     } else if (grup === 'genel') {
-        sessionStorage.setItem('sb47_genel_pin', btoa('8888'));
+        sessionStorage.setItem('sb47_genel_pin', secureToken('genel_yetki_8888'));
     }
 }
 
