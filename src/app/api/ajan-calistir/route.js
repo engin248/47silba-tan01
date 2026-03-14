@@ -164,10 +164,10 @@ export async function POST(req) {
         sqlTehlikeTaramasi(gorev.gorev_emri);
 
         const startTime = performance.now();
-        await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
+        await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev.id);
 
         // Kriter 145: İzleme (Trace) Başlat
-        await ajanAkliniGoster(supabaseAdmin, gorev_id, '⚡ Zihinsel işlem başlatıldı');
+        await ajanAkliniGoster(supabaseAdmin, gorev.id, '⚡ Zihinsel işlem başlatıldı');
 
         let sonuc;
         try {
@@ -186,7 +186,7 @@ export async function POST(req) {
             // Hata görev tablosunda kalır, karargah kitlenmez.
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'hata', hata_mesaji: islemHatasi.message || 'Çekirdek Algoritma Panikledi (Sandboxed)'
-            }).eq('id', gorev_id);
+            }).eq('id', gorev.id);
             throw islemHatasi;
         }
 
@@ -201,13 +201,13 @@ export async function POST(req) {
             Math.round(100 - (tokenMaliyeti * 0.05) + zamanPuani)
         ));
 
-        await ajanAkliniGoster(supabaseAdmin, gorev_id, '✅ Sisteme geri entegre edildi');
+        await ajanAkliniGoster(supabaseAdmin, gorev.id, '✅ Sisteme geri entegre edildi');
 
         await supabaseAdmin.from('b1_ajan_gorevler').update({
             durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
             sonuc_ozeti: sonuc.ozet || 'Ok',
-            hedef_modul: 'GENEL' // Temizle
-        }).eq('id', gorev_id);
+            hedef_modul: 'GENEL'
+        }).eq('id', gorev.id);
 
         // Kriter 80: İşlem Logu ve Kriter 84 (Agent Skoru)
         await supabaseAdmin.from('b1_agent_loglari').insert([{
