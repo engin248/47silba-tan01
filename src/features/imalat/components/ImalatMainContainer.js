@@ -314,11 +314,11 @@ export default function ImalatMainContainer() {
     }
 
     return (
-        <div className="pb-20 font-sans">
+        <div dir={isAR ? 'rtl' : 'ltr'} className="pb-20 font-sans">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-black uppercase text-slate-800 tracking-tight">1. BİRİM: İMALAT VE SIFIR İNİSİYATİF ÜRETİM KORİDORU</h1>
-                    <p className="text-sm text-gray-600 font-bold mt-1">Sektördeki Fason / Taşeron insiyatifine, bilgi kirliliğine ve plansızlığa son veren 4 Adımlı Tam Denetim Paneli.</p>
+                    <h1 className="text-3xl font-black uppercase text-slate-800 tracking-tight">{isAR ? 'الوحدة الأولى: ممر الإنتاج والتصنيع بصفر مبادرة' : '1. BİRİM: İMALAT VE SIFIR İNİSİYATİF ÜRETİM KORİDORU'}</h1>
+                    <p className="text-sm text-gray-600 font-bold mt-1">{isAR ? 'لوحة تحكم وتدقيق كاملة من 4 خطوات تنهي الفوضى وسوء التخطيط في الإنتاج' : 'Sektördeki Fason / Taşeron insiyatifine, bilgi kirliliğine ve plansızlığa son veren 4 Adımlı Tam Denetim Paneli.'}</p>
                 </div>
                 {/* CC Kriteri (M6 / Depo / Finans rotasına geçiş) - SPA KORUMASI */}
                 <NextLink href="/finans" style={{ textDecoration: 'none' }}>
@@ -338,16 +338,16 @@ export default function ImalatMainContainer() {
             {/* ANA PENCERELER (DEPARTMAN GEÇİŞLERİ) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8 bg-slate-900 p-2 rounded-2xl shadow-xl">
                 <button onClick={() => setMainTab('teknik_gorus')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'teknik_gorus' ? 'bg-blue-500 text-white scale-105 shadow-lg shadow-blue-500/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
-                    <FileText size={28} className="mb-2" /> 1. TEKNİK GÖRÜŞ <span className="text-xs font-normal opacity-80">(Firma / Model Kabul)</span>
+                    <FileText size={28} className="mb-2" /> {isAR ? '1. الرؤية الفنية' : '1. TEKNİK GÖRÜŞ'} <span className="text-xs font-normal opacity-80">({isAR ? 'قبول الموديل' : 'Firma / Model Kabul'})</span>
                 </button>
                 <button onClick={() => setMainTab('modelhane')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'modelhane' ? 'bg-emerald-500 text-white scale-105 shadow-lg shadow-emerald-500/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
-                    <CheckSquare size={28} className="mb-2" /> 2. İLK ÜRÜN ŞABLONU <span className="text-xs font-normal opacity-80">(Modelhane İşlem Sırası)</span>
+                    <CheckSquare size={28} className="mb-2" /> {isAR ? '2. قالب المنتج الأول' : '2. İLK ÜRÜN ŞABLONU'} <span className="text-xs font-normal opacity-80">({isAR ? 'تسلسل إجراءات قسم الموديلات' : 'Modelhane İşlem Sırası'})</span>
                 </button>
                 <button onClick={() => setMainTab('uretim')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'uretim' ? 'bg-orange-500 text-white scale-105 shadow-lg shadow-orange-500/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
-                    <Activity size={28} className="mb-2" /> 3. SERİ ÜRETİM (BANT) <span className="text-xs font-normal opacity-80">(Personel ve Operasyon)</span>
+                    <Activity size={28} className="mb-2" /> {isAR ? '3. الإنتاج المتسلسل (الخط)' : '3. SERİ ÜRETİM (BANT)'} <span className="text-xs font-normal opacity-80">({isAR ? 'الموظفين والعمليات' : 'Personel ve Operasyon'})</span>
                 </button>
                 <button onClick={() => setMainTab('maliyet_muhasebe')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'maliyet_muhasebe' ? 'bg-purple-600 text-white scale-105 shadow-lg shadow-purple-600/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
-                    <BarChart3 size={28} className="mb-2" /> 4. MALİYET & MUHASEBE <span className="text-xs font-normal opacity-80">(Final Analiz Gişesi)</span>
+                    <BarChart3 size={28} className="mb-2" /> {isAR ? '4. التكلفة والمحاسبة' : '4. MALİYET & MUHASEBE'} <span className="text-xs font-normal opacity-80">({isAR ? 'نافذة التحليل النهائي' : 'Final Analiz Gişesi'})</span>
                 </button>
             </div>
 
@@ -510,7 +510,7 @@ export default function ImalatMainContainer() {
                         <button
                             onClick={() => setImalatGorunum(v => v === 'liste' ? 'kanban' : 'liste')}
                             style={{ background: imalatGorunum === 'kanban' ? '#7c3aed' : '#475569', color: 'white', border: 'none', padding: '8px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
-                            {imalatGorunum === 'kanban' ? '📋 Liste Görünümü' : '📦 Kanban Board'}
+                            {imalatGorunum === 'kanban' ? (isAR ? '📋 عرض القائمة' : '📋 Liste Görünümü') : (isAR ? '📦 لوحة كانبان' : '📦 Kanban Board')}
                         </button>
                     </div>
 
@@ -518,10 +518,10 @@ export default function ImalatMainContainer() {
                     {imalatGorunum === 'kanban' && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '2rem' }}>
                             {[
-                                { key: 'assigned', label: '📋 Atandı', renk: '#3b82f6' },
-                                { key: 'in_progress', label: '⚙️ Üretimde', renk: '#f59e0b' },
-                                { key: 'waiting_for_proof', label: '🔍 Onay Bekl.', renk: '#8b5cf6' },
-                                { key: 'blocked_machine', label: '🔴 Arıza', renk: '#ef4444' },
+                                { key: 'assigned', label: isAR ? '📋 تم التعيين' : '📋 Atandı', renk: '#3b82f6' },
+                                { key: 'in_progress', label: isAR ? '⚙️ قيد الإنتاج' : '⚙️ Üretimde', renk: '#f59e0b' },
+                                { key: 'waiting_for_proof', label: isAR ? '🔍 قيد المراجعة' : '🔍 Onay Bekl.', renk: '#8b5cf6' },
+                                { key: 'blocked_machine', label: isAR ? '🔴 عطل' : '🔴 Arıza', renk: '#ef4444' },
                             ].map(kolon => (
                                 <div key={kolon.key} style={{ background: '#f8fafc', border: `2px solid ${kolon.renk}30`, borderRadius: 12, padding: '0.75rem', minHeight: 180 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
@@ -532,27 +532,27 @@ export default function ImalatMainContainer() {
                                     </div>
                                     {sahadakiIsler.filter(i => i.status === kolon.key).map(is => (
                                         <div key={is.id} style={{ background: 'white', borderRadius: 8, padding: '0.625rem', marginBottom: '0.375rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: `1px solid ${kolon.renk}20` }}>
-                                            <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#0f172a' }}>{is.v2_production_orders?.order_code || 'Sipariş'}</div>
+                                            <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#0f172a' }}>{is.v2_production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
                                             <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{is.v2_production_orders?.v2_models?.model_name || '—'}</div>
                                             {kolon.key === 'assigned' && (
                                                 <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} style={{ marginTop: 4, fontSize: '0.6rem', fontWeight: 800, background: '#eff6ff', color: '#2563eb', border: 'none', padding: '2px 8px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
-                                                    {islemdeId === is.id ? '...' : '▶ Başlat'}
+                                                    {islemdeId === is.id ? '...' : (isAR ? '▶ ابدأ' : '▶ Başlat')}
                                                 </button>
                                             )}
                                             {kolon.key === 'in_progress' && (
                                                 <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
                                                     <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#ecfdf5', color: '#059669', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
-                                                        {islemdeId === is.id ? '...' : '✓ Bitir'}
+                                                        {islemdeId === is.id ? '...' : (isAR ? '✓ إنهاء' : '✓ Bitir')}
                                                     </button>
                                                     <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#fef2f2', color: '#dc2626', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
-                                                        {islemdeId === is.id ? '...' : '⚠ Arıza'}
+                                                        {islemdeId === is.id ? '...' : (isAR ? '⚠ عطل' : '⚠ Arıza')}
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
                                     ))}
                                     {sahadakiIsler.filter(i => i.status === kolon.key).length === 0 && (
-                                        <div style={{ textAlign: 'center', padding: '1rem', color: '#cbd5e1', fontSize: '0.7rem' }}>Boş</div>
+                                        <div style={{ textAlign: 'center', padding: '1rem', color: '#cbd5e1', fontSize: '0.7rem' }}>{isAR ? 'فارغ' : 'Boş'}</div>
                                     )}
                                 </div>
                             ))}
@@ -565,22 +565,22 @@ export default function ImalatMainContainer() {
                             {/* SAHA KRONOMETRE PANELI */}
                             <div className="card shadow-xl border-t-8 border-orange-500 bg-white">
                                 <div className="border-b pb-4 mb-4">
-                                    <h2 className="text-xl font-black text-slate-800 flex items-center gap-2"><Activity className="text-orange-500" /> FASON / BANT İŞÇİSİ SAHA EKRANI</h2>
-                                    <p className="text-xs text-gray-500 font-bold mt-1">İşler buraya düşer. Usta saati başlatır, bitirince kanıtla kapatır. İp koptuğunda "Arıza" diyerek faturayı dükkana yıkar.</p>
+                                    <h2 className="text-xl font-black text-slate-800 flex items-center gap-2"><Activity className="text-orange-500" /> {isAR ? 'شاشة العامل في الموقع / الخط' : 'FASON / BANT İŞÇİSİ SAHA EKRANI'}</h2>
+                                    <p className="text-xs text-gray-500 font-bold mt-1">{isAR ? 'تظهر المهام هنا. يبدأ المعلم الميقاتية وينهي العمل...' : 'İşler buraya düşer. Usta saati başlatır, bitirince kanıtla kapatır. İp koptuğunda "Arıza" diyerek faturayı dükkana yıkar.'}</p>
                                 </div>
 
                                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                                    {sahadakiIsler.length === 0 && <div className="p-8 text-center text-gray-400 font-bold border-2 border-dashed rounded-xl">Ustaya/Fasona atanmış bir üretim sırası yok.</div>}
+                                    {sahadakiIsler.length === 0 && <div className="p-8 text-center text-gray-400 font-bold border-2 border-dashed rounded-xl">{isAR ? 'لا يوجد ترتيب إنتاج مخصص' : 'Ustaya/Fasona atanmış bir üretim sırası yok.'}</div>}
                                     {sahadakiIsler.map(is => (
                                         <div key={is.id} className={`border-2 rounded-xl p-5 flex flex-col shadow-sm transition-all ${is.status === 'in_progress' ? 'border-orange-400 bg-orange-50/50' : 'border-slate-200 bg-white'}`}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
-                                                    <h3 className="font-black text-lg text-slate-800 uppercase">[KOD: {is.v2_production_orders?.order_code}]</h3>
-                                                    <p className="text-sm text-slate-600 font-bold mt-1">Sipariş: {is.v2_production_orders?.v2_models?.model_name || 'Gizli Model'}</p>
+                                                    <h3 className="font-black text-lg text-slate-800 uppercase">[{isAR ? 'الرمز' : 'KOD'}: {is.v2_production_orders?.order_code}]</h3>
+                                                    <p className="text-sm text-slate-600 font-bold mt-1">{isAR ? 'الطلب' : 'Sipariş'}: {is.v2_production_orders?.v2_models?.model_name || (isAR ? 'نموذج مخفي' : 'Gizli Model')}</p>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1">
                                                     <span className="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-black border uppercase">{is.status}</span>
-                                                    <span className="text-xs font-bold text-gray-500">Miktar: {is.v2_production_orders?.quantity} Adet</span>
+                                                    <span className="text-xs font-bold text-gray-500">{isAR ? 'الكمية' : 'Miktar'}: {is.v2_production_orders?.quantity} {isAR ? 'قطعة' : 'Adet'}</span>
                                                 </div>
                                             </div>
 
@@ -588,18 +588,18 @@ export default function ImalatMainContainer() {
                                             <div className="flex flex-col gap-2 mt-2">
                                                 {is.status === 'assigned' && (
                                                     <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className="w-full bg-slate-800 text-white py-4 rounded-xl font-black hover:bg-black flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-wait">
-                                                        <Clock /> {islemdeId === is.id ? 'İŞLEMDE...' : 'İŞE VE KRONOMETREYE BAŞLA'}
+                                                        <Clock /> {islemdeId === is.id ? (isAR ? 'جاري المعالجة...' : 'İŞLEMDE...') : (isAR ? 'ابدأ العمل والميقاتية' : 'İŞE VE KRONOMETREYE BAŞLA')}
                                                     </button>
                                                 )}
                                                 {is.status === 'in_progress' && (
                                                     <div className="flex gap-2">
-                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-black hover:bg-emerald-700 shadow-md text-sm disabled:opacity-50 disabled:cursor-wait"><CheckCircle2 className="inline mr-1" /> {islemdeId === is.id ? '...' : 'İŞ BİTTİ (KAPAT)'}</button>
-                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className="flex-1 border-2 border-red-500 text-red-600 py-4 rounded-xl font-black hover:bg-red-50 text-sm disabled:opacity-50 disabled:cursor-wait"><AlertTriangle className="inline mr-1" /> {islemdeId === is.id ? '...' : 'ARIZA BİLDİR (DUR)'}</button>
+                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-black hover:bg-emerald-700 shadow-md text-sm disabled:opacity-50 disabled:cursor-wait"><CheckCircle2 className="inline mr-1" /> {islemdeId === is.id ? '...' : (isAR ? 'انتهى العمل (أغلق)' : 'İŞ BİTTİ (KAPAT)')}</button>
+                                                        <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className="flex-1 border-2 border-red-500 text-red-600 py-4 rounded-xl font-black hover:bg-red-50 text-sm disabled:opacity-50 disabled:cursor-wait"><AlertTriangle className="inline mr-1" /> {islemdeId === is.id ? '...' : (isAR ? 'الإبلاغ عن عطل (توقف)' : 'ARIZA BİLDİR (DUR)')}</button>
                                                     </div>
                                                 )}
                                                 {is.status === 'blocked_machine' && (
                                                     <div className="w-full bg-red-100 text-red-800 p-4 rounded-xl font-black text-center border-2 border-red-200 text-sm">
-                                                        🔴 ARIZA TESPİT EDİLDİ - SAYAÇ DURDU - MÜDAHALE BEKLENİYOR
+                                                        {isAR ? '🔴 تم اكتشاف عطل - توقف العداد - بانتظار التدخل' : '🔴 ARIZA TESPİT EDİLDİ - SAYAÇ DURDU - MÜDAHALE BEKLENİYOR'}
                                                     </div>
                                                 )}
                                             </div>
