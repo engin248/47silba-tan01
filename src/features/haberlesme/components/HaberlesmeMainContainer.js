@@ -204,6 +204,9 @@ export default function HaberlesmeMainContainer() {
 
     // ── GÖNDER ───────────────────────────────────────────────────────────────
     const gonder = async () => {
+        if (!form.urun_kodu.trim() && !form.urun_id.trim()) {
+            return goster('📦 LÜTFEN ÜRÜN VEYA MODEL KODU GİRİN! Boş muhabbet ve sistemsiz mesajlaşma yasaktır.', 'error');
+        }
         if (!form.konu.trim()) return goster('Konu zorunlu!', 'error');
         if (!form.icerik.trim()) return goster('İçerik zorunlu!', 'error');
         if (!kullanici) return goster('Giriş yapmanız gerekiyor.', 'error');
@@ -547,7 +550,7 @@ export default function HaberlesmeMainContainer() {
 
                         {/* MODEL KODU — en üste — tüm mesajların başlangıc noktası */}
                         <div style={{ gridColumn: '1/-1', background: '#1e1b4b', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: 4 }}>
-                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu (Varsa — Mesaj Bu Kodla Başlar)</label>
+                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu * (ZORUNLU — Boş Mesajlaşma Yasaktır)</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                                 <div>
                                     <input
