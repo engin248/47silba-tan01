@@ -42,7 +42,7 @@ const DURUM_CONFIG = {
 const BOSH_FORM = { baslik: '', baslik_ar: '', platform: 'trendyol', kategori: 'gomlek', hedef_kitle: 'kadın', talep_skoru: 5, zorluk_derecesi: 5, referans_link: '', gorsel_url: '', gorsel_dosyasi: null, aciklama: '', aciklama_ar: '' };
 
 export default function ArgeSayfasi() {
-    const { kullanici, yukleniyor: authYukleniyor } = useAuth();
+    const { kullanici, yukleniyor: authYukleniyor } = /** @type {{ kullanici: any, yukleniyor: boolean }} */ (useAuth());
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const t = TX[lang];
@@ -50,14 +50,14 @@ export default function ArgeSayfasi() {
 
 
 
-    const [trendler, setTrendler] = useState([]);
+    const [trendler, setTrendler] = useState(/** @type {any[]} */([]));
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtre, setFiltre] = useState('tumu');
     const [secilenTrend, setSecilenTrend] = useState(null);
-    const [agentLoglari, setAgentLoglari] = useState([]);
+    const [agentLoglari, setAgentLoglari] = useState(/** @type {any[]} */([]));
     const [duzenleId, setDuzenleId] = useState(null);
     // Zamansal Doğrulama
     const [yenidenAraniyor, setYenidenAraniyor] = useState(null);
@@ -67,6 +67,10 @@ export default function ArgeSayfasi() {
     const [aiSonuclar, setAiSonuclar] = useState(null);
     const [aiPanelAcik, setAiPanelAcik] = useState(false);
     const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+
+    // 🟢 DÜZELTİLDİ: Native window.confirm yerine profesyonel Modal States'leri
+    const [aiOnayModalAcik, setAiOnayModalAcik] = useState(false);
+    const [aiAjanDurumu, setAiAjanDurumu] = useState('');
 
     // [SPAM ZIRHI]: Perplexity API'sini art arda basmalara karşı koruma
     const sonAramaZamaniRef = useRef(0);
@@ -132,18 +136,23 @@ export default function ArgeSayfasi() {
 
     const trendAra = async () => {
         const suAn = Date.now();
-        // 🟢 SPAM ENGELİ (COOLDOWN ZIRHI): En az 3 saniye bekleme zorunluluğu
-        if (suAn - sonAramaZamaniRef.current < 3000) return goster('Lütfen botun işlemini tamamlaması için bekleyin (Anti-Spam Koruması).', 'error');
+        if (suAn - sonAramaZamaniRef.current < 3000) return goster(isAR ? 'يرجى انتظار البوت لإكمال عمليته (حماية مكافحة البريد العشوائي).' : 'Lütfen botun işlemini tamamlaması için bekleyin (Anti-Spam Koruması).', 'error');
 
         if (!aiSorgu.trim() || aiAraniyor) return;
-        if (aiSorgu.trim().length > 150) return goster('Arama sorgusu 150 karakterden uzun olamaz!', 'error'); // X Kriteri (Limit)
+        if (aiSorgu.trim().length > 150) return goster(isAR ? 'لا يمكن أن يتجاوز استعلام البحث ١٥٠ حرفًا!' : 'Arama sorgusu 150 karakterden uzun olamaz!', 'error'); // X Kriteri (Limit)
 
-        sonAramaZamaniRef.current = suAn;
+        // 🟢 DÜZELTİLDİ: Native 'window.confirm' engellendi, özel Modal tetiklendi.
+        setAiOnayModalAcik(true);
+    };
 
-        const uyariMetni = isAR ? "⚠️ تنبيه: ستترتب على هذه العملية (بحث واجهة برمجة التطبيقات) تكاليف مالية على الشركة.\n\nإذا كان هذا البحث غير ضروري أو غير هام، يرجى الإلغاء لتوفير التكاليف.\n\nهل تريد بدأ البحث والموافقة على التكلفة؟" : "⚠️ DİKKAT: Bu işlem (Yapay Zeka / Perplexity API) işletmeye FİNANSAL YÜK oluşturacaktır.\n\nEğer bu araştırma gereksiz veya önemli değilse lütfen İPTAL ederek maliyetten tasarruf sağlayın.\n\nİşlemi başlatmak ve maliyeti onaylamak istiyor musunuz?";
-        if (!window.confirm(uyariMetni)) return;
+    const gercekTrendAra = async () => {
+        setAiOnayModalAcik(false); // Modalı kapat
         setAiAraniyor(true);
         setAiSonuclar(null);
+        setAiAjanDurumu(isAR ? 'يقوم هيرميس بمسح السوق العالمي (أمازون ، ترينديول ، إنستغرام)...' : 'Hermes dünya pazarını (Amazon, Trendyol, Instagram) tarıyor...'); // Dinamik UI Geri Bildirimi
+
+        const suAn = Date.now();
+        sonAramaZamaniRef.current = suAn;
 
         // DÜZELTİLDİ: M1 AI Motoruna 'AbortController' (Kilitlenme Önleyici Zaman Aşımı) eklendi [Q4 Kriteri]
         const controller = new AbortController();
@@ -175,6 +184,7 @@ export default function ArgeSayfasi() {
             }
         } finally {
             setAiAraniyor(false);
+            setAiAjanDurumu(''); // İşlem bitince durumu temizle
         }
     };
 
@@ -291,8 +301,8 @@ export default function ArgeSayfasi() {
             }
 
             const payload = {
-                baslik: form.baslik.trim(),
-                baslik_ar: form.baslik_ar.trim() || null,
+                baslik: (duzenleId || form.baslik.includes('[MANUEL]')) ? form.baslik.trim() : `[MANUEL] ${form.baslik.trim()}`.substring(0, 150),
+                baslik_ar: form.baslik_ar.trim() ? ((duzenleId || form.baslik_ar.includes('[يدوي]')) ? form.baslik_ar.trim() : `[يدوي] ${form.baslik_ar.trim()}`.substring(0, 150)) : null,
                 platform: form.platform,
                 kategori: form.kategori,
                 hedef_kitle: form.hedef_kitle,
@@ -300,8 +310,8 @@ export default function ArgeSayfasi() {
                 zorluk_derecesi: parseInt(form.zorluk_derecesi) || 5,
                 referans_linkler: form.referans_link ? [form.referans_link.trim()] : null,
                 gorsel_url: nihaiGorselUrl,
-                aciklama: form.aciklama.trim() || null,
-                aciklama_ar: form.aciklama_ar.trim() || null,
+                aciklama: (!duzenleId && !(form.aciklama || '').includes('[AI ONAYSIZ]')) ? `[AI ONAYSIZ / MANUEL KAYIT] ${form.aciklama.trim()}` : form.aciklama.trim() || null,
+                aciklama_ar: form.aciklama_ar.trim() ? ((!duzenleId && !form.aciklama_ar.includes('[بدون موافقة الذكاء الاصطناعي]')) ? `[بدون موافقة الذكاء الاصطناعي / تسجيل يدوي] ${form.aciklama_ar.trim()}` : form.aciklama_ar.trim()) : null,
                 durum: 'inceleniyor',
             };
 
@@ -610,6 +620,7 @@ export default function ArgeSayfasi() {
                 setAiSorgu={setAiSorgu}
                 trendAra={trendAra}
                 aiAraniyor={aiAraniyor}
+                aiAjanDurumu={aiAjanDurumu}
                 isAR={isAR}
             />
 
@@ -1230,6 +1241,34 @@ export default function ArgeSayfasi() {
 
                 </div>
             </div>
+
+            {/* ONAY MODALI (window.confirm Giderildi) */}
+            {aiOnayModalAcik && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ background: '#1e293b', border: '2px solid #334155', borderRadius: '16px', padding: '2rem', maxWidth: 450, width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', animation: 'slideDown 0.3s ease-out' }}>
+                        <div style={{ width: 64, height: 64, background: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                            <AlertTriangle size={32} color="#dc2626" />
+                        </div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'white', marginBottom: '1rem', textTransform: 'uppercase' }}>
+                            {isAR ? 'تنبيه العبء المالي' : 'FİNANSAL YÜK UYARISI'}
+                        </h3>
+                        <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '2rem', fontWeight: 600 }}>
+                            {isAR ? 'ستؤدي هذه العملية (الذكاء الاصطناعي) إلى تكلفة مالية مباشرة ($0.05 / استعلام).' : 'Bu işlem (Hermes AI Analizi) işletmeye doğrudan finansal maliyet oluşturacaktır ($0.05 / Sorgu).'} <br /><br />
+                            {isAR ? 'إذا كان هذا البحث غير ضروري، يرجى الإلغاء. هل توافق؟' : 'Eğer bu araştırma gereksizse lütfen iptal edin. Onaylıyor musunuz?'}
+                            <br /><span style={{ color: '#34d399', fontWeight: 900, display: 'block', marginTop: 8 }}>"{aiSorgu}"</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setAiOnayModalAcik(false)} style={{ padding: '12px 24px', background: 'transparent', border: '2px solid #475569', color: 'white', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', width: '50%' }}>
+                                {isAR ? 'إلغاء' : 'İPTAL ET'}
+                            </button>
+                            <button onClick={gercekTrendAra} style={{ padding: '12px 24px', background: '#047857', border: 'none', color: 'white', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s', width: '50%', boxShadow: '0 4px 15px rgba(4,120,87,0.4)' }}>
+                                <Globe size={18} /> {isAR ? 'بدء التحليل' : 'ANALİZİ BAŞLAT'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <style>{`@keyframes slideDown { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }`}</style>
         </div>
     );
 }

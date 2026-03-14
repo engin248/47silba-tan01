@@ -36,7 +36,8 @@ export default function MesajBildirimButonu() {
                 .from('b1_ic_mesajlar')
                 .select('id', { count: 'exact', head: true })
                 .or(`alici_grup.eq.${kGrup},alici_grup.eq.hepsi`)
-                .is('okundu_at', null);
+                .is('okundu_at', null)
+                .is('copte', false); // Çöpteki mesajları sayma
             setOkunmamis(count || 0);
         } catch { /* sessiz */ }
     }, [kullanici, kGrup]);
@@ -50,6 +51,7 @@ export default function MesajBildirimButonu() {
                 .select('id, konu, oncelik, tip, created_at, gonderen_adi')
                 .or(`alici_grup.eq.${kGrup},alici_grup.eq.hepsi`)
                 .is('okundu_at', null)
+                .is('copte', false) // Çöpteki mesajların detaylarını gösterme
                 .order('created_at', { ascending: false })
                 .limit(10);
             const mesajlar = data || [];

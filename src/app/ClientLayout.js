@@ -233,8 +233,8 @@ function LayoutInner({ children }) {
                 {/* Başlık */}
                 <div style={{ padding: '1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.25rem' }}>
                     <h1 style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
-                        <span style={{ color: '#f59e0b' }}>NIZAM</span>
-                        <span style={{ color: '#6ee7b7', marginLeft: 6, fontSize: '0.75rem' }}>THE ORDER</span>
+                        <span style={{ color: '#f59e0b' }}>mizanet</span>
+                        <span style={{ color: '#6ee7b7' }}>.com</span>
                     </h1>
                     <p style={{ fontSize: '0.55rem', color: '#94a3b8', margin: '4px 0 0', fontWeight: 600, letterSpacing: '0.06em' }}>
                         Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım

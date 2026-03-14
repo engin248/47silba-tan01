@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
     MessageSquare, Send, Inbox, AlertTriangle, CheckCircle2,
     Clock, User, Lock, ChevronDown, ChevronUp, Reply,
-    Shield, Eye, EyeOff, Filter, Trash2, Archive, Hash
+    Shield, Eye, EyeOff, Filter, Trash2, Archive, Hash, RefreshCcw
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -150,6 +150,9 @@ export default function HaberlesmeMainContainer() {
                         `gonderen_modul.eq.${kullaniciModul},alici_grup.eq.${kullaniciModul}`
                     );
                 }
+            } else if (sekme === 'cop') {
+                // Sadece Çöp Kovası (Sadece KOORDİNATÖR görür)
+                query = query.eq('copte', true);
             }
 
             const { data, error } = await query;
@@ -161,10 +164,10 @@ export default function HaberlesmeMainContainer() {
             // (b1_mesaj_gizli tablosu UUID bazlı — ileriki sürümde profil entegrasyonu ile geliştirilebilir)
             setGizliIdler(new Set());
 
-            // Okunmamis sayı (gelen sekme icin)
+            // Okunmamis sayı (gelen sekme icin) - Çöpte olmayanlar!
             if (sekme === 'gelen') {
                 const okunmamis = (data || []).filter(m =>
-                    !m.okundu_at && m.gonderen_modul !== kullaniciModul
+                    !m.okundu_at && m.gonderen_modul !== kullaniciModul && !m.copte
                 ).length;
                 setOkunmamisSayi(okunmamis);
             }
@@ -201,6 +204,9 @@ export default function HaberlesmeMainContainer() {
 
     // ── GÖNDER ───────────────────────────────────────────────────────────────
     const gonder = async () => {
+        if (!form.urun_kodu.trim() && !form.urun_id.trim()) {
+            return goster('📦 LÜTFEN ÜRÜN VEYA MODEL KODU GİRİN! Boş muhabbet ve sistemsiz mesajlaşma yasaktır.', 'error');
+        }
         if (!form.konu.trim()) return goster('Konu zorunlu!', 'error');
         if (!form.icerik.trim()) return goster('İçerik zorunlu!', 'error');
         if (!kullanici) return goster('Giriş yapmanız gerekiyor.', 'error');
@@ -298,7 +304,7 @@ export default function HaberlesmeMainContainer() {
         return '';
     };
 
-    // ── GİZLE (Soft-hide — mesaj DB'den silinmez) ────────────────────────────
+    // ── GİZLE (ÇÖPE AT - Soft-delete) ────────────────────────────
     const gizle = async (m, e) => {
         e.stopPropagation();
         if (!silYetkisiVarMi(m)) {
@@ -312,11 +318,9 @@ export default function HaberlesmeMainContainer() {
                 `🔒 KOORDİNATÖR PIN DOGRULAMA\n\n` +
                 `Bu mesaj referans kanıt niteliği taşıyor.\n` +
                 `Konu: "${m.konu}"\n\n` +
-                `Silmek için Koordinatör PIN kodunu girin:`
+                `Çöpe atmak için Koordinatör PIN kodunu girin:`
             );
             if (!pin) return;
-            // PIN doğrulama → silmeYetkiDogrula utility'si burada çağrılabilir
-            // Şimdilik: boş PIN reddedilir, doğru PIN ilerletilir
             const { yetkili } = await import('@/lib/silmeYetkiDogrula')
                 .then(m => m.silmeYetkiDogrula(kullanici, pin))
                 .catch(() => ({ yetkili: false }));
@@ -328,37 +332,47 @@ export default function HaberlesmeMainContainer() {
         }
 
         const uyari = (tamArsivYetkisi && REFERANS_NOTA_MI(m))
-            ? `KOORDİNATÖR: Referans not silinecek.\nMesaj sistem loglarında korunmaya devam eder.\nDevam?`
-            : tamArsivYetkisi
-                ? `KOORDİNATÖR: Bu mesajı arşivden gizleyeceksiniz.\nDevam?`
-                : `Bu mesaj görünümünüzden kaldırılacak.\nSistem arşivinde korunmaya devam eder.`;
+            ? `KOORDİNATÖR: Referans not çöpe atılacak.\nMesaj sistem loglarında korunmaya devam eder.\nDevam?`
+            : `Bu mesaj Çöp Kovasına taşınacak (Sizin için ve karşı taraf için gizlenir).\n45 gün sonra otomatik silinir.\nDevam?`;
+
         if (!confirm(uyari)) return;
 
         try {
-            await supabase.from('b1_mesaj_gizli').insert([{
-                mesaj_id: m.id,
-                kullanici_id: kullanici.id,
-                kullanici_adi: kullaniciAdi,
-                gizlendi_at: new Date().toISOString(),
-            }]);
+            await supabase.from('b1_ic_mesajlar').update({
+                copte: true,
+                cop_tarihi: new Date().toISOString()
+            }).eq('id', m.id);
+
             if (tamArsivYetkisi) {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: 'b1_ic_mesajlar',
-                    islem_tipi: REFERANS_NOTA_MI(m) ? 'KOORDINATOR_REF_NOT_GIZLE' : 'KOORDINATOR_GIZLE',
+                    islem_tipi: REFERANS_NOTA_MI(m) ? 'KOORDINATOR_REF_NOT_COPE_ATTI' : 'KOORDINATOR_COPE_ATTI',
                     kullanici_adi: kullaniciAdi,
                     eski_veri: { mesaj_id: m.id, konu: m.konu, gonderen: m.gonderen_adi, referans_mi: REFERANS_NOTA_MI(m) },
                 }]).catch(() => { });
             }
-            setGizliIdler(prev => new Set([...prev, m.id]));
             if (acikMesaj?.id === m.id) setAcikMesaj(null);
-            goster(
-                tamArsivYetkisi
-                    ? '🗄️ Koordinatör gizledi — log kaydı oluşturuldu.'
-                    : 'Mesaj görünümünüzden kaldırıldı. Arşivde korunuyor.',
-                'success'
-            );
+            goster('🗑️ Mesaj Çöp Kovasına taşındı.', 'success');
+            yukle();
         } catch (err) {
-            goster('Gizleme hatası: ' + err.message, 'error');
+            goster('Çöpe atma hatası: ' + err.message, 'error');
+        }
+    };
+
+    // ── ÇÖPTEN GERİ YÜKLE (RESTORE) SADECE KOORDİNATÖR ──────────────────────────
+    const copeGeriAl = async (m, e) => {
+        e.stopPropagation();
+        if (!tamArsivYetkisi) return goster('Sadece Koordinatör mesajları geri getirebilir.', 'error');
+        try {
+            await supabase.from('b1_ic_mesajlar').update({
+                copte: false,
+                cop_tarihi: null
+            }).eq('id', m.id);
+            goster('✅ Mesaj Çöp Kovasından geri çekildi.', 'success');
+            setAcikMesaj(null);
+            yukle();
+        } catch (err) {
+            goster('Geri yükleme hatası: ' + err.message, 'error');
         }
     };
 
@@ -422,18 +436,16 @@ export default function HaberlesmeMainContainer() {
     // ── FİLTRELEME ───────────────────────────────────────────────────────────
     const filtreli = mesajlar.filter(m => {
         const oncelikOk = filtreOncelik === 'hepsi' || m.oncelik === filtreOncelik;
+        if (sekme === 'cop') return oncelikOk; // Çöpteki herşeyi göster
         if (sekme === 'arsiv' && tamArsivYetkisi) {
-            // Tam Arşiv: gizlenenleri de göster (toggle ile)
-            if (!filtreGizli) return oncelikOk; // tüm mesajlar
-            return oncelikOk && gizliIdler.has(m.id); // sadece gizlenenler
+            // Tam Arşiv: çöpte olmayanları göster.
+            return oncelikOk && !m.copte;
         }
-        // Normal görünümler: gizlenenleri gösterme
-        return oncelikOk && !gizliIdler.has(m.id);
+        // Diğer sekmelerde çöpte olanları GÖSTERME
+        return oncelikOk && !m.copte;
     });
 
-    const gizlenmisSayi = sekme === 'arsiv' ? [...gizliIdler].filter(id =>
-        mesajlar.some(m => m.id === id)
-    ).length : 0;
+    const gizlenmisSayi = mesajlar.filter(m => m.copte).length;
 
     // ── STYLES ───────────────────────────────────────────────────────────────
     const inp = {
@@ -450,7 +462,20 @@ export default function HaberlesmeMainContainer() {
     return (
         <div dir={isAR ? 'rtl' : 'ltr'}>
 
-            {/* BAŞLIK */}
+            {/* BAŞLIK & İKAZ BANNERI */}
+            {okunmamisSayi > 0 && sekme !== 'yeni' && (
+                <div style={{ background: '#fef2f2', border: '2px solid #ef4444', borderRadius: 12, padding: '12px 16px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'brzTitres 2s ease-in-out infinite' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <AlertTriangle size={24} color="#dc2626" />
+                        <div>
+                            <div style={{ fontWeight: 900, color: '#991b1b', fontSize: '1rem' }}>SİSTEM İKAZI: OKUNMAYAN MESAJLAR VAR!</div>
+                            <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700 }}>Lütfen hemen gelen kutunuzu kontrol edin. Görev / bildirim bekliyor.</div>
+                        </div>
+                    </div>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#dc2626' }}>{okunmamisSayi}</span>
+                </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#1e1b4b,#3730a3)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(30,27,75,0.3)' }}>
@@ -493,15 +518,16 @@ export default function HaberlesmeMainContainer() {
             )}
 
             {/* SEKMELER */}
-            <div style={{ display: 'flex', gap: 3, background: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: 3, background: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                 {[
                     { key: 'gelen', label: `📥 Gelen${okunmamisSayi > 0 ? ` (${okunmamisSayi})` : ''}` },
                     { key: 'gonderilen', label: '📤 Gönderilenler' },
                     { key: 'arsiv', label: tamArsivYetkisi ? '🗄️ Tam Arşiv' : '🗄️ Arşiv' },
+                    ...(tamArsivYetkisi ? [{ key: 'cop', label: '🗑️ Çöp Kovası' }] : []),
                     { key: 'yeni', label: '✏️ Yeni Mesaj' },
                 ].map(s => (
                     <button key={s.key} onClick={() => { setSekme(s.key); setAcikMesaj(null); setFiltreGizli(false); }}
-                        style={{ flex: 1, padding: '9px 8px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.2s', background: sekme === s.key ? 'white' : 'transparent', color: sekme === s.key ? '#1e1b4b' : '#64748b', boxShadow: sekme === s.key ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
+                        style={{ flex: 1, minWidth: 100, padding: '9px 8px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.2s', background: sekme === s.key ? (s.key === 'cop' ? '#fef2f2' : 'white') : 'transparent', color: sekme === s.key ? (s.key === 'cop' ? '#dc2626' : '#1e1b4b') : '#64748b', boxShadow: sekme === s.key ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
                         {s.label}
                     </button>
                 ))}
@@ -524,7 +550,7 @@ export default function HaberlesmeMainContainer() {
 
                         {/* MODEL KODU — en üste — tüm mesajların başlangıc noktası */}
                         <div style={{ gridColumn: '1/-1', background: '#1e1b4b', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: 4 }}>
-                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu (Varsa — Mesaj Bu Kodla Başlar)</label>
+                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu * (ZORUNLU — Boş Mesajlaşma Yasaktır)</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                                 <div>
                                     <input
@@ -630,7 +656,7 @@ export default function HaberlesmeMainContainer() {
             )}
 
             {/* ═══════════════ MESAJ LİSTESİ ═══════════════ */}
-            {['gelen', 'gonderilen', 'arsiv'].includes(sekme) && (
+            {['gelen', 'gonderilen', 'arsiv', 'cop'].includes(sekme) && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
                     {/* FİLTRE BAR */}
@@ -659,11 +685,19 @@ export default function HaberlesmeMainContainer() {
                         )}
                     </div>
 
+                    {/* ÇÖP KOVASI BİLGİ */}
+                    {sekme === 'cop' && tamArsivYetkisi && (
+                        <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem', color: '#991b1b', fontWeight: 700, width: '100%' }}>
+                            <Trash2 size={14} />
+                            Bu mesajlar kullanıcılar tarafından gizlenmiş (Çöpe Atılmış). 45 gün sonra kalıcı olarak silinecektir. Ürün ve Model ile ilgili arşiv kayıtları 45 gün geçse bile SİLİNMEZ!
+                        </div>
+                    )}
+
                     {/* TAM ARŞİV UYARISI */}
                     {sekme === 'arsiv' && tamArsivYetkisi && (
-                        <div style={{ padding: '10px 14px', background: '#1e1b4b', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem', color: '#a5b4fc', fontWeight: 700 }}>
+                        <div style={{ padding: '10px 14px', background: '#1e1b4b', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem', color: '#a5b4fc', fontWeight: 700, width: '100%' }}>
                             <Shield size={14} />
-                            Koordinatör / Yönetim görünümü — Tüm mesajlar, kullanıcı gizledikleri ve silinmiş görünenler dahil görüntüleniyor. Her mesaj SHA-256 damgalı.
+                            Koordinatör / Yönetim görünümü — Tüm mesajlar görüntüleniyor. Çöpte olanlar Çöp Kovası sekmesindedir.
                         </div>
                     )}
 
@@ -682,7 +716,7 @@ export default function HaberlesmeMainContainer() {
                         const renk = ONCELIK[m.oncelik] || ONCELIK.normal;
                         const okundu = !!m.okundu_at || m.gonderen_id === kullanici?.id;
                         const acik = acikMesaj?.id === m.id;
-                        const gizlendi = gizliIdler.has(m.id);
+                        const gizlendi = m.copte;
 
                         return (
                             <div key={m.id}
@@ -690,7 +724,7 @@ export default function HaberlesmeMainContainer() {
                                     background: gizlendi ? '#f9fafb' : (acik ? '#f8f7ff' : (!okundu ? renk.bg : 'white')),
                                     border: `2px solid ${gizlendi ? '#d1d5db' : (acik ? '#1e1b4b' : (!okundu ? renk.border : '#e5e7eb'))}`,
                                     borderRadius: 14, padding: '1rem 1.25rem', cursor: 'pointer',
-                                    transition: 'all 0.15s', opacity: gizlendi ? 0.7 : 1,
+                                    transition: 'all 0.15s', opacity: gizlendi && sekme !== 'cop' ? 0.7 : 1,
                                     boxShadow: acik ? '0 4px 20px rgba(30,27,75,0.15)' : '0 1px 4px rgba(0,0,0,0.04)',
                                 }}
                                 onClick={() => mesajAc(m)}
@@ -716,9 +750,9 @@ export default function HaberlesmeMainContainer() {
                                             <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: '#f1f5f9', color: '#475569' }}>{TIP_LABEL[m.tip]}</span>
                                             {m.onay_durumu && <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: ONAY_RENK[m.onay_durumu].bg, color: ONAY_RENK[m.onay_durumu].text }}>{ONAY_RENK[m.onay_durumu].label}</span>}
                                             {!okundu && <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '2px 7px', borderRadius: 4, background: '#ef4444', color: 'white' }}>🔴 OKUNMADI</span>}
-                                            {/* Arşiv'de gizlenen mesajlar için etiket */}
-                                            {gizlendi && sekme === 'arsiv' && tamArsivYetkisi && (
-                                                <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '2px 7px', borderRadius: 4, background: '#7c3aed', color: 'white' }}>🫥 KULLANICI GİZLEDİ</span>
+                                            {/* Çöpteki mesajlar için etiket */}
+                                            {gizlendi && sekme === 'cop' && (
+                                                <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '2px 7px', borderRadius: 4, background: '#ef4444', color: 'white' }}>🗑️ ÇÖPTE (Silinecek: {formatTarih(new Date(new Date(m.cop_tarihi).getTime() + 45 * 24 * 60 * 60 * 1000).toISOString())})</span>
                                             )}
                                             {m.mesaj_hash && (
                                                 <span style={{ fontSize: '0.58rem', fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#f0fdf4', color: '#166534', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -743,16 +777,14 @@ export default function HaberlesmeMainContainer() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                                        {/* GİZLE butonu — yetki matrisine göre göster */}
-                                        {!gizlendi && (sekme !== 'arsiv' || tamArsivYetkisi) && (
+                                        {/* GİZLE / ÇÖPE AT butonu */}
+                                        {!gizlendi && (
                                             <button
                                                 onClick={e => gizle(m, e)}
                                                 title={
                                                     !silYetkisiVarMi(m)
-                                                        ? `⛔ Yetki yok — ${m.ilgili_modul ? 'Modüle bağlı mesaj' : 'Korumalı mesaj'} (Koordinatör yetkisi)`
-                                                        : tamArsivYetkisi
-                                                            ? 'Koordinatör: Arşivden gizle'
-                                                            : 'Görünümünden kaldır (arşivde korunur)'
+                                                        ? `⛔ Yetki yok — Koordinatör/Sahibi`
+                                                        : 'Görünümünden kaldır ve Çöpe At'
                                                 }
                                                 style={{
                                                     padding: '4px 8px',
@@ -765,6 +797,24 @@ export default function HaberlesmeMainContainer() {
                                                 }}
                                             >
                                                 {!silYetkisiVarMi(m) ? <Lock size={11} /> : <Trash2 size={11} />}
+                                            </button>
+                                        )}
+                                        {/* GERİ YÜKLE butonu - Sadece Çöpteyken ve Koordinatör */}
+                                        {gizlendi && sekme === 'cop' && tamArsivYetkisi && (
+                                            <button
+                                                onClick={e => copeGeriAl(m, e)}
+                                                title="Çöpten Geri Yükle"
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    background: '#ecfdf5',
+                                                    border: `1px solid #6ee7b7`,
+                                                    color: '#059669',
+                                                    borderRadius: 6, cursor: 'pointer',
+                                                    fontSize: '0.65rem', fontWeight: 700,
+                                                    display: 'flex', alignItems: 'center', gap: 3,
+                                                }}
+                                            >
+                                                <RefreshCcw size={11} /> Geri Yükle
                                             </button>
                                         )}
                                         <span style={{ color: '#94a3b8' }}>{acik ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
