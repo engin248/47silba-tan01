@@ -14,12 +14,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export async function GET(request) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !(process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')) {
+        return Response.json({ hata: 'Supabase yapılandırması eksik!' }, { status: 500 });
+    }
+
+    const supabase = createClient(
+        (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
+    );
+
     const { searchParams } = new URL(request.url);
     const model_id = searchParams.get('model_id');
     const model_kodu = searchParams.get('model_kodu');

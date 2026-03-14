@@ -159,8 +159,8 @@ export async function POST(request) {
         try {
             const { createClient } = await import('@supabase/supabase-js');
             const sb = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL,
-                process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+                (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
             );
             await sb.from('b0_sistem_loglari').insert([{
                 olay: 'PIN_HATALI_GIRIS',
@@ -182,8 +182,8 @@ export async function POST(request) {
     try {
         const { createClient } = await import('@supabase/supabase-js');
         const sb = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+            (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
         );
         await sb.from('b0_sistem_loglari').insert([{
             olay: 'PIN_BASARILI_GIRIS',

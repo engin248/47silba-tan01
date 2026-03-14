@@ -44,7 +44,7 @@ async function botLog(supabase, chat_id, komut, sonuc, detay = '') {
 export async function POST(request) {
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
     );
     // ─── GÜVENLİK: Telegram Secret Token Doğrulama ────────────────────────
     if (!TELEGRAM_WEBHOOK_SECRET) {
