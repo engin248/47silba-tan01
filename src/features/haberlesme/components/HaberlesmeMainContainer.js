@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import {
     MessageSquare, Send, Inbox, AlertTriangle, CheckCircle2,
     Clock, User, Lock, ChevronDown, ChevronUp, Reply,
-    Shield, Eye, EyeOff, Filter, Trash2, Archive, Hash, RefreshCcw
+    Shield, Eye, EyeOff, Filter, Trash2, Archive, Hash, RefreshCcw,
+    Camera, Mic, MicOff, ImagePlus
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -89,11 +90,22 @@ export default function HaberlesmeMainContainer() {
     const [filtreGizli, setFiltreGizli] = useState(false); // Arşiv: gizlenenleri de göster
     const [okunmamisSayi, setOkunmamisSayi] = useState(0);
 
+    const [aktifModeller, setAktifModeller] = useState([]);
+    const [dinliyor, setDinliyor] = useState(false);
+
     const kullaniciModul = kullanici?.modul || kullanici?.grup || 'genel';
     const kullaniciAdi = kullanici?.ad || kullanici?.email || 'Bilinmeyen';
     const tamArsivYetkisi = TAM_ARŞİV_GRUPLARI.includes(kullanici?.grup);
 
-    // ── REALTIME ─────────────────────────────────────────────────────────────
+    // ── REALTIME & EKLENTİ YÜKLEME ─────────────────────────────────────────────────────────────
+    useEffect(() => {
+        const modelleriGetir = async () => {
+            const { data } = await supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi').order('created_at', { ascending: false }).limit(500);
+            if (data) setAktifModeller(data);
+        };
+        modelleriGetir();
+    }, []);
+
     useEffect(() => {
         if (!kullanici) return;
         yukle();
@@ -175,6 +187,30 @@ export default function HaberlesmeMainContainer() {
             goster('Yükleme hatası: ' + err.message, 'error');
         }
         setLoading(false);
+    };
+
+    // ── SESLİ DİKTE ──────────────────────────────────────────────────────────
+    const sesliYazdir = () => {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) return alert('Tarayıcınız sesli komutu desteklemiyor. Lütfen Chrome vb. kullanın.');
+
+        const rec = new SpeechRec();
+        rec.lang = 'tr-TR';
+        rec.continuous = false;
+        rec.interimResults = false;
+
+        rec.onstart = () => { setDinliyor(true); goster('Dinleniyor... Konuşun.', 'success'); };
+        rec.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            setForm(prev => ({ ...prev, icerik: prev.icerik ? prev.icerik + ' ' + transcript : transcript }));
+        };
+        rec.onerror = (e) => {
+            console.error(e);
+            goster('Ses algılamadı: ' + e.error, 'error');
+        };
+        rec.onend = () => { setDinliyor(false); };
+
+        try { rec.start(); } catch (err) { }
     };
 
     // ── MESAJ AÇ + OKUNDU DAMGASI ────────────────────────────────────────────
@@ -553,39 +589,26 @@ export default function HaberlesmeMainContainer() {
 
                         {/* MODEL KODU — en üste — tüm mesajların başlangıc noktası */}
                         <div style={{ gridColumn: '1/-1', background: '#1e1b4b', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: 4 }}>
-                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu * (ZORUNLU — Boş Mesajlaşma Yasaktır)</label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                                <div>
-                                    <input
-                                        maxLength={30}
-                                        value={form.urun_kodu}
-                                        onChange={e => setForm({ ...form, urun_kodu: e.target.value.toUpperCase() })}
-                                        placeholder="MODEL-47-A"
-                                        style={{ ...inp, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3730a3', fontWeight: 800, letterSpacing: '0.05em' }}
-                                    />
-                                    <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>Model Kodu</span>
-                                </div>
-                                <div>
-                                    <input
-                                        maxLength={80}
-                                        value={form.urun_adi}
-                                        onChange={e => setForm({ ...form, urun_adi: e.target.value })}
-                                        placeholder="Kırmızı Ceket V2"
-                                        style={{ ...inp, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3730a3' }}
-                                    />
-                                    <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>Model Adı</span>
-                                </div>
-                                <div>
-                                    <input
-                                        maxLength={60}
-                                        value={form.urun_id}
-                                        onChange={e => setForm({ ...form, urun_id: e.target.value })}
-                                        placeholder="uuid veya seri no"
-                                        style={{ ...inp, background: '#0f172a', color: '#94a3b8', border: '1px solid #3730a3', fontSize: '0.75rem' }}
-                                    />
-                                    <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>Sistem ID (Opsiyonel)</span>
-                                </div>
-                            </div>
+                            <label style={{ ...lbl, color: '#a5b4fc', marginBottom: 6 }}>📦 Ürün / Model Kodu * (ZORUNLU — Aktif Modellerden Seçin)</label>
+
+                            <select
+                                value={form.urun_id}
+                                onChange={e => {
+                                    const secilen = aktifModeller.find(m => m.id === e.target.value);
+                                    if (secilen) {
+                                        setForm({ ...form, urun_id: secilen.id, urun_kodu: secilen.model_kodu, urun_adi: secilen.model_adi });
+                                    } else {
+                                        setForm({ ...form, urun_id: '', urun_kodu: '', urun_adi: '' });
+                                    }
+                                }}
+                                style={{ ...inp, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3730a3', fontWeight: 800, cursor: 'pointer' }}
+                            >
+                                <option value="">-- Listeden Model Seçin --</option>
+                                {aktifModeller.map(m => (
+                                    <option key={m.id} value={m.id}>[ {m.model_kodu} ] — {m.model_adi}</option>
+                                ))}
+                            </select>
+
                             {/* CANLI ÖNİZLEME */}
                             {(form.urun_kodu || form.konu) && (
                                 <div style={{ marginTop: 8, padding: '6px 10px', background: '#0f172a', borderRadius: 6, fontSize: '0.75rem', color: '#a5b4fc', fontWeight: 800, letterSpacing: '0.02em' }}>
@@ -633,7 +656,19 @@ export default function HaberlesmeMainContainer() {
                             </div>
                         )}
                         <div style={{ gridColumn: '1/-1' }}>
-                            <label style={lbl}>Mesaj İçeriği *</label>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 5 }}>
+                                <label style={{ ...lbl, marginBottom: 0 }}>Mesaj İçeriği *</label>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                    <button type="button" onClick={() => setForm(p => ({ ...p, icerik: p.icerik + '\n\n[📸 Eklenti: Fotoğraf_numune.jpg (Bulut Depolama Devre Dışı Koruması)]' }))}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}>
+                                        <Camera size={14} /> Foto Ekle
+                                    </button>
+                                    <button type="button" onClick={sesliYazdir}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: dinliyor ? '#fee2e2' : '#f0fdf4', color: dinliyor ? '#dc2626' : '#166534', border: `1px solid ${dinliyor ? '#fca5a5' : '#bbf7d0'}`, padding: '4px 10px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', animation: dinliyor ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none' }}>
+                                        {dinliyor ? <MicOff size={14} /> : <Mic size={14} />} {dinliyor ? 'Dinleniyor...' : 'Sesli Yazım'}
+                                    </button>
+                                </div>
+                            </div>
                             <textarea maxLength={2000} rows={5} value={form.icerik} onChange={e => setForm({ ...form, icerik: e.target.value })} placeholder="Mesajınızı yazın. Bu içerik gönderildikten sonra değiştirilemez." style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} />
                         </div>
                     </div>
