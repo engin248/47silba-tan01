@@ -40,6 +40,14 @@
 *   **Yerel Derleme (Local Build):** Test ve Derlemeye Gönderildi.
 *   **Tevzi Edildi:** Github Push ve Vercel onayı alındı.
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / Kesim (M3) -> Üretim (M4) Köprü Masası Bug Fix
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler:** Kesim tamamlandıktan sonra "M4 Üretim İş Emri Oluştur" denildiğinde `v2_production_orders` adlı hayalet bir tabloya (henüz sistemde olmayan veya iptal edilen) veri atılmaya çalışılıyor ve `mevcut` kontrolünde sunucu 500 dönüyor veya çökerterek işlemi durduruyordu.
+*   **Yapılan Ameliyatlar:**
+    1. **Tablo Tespiti:** Aktarımlardaki hedef tablo `v2_production_orders` yerine `production_orders` olarak düzeltildi.
+    2. **Onaylandı:** Köprü yeniden kuruldu. Artık kesilen modelin adet ve model ID'si sorunsuzca M4 (Uretim Bandı) bölümüne İş Emri (`pending` statüsünde) olarak yansıyor.
+
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)

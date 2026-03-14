@@ -40,6 +40,13 @@
 *   **Yerel Derleme (Local Build):** Yapıldı ve Başarıyla Çalışıyor.
 *   **Browser Subagent Vercel Testi:** M5 Maliyet sayfası Canlı Vercel ortamında `100_CANLI_SAHA_DOGRULAMA_RAPORU.md` üzerine not edilecek şekilde deploy sırasında test edilecek.
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / CSV Veri Zehirlenmesi Zırhı
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler:** Toplu CSV yükleme (Gider Toplu Yükle) işlevinde, eklenecek harcama satırındaki model kodu veritabanında bulunamadığında (`MDL-BOS` gibi hatalı tuşlama), sistem sessizce bu hatayı yutuyor ve binlerce liralık gideri dizideki **ilk modelin üzerine yıkıyordu (`orderler[0]?.id`)**. Bu durum, o ilk modelin maliyet analizini iflas ettirecek büyüklükte bir kör noktaydı (Data Poisoning).
+*   **Yapılan Ameliyatlar:**
+    1. **Zehir Kalkanı:** `csvYukle` fonksiyonu içindeki `modelBul` araması başarısız olursa, işlemi ilk modele saplamak yerine satırı pas geçmesi (`continue`) ve hatalı satır sayacını (`hatali++`) artırması sağlandı.
+
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)

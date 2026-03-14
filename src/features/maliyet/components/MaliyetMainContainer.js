@@ -195,7 +195,8 @@ export default function MaliyetMainContainer() {
                 const parts = satir.split(',').map(p => p.trim());
                 if (parts.length < 4) { hatali++; continue; }
                 const modelBul = orderler.find(o => o.b1_model_taslaklari?.model_kodu === parts[0]);
-                oplar.push({ order_id: modelBul?.id || orderler[0]?.id || null, maliyet_tipi: MALIYET_TIPLERI.includes(parts[1]) ? parts[1] : 'isletme_gideri', kalem_aciklama: parts[2], tutar_tl: parseFloat(parts[3]) || 0, onay_durumu: 'hesaplandi' });
+                if (!modelBul) { hatali++; continue; } // ZIRH: Bilinmeyen model numarasını ilk modele yığma, reddet!
+                oplar.push({ order_id: modelBul.id, maliyet_tipi: MALIYET_TIPLERI.includes(parts[1]) ? parts[1] : 'isletme_gideri', kalem_aciklama: parts[2], tutar_tl: parseFloat(parts[3]) || 0, onay_durumu: 'hesaplandi' });
             }
             if (oplar.length > 0) {
                 const { error } = await supabase.from('b1_maliyet_kayitlari').insert(oplar);
