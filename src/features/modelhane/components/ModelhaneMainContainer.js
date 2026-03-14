@@ -71,16 +71,17 @@ export default function ModelhaneSayfasi() {
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 6000); };
 
+    const mkTimeout = () => new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
+
     const yukle = async (aktifSekme = sekme) => {
         setLoading(true);
-        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
         try {
             if (aktifSekme === 'arge_kuyrugu') {
                 const [aRes] = await Promise.race([
                     Promise.allSettled([
                         supabase.from('b1_arge_trendler').select('*').eq('durum', 'onaylandi').order('created_at', { ascending: false }).limit(200)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (aRes.status === 'fulfilled' && aRes.value.data) setArgeKuyruk(aRes.value.data);
 
@@ -99,7 +100,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_numune_uretimleri').select('*, b1_model_taslaklari(model_adi,model_kodu), b1_model_kaliplari(kalip_adi,versiyon)').neq('onay_durumu', 'iptal').order('created_at', { ascending: false }).limit(200),
                         supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
                 if (mRes.status === 'fulfilled' && mRes.value.data) setModeller(mRes.value.data);
@@ -109,7 +110,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_dikim_talimatlari').select('*, b1_numune_uretimleri(numune_beden, b1_model_taslaklari(model_adi,model_kodu))').eq('aktif', true).order('created_at', { ascending: false }).limit(200),
                         supabase.from('b1_numune_uretimleri').select('id,numune_beden, b1_model_taslaklari(model_kodu,model_adi)').eq('onay_durumu', 'onaylandi').limit(200)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (tRes.status === 'fulfilled' && tRes.value.data) setTalimatlar(tRes.value.data);
                 if (nRes.status === 'fulfilled' && nRes.value.data) setNumuneler(nRes.value.data);
@@ -120,7 +121,7 @@ export default function ModelhaneSayfasi() {
                         supabase.from('b1_numune_uretimleri').select('id, numune_beden, fotograflar, b1_model_taslaklari(model_kodu, model_adi)').limit(200),
                         supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
                     ]),
-                    timeout
+                    mkTimeout()
                 ]);
                 if (gRes.status === 'fulfilled' && gRes.value.data) setGaleriNumuneler(gRes.value.data.filter(n => n.fotograflar && n.fotograflar.length > 0));
                 if (tumNRes.status === 'fulfilled' && tumNRes.value.data) setNumuneler(tumNRes.value.data);

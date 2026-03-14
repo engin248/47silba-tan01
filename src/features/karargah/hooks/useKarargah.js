@@ -37,34 +37,12 @@ export function useKarargah() {
         setIsAiLoading(true);
         setAiSonuc('');
         try {
-            // 1) Supabase'e geçici görev kaydı aç
-            const { data: yeniGorev, error: gorevHatasi } = await supabase
-                .from('b1_ajan_gorevler')
-                .insert([{
-                    ajan_adi: 'Karargah AI',
-                    gorev_tipi: 'arastirma',
-                    gorev_emri: aiSorgu.trim(),
-                    hedef_modul: 'karargah',
-                    yetki_internet: true,
-                    durum: 'bekliyor',
-                }])
-                .select('id')
-                .single();
-
-            if (gorevHatasi || !yeniGorev?.id) {
-                goster('Görev kaydedilemedi: ' + (gorevHatasi?.message || 'Bilinmeyen hata'), 'error');
-                setIsAiLoading(false);
-                return;
-            }
-
-            // 2) Görevi çalıştır
             const res = await fetch('/api/ajan-calistir', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gorev_id: yeniGorev.id }),
+                body: JSON.stringify({ sorgu_metni: aiSorgu.trim() }),
             });
             const data = await res.json();
-
             if (data?.basarili && data?.sonuc?.ozet) {
                 setAiSonuc(data.sonuc.ozet);
                 goster('AI analizi tamamlandı.', 'success');

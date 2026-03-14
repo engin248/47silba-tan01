@@ -129,11 +129,33 @@ export async function POST(req) {
     try {
         if (!yetkiKontrol(req)) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
 
-        const { gorev_id } = await req.json();
-        if (!gorev_id) return NextResponse.json({ error: 'gorev_id eksik' }, { status: 400 });
+        const body = await req.json();
+        const { gorev_id, sorgu_metni } = body;
 
-        const { data: gorev, error: gorevHata } = await supabaseAdmin.from('b1_ajan_gorevler').select('*').eq('id', gorev_id).single();
-        if (gorevHata || !gorev) return NextResponse.json({ error: 'Görev yok' }, { status: 404 });
+        let gorev;
+
+        // [C3-FIX] Doğrudan sorgu metni geldiyse → server tarafında service role ile kaydet
+        if (!gorev_id && sorgu_metni) {
+            const { data: yeni, error: yeniHata } = await supabaseAdmin
+                .from('b1_ajan_gorevler')
+                .insert([{
+                    ajan_adi: 'Karargah AI',
+                    gorev_tipi: 'arastirma',
+                    gorev_emri: sorgu_metni.trim(),
+                    hedef_modul: 'karargah',
+                    yetki_internet: true,
+                    durum: 'bekliyor',
+                }])
+                .select('*')
+                .single();
+            if (yeniHata || !yeni) return NextResponse.json({ error: 'Görev oluşturulamadı: ' + yeniHata?.message }, { status: 500 });
+            gorev = yeni;
+        } else {
+            if (!gorev_id) return NextResponse.json({ error: 'gorev_id veya sorgu_metni eksik' }, { status: 400 });
+            const { data: mevcut, error: gorevHata } = await supabaseAdmin.from('b1_ajan_gorevler').select('*').eq('id', gorev_id).single();
+            if (gorevHata || !mevcut) return NextResponse.json({ error: 'Görev yok' }, { status: 404 });
+            gorev = mevcut;
+        }
 
         // Kriter 82: Ajan Yetki İzolasyonu
         ajanVeriErisimKalkani(gorev.ajan_adi, gorev.hedef_tablo);
