@@ -14,7 +14,7 @@ import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { telegramBildirim, formatTarih } from '@/lib/utils';
 import ErisimBariyeri from '@/lib/components/ui/ErisimBariyeri';
-import SayfaBasligi from '@/lib/components/ui/SayfaBasligi';
+import SayfaBasligi from '@/components/ui/SayfaBasligi';
 import IstatistikKutulari from '@/components/ui/IstatistikKutulari';
 import FiltreDugmeleri from '@/components/ui/FiltreDugmeleri';
 import SilBastanModal from '@/components/ui/SilBastanModal';
