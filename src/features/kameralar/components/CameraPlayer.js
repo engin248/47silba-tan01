@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CameraOff, Loader2, WifiOff, EyeOff } from 'lucide-react';
 
-const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
+const GO2RTC_URL = 'https://kamera.demirtekstiltheondercom.com';
 
 export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offline = false }) {
     const [loading, setLoading] = useState(true);
