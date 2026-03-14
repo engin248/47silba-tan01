@@ -286,9 +286,21 @@ function LayoutInner({ children }) {
                             </svg>
                         </button>
                         <div>
-                            <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#1e293b', letterSpacing: '0.05em' }}>
-                                KARARGÂH OPERASYON & KOORDİNASYON MERKEZİ
-                            </h2>
+                            {(() => {
+                                const aktifItem = NAV_ITEMS.find(n => n.href === pathname);
+                                const baslikMtn = pathname === '/'
+                                    ? "KARARGÂH OPERASYON MERKEZİ"
+                                    : aktifItem
+                                        ? (isAR ? aktifItem.labelAR : aktifItem.labelTR).toUpperCase()
+                                        : "THE ORDER / NİZAM";
+
+                                return (
+                                    <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#1e293b', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        {aktifItem && <aktifItem.icon size={18} style={{ color: '#047857' }} />}
+                                        {baslikMtn}
+                                    </h2>
+                                );
+                            })()}
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
