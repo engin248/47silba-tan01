@@ -150,7 +150,7 @@ export default function KesimMainContainer() {
         setLoading(true);
         setIslemdeId('emr_' + k.id);
         try {
-            const { data: mevcut } = await supabase.from('v2_production_orders')
+            const { data: mevcut } = await supabase.from('production_orders')
                 .select('id').eq('model_id', k.model_taslak_id).in('status', ['pending', 'in_progress']);
             if (mevcut && mevcut.length > 0) {
                 setLoading(false);
@@ -159,7 +159,7 @@ export default function KesimMainContainer() {
             }
 
             // 💥 KASAP OPERASYONU: V1 Tablosu V2'ye Yönlendirildi
-            const { data: yeniEmir, error } = await supabase.from('v2_production_orders').insert([{
+            const { data: yeniEmir, error } = await supabase.from('production_orders').insert([{
                 order_code: 'KSM-ORD-' + Date.now(),
                 model_id: k.model_taslak_id,
                 quantity: k.kesilen_net_adet || 0,
