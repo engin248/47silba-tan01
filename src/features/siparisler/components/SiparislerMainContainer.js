@@ -98,7 +98,7 @@ export default function SiparislerSayfasi() {
 
     const siparisNoUret = () => `SIP-${Date.now().toString().slice(-8)}`;
 
-    const kalemEkle = () => setKalemler(prev => [...prev, { urun_id: '', beden: '', renk: '', adet: 1, birim_fiyat_tl: 0, iskonto_pct: 0 }]);
+    const kalemEkle = () => setKalemler(prev => [...prev, { urun_id: '', beden: '', renk: '', adet: 1, birim_fiyat_tl: 0, iskonto_pct: 0, kalem_notu: '' }]);
     const kalemGuncelle = (i, alan, val) => {
         const yeni = [...kalemler];
         yeni[i] = { ...yeni[i], [alan]: val };
@@ -133,13 +133,17 @@ export default function SiparislerSayfasi() {
         try {
             // Mükerrer sipariş kontrolü API route tarafında yapılıyor.
             // [FAZ3-GÜVENLİ] Server API üzerinden Otonom Zırhlı Kayıt (AI Veri Filtresi)
+            // Kalem notlarını ana notlara birleştir (DB yapısını bozmadan kalıcılık sağlamak için)
+            const ozelNotlar = kalemler.filter(k => k.kalem_notu).map((k, idx) => `[Kalem ${idx + 1} İstek]: ${k.kalem_notu}`).join('\n');
+            const sonNot = [form.notlar.trim(), ozelNotlar].filter(Boolean).join('\n\n');
+
             const payload = {
                 siparis: {
                     musteri_id: form.musteri_id || null,
                     siparis_no: form.siparis_no.trim(),
                     kanal: form.kanal,
                     toplam_tutar_tl: toplam,
-                    notlar: form.notlar.trim() || null,
+                    notlar: sonNot || null,
                     acil: form.acil || false,
                     para_birimi: form.para_birimi || 'TL',
                     odeme_yontemi: form.odeme_yontemi || 'nakit',
@@ -559,24 +563,35 @@ export default function SiparislerSayfasi() {
                             <label style={lbl}>Ürün Kalemleri *</label>
                             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 <span style={{ fontWeight: 900, color: '#10b981', fontSize: '0.88rem' }}>Toplam: ₺{toplamHesapla().toFixed(2)}</span>
-                                <button type="button" onClick={kalemEkle} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>+ Ürün</button>
+                                <button type="button" onClick={kalemEkle} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}>+ Ürün Ekle</button>
                             </div>
                         </div>
-                        {kalemler.length === 0 && <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: 8, color: '#94a3b8', fontWeight: 600 }}>Ürün ekleyin</div>}
+                        {kalemler.length === 0 && <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: 8, color: '#94a3b8', fontWeight: 600 }}>Önce müşteri/özel sipariş bilgilerini girip, ardından "Ürün Ekle" butonunu kullanın.</div>}
                         {kalemler.map((k, i) => {
-                            const secilenUrun = urunler.find(u => u.id === k.urun_id);
                             const kalemTutar = (parseInt(k.adet) || 0) * parseFloat(k.birim_fiyat_tl || 0) * (1 - (parseFloat(k.iskonto_pct) || 0) / 100);
                             return (
-                                <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,2fr) 70px 70px 90px 60px 32px', gap: '0.25rem', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: 8, marginBottom: '0.375rem', overflowX: 'auto' }}>
-                                    <select value={k.urun_id} onChange={e => kalemGuncelle(i, 'urun_id', e.target.value)} style={{ ...inp, padding: '6px 8px', cursor: 'pointer', background: 'white' }}>
-                                        <option value="">— Ürün Seç —</option>
-                                        {urunler.map(u => <option key={u.id} value={u.id}>{u.urun_kodu} | ₺{u.satis_fiyati_tl}</option>)}
-                                    </select>
-                                    <input maxLength={20} value={k.beden} onChange={e => kalemGuncelle(i, 'beden', e.target.value)} placeholder="Beden" style={{ ...inp, padding: '6px 8px' }} />
-                                    <input type="number" min="1" value={k.adet} onChange={e => kalemGuncelle(i, 'adet', e.target.value)} placeholder="Adet" style={{ ...inp, padding: '6px 8px', textAlign: 'center' }} />
-                                    <input type="number" step="0.01" value={k.birim_fiyat_tl} onChange={e => kalemGuncelle(i, 'birim_fiyat_tl', e.target.value)} placeholder="Fiyat" style={{ ...inp, padding: '6px 8px' }} />
-                                    <div style={{ fontWeight: 900, color: '#10b981', fontSize: '0.82rem', textAlign: 'right' }}>₺{kalemTutar.toFixed(2)}</div>
-                                    <button type="button" onClick={() => kalemSil(i)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: 'pointer' }}><X size={12} /></button>
+                                <div key={i} style={{ background: '#f8fafc', padding: '10px', borderRadius: 8, marginBottom: '0.5rem', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,2fr) 70px 70px 90px 60px 32px', gap: '0.375rem', alignItems: 'center', overflowX: 'auto', marginBottom: 6 }}>
+                                        <select value={k.urun_id} onChange={e => kalemGuncelle(i, 'urun_id', e.target.value)} style={{ ...inp, padding: '6px 8px', cursor: 'pointer', background: 'white', fontWeight: 700 }}>
+                                            <option value="">— Ürün Katalogdan Seç —</option>
+                                            {urunler.map(u => <option key={u.id} value={u.id}>{u.urun_kodu} | ₺{u.satis_fiyati_tl}</option>)}
+                                        </select>
+                                        <input maxLength={20} value={k.beden} onChange={e => kalemGuncelle(i, 'beden', e.target.value)} placeholder="Beden" style={{ ...inp, padding: '6px 8px' }} />
+                                        <input type="number" min="1" value={k.adet} onChange={e => kalemGuncelle(i, 'adet', e.target.value)} placeholder="Adet" style={{ ...inp, padding: '6px 8px', textAlign: 'center' }} />
+                                        <input type="number" step="0.01" value={k.birim_fiyat_tl} onChange={e => kalemGuncelle(i, 'birim_fiyat_tl', e.target.value)} placeholder="Fiyat" style={{ ...inp, padding: '6px 8px' }} />
+                                        <div style={{ fontWeight: 900, color: '#10b981', fontSize: '0.82rem', textAlign: 'right' }}>₺{kalemTutar.toFixed(2)}</div>
+                                        <button type="button" onClick={() => kalemSil(i)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: 'pointer' }}><X size={12} /></button>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800 }}>MÜŞTERİ ÖZEL İSTEĞİ (Terzi/Kalıp):</span>
+                                        <input
+                                            maxLength={100}
+                                            value={k.kalem_notu || ''}
+                                            onChange={e => kalemGuncelle(i, 'kalem_notu', e.target.value)}
+                                            placeholder="Örn: Kolları daralsın, kırmızı iplik kullanılsın..."
+                                            style={{ ...inp, padding: '4px 8px', fontSize: '0.75rem', flex: 1, borderColor: k.kalem_notu ? '#0ea5e9' : '#e5e7eb', background: k.kalem_notu ? '#f0f9ff' : 'white' }}
+                                        />
+                                    </div>
                                 </div>
                             );
                         })}
@@ -689,8 +704,18 @@ export default function SiparislerSayfasi() {
 
                         {/* Durum Aksiyonları */}
                         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                            {aktifSiparis.durum === 'beklemede' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>✅ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Onayla'}</button>}
-                            {aktifSiparis.durum === 'onaylandi' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#065f46', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>⚙️ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Hazırlığa Al'}</button>}
+                            {aktifSiparis.durum === 'beklemede' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'onaylandi')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>✅ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Siparişi Onayla'}</button>}
+
+                            {/* [FAZ 5] Onaylanan siparişi üretime bildirme UX Butonu */}
+                            {aktifSiparis.durum === 'onaylandi' && (
+                                <>
+                                    <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'hazirlaniyor')} style={{ padding: '6px 14px', background: '#0ea5e9', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>📦 Stoktan Hazırla</button>
+                                    <button onClick={() => {
+                                        window.open(`/uretim?siparis=${aktifSiparis.siparis_no}`, '_blank');
+                                    }} style={{ padding: '6px 14px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.78rem', boxShadow: '0 4px 10px rgba(79,70,229,0.3)' }}>🚀 Üretime Sevk Et (M6)</button>
+                                </>
+                            )}
+
                             {aktifSiparis.durum === 'hazirlaniyor' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => { setKargoModal(aktifSiparis); setKargoNo(''); }} style={{ padding: '6px 14px', background: '#D4AF37', color: '#0f172a', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>🚛 {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Kargoya Ver'}</button>}
                             {aktifSiparis.durum === 'kargoda' && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'teslim')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>🎉 {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'Teslim Edildi'}</button>}
                             {!['teslim', 'iptal'].includes(aktifSiparis.durum) && <button disabled={islemdeId === 'durum_' + aktifSiparis.id} onClick={() => durumGuncelle(aktifSiparis.id, 'iptal')} style={{ padding: '6px 14px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + aktifSiparis.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + aktifSiparis.id ? 0.5 : 1 }}>❌ {islemdeId === 'durum_' + aktifSiparis.id ? '...' : 'İptal'}</button>}
@@ -737,6 +762,13 @@ export default function SiparislerSayfasi() {
                             {aktifSiparis.kargo_takip_no && (
                                 <div style={{ padding: '8px 10px', background: '#fff7ed', borderRadius: 8, marginTop: '0.5rem', fontSize: '0.78rem', fontWeight: 700, color: '#c2410c', display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <Truck size={13} /> Kargo Takip: {aktifSiparis.kargo_takip_no}
+                                </div>
+                            )}
+
+                            {aktifSiparis.notlar && (
+                                <div style={{ padding: '10px', background: '#fefce8', borderLeft: '4px solid #facc15', borderRadius: '4px 8px 8px 4px', marginTop: '0.75rem', fontSize: '0.75rem', color: '#854d0e', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                                    <div style={{ fontWeight: 800, marginBottom: 4, textTransform: 'uppercase' }}>✍️ Müşteri / Operasyon Notları</div>
+                                    {aktifSiparis.notlar}
                                 </div>
                             )}
 
