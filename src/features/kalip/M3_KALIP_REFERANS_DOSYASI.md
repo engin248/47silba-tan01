@@ -36,6 +36,16 @@
 *   **Bulut Testi ve Github:** Ana Vercel sunucusuna PUSH yapılacak.
 *   **Browser Subagent Vercel Testi:** M3 Kalıp (Vercel) canlı test edildi. Sızma tespit edilmedi.
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / Model ve Kalıp Düzenleme Bug Fix (Kör Nokta)
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler (Kör Noktalar):** 
+    1. **Düzenleme İşleminde ID Kaybı:** Kalıp ve Taslak Model düzenleme butonlarına tıklandığında `formAcik` true oluyor, formu dolduruyordu ancak `ID` tanınmadığı için `Kaydet` tuşu "Güncelle" yerine "Yeni Kayıt Ekle (Insert)" yapmaya çalışarak Supabase mükerrer deneme hatasına düşüyor ya da veriyi çoğaltıyordu (Zombi Veri).
+*   **Yapılan Ameliyatlar:**
+    1. **State Injection:** `BOSH_MODEL` ve `BOSH_KALIP` nesnelerine `id` state'i eklendi.
+    2. **UI Adaptasyonu:** Kalem (Düzenle) tuşuna basıldığında ilgili ID'nin `setFormModel` içine aktarılması sağlandı. Başlık kısmı `formModel.id`'ye göre dinamik hale getirildi.
+    3. **Query UPDATE Ayrımı:** `kaydetModel` ve `kaydetKalip` fonksiyonlarında `id` kontrolü yapılarak `.insert()` ve `.update().eq('id', id)` yolları siber güvenli şekilde ayrıştırıldı. Hatalı çoğalmanın önüne zırh çekildi.
+
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)

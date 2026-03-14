@@ -18,8 +18,8 @@ const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const HEDEF_KITLE = ['kadin', 'erkek', 'cocuk', 'unisex'];
 const SEZON = ['ilkbahar', 'yaz', 'sonbahar', 'kis', '4mevsim'];
 
-const BOSH_MODEL = { model_kodu: '', model_adi: '', model_adi_ar: '', trend_id: '', hedef_kitle: 'kadin', sezon: 'yaz', aciklama: '' };
-const BOSH_KALIP = { model_id: '', kalip_adi: '', bedenler: ['S', 'M', 'L', 'XL'], pastal_boyu_cm: '', pastal_eni_cm: '', fire_orani_yuzde: '5', versiyon: 'v1.0', kalip_dosya_url: '' };
+const BOSH_MODEL = { id: null, model_kodu: '', model_adi: '', model_adi_ar: '', trend_id: '', hedef_kitle: 'kadin', sezon: 'yaz', aciklama: '' };
+const BOSH_KALIP = { id: null, model_id: '', kalip_adi: '', bedenler: ['S', 'M', 'L', 'XL'], pastal_boyu_cm: '', pastal_eni_cm: '', fire_orani_yuzde: '5', versiyon: 'v1.0', kalip_dosya_url: '' };
 
 export default function KalipMainContainer() {
     const { kullanici } = useAuth();
@@ -103,29 +103,44 @@ export default function KalipMainContainer() {
         if (!formModel.model_adi.trim() || formModel.model_adi.length > 200) return goster('Model adı zorunlu ve en fazla 200 karakter olmalı!', 'error');
         setLoading(true);
         try {
-            // Mükerrer Kontrolü
-            const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', formModel.model_kodu.toUpperCase().trim());
-            if (mevcut && mevcut.length > 0) {
-                setLoading(false);
-                return goster('⚠️ Bu Model Kodu zaten kullanımda!', 'error');
+            if (formModel.id) {
+                // UPDATE KONTROLÜ
+                const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', formModel.model_kodu.toUpperCase().trim()).neq('id', formModel.id);
+                if (mevcut && mevcut.length > 0) {
+                    setLoading(false); return goster('⚠️ Bu Model Kodu başka model tarafından kullanılıyor!', 'error');
+                }
+                const { error } = await supabase.from('b1_model_taslaklari').update({
+                    model_kodu: formModel.model_kodu.toUpperCase().trim(),
+                    model_adi: formModel.model_adi.trim(),
+                    model_adi_ar: formModel.model_adi_ar.trim() || null,
+                    trend_id: formModel.trend_id || null,
+                    hedef_kitle: formModel.hedef_kitle,
+                    sezon: formModel.sezon,
+                    aciklama: formModel.aciklama.trim() || null,
+                }).eq('id', formModel.id);
+                if (!error) { goster('✅ Model güncellendi!'); setFormModel(BOSH_MODEL); setFormAcik(false); yukle(); } else throw error;
+            } else {
+                // INSERT KONTROLÜ
+                const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', formModel.model_kodu.toUpperCase().trim());
+                if (mevcut && mevcut.length > 0) {
+                    setLoading(false); return goster('⚠️ Bu Model Kodu zaten kullanımda!', 'error');
+                }
+                const { error } = await supabase.from('b1_model_taslaklari').insert([{
+                    model_kodu: formModel.model_kodu.toUpperCase().trim(),
+                    model_adi: formModel.model_adi.trim(),
+                    model_adi_ar: formModel.model_adi_ar.trim() || null,
+                    trend_id: formModel.trend_id || null,
+                    hedef_kitle: formModel.hedef_kitle,
+                    sezon: formModel.sezon,
+                    aciklama: formModel.aciklama.trim() || null,
+                    durum: 'taslak',
+                }]);
+                if (!error) {
+                    goster('✅ Model taslağı oluşturuldu!');
+                    telegramBildirim(`📐 YENİ MODEL TASLAĞI\nKod: ${formModel.model_kodu.toUpperCase()}\nAdı: ${formModel.model_adi}\nSezon: ${formModel.sezon}\nİlk Model Taslağı sisteme işlendi.`);
+                    setFormModel(BOSH_MODEL); setFormAcik(false); yukle();
+                } else throw error;
             }
-
-            const { error } = await supabase.from('b1_model_taslaklari').insert([{
-                model_kodu: formModel.model_kodu.toUpperCase().trim(),
-                model_adi: formModel.model_adi.trim(),
-                model_adi_ar: formModel.model_adi_ar.trim() || null,
-                trend_id: formModel.trend_id || null,
-                hedef_kitle: formModel.hedef_kitle,
-                sezon: formModel.sezon,
-                aciklama: formModel.aciklama.trim() || null,
-                durum: 'taslak',
-            }]);
-            if (!error) {
-                goster('✅ Model taslağı oluşturuldu!');
-                telegramBildirim(`📐 YENİ MODEL TASLAĞI\nKod: ${formModel.model_kodu.toUpperCase()}\nAdı: ${formModel.model_adi}\nSezon: ${formModel.sezon}\nİlk Model Taslağı sisteme işlendi.`);
-                setFormModel(BOSH_MODEL); setFormAcik(false); yukle();
-            }
-            else throw error;
         } catch (error) {
             if (!navigator.onLine || error.message.includes('fetch')) {
                 await cevrimeKuyrugaAl({
@@ -160,29 +175,43 @@ export default function KalipMainContainer() {
         if (parseFloat(formKalip.fire_orani_yuzde) < 0) return goster('Fire oranı eksi olamaz!', 'error');
         setLoading(true);
         try {
-            // Mükerrer Kontrolü (Aynı Modele Aynı Kalıp Adı)
-            const { data: mevcut } = await supabase.from('b1_model_kaliplari').select('id').eq('model_id', formKalip.model_id).eq('kalip_adi', formKalip.kalip_adi.trim());
-            if (mevcut && mevcut.length > 0) {
-                setLoading(false);
-                return goster('⚠️ Bu Kalıp Adı ilgili Modele zaten eklenmiş!', 'error');
-            }
+            if (formKalip.id) {
+                // UPDATE
+                const { data: mevcut } = await supabase.from('b1_model_kaliplari').select('id').eq('model_id', formKalip.model_id).eq('kalip_adi', formKalip.kalip_adi.trim()).neq('id', formKalip.id);
+                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Kalıp Adı ilgili Modele zaten eklenmiş!', 'error'); }
 
-            const { error } = await supabase.from('b1_model_kaliplari').insert([{
-                model_id: formKalip.model_id,
-                kalip_adi: formKalip.kalip_adi.trim(),
-                bedenler: formKalip.bedenler,
-                pastal_boyu_cm: parseFloat(formKalip.pastal_boyu_cm),
-                pastal_eni_cm: parseFloat(formKalip.pastal_eni_cm),
-                fire_orani_yuzde: parseFloat(formKalip.fire_orani_yuzde) || 5,
-                versiyon: formKalip.versiyon.trim() || 'v1.0',
-                kalip_dosya_url: formKalip.kalip_dosya_url.trim() || null,
-            }]);
-            if (!error) {
-                goster('✅ Kalıp kaydedildi!');
-                telegramBildirim(`📏 YENİ KALIP\nKalıp: ${formKalip.kalip_adi}\nBoyut: ${formKalip.pastal_boyu_cm}x${formKalip.pastal_eni_cm}cm\nFire: %${parseFloat(formKalip.fire_orani_yuzde) || 5}\nKalıp/Pastal kaydı eklendi.`);
-                setFormKalip(BOSH_KALIP); setFormAcik(false); yukle();
+                const { error } = await supabase.from('b1_model_kaliplari').update({
+                    model_id: formKalip.model_id,
+                    kalip_adi: formKalip.kalip_adi.trim(),
+                    bedenler: formKalip.bedenler,
+                    pastal_boyu_cm: parseFloat(formKalip.pastal_boyu_cm),
+                    pastal_eni_cm: parseFloat(formKalip.pastal_eni_cm),
+                    fire_orani_yuzde: parseFloat(formKalip.fire_orani_yuzde) || 5,
+                    versiyon: formKalip.versiyon.trim() || 'v1.0',
+                    kalip_dosya_url: formKalip.kalip_dosya_url.trim() || null,
+                }).eq('id', formKalip.id);
+                if (!error) { goster('✅ Kalıp güncellendi!'); setFormKalip(BOSH_KALIP); setFormAcik(false); yukle(); } else throw error;
+            } else {
+                // INSERT
+                const { data: mevcut } = await supabase.from('b1_model_kaliplari').select('id').eq('model_id', formKalip.model_id).eq('kalip_adi', formKalip.kalip_adi.trim());
+                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Kalıp Adı ilgili Modele zaten eklenmiş!', 'error'); }
+
+                const { error } = await supabase.from('b1_model_kaliplari').insert([{
+                    model_id: formKalip.model_id,
+                    kalip_adi: formKalip.kalip_adi.trim(),
+                    bedenler: formKalip.bedenler,
+                    pastal_boyu_cm: parseFloat(formKalip.pastal_boyu_cm),
+                    pastal_eni_cm: parseFloat(formKalip.pastal_eni_cm),
+                    fire_orani_yuzde: parseFloat(formKalip.fire_orani_yuzde) || 5,
+                    versiyon: formKalip.versiyon.trim() || 'v1.0',
+                    kalip_dosya_url: formKalip.kalip_dosya_url.trim() || null,
+                }]);
+                if (!error) {
+                    goster('✅ Kalıp kaydedildi!');
+                    telegramBildirim(`📏 YENİ KALIP\nKalıp: ${formKalip.kalip_adi}\nBoyut: ${formKalip.pastal_boyu_cm}x${formKalip.pastal_eni_cm}cm\nFire: %${parseFloat(formKalip.fire_orani_yuzde) || 5}\nKalıp/Pastal kaydı eklendi.`);
+                    setFormKalip(BOSH_KALIP); setFormAcik(false); yukle();
+                } else throw error;
             }
-            else throw error;
         } catch (error) {
             if (!navigator.onLine || error.message.includes('fetch')) {
                 await cevrimeKuyrugaAl({
@@ -327,7 +356,7 @@ export default function KalipMainContainer() {
             {/* MODEL FORMU */}
             {formAcik && sekme === 'modeller' && (
                 <div style={{ background: 'white', border: '2px solid #f59e0b', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(245,158,11,0.12)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#92400e', marginBottom: '1rem', fontSize: '1rem' }}>📐 {isAR ? 'إضافة نموذج جديد' : 'Yeni Model Taslağı'}</h3>
+                    <h3 style={{ fontWeight: 800, color: '#92400e', marginBottom: '1rem', fontSize: '1rem' }}>📐 {isAR ? 'إضافة/تعديل نموذج' : (formModel.id ? 'Model Düzenle' : 'Yeni Model Taslağı')}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
                         <div><label style={lbl}>Model Kodu *</label><input value={formModel.model_kodu} onChange={e => setFormModel({ ...formModel, model_kodu: e.target.value })} placeholder="MDL-001" style={inp} /></div>
                         <div><label style={lbl}>Model Adı (TR) *</label><input value={formModel.model_adi} onChange={e => setFormModel({ ...formModel, model_adi: e.target.value })} placeholder="Yazlık Keten Gömlek" style={inp} /></div>
@@ -360,7 +389,7 @@ export default function KalipMainContainer() {
             {/* KALIP FORMU */}
             {formAcik && sekme === 'kaliplar' && (
                 <div style={{ background: 'white', border: '2px solid #f59e0b', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(245,158,11,0.12)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#92400e', marginBottom: '1rem', fontSize: '1rem' }}>📏 {isAR ? 'إضافة قالب جديد' : 'Yeni Kalıp'}</h3>
+                    <h3 style={{ fontWeight: 800, color: '#92400e', marginBottom: '1rem', fontSize: '1rem' }}>📏 {isAR ? 'إضافة/تعديل قالب' : (formKalip.id ? 'Kalıp Düzenle' : 'Yeni Kalıp')}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
                         <div style={{ gridColumn: '1/-1' }}>
                             <label style={lbl}>Model Seç *</label>
@@ -436,7 +465,7 @@ export default function KalipMainContainer() {
                                         <h3 style={{ fontWeight: 800, color: '#0f172a', margin: '4px 0 0', fontSize: '0.95rem' }}>{isAR && m.model_adi_ar ? m.model_adi_ar : m.model_adi}</h3>
                                     </div>
                                     <div style={{ display: 'flex', gap: 4 }}>
-                                        <button onClick={() => { setFormModel({ model_kodu: m.model_kodu, model_adi: m.model_adi, model_adi_ar: m.model_adi_ar || '', trend_id: m.trend_id || '', hedef_kitle: m.hedef_kitle, sezon: m.sezon, aciklama: m.aciklama || '' }); setSekme('modeller'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
+                                        <button onClick={() => { setFormModel({ id: m.id, model_kodu: m.model_kodu, model_adi: m.model_adi, model_adi_ar: m.model_adi_ar || '', trend_id: m.trend_id || '', hedef_kitle: m.hedef_kitle, sezon: m.sezon, aciklama: m.aciklama || '' }); setSekme('modeller'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
                                         <button onClick={() => sil('b1_model_taslaklari', m.id)} disabled={islemdeId === 'sil_' + m.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + m.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + m.id ? 0.5 : 1 }}><Trash2 size={13} /></button>
                                     </div>
                                 </div>
@@ -494,7 +523,7 @@ export default function KalipMainContainer() {
                                         <div style={{ fontSize: '0.58rem', color: '#94a3b8', marginTop: 2 }}>🕐 {formatTarih(k.created_at)}</div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                        <button onClick={() => { setFormKalip({ model_id: k.model_id || '', kalip_adi: k.kalip_adi, bedenler: k.bedenler || [], pastal_boyu_cm: String(k.pastal_boyu_cm || ''), pastal_eni_cm: String(k.pastal_eni_cm || ''), fire_orani_yuzde: String(k.fire_orani_yuzde || '5'), versiyon: k.versiyon || 'v1.0', kalip_dosya_url: k.kalip_dosya_url || '' }); setSekme('kaliplar'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '5px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
+                                        <button onClick={() => { setFormKalip({ id: k.id, model_id: k.model_id || '', kalip_adi: k.kalip_adi, bedenler: k.bedenler || [], pastal_boyu_cm: String(k.pastal_boyu_cm || ''), pastal_eni_cm: String(k.pastal_eni_cm || ''), fire_orani_yuzde: String(k.fire_orani_yuzde || '5'), versiyon: k.versiyon || 'v1.0', kalip_dosya_url: k.kalip_dosya_url || '' }); setSekme('kaliplar'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#fef3c7', border: 'none', color: '#d97706', padding: '5px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}>✏️</button>
                                         <button onClick={() => sil('b1_model_kaliplari', k.id)} disabled={islemdeId === 'sil_' + k.id} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === 'sil_' + k.id ? 'not-allowed' : 'pointer', opacity: islemdeId === 'sil_' + k.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
                                     </div>
                                 </div>
