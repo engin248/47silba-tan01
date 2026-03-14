@@ -13,7 +13,7 @@ import { telegramBildirim, telegramFotoGonder } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';
 import useMotionDetection from '../hooks/useMotionDetection';
 
-const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
+const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'https://kamera.demirtekstiltheondercom.com';
 
 // ── NVR Gerçek Kamera Listesi (Neutron NEU-NVR116-SHD @ 192.168.1.200) ──
 // RTSP: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c{n}/s{0=main,1=sub}/live
