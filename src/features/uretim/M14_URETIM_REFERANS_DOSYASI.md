@@ -35,6 +35,16 @@
 *   **Yerel Derleme (Local Build):** Yapıldı, Hook-UI senkronu başarılı.
 *   **Browser Subagent Vercel Testi:** `100_CANLI_SAHA_DOGRULAMA_RAPORU.md` üzerine eklenecek.
 
+### 🛠️ Revizyon 2: FAZ-5 NİZAM / Kronometre Kayıpsızlığı (Crash Recovery) ve Mola Sistemi
+*   **Tarih:** 14 Mart 2026
+*   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
+*   **Problemler (Kör Noktalar):** 
+    1. **Donanım / Tarayıcı Kaybı:** Tabletin şarjı biterse, tarayıcı yanlışlıkla yenilenirse kronometre siliniyor ve maliyet sıfırlanıp NİZAM zarar ediyordu. (Javascript tabanlı RAM depolaması sıkıntısı).
+    2. **Mola & Arıza Payı:** Operasyon esnasında bir makine arıza yaptığında veya çay molasına çıkıldığında, fason personel sürekli açık kalan sayacın şişirdiği maliyeti haksız kazanıyordu. İş duraklatılamıyordu.
+*   **Yapılan Ameliyatlar:**
+    1. **LocalStorage Zırhı (Crash Recovery):** `useIsEmri.js` içine `localStorage` mühürlemesi yapıldı. Başlatılan işin zaman mühürü yerel depoya kazınıyor. `useEffect` tetiklendiği anda yarım kalan tüm sayaçları gerçeğe eşitleyerek tekrar devralıyor.
+    2. **Mola Sistemi Enjeksiyonu:** `duraklat` fonksiyonu tasarlandı. Tarayıcıda Pause (Mola) butonu aktif hale getirildi; mola verildiğinde geçen süreye kadar olan kısım hafızaya alınarak durduruluyor, "Devam Et" e basılınca kaldığı yerden otonom yazımı sürüyor. Böylece şişme maliyete karşı kesin zırh yapıldı.
+
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)

@@ -120,7 +120,37 @@ export function useIsEmri(kullanici) {
         return () => supabase.removeChannel(kanal);
     }, [dept, kullanici]);
 
-    useEffect(() => { return () => Object.values(timerRef.current).forEach(clearInterval); }, []);
+    useEffect(() => {
+        // [C1 FIX] Tarayıcı çökerse veya yenilenirse kronometre uçmasın (Crash Recovery)
+        try {
+            const kayitli = JSON.parse(localStorage.getItem('m14_kronometre_yedek')) || {};
+            const yeniKronometer = {};
+            const yeniSure = {};
+            let devamEdenVarMi = false;
+
+            Object.keys(kayitli).forEach(id => {
+                yeniKronometer[id] = kayitli[id];
+                if (kayitli[id].aktif) {
+                    devamEdenVarMi = true;
+                    const baslangic_gercek = kayitli[id].baslangic;
+                    yeniSure[id] = Math.floor((Date.now() - baslangic_gercek) / 1000);
+
+                    timerRef.current[id] = setInterval(() => {
+                        setSure(prev => ({ ...prev, [id]: Math.floor((Date.now() - baslangic_gercek) / 1000) }));
+                    }, 1000);
+                } else {
+                    // Duraklatılmışsa süresini de kurtaralım
+                    yeniSure[id] = kayitli[id].birikmis_sn || 0;
+                }
+            });
+            if (Object.keys(yeniKronometer).length > 0) {
+                setKronometer(prev => ({ ...prev, ...yeniKronometer }));
+                setSure(prev => ({ ...prev, ...yeniSure }));
+            }
+        } catch (e) { }
+
+        return () => Object.values(timerRef.current).forEach(clearInterval);
+    }, []);
 
     // ── DURUM GÜNCELLE ─────────────────────────────────────────────────────
     const durumGuncelle = async (id, status) => {
@@ -145,18 +175,32 @@ export function useIsEmri(kullanici) {
     // ── KRONOMETREyi DURDUR + PERFORMANS PUANLA ────────────────────────────
     const durdurVePerformansPuanla = async (id) => {
         clearInterval(timerRef.current[id]);
-        const sureDk = Math.round((sure[id] || 0) / 60);
-        setKronometer(prev => ({ ...prev, [id]: { aktif: false } }));
+        const toplamSn = sure[id] || 0;
+        const sureDk = Math.max(1, Math.round(toplamSn / 60)); // Minimum 1 dakika yazılsın
+
+        setKronometer(prev => {
+            const n = { ...prev };
+            delete n[id];
+            localStorage.setItem('m14_kronometre_yedek', JSON.stringify(n));
+            return n;
+        });
+        setSure(prev => {
+            const ns = { ...prev };
+            delete ns[id];
+            return ns;
+        });
+
         const dakikaUcret = parseFloat(process.env.NEXT_PUBLIC_DAKIKA_UCRETI || '2.50');
         const anaSiparis = orders.find(x => x.id === id);
         const zorlukKatsayisi = anaSiparis?.b1_model_taslaklari?.talep_skoru ? (anaSiparis.b1_model_taslaklari.talep_skoru / 5) : 1.2;
         let liyakatYildiz = sureDk < 60 ? '⭐⭐⭐⭐⭐' : sureDk < 120 ? '⭐⭐⭐⭐' : '⭐⭐';
-        if (sureDk > 0) {
+
+        if (toplamSn > 0) {
             try {
                 const tutar = sureDk * dakikaUcret * zorlukKatsayisi;
                 await supabase.from('b1_maliyet_kayitlari').insert([{
                     order_id: id, maliyet_tipi: 'personel_iscilik', tutar_tl: tutar,
-                    kalem_aciklama: `Kronometre: ${formatSure(sure[id] || 0)} (${sureDk} dk) | x${zorlukKatsayisi.toFixed(1)} - ${liyakatYildiz}`,
+                    kalem_aciklama: `Kronometre: ${formatSure(toplamSn)} (${sureDk} dk) | x${zorlukKatsayisi.toFixed(1)} - ${liyakatYildiz}`,
                     onay_durumu: 'hesaplandi'
                 }]);
             } catch (e) { }
@@ -279,15 +323,36 @@ export function useIsEmri(kullanici) {
 
     // ── KRONOMETREyİ BAŞLAT / DURDUR ───────────────────────────────────────
     const baslat = (id) => {
-        const baslangic = Date.now();
-        setKronometer(prev => ({ ...prev, [id]: { aktif: true, baslangic } }));
-        setSure(prev => ({ ...prev, [id]: 0 }));
+        const oncekiSn = sure[id] || 0;
+        const baslangic = Date.now() - (oncekiSn * 1000);
+
+        setKronometer(prev => {
+            const n = { ...prev, [id]: { aktif: true, baslangic } };
+            localStorage.setItem('m14_kronometre_yedek', JSON.stringify(n));
+            return n;
+        });
+
+        if (timerRef.current[id]) clearInterval(timerRef.current[id]);
+
         timerRef.current[id] = setInterval(() => {
             setSure(prev => ({ ...prev, [id]: Math.floor((Date.now() - baslangic) / 1000) }));
         }, 1000);
+        goster('⏱️ Üretim süreci başlatıldı / devam ediyor.');
     };
-    const durdur = async (id) => { await durdurVePerformansPuanla(id); goster('⏱️ Kronometre durduruldu.'); };
-    const formatSure = (s) => { const d = Math.floor(s / 60); const sn = s % 60; return `${String(d).padStart(2, '0')}:${String(sn).padStart(2, '0')}`; };
+
+    const duraklat = (id) => {
+        clearInterval(timerRef.current[id]);
+        const anlikSure = sure[id] || 0;
+        setKronometer(prev => {
+            const n = { ...prev, [id]: { aktif: false, birikmis_sn: anlikSure } };
+            localStorage.setItem('m14_kronometre_yedek', JSON.stringify(n));
+            return n;
+        });
+        goster('⏸️ Üretim duraklatıldı. Süre kaydı korundu.');
+    };
+
+    const durdur = async (id) => { await durdurVePerformansPuanla(id); goster('✋ Kronometre kapatıldı ve maliyet yazıldı.'); };
+    const formatSure = (s) => { const d = Math.floor((s || 0) / 60); const sn = (s || 0) % 60; return `${String(d).padStart(2, '0')}:${String(sn).padStart(2, '0')}`; };
 
     // ── MALİYET KAYDET ─────────────────────────────────────────────────────
     const maliyetKaydet = async () => {
@@ -341,7 +406,7 @@ export function useIsEmri(kullanici) {
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
         islemdeId, setIslemdeId, // [SPAM ZIRHI]
         // Fonksiyonlar
-        yukle, durumGuncelle, baslat, durdur, formatSure, barkodlaOtonomIslemYap,
+        yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
     };

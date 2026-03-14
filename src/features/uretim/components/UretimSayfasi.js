@@ -3,7 +3,7 @@
  * features/uretim/components/UretimSayfasi.js
  * Üretim Bandı Sayfası — Tüm UI burada, logic useIsEmri hook'unda
  */
-import { LayoutList, Play, Square, FileCheck, RefreshCw, AlertTriangle, Plus, Trash2, StopCircle, Clock, Save, DollarSign, Activity, Factory, Lock } from 'lucide-react';
+import { LayoutList, Play, Square, Pause, FileCheck, RefreshCw, AlertTriangle, Plus, Trash2, StopCircle, Clock, Save, DollarSign, Activity, Factory, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL, getST_RENK, getST_LABEL } from '@/features/uretim/hooks/useIsEmri';
@@ -25,7 +25,7 @@ export default function UretimSayfasi() {
         kronometer, sure, maliyetForm, setMaliyetForm, maliyetFormAcik, setMaliyetFormAcik,
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
-        durumGuncelle, baslat, durdur, formatSure, barkodlaOtonomIslemYap,
+        durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
         islemdeId, setIslemdeId, // [SPAM ZIRHI]
@@ -248,10 +248,20 @@ export default function UretimSayfasi() {
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {!kronometer[o.id]?.aktif
-                                    ? <button onClick={() => baslat(o.id)} style={{ flex: 1, padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Play size={14} /> Başla</button>
-                                    : <button onClick={() => durdur(o.id)} style={{ flex: 1, padding: '8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Square size={14} /> Durdur & Kaydet</button>
-                                }
+                                {!kronometer[o.id]?.aktif ? (
+                                    <button onClick={() => baslat(o.id)} style={{ flex: 1, padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                        <Play size={14} /> {sure[o.id] > 0 ? 'Devam Et' : 'Başla'}
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => duraklat(o.id)} style={{ flex: 1, padding: '8px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                            <Pause size={14} /> Mola
+                                        </button>
+                                        <button onClick={() => durdur(o.id)} style={{ flex: 1, padding: '8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                            <Square size={14} /> Bitir & Yaz
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}
