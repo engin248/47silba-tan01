@@ -6,7 +6,7 @@ import { Search, Zap, Globe, Tag } from 'lucide-react';
  * Hermes V2 AI arama kutusu — Perplexity Sonar tetikleyicisi
  * Hızlı arama butonları (Rakip Analizi, Kumaş Segmenti vb.)
  */
-export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniyor, isAR }) {
+export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniyor, aiAjanDurumu, isAR }) {
     const HIZLI_ARAMALAR = isAR
         ? ['قمصان كتان صيفية 2026', 'سراويل بوجاتي', 'فساتين عباءة', 'ملابس رياضية نسائية']
         : ['2026 Yazlık Keten Gömlek', 'Baggy Pantolon Erkek', 'Elbise Vintage', 'Kadın Spor Giyim'];
@@ -81,7 +81,7 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                         alignItems: 'center',
                         gap: 6,
                         whiteSpace: 'nowrap',
-                        opacity: !aiSorgu.trim() ? 0.5 : 1,
+                        opacity: (!aiSorgu.trim() && !aiAraniyor) ? 0.5 : 1,
                         transition: 'all 0.2s',
                     }}
                 >
@@ -98,6 +98,14 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                     )}
                 </button>
             </div>
+
+            {/* DİNAMİK AJAN DURUMU (YENİ EKLENDİ) */}
+            {aiAraniyor && aiAjanDurumu && (
+                <div style={{ marginBottom: '0.75rem', padding: '8px 12px', background: 'rgba(52, 211, 153, 0.1)', borderLeft: '3px solid #34d399', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+                    <div style={{ width: 8, height: 8, background: '#34d399', borderRadius: '50%', boxShadow: '0 0 8px #34d399' }} />
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>{aiAjanDurumu}</span>
+                </div>
+            )}
 
             {/* Hızlı arama butonları */}
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -128,7 +136,10 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                 ))}
             </div>
 
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+            <style>{`
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+            `}</style>
         </div>
     );
 }
