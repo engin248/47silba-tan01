@@ -84,7 +84,10 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
 
         // ── AŞAMA 2: GEMİNİ — "Satar mı?" Karar Desteği ───────────
         const geminiPrompt = `
-Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası için ürün kârlılık kararı veriyorsun.
+Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İç Üretim kapasitesine sahip) için ürün kârlılık kararı veriyorsun.
+
+DİL VE ÜSLUP KURALI (KESİN TALİMAT):
+Asla sübjektif, coşkulu, abartılı veya satıcı ağzıyla ("müthiş satıyor", "uçuyor", "hemen üretmeliyiz", "harika fırsat") YAZMAYACAKSIN. Tamamen soğukkanlı, net, metrik (sayısal) ve analitik bir dil kullan. Raporlamalarını yüzdelik değişimler, TL cinsinden fiyat bantları ve ölçülebilir istatistikler üzerine kur. Ölçülemeyen hiçbir yorum yapma.
 
 == ÜRÜN BİLGİSİ ==
 Ürün Adı: ${urunAdi}
@@ -93,21 +96,21 @@ Hedef Kitle: ${hedefKitle || 'genel'}
 Sezon: ${sezon || 'genel'}
 Hermes AI Trend Skoru: ${hermesSkoru || 'bilinmiyor'}/100
 
-== PIYASA ARAŞTIRMASI (Perplexity Sonar) ==
-${piyasaVeri || 'Piyasa verisi alınamadı — kendi bilginle değerlendirme yap.'}
+== PIYASA ARAŞTIRMASI (Perplexity Sonar / Hermes Verisi) ==
+${piyasaVeri || 'Piyasa verisi alınamadı — kendi analitik veri havuzunla değerlendirme yap.'}
 
 == GÖREV ==
-Yukarıdaki verilere dayanarak SADECEşu JSON formatında yanıt ver (başka hiçbir şey yazma):
+Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize dayanarak SADECE şu JSON formatında yanıt ver (başka hiçbir şey yazma):
 
 {
   "satarMi": true/false,
-  "kararGuven": 1-10 arası tam sayı,
-  "piyasaOzeti": "2-3 cümle pazar özeti",
-  "gucluYonler": ["güçlü yön 1", "güçlü yön 2", "güçlü yön 3"],
-  "zayifYonler": ["zayıf yön 1", "zayıf yön 2"],
-  "tavsiye": "Yöneticiye net üret/üretme tavsiyesi (1 cümle)",
-  "fiyatAraligi": { "min": TL rakamı, "max": TL rakamı },
-  "benzerUrunler": ["benzer ürün 1", "benzer ürün 2"]
+  "kararGuven": "1-10 arası tam sayı (Veri kalitesine göre)",
+  "piyasaOzeti": "Tamamen metrik olan, 2 cümlelik veri özeti (Örn: Pazar doygunluğa ulaşmış, rekabet yüksek, kar marjı tahmini %12)",
+  "gucluYonler": ["Operasyonel güçlü yön 1 (Örn: Fason imalata uygun)", "Metrik güçlü yön 2"],
+  "zayifYonler": ["Operasyonel zayıf yön 1 (Örn: Yüksek metraj firesi)", "Risk 2"],
+  "tavsiye": "Yöneticiye tamamen finansal/operasyonel tavsiye (Örn: Üretim marjı %20'nin altında kalacağı için reddedildi)",
+  "fiyatAraligi": { "min": "Rakam", "max": "Rakam" },
+  "benzerUrunler": ["Aynı segment ürün 1", "Aynı segment ürün 2"]
 }
 `.trim();
 

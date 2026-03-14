@@ -476,7 +476,8 @@ export default function HaberlesmeMainContainer() {
                 </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 10 }}>
+                {/* SOL: BAŞLIK */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#1e1b4b,#3730a3)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(30,27,75,0.3)' }}>
                         <MessageSquare size={26} color="white" />
@@ -488,26 +489,28 @@ export default function HaberlesmeMainContainer() {
                         </p>
                     </div>
                 </div>
-                <button onClick={() => { setSekme('yeni'); setAcikMesaj(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#1e1b4b', color: 'white', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(30,27,75,0.3)', fontSize: '0.875rem' }}>
-                    <Send size={16} /> Yeni Mesaj
-                </button>
-            </div>
 
-            {/* İSTATİSTİK */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: '0.625rem', marginBottom: '1rem' }}>
-                {[
-                    { label: 'Okunmamış', val: okunmamisSayi, color: '#ef4444', bg: '#fef2f2', ikon: '📬' },
-                    { label: 'Toplam', val: mesajlar.length, color: '#0ea5e9', bg: '#f0f9ff', ikon: '📨' },
-                    { label: 'Onay Bekleyen', val: mesajlar.filter(m => m.onay_durumu === 'bekliyor').length, color: '#d97706', bg: '#fffbeb', ikon: '⏳' },
-                    { label: 'Arşiv Gizlenen', val: gizliIdler.size, color: '#7c3aed', bg: '#f5f3ff', ikon: '🫥' },
-                ].map((s, i) => (
-                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.75rem' }}>
-                        <div style={{ fontSize: '1rem', marginBottom: 2 }}>{s.ikon}</div>
-                        <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>{s.label}</div>
-                        <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
-                    </div>
-                ))}
+                {/* SAĞ: İSTATİSTİK ve YENİ MESAJ BUTONU */}
+                <div style={{ display: 'flex', alignItems: 'stretch', gap: '0.625rem' }}>
+                    {[
+                        { label: 'Okunmamış', val: okunmamisSayi, color: '#ef4444', bg: '#fef2f2', ikon: '📬' },
+                        { label: 'Toplam', val: mesajlar.length, color: '#0ea5e9', bg: '#f0f9ff', ikon: '📨' },
+                        { label: 'Onay Bekleyen', val: mesajlar.filter(m => m.onay_durumu === 'bekliyor').length, color: '#d97706', bg: '#fffbeb', ikon: '⏳' },
+                        { label: 'Arşiv Gizlenen', val: gizliIdler.size, color: '#7c3aed', bg: '#f5f3ff', ikon: '🫥' },
+                    ].map((s, i) => (
+                        <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '110px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                <span style={{ fontSize: '0.9rem' }}>{s.ikon}</span>
+                                <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</span>
+                            </div>
+                            <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
+                        </div>
+                    ))}
+                    <button onClick={() => { setSekme('yeni'); setAcikMesaj(null); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#1e1b4b', color: 'white', border: 'none', padding: '0 18px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(30,27,75,0.3)', fontSize: '0.875rem' }}>
+                        <Send size={16} /> Yeni Mesaj
+                    </button>
+                </div>
             </div>
 
             {/* BİLDİRİM */}
