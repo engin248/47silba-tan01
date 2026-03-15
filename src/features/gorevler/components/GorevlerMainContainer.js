@@ -120,7 +120,7 @@ export default function GorevlerMainContainer() {
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
         if (!confirm('Görev silinsin mi?')) return;
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_gorevler', islem_tipi: 'SILME', kullanici_adi: 'Saha Yetkilisi', eski_veri: {} }]).catch(() => { });
+            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_gorevler', islem_tipi: 'SILME', kullanici_adi: 'Saha Yetkilisi', eski_veri: {} }]);
             const { error } = await supabase.from('b1_gorevler').delete().eq('id', id);
             if (error) throw error;
             yukle(); goster('Silindi');

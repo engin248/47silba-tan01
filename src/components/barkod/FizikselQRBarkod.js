@@ -8,9 +8,11 @@ export default function FizikselQRBarkod({ veriKodu, baslik = "Kumaş Barkodu", 
     const fizikselYazdir = () => {
         // QR Kodun SVG datasını HTML içine gömmek için çekiyoruz
         const svgEl = document.getElementById('lokal-qr-el');
+        if (!svgEl) return;
         const svgSource = new XMLSerializer().serializeToString(svgEl);
 
         const pencere = window.open('', '_blank');
+        if (!pencere) return;
         pencere.document.write(`
             <html>
                 <head>
@@ -54,8 +56,8 @@ export default function FizikselQRBarkod({ veriKodu, baslik = "Kumaş Barkodu", 
             </div>
             <p style={{ margin: '10px 0', fontSize: '1rem', fontWeight: 800, fontFamily: 'monospace', color: '#0f172a' }}>{veriKodu}</p>
             <button onClick={fizikselYazdir} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', width: '100%', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background 0.2s' }}
-                onMouseOver={(e) => e.target.style.background = '#1e293b'}
-                onMouseOut={(e) => e.target.style.background = '#0f172a'}
+                onMouseOver={(e) => /** @type {any} */(e.target).style.background = '#1e293b'}
+                onMouseOut={(e) => /** @type {any} */(e.target).style.background = '#0f172a'}
             >
                 🖨️ Etiketi Yazdır
             </button>

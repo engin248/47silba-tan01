@@ -90,7 +90,7 @@ export function useModelhane(kullanici) {
         const { yetkili, mesaj: m } = await silmeYetkiDogrula(kullanici, 'Model silmek için PIN:');
         if (!yetkili) return goster(m || 'Yetkisiz.', 'error');
         if (!confirm('Model silinsin mi?')) return;
-        await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_model_taslaklari', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'Model Sorumlusu', eski_veri: { id } }]).catch(() => { });
+        await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_model_taslaklari', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'Model Sorumlusu', eski_veri: { id } }]);
         const { error } = await supabase.from('b1_model_taslaklari').delete().eq('id', id);
         if (!error) { goster('Model silindi.'); yukle(); }
         else goster(error.message, 'error');

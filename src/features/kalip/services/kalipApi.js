@@ -44,7 +44,7 @@ export async function kalipSil(id, kullaniciLabel) {
     await supabase.from('b0_sistem_loglari').insert([{
         tablo_adi: 'b1_model_kaliplari', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'Kalıp Sorumlusu', eski_veri: { id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_model_kaliplari').delete().eq('id', id);
     if (error) throw error;
 }

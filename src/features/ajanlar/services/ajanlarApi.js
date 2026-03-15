@@ -40,7 +40,7 @@ export async function gorevOlustur(form) {
         tablo_adi: 'b1_ajan_gorevler', islem_tipi: 'INSERT',
         kullanici_adi: 'Koordinatör',
         eski_veri: { gorev_adi: form.gorev_adi, ajan: form.ajan_adi },
-    }]).catch(() => { });
+    }]);
 
     telegramBildirim(`🤖 YENİ OTONOM GÖREV\nAjan: ${form.ajan_adi}\nGörev: ${form.gorev_adi}`);
     return data;
@@ -65,7 +65,7 @@ export async function gorevSil(id, kullaniciLabel = '') {
         tablo_adi: 'b1_ajan_gorevler', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'Yetkilendirilmiş Kullanıcı',
         eski_veri: { id, mesaj: 'Silindi' },
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
     if (error) throw error;
 }

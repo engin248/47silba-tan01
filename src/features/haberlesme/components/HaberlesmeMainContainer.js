@@ -385,7 +385,7 @@ export default function HaberlesmeMainContainer() {
                     islem_tipi: REFERANS_NOTA_MI(m) ? 'KOORDINATOR_REF_NOT_COPE_ATTI' : 'KOORDINATOR_COPE_ATTI',
                     kullanici_adi: kullaniciAdi,
                     eski_veri: { mesaj_id: m.id, konu: m.konu, gonderen: m.gonderen_adi, referans_mi: REFERANS_NOTA_MI(m) },
-                }]).catch(() => { });
+                }]);
             }
             if (acikMesaj?.id === m.id) setAcikMesaj(null);
             goster('🗑️ Mesaj Çöp Kovasına taşındı.', 'success');
@@ -462,7 +462,7 @@ export default function HaberlesmeMainContainer() {
                 islem_tipi: karar === 'onaylandi' ? 'ONAY' : 'RED',
                 kullanici_adi: kullaniciAdi,
                 eski_veri: { mesaj_id: mesajId, karar, not: onayNotu },
-            }]).catch(() => { });
+            }]);
 
             goster(`${karar === 'onaylandi' ? '✅ Onaylandı' : '❌ Reddedildi'} — kayıt altına alındı.`, 'success');
             setAcikMesaj(null); setOnayNotu(''); yukle();

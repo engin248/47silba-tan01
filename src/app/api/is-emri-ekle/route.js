@@ -61,7 +61,7 @@ export async function POST(request) {
             islem_tipi: 'EKLEME',
             kullanici_adi: 'Server API (Güvenli İş Emri)',
             eski_veri: { model_id: temizVeri.model_id, quantity: temizVeri.quantity }
-        }]).catch(() => { });
+        }]);
 
         return NextResponse.json({ basarili: true, isEmri: data?.[0] }, { status: 201 });
 

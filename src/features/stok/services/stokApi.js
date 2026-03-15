@@ -55,7 +55,7 @@ export async function stokHareketSil(id, urunKodu, kullaniciLabel) {
         tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'M11 Sorumlusu',
         eski_veri: { durum: `Ürün: ${urunKodu}, ID: ${id}` }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b2_stok_hareketleri').delete().eq('id', id);
     if (error) throw error;
     telegramBildirim(`🚨 KRİTİK: Stok hareketi silindi! Ürün: ${urunKodu}`);

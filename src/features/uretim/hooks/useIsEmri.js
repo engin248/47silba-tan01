@@ -311,7 +311,7 @@ export function useIsEmri(kullanici) {
         if (!yetkili) { setIslemdeId(null); return goster(yMsg || 'Yetkisiz.', 'error'); }
         if (!confirm('İş emri arşive (iptal) kaldırılsın mı?')) { setIslemdeId(null); return; }
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { is_emri_id: id } }]).catch(() => { });
+            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { is_emri_id: id } }]);
             const { error } = await supabase.from('production_orders').update({ status: 'cancelled' }).eq('id', id);
             if (error) throw error;
             goster('İş emri arşive kaldırıldı.');

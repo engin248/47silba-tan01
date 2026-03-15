@@ -58,7 +58,7 @@ export async function POST(request) {
         await supabase.from('b0_telegram_log').insert({
             chat_id: 'BILINMIYOR', komut: 'YETKISIZ_ERISIM',
             sonuc: 'ENGELLENDI', tarih: new Date().toISOString()
-        }).catch(() => { });
+        });
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

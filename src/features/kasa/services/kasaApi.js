@@ -39,7 +39,7 @@ export async function kasaHareketiSil(id, kullaniciLabel) {
         tablo_adi: 'b2_kasa_hareketleri', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'Kasa Yetkilisi',
         eski_veri: { id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b2_kasa_hareketleri').delete().eq('id', id);
     if (error) throw error;
 }

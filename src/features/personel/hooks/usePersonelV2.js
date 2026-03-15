@@ -130,7 +130,7 @@ export function usePersonelV2(kullanici) {
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz!', 'error');
         if (!confirm('Personel kalıcı olarak silinsin mi?')) return;
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_personel', islem_tipi: 'SILME', kullanici_adi: kullanici?.ad || 'Yönetici', eski_veri: { id } }]).catch(() => { });
+            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_personel', islem_tipi: 'SILME', kullanici_adi: kullanici?.ad || 'Yönetici', eski_veri: { id } }]);
             const { error } = await supabase.from('b1_personel').delete().eq('id', id);
             if (error) throw error;
             goster('Silindi.'); yukle();
@@ -175,7 +175,7 @@ export function usePersonelV2(kullanici) {
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz!', 'error');
         if (!confirm('Bu devam kaydı silinsin mi?')) return;
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_personel_devam', islem_tipi: 'SILME', kullanici_adi: kullanici?.ad || 'Yönetici', eski_veri: { id } }]).catch(() => { });
+            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_personel_devam', islem_tipi: 'SILME', kullanici_adi: kullanici?.ad || 'Yönetici', eski_veri: { id } }]);
             const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
             if (error) throw error;
             goster('Silindi.'); yukleDevam();

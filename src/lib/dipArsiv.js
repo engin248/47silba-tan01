@@ -23,7 +23,7 @@ export async function dipArsiveKaldir(tablo, id, kullanici = 'Sistem') {
                 silen_kullanici: kullanici,
                 silme_tarihi: new Date().toISOString(),
                 geri_yuklenebilir: true,
-            }]).catch(() => { }); // Arşiv başarısız olsa da silmeyi durdurmaz
+            }]); // Arşiv başarısız olsa da silmeyi durdurmaz
         }
 
         // 3. Standart B0 audit log
@@ -32,7 +32,7 @@ export async function dipArsiveKaldir(tablo, id, kullanici = 'Sistem') {
             islem_tipi: 'DIP_ARSIV',
             kullanici_adi: kullanici,
             eski_veri: { id, arsiv_tarihi: new Date().toISOString() },
-        }]).catch(() => { });
+        }]);
 
     } catch (e) {
         // Sessiz fail — arşivleme kritik değilse silmeyi engellemez

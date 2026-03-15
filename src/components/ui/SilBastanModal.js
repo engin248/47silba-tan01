@@ -1,6 +1,12 @@
 import React from 'react';
 
-// KOD PARÇALAMASI (Componentization) Altyapısı - 1
+/**
+ * @param {object} props
+ * @param {any} props.acik
+ * @param {any} props.onClose
+ * @param {any} props.title
+ * @param {any} [props.children]
+ */
 export default function SilBastanModal({ acik, onClose, title, children }) {
     // KÖR NOKTA: Modal açıkken arka planın kaymasını (Scroll) engelle (Body Kilit)
     React.useEffect(() => {

@@ -352,7 +352,7 @@ export default function ModelhaneSayfasi() {
                     islem_tipi: 'ARŞİVLEME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Soft Delete / Arşive alındı.', ver_id: id }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             let error = null;

@@ -54,7 +54,7 @@ export async function devirKapat(rapor, kullaniciLabel = '') {
         tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'UPDATE',
         kullanici_adi: kullaniciLabel || 'Muhasebe Yetkilisi',
         eski_veri: { mesaj: (rapor.model_kodu || rapor.id) + ' kilitlendi ve 2. birime devredildi.' },
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_muhasebe_raporlari').update({
         rapor_durumu: 'kilitlendi', devir_durumu: true, onay_tarihi: new Date().toISOString()
     }).eq('id', rapor.id);
@@ -111,7 +111,7 @@ export async function raporSil(rapor, kullaniciLabel = '') {
         tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'Muhasebe Yetkilisi',
         eski_veri: { rapor_durumu: rapor.rapor_durumu, model_kodu: rapor.model_kodu },
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_muhasebe_raporlari').delete().eq('id', rapor.id);
     if (error) throw error;
     telegramBildirim(`🗑️ MUHASEBE RAPORU SİLİNDİ\nModel: ${rapor.model_kodu || '-'}`);

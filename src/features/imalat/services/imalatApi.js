@@ -31,7 +31,7 @@ export async function imalatDurumGuncelle(id, durum) {
 }
 
 export async function imalatEmriSil(id, kullaniciLabel) {
-    await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_imalat_emirleri', islem_tipi: 'SILME', kullanici_adi: kullaniciLabel || 'İmalat Sorumlusu', eski_veri: { id } }]).catch(() => { });
+    await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_imalat_emirleri', islem_tipi: 'SILME', kullanici_adi: kullaniciLabel || 'İmalat Sorumlusu', eski_veri: { id } }]);
     const { error } = await supabase.from('b1_imalat_emirleri').delete().eq('id', id);
     if (error) throw error;
 }

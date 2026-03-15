@@ -31,28 +31,29 @@ const BOSH_KUMAS = { kumas_kodu: '', kumas_adi: '', kumas_adi_ar: '', kumas_tipi
 const BOSH_AKS = { aksesuar_kodu: '', aksesuar_adi: '', aksesuar_adi_ar: '', tip: 'dugme', birim: 'adet', birim_maliyet_tl: '', stok_adet: '', min_stok: '100', fotograf_url: '', tedarikci_adi: '' };
 
 export default function KumasArsiviSayfasi() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('kumas');
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
     const [mounted, setMounted] = useState(false);
-    const [kumaslar, setKumaslar] = useState([]);
-    const [aksesuarlar, setAksesuarlar] = useState([]);
-    const [tedarikciler, setTedarikciler] = useState([]);
-    const [gorselArşiv, setGorselArsiv] = useState([]);
-    const [form, setForm] = useState(BOSH_KUMAS);
-    const [aksForm, setAksForm] = useState(BOSH_AKS);
+    const [kumaslar, setKumaslar] = useState(/** @type {any[]} */([]));
+    const [aksesuarlar, setAksesuarlar] = useState(/** @type {any[]} */([]));
+    const [tedarikciler, setTedarikciler] = useState(/** @type {any[]} */([]));
+    const [gorselArşiv, setGorselArsiv] = useState(/** @type {any[]} */([]));
+    const [form, setForm] = useState(/** @type {any} */(BOSH_KUMAS));
+    const [aksForm, setAksForm] = useState(/** @type {any} */(BOSH_AKS));
     const [formAcik, setFormAcik] = useState(false);
-    const [duzenleId, setDuzenleId] = useState(null);
-    const [duzenleTip, setDuzenleTip] = useState(null); // 'kumas' | 'aksesuar'
+    const [duzenleId, setDuzenleId] = useState(/** @type {any} */(null));
+    const [duzenleTip, setDuzenleTip] = useState(/** @type {any} */(null)); // 'kumas' | 'aksesuar'
     const [arama, setArama] = useState('');
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
 
     // BARKOD MODAL STATE
     const [barkodModaliAcik, setBarkodModaliAcik] = useState(false);
-    const [seciliKumas, setSeciliKumas] = useState(null);
-    const [islemdeId, setIslemdeId] = useState(null);
+    const [seciliKumas, setSeciliKumas] = useState(/** @type {any} */(null));
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null));
 
     useEffect(() => {
         setMounted(true);
@@ -109,8 +110,8 @@ export default function KumasArsiviSayfasi() {
                     supabase.from('b1_aksesuar_arsivi').select('id,aksesuar_adi,fotograf_url').not('fotograf_url', 'is', null).limit(100)
                 ]);
 
-                const kData = (kumasRes.status === 'fulfilled' && kumasRes.value?.data) ? kumasRes.value.data.filter(k => k.aktif !== false) : [];
-                const aData = (aksesuarRes.status === 'fulfilled' && aksesuarRes.value?.data) ? aksesuarRes.value.data.filter(a => a.aktif !== false) : [];
+                const kData = (kumasRes.status === 'fulfilled' && kumasRes.value?.data) ? (/** @type {any[]} */(kumasRes.value.data)).filter(k => k.aktif !== false) : [];
+                const aData = (aksesuarRes.status === 'fulfilled' && aksesuarRes.value?.data) ? (/** @type {any[]} */(aksesuarRes.value.data)).filter(a => a.aktif !== false) : [];
                 setGorselArsiv([...kData.map(x => ({ ...x, tip: 'kumas', ad: x.kumas_adi })), ...aData.map(x => ({ ...x, tip: 'aksesuar', ad: x.aksesuar_adi }))]);
             }
         } catch (error) {
@@ -146,7 +147,7 @@ export default function KumasArsiviSayfasi() {
         try {
             // [OFFLINE-ZIRHI] İnternet yoksa kuyruğa al
             if (!navigator.onLine) {
-                cevrimeKuyrugaAl('b1_kumas_arsivi', payload);
+                cevrimeKuyrugaAl('b1_kumas_arsivi', 'INSERT', /** @type {any} */(payload));
                 goster('⚠️ İnternet Yok: Wifi Gelince Fırlatılacak (Kumaş kuyruğa alındı).', 'success');
                 setForm(BOSH_KUMAS); setFormAcik(false);
                 setLoading(false);
@@ -197,7 +198,7 @@ export default function KumasArsiviSayfasi() {
         try {
             // [OFFLINE-ZIRHI] İnternet yoksa kuyruğa al (yalnızca yeni kayıt)
             if (!navigator.onLine && !duzenleId) {
-                cevrimeKuyrugaAl('b1_aksesuar_arsivi', payload);
+                cevrimeKuyrugaAl('b1_aksesuar_arsivi', 'INSERT', /** @type {any} */(payload));
                 goster('⚠️ İnternet Yok: Wifi Gelince Fırlatılacak (Aksesuar kuyruğa alındı).', 'success');
                 setAksForm(BOSH_AKS); setFormAcik(false); setDuzenleId(null); setDuzenleTip(null);
                 setLoading(false);
@@ -236,8 +237,7 @@ export default function KumasArsiviSayfasi() {
 
         // GÜVENLİK: Sunucu taraflı PIN doğrulama
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Bu veriyi silmek için Yönetici PIN kodunu girin:'
+            /** @type {any} */(kullanici)
         );
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
@@ -252,7 +252,7 @@ export default function KumasArsiviSayfasi() {
                     islem_tipi: 'SILME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from(tablo).update({ aktif: false }).eq('id', id);
@@ -315,7 +315,7 @@ export default function KumasArsiviSayfasi() {
     const filtreli_kumaslar = kumaslar.filter(k => k.kumas_adi?.toLowerCase().includes(arama.toLowerCase()) || k.kumas_kodu?.toLowerCase().includes(arama.toLowerCase()));
     const filtreli_aksesuarlar = aksesuarlar.filter(a => a.aksesuar_adi?.toLowerCase().includes(arama.toLowerCase()) || a.aksesuar_kodu?.toLowerCase().includes(arama.toLowerCase()));
 
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = /** @type {any} */ ({ width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     // Hydration Mismatch Koruması
@@ -532,7 +532,7 @@ export default function KumasArsiviSayfasi() {
                                     {/* Fotoğraf */}
                                     {k.fotograf_url ? (
                                         <div style={{ height: 140, overflow: 'hidden', background: '#f8fafc' }}>
-                                            <img src={k.fotograf_url} alt={k.kumas_adi} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
+                                            <img src={k.fotograf_url} alt={k.kumas_adi} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => /** @type {any} */(e.target).style.display = 'none'} />
                                         </div>
                                     ) : (
                                         <div style={{ height: 80, background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -651,7 +651,7 @@ export default function KumasArsiviSayfasi() {
                         {gorselArşiv.map(g => (
                             <div key={g.id} style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                                 <div style={{ height: 160, background: '#f8fafc', overflow: 'hidden' }}>
-                                    <img src={g.fotograf_url} alt={g.ad} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.parentElement.style.display = 'flex'; e.target.parentElement.style.alignItems = 'center'; e.target.parentElement.style.justifyContent = 'center'; e.target.style.display = 'none'; }} />
+                                    <img src={g.fotograf_url} alt={g.ad} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { /** @type {any} */(e.target).parentElement.style.display = 'flex'; /** @type {any} */(e.target).parentElement.style.alignItems = 'center'; /** @type {any} */(e.target).parentElement.style.justifyContent = 'center'; /** @type {any} */(e.target).style.display = 'none'; }} />
                                 </div>
                                 <div style={{ padding: '0.75rem' }}>
                                     <span style={{ fontSize: '0.6rem', fontWeight: 800, background: g.tip === 'kumas' ? '#ecfdf5' : '#fef3c7', color: g.tip === 'kumas' ? '#047857' : '#b45309', padding: '2px 6px', borderRadius: 4 }}>{g.tip === 'kumas' ? 'KUMAŞ' : 'AKSESUAR'}</span>
@@ -668,7 +668,7 @@ export default function KumasArsiviSayfasi() {
 
             {/* BARKOD MODALI: Fiziksel Dünya Bağlantısı */}
             <SilBastanModal acik={barkodModaliAcik} onClose={() => setBarkodModaliAcik(false)} title="🖨️ Kumaş Barkodu Yazdır">
-                {seciliKumas && (
+                {seciliKumas ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'white', padding: '2rem', borderRadius: '12px' }}>
                         <FizikselQRBarkod
                             veriKodu={seciliKumas.kumas_kodu}
@@ -679,7 +679,7 @@ export default function KumasArsiviSayfasi() {
                             Depocu bu barkodu top kumaşın üzerine yapıştırır.<br />Kesimhanede kumaş kameraya okutulduğu an dijital iş akışı başlar.
                         </p>
                     </div>
-                )}
+                ) : <span />}
             </SilBastanModal>
         </div>
     );

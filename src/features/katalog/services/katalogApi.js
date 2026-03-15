@@ -115,7 +115,7 @@ export async function urunSil(id, urunKodu, kullaniciLabel = 'M9 Yetkilisi') {
         islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel,
         eski_veri: { durum: 'M9 Urun kalici silindi.', urun_kodu: urunKodu }
-    }]).catch(() => { });
+    }]);
 
     const { error } = await supabase.from(TABLO).delete().eq('id', id);
     if (error?.code === '23503') {

@@ -62,7 +62,7 @@ export default function KatalogSayfasi() {
         fetch('/api/kur')
             .then(r => r.json())
             .then(d => { if (d?.usd_tl) { setUsdKur(d.usd_tl); setKurTarihi(d.tarih || ''); } })
-            .catch(() => { }); // hata durumunda varsayılan 32.5 kalır
+            ; // hata durumunda varsayılan 32.5 kalır
     }, []);
     const [finansGizli, setFinansGizli] = useState(true);
     const router = useRouter(); // [SPA FIX]

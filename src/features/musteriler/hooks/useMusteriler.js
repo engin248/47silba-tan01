@@ -75,7 +75,7 @@ export function useMusteriler(kullanici) {
         const { yetkili, mesaj: m } = await silmeYetkiDogrula(kullanici, 'Müşteri silmek için PIN:');
         if (!yetkili) return goster(m || 'Yetkisiz.', 'error');
         if (!confirm('Müşteri silinsin mi?')) return;
-        await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b2_musteriler', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'CRM', eski_veri: { id } }]).catch(() => { });
+        await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b2_musteriler', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'CRM', eski_veri: { id } }]);
         const { error } = await supabase.from('b2_musteriler').delete().eq('id', id);
         if (!error) { goster('Silindi.'); if (secilenMusteri?.id === id) setSecilenMusteri(null); yukle(); }
         else goster(error.message, 'error');

@@ -30,19 +30,31 @@ const csvIndir = (baslik, satirlar, dosyaAdi) => {
 };
 
 export default function RaporlarMainContainer() {
+    /** @type {any} */
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
+
+    // Recharts tip hatası (TS2604) çözümü
+    const ReXAxis = /** @type {any} */ (XAxis);
+    const ReYAxis = /** @type {any} */ (YAxis);
+    const ReTooltip = /** @type {any} */ (Tooltip);
+    const ReBar = /** @type {any} */ (Bar);
+    const ReLegend = /** @type {any} */ (Legend);
+
     const [aktifSekme, setAktifSekme] = useState('genel');
     const [baslangic, setBaslangic] = useState('');
     const [bitis, setBitis] = useState('');
+    /** @type {[any, any]} */
     const [veriler, setVeriler] = useState({
         modeller: 0, kumaslar: 0, siparis: 0, personel: 0, maliyet: 0,
         siparislerListesi: [], maliyetler: [], loading: true,
     });
+    /** @type {[any[], any]} */
     const [birimMaliyetler, setBirimMaliyetler] = useState([]);
-    const [plRaporu, setPlRaporu] = useState({ gelir: 0, gider: 0, karMarji: 0 });
+    const [plRaporu, setPlRaporu] = useState({ gelir: 0, gider: 0, kar: 0, marj: 0 });
+    /** @type {[any[], any]} */
     const [personelRapor, setPersonelRapor] = useState([]);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [indiriyor, setIndiriyor] = useState(false);
@@ -143,7 +155,7 @@ export default function RaporlarMainContainer() {
             const topGelir = toplamCiro;
             const topGider = Object.values(malGrup).reduce((s, v) => s + v, 0);
             const kar = topGelir - topGider;
-            const marj = topGelir > 0 ? ((kar / topGelir) * 100).toFixed(1) : 0;
+            const marj = topGelir > 0 ? parseFloat(((kar / topGelir) * 100).toFixed(1)) : 0;
             setPlRaporu({ gelir: topGelir, gider: topGider, kar, marj });
 
             setVeriler({
@@ -184,7 +196,7 @@ export default function RaporlarMainContainer() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <PieChart size={24} color="white" />
+                        <PieIcon size={24} color="white" />
                     </div>
                     <div>
                         <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Raporlar & Analiz</h1>
@@ -301,14 +313,14 @@ export default function RaporlarMainContainer() {
                                         margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
                                     >
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} />
-                                        <YAxis tick={{ fontSize: 10 }} />
-                                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontWeight: 700 }} />
-                                        <Bar dataKey="Adet" radius={[6, 6, 0, 0]}>
+                                        <ReXAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} />
+                                        <ReYAxis tick={{ fontSize: 10 }} />
+                                        <ReTooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontWeight: 700 }} />
+                                        <ReBar dataKey="Adet" radius={[6, 6, 0, 0]}>
                                             {Object.entries(durumSay).map(([durum], i) => (
                                                 <Cell key={i} fill={DURUM_RENK[durum] || '#94a3b8'} />
                                             ))}
-                                        </Bar>
+                                        </ReBar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -329,8 +341,8 @@ export default function RaporlarMainContainer() {
                                             <Pie data={pieData} cx="50%" cy="50%" outerRadius={75} innerRadius={35} dataKey="value" paddingAngle={3}>
                                                 {pieData.map((_, i) => <Cell key={i} fill={MAL_RENKLER[i % MAL_RENKLER.length]} />)}
                                             </Pie>
-                                            <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontWeight: 700 }} formatter={(v) => `₺${v}`} />
-                                            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, fontWeight: 700 }} />
+                                            <ReTooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontWeight: 700 }} formatter={(v) => `₺${v}`} />
+                                            <ReLegend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, fontWeight: 700 }} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>

@@ -39,7 +39,7 @@ export async function kesimSil(id, kullaniciLabel) {
     await supabase.from('b0_sistem_loglari').insert([{
         tablo_adi: 'b1_kesim_operasyonlari', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'Kesim Sorumlusu', eski_veri: { id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_kesim_operasyonlari').update({ durum: 'iptal' }).eq('id', id);
     if (error) throw error;
 }

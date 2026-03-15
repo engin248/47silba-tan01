@@ -76,7 +76,7 @@ export async function archiveIsEmri(id, kullaniciAd) {
         tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME',
         kullanici_adi: kullaniciAd || 'Saha Yetkilisi',
         eski_veri: { is_emri_id: id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('production_orders').update({ status: 'cancelled' }).eq('id', id);
     if (error) throw error;
 }

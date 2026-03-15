@@ -44,27 +44,35 @@ export const BOS_URUN = BOSH_URUN;
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 export function useKatalog(kullanici) {
+    /** @type {[any[], any]} */
     const [urunler, setUrunler] = useState([]);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
+    /** @type {[any, any]} */
     const [form, setForm] = useState(BOSH_URUN);
+    /** @type {[any, any]} */
     const [duzenleId, setDuzenleId] = useState(null);
     const [formAcik, setFormAcik] = useState(false);
     const [arama, setArama] = useState('');
     const [finansGizli, setFinansGizli] = useState(true);
     const [barkodAcik, setBarkodAcik] = useState(false);
+    /** @type {[any, any]} */
     const [seciliUrun, setSeciliUrun] = useState(null);
 
     // KAT-04: SKU
     const [skuAcik, setSkuAcik] = useState(false);
+    /** @type {[string[], any]} */
     const [skuBedenler, setSkuBedenler] = useState(['S', 'M', 'L', 'XL']);
+    /** @type {[string[], any]} */
     const [skuRenkler, setSkuRenkler] = useState(['Siyah', 'Beyaz']);
 
     // KAT-05: Fiyat geçmişi
     const [fiyatGecmisiAcik, setFiyatGecmisiAcik] = useState(false);
+    /** @type {[any[], any]} */
     const [fiyatGecmisi, setFiyatGecmisi] = useState([]);
 
     // KAT-06: Stok sync
+    /** @type {[Date | null, any]} */
     const [sonSenkron, setSonSenkron] = useState(null);
 
     // ── Veri Yükle ──────────────────────────────────────────────────────────

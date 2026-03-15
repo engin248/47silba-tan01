@@ -41,7 +41,7 @@ export async function musteriSil(id, kullaniciLabel) {
         islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'CRM Sorumlusu',
         eski_veri: { id },
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b2_musteriler').delete().eq('id', id);
     if (error) throw error;
 }

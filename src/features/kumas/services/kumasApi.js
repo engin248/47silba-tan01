@@ -89,7 +89,7 @@ export async function kumasSil(tablo, id) {
         tablo_adi: tablo, islem_tipi: 'SILME',
         kullanici_adi: 'Saha Yetkilisi',
         eski_veri: { durum: 'Soft delete öncesi log' }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from(tablo).update({ aktif: false }).eq('id', id);
     if (error) throw error;
     telegramBildirim(`📂 ARŞİVE KALDIRILDI\nTablo: ${tablo} | ID: ${id}`);

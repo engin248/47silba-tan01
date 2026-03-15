@@ -33,25 +33,26 @@ const BOSH_FORM = {
 };
 
 export default function PersonelMainContainer() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
-    const [personeller, setPersoneller] = useState([]);
-    const [form, setForm] = useState(BOSH_FORM);
+    const [personeller, setPersoneller] = useState(/** @type {any[]} */([]));
+    const [form, setForm] = useState(/** @type {any} */(BOSH_FORM));
     const [formAcik, setFormAcik] = useState(false);
-    const [duzenleId, setDuzenleId] = useState(null);
+    const [duzenleId, setDuzenleId] = useState(/** @type {any} */(null));
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [aramaMetni, setAramaMetni] = useState('');
     const [filtreRol, setFiltreRol] = useState('hepsi');
     const [sekme, setSekme] = useState('liste'); // liste | prim | devam
-    const [devamlar, setDevamlar] = useState([]);
-    const [avanslar, setAvanslar] = useState([]); // [M13-M7 KÖPRÜSÜ ZIRHI]
-    const [devamForm, setDevamForm] = useState({ personel_id: '', tarih: new Date().toISOString().split('T')[0], durum: 'calisti', notlar: '' });
+    const [devamlar, setDevamlar] = useState(/** @type {any[]} */([]));
+    const [avanslar, setAvanslar] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ ZIRHI]
+    const [devamForm, setDevamForm] = useState(/** @type {any} */({ personel_id: '', tarih: new Date().toISOString().split('T')[0], durum: 'calisti', notlar: '' }));
     const [devamFormAcik, setDevamFormAcik] = useState(false);
-    const [devamDuzenleId, setDevamDuzenleId] = useState(null);
+    const [devamDuzenleId, setDevamDuzenleId] = useState(/** @type {any} */(null));
     const [sistemAyarlari, setSistemAyarlari] = useState({ dakika_basi_ucret: 2.50, prim_orani: 0.15, yillik_izin_hakki: 15 });
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -200,8 +201,7 @@ export default function PersonelMainContainer() {
         if (islemdeId === 'sil_' + id) return;
         setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Personel silmek için Yönetici PIN kodunu girin:'
+            /** @type {any} */(kullanici)
         );
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error'); }
         if (!confirm('Personel kalıcı olarak silinsin mi?')) { setIslemdeId(null); return; }
@@ -214,7 +214,7 @@ export default function PersonelMainContainer() {
                     islem_tipi: 'SILME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from('b1_personel').delete().eq('id', id);
@@ -279,8 +279,7 @@ export default function PersonelMainContainer() {
         if (islemdeId === 'devam_sil_' + id) return;
         setIslemdeId('devam_sil_' + id);
         const { yetkili: dYetkili, mesaj: dYetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Kayıt silmek için Yönetici PIN kodunu girin:'
+            /** @type {any} */(kullanici)
         );
         if (!dYetkili) { setIslemdeId(null); return goster(dYetkiMesaj || 'Yetkisiz işlem!', 'error'); }
         if (!confirm('Bu devam kaydı silinsin mi?')) { setIslemdeId(null); return; }
@@ -293,7 +292,7 @@ export default function PersonelMainContainer() {
                     islem_tipi: 'SILME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
@@ -329,7 +328,7 @@ export default function PersonelMainContainer() {
     };
 
     const isAR = lang === 'ar';
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = /** @type {any} */ ({ width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
 
@@ -383,6 +382,7 @@ export default function PersonelMainContainer() {
     const bordroYazdir = (p, detaylar) => {
         const { aylikMaliyet, uretimDegeri, asim, primHakki } = detaylar;
         const printWindow = window.open('', '', 'width=600,height=800');
+        if (!printWindow) return;
         printWindow.document.write(`
             <html><head><title>Maaş Bordrosu - ${p.ad_soyad}</title>
             <style>body{font-family:sans-serif;padding:30px;color:#333} table{width:100%;border-collapse:collapse;margin-top:20px} th,td{border-bottom:1px solid #eee;padding:12px;text-align:left}</style>

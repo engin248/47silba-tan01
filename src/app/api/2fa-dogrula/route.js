@@ -67,7 +67,7 @@ export async function POST(request) {
                 islem_tipi: '2FA_HATALI',
                 kullanici_adi: ip,
                 eski_veri: { saat: new Date().toISOString() }
-            }]).catch(() => { });
+            }]);
 
             return NextResponse.json({ basarili: false, hata: 'Yanlış 2FA kodu.' }, { status: 401 });
         }
@@ -81,7 +81,7 @@ export async function POST(request) {
             islem_tipi: '2FA_BASARILI',
             kullanici_adi: ip,
             eski_veri: { saat: new Date().toISOString() }
-        }]).catch(() => { });
+        }]);
 
         return NextResponse.json({ basarili: true, mesaj: '2FA doğrulandı.' });
     } catch (err) {

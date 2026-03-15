@@ -15,7 +15,7 @@ export default function GlobalError({ error, reset }) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mesaj: `🚨 [KRİTİK HATA] Küresel çökme kalkanı devreye girdi!\nHata: ${error?.message}` })
-            }).catch(() => { });
+            });
         } catch { }
     }, [error]);
 

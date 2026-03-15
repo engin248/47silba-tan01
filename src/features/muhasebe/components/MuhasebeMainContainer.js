@@ -10,19 +10,20 @@ import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 
 export default function MuhasebeMainContainer() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
-    const [raporlar, setRaporlar] = useState([]);
-    const [secilenRapor, setSecilenRapor] = useState(null);
-    const [ilgiliMaliyetler, setIlgiliMaliyetler] = useState([]);
+    const [raporlar, setRaporlar] = useState(/** @type {any[]} */([]));
+    const [secilenRapor, setSecilenRapor] = useState(/** @type {any} */(null));
+    const [ilgiliMaliyetler, setIlgiliMaliyetler] = useState(/** @type {any[]} */([]));
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
-    const [raporsizemOrders, setRaporsizemOrders] = useState([]);
+    const [raporsizemOrders, setRaporsizemOrders] = useState(/** @type {any[]} */([]));
     const [aramaMetni, setAramaMetni] = useState('');
-    const [duzenleModal, setDuzenleModal] = useState(null); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
-    const [duzenleForm, setDuzenleForm] = useState({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '' });
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [duzenleModal, setDuzenleModal] = useState(/** @type {any} */(null)); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
+    const [duzenleForm, setDuzenleForm] = useState(/** @type {any} */({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '', ek_maliyet_tl: '' }));
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -115,8 +116,7 @@ export default function MuhasebeMainContainer() {
         if (islemdeId === 'devir_' + rapor.id) return;
         setIslemdeId('devir_' + rapor.id);
         const { yetkili: dYetkili, mesaj: dYetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Devir işlemi Koordinatör yetkisi gerektirir. PIN giriniz:'
+            /** @type {any} */(kullanici)
         );
         if (!dYetkili) { setIslemdeId(null); return goster(dYetkiMesaj || 'Yetkisiz işlem.', 'error'); }
         if (!confirm('Bu raporu onaylıyor ve 2. Birime devir için kilitleniyor musunuz?')) { setIslemdeId(null); return; }
@@ -171,17 +171,17 @@ export default function MuhasebeMainContainer() {
 
             const insertData = {
                 order_id: model.id,
-                gerceklesen_maliyet_tl: parseFloat(toplamMaliyet),
+                gerceklesen_maliyet_tl: parseFloat(String(toplamMaliyet)),
                 net_uretilen_adet: model.hedef_adet || 0,
                 zayiat_adet: 0,
                 rapor_durumu: 'sef_onay_bekliyor',
                 devir_durumu: false,
             };
             if (!navigator.onLine) {
-                await cevrimeKuyrugaAl('b1_muhasebe_raporlari', 'INSERT', insertData);
+                await cevrimeKuyrugaAl('b1_muhasebe_raporlari', 'INSERT', /** @type {any} */(insertData));
                 goster('⚡ Çevrimdışı: Rapor işlemi tablete kaydedildi.');
             } else {
-                const { error } = await supabase.from('b1_muhasebe_raporlari').insert([insertData]);
+                const { error } = await supabase.from('b1_muhasebe_raporlari').insert([/** @type {any} */ (insertData)]);
                 if (error) throw error;
                 goster(`✅ ${model.model_adi} için rapor oluşturuldu. GÜG dahil toplam: ₺${toplamMaliyet.toFixed(2)}`); yukle();
             }
@@ -260,8 +260,7 @@ export default function MuhasebeMainContainer() {
         setIslemdeId('sil_' + rapor.id);
         if (rapor.rapor_durumu === 'kilitlendi') { setIslemdeId(null); return goster('Kilitli raporlar silinemez! Devir tamamlanmış.', 'error'); }
         const { yetkili: sYetkili, mesaj: sYetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Raporu silmek için Yönetici PIN girin:'
+            /** @type {any} */(kullanici)
         );
         if (!sYetkili) { setIslemdeId(null); return goster(sYetkiMesaj || 'Yetkisiz işlem.', 'error'); }
         if (!confirm(`"${rapor.model_kodu || rapor.id.slice(0, 8)}" raporunu siliyorsunuz. Emin misiniz?`)) { setIslemdeId(null); return; }
@@ -435,7 +434,7 @@ export default function MuhasebeMainContainer() {
                             </div>
                             <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sapma</div>
-                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fark > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({pct > 0 ? '+' : ''}{pct}%)</div>
+                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{/** @type {any} */ (fark) > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({/** @type {any} */ (pct) > 0 ? '+' : ''}{pct}%)</div>
                             </div>
                         </div>
                     </div>
@@ -468,7 +467,7 @@ export default function MuhasebeMainContainer() {
                             </div>
                         )}
                         {filtreliRaporlar.map(r => {
-                            const pct = parseFloat(asimPct(r));
+                            const pct = parseFloat(/** @type {any} */(asimPct(r)));
                             const kilitli = r.rapor_durumu === 'kilitlendi';
                             const isSelected = secilenRapor?.id === r.id;
 

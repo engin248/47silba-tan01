@@ -10,6 +10,10 @@
  *  - kullanici.grup === 'tam' ise direkt yetkili sayılır (prompt yok)
  *  - Değilse PIN prompt açılır ve /api/pin-dogrula'ya sunucu doğrulaması gider
  *  - NEXT_PUBLIC_ADMIN_PIN client'a hiç sızdırılmaz
+ *
+ * @param {any} kullanici
+ * @param {string | null | undefined} [mesajMetni]
+ * @returns {Promise<{yetkili: boolean, mesaj: string}>}
  */
 
 export async function silmeYetkiDogrula(kullanici, mesajMetni = null) {

@@ -10,6 +10,7 @@ import { Lock } from 'lucide-react';
 import NextLink from 'next/link';
 
 export default function ImalatMainContainer() {
+    /** @type {any} */
     const { kullanici } = useAuth();
     const { lang } = useLang();
     const isAR = lang === 'ar';
@@ -24,7 +25,10 @@ export default function ImalatMainContainer() {
     // =========================================================================
     // 1. PENCERE: TEKNİK GÖRÜŞ & ÜRÜN KABUL (FİRMADAN GELEN MODEL / DOSYA)
     // =========================================================================
+    /** @type {[any[], any]} */
     const [teknikFoyler, setTeknikFoyler] = useState([]);
+
+    /** @type {[any, any]} */
     const [yeniFoy, setYeniFoy] = useState({
         model_name: '',
         orjinal_gorsel_url: '',
@@ -36,8 +40,11 @@ export default function ImalatMainContainer() {
     // =========================================================================
     // 2. PENCERE: MODELHANE & İŞLEM SIRASI BELİRLEME (BANT/FASONA ATMA)
     // =========================================================================
+    /** @type {[any, any]} */
     const [seciliModel, setSeciliModel] = useState(null); // İşlem sırası eklenecek model
+    /** @type {[any[], any]} */
     const [islemAdimlari, setIslemAdimlari] = useState([]);
+    /** @type {[any, any]} */
     const [yeniAdim, setYeniAdim] = useState({ islem_adi: '', ideal_sure_dk: '', zorluk_derecesi: 5.0 });
     const [videoKayitAktif, setVideoKayitAktif] = useState(false);
     const [uretimAdeti, setUretimAdeti] = useState(''); // M6 Dinamik Adet Çözümü
@@ -46,12 +53,15 @@ export default function ImalatMainContainer() {
     // =========================================================================
     // 3. PENCERE: ÜRETİM (BAND/FASON) VE PERSONEL GİRDİLERİ
     // =========================================================================
+    /** @type {[any[], any]} */
     const [sahadakiIsler, setSahadakiIsler] = useState([]);
+    /** @type {[any[], any]} */
     const [personeller, setPersoneller] = useState([]);
 
     // =========================================================================
     // 4. PENCERE: MALİYET RAPORU, ANALİZ VE MUHASEBE (FİNAL)
     // =========================================================================
+    /** @type {[any[], any]} */
     const [onayBekleyenIsler, setOnayBekleyenIsler] = useState([]);
 
     useEffect(() => {
@@ -187,7 +197,7 @@ export default function ImalatMainContainer() {
             // Gölge Siparişi (Quantity dinamik, M3'ten veya Input'tan beslenir)
             const { data: orderData, error: orderErr } = await supabase
                 .from('v2_production_orders')
-                .insert([{ order_code: seciliModel.order_code || 'ORD-' + Date.now(), model_id: shadowModel.id, quantity: parseInt(uretimAdeti), status: 'pending' }])
+                .insert([{ order_code: seciliModel.order_code || 'ORD-' + Date.now(), model_id: shadowModel?.id, quantity: parseInt(uretimAdeti), status: 'pending' }])
                 .select().single();
             if (orderErr) throw orderErr;
 
@@ -196,7 +206,7 @@ export default function ImalatMainContainer() {
                 .select().single();
 
             const { data: wfData } = await supabase.from('v2_model_workflows')
-                .insert([{ model_id: shadowModel.id, step_id: stepData.id, step_order: 1 }])
+                .insert([{ model_id: shadowModel?.id, step_id: stepData.id, step_order: 1 }])
                 .select().single();
 
             await supabase.from('v2_order_production_steps')
@@ -306,7 +316,7 @@ export default function ImalatMainContainer() {
                     kalem_aciklama: `OP-${islem.id} Bant Operasyonu Tamamlanma Hakedişi`,
                     tutar_tl: toplamMaliyet,
                     onay_durumu: 'hesaplandi'
-                }]).catch(() => { });
+                }]);
             }
 
             // FPY (Kusursuzluk) Onayı
@@ -677,7 +687,7 @@ export default function ImalatMainContainer() {
                                                     </td>
                                                 </tr>
                                             ))}
-                                            {personeller.length === 0 && <tr><td colSpan="3" className="p-4 text-center font-bold text-gray-400">Personel verisi yok.</td></tr>}
+                                            {personeller.length === 0 && <tr><td colSpan={3} className="p-4 text-center font-bold text-gray-400">Personel verisi yok.</td></tr>}
                                         </tbody>
                                     </table>
                                 </div>

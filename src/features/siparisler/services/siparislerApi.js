@@ -121,7 +121,7 @@ export async function siparisSil(id, siparisler) {
         tablo_adi: 'b2_siparisler', islem_tipi: 'SILME',
         kullanici_adi: 'Yetkilendirilmiş Kullanıcı',
         eski_veri: { id, durum: anaSiparis?.durum },
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b2_siparisler').delete().eq('id', id);
     if (error) throw error;
 }

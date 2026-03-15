@@ -46,7 +46,7 @@ export default function KatalogRefactored() {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all">
                         {k.finansGizli ? <><Eye size={14} /> Fiyatları Göster</> : <><EyeOff size={14} /> Gizle</>}
                     </button>
-                    <button onClick={() => { k.formSifirla(); k.setFormAcik ? k.formSifirla() : null; }}
+                    <button onClick={() => { k.formSifirla(); k.setFormAcik(true); }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-black shadow-md hover:bg-emerald-800 transition-all">
                         <Plus size={16} /> Yeni Ürün
                     </button>
@@ -185,7 +185,7 @@ export default function KatalogRefactored() {
                                 <div className="flex gap-1 p-2 bg-slate-50 border-b border-slate-100">
                                     {[u.fotograf_url, u.fotograf_url2, u.fotograf_url3].filter(Boolean).map((f, i) => (
                                         <img key={i} src={f} alt={`foto${i + 1}`} className="w-12 h-12 rounded-lg object-cover border border-slate-200"
-                                            onError={e => { e.target.style.display = 'none'; }} />
+                                            onError={e => { /** @type {any} */(e.target).style.display = 'none'; }} />
                                     ))}
                                 </div>
                             )}
@@ -328,7 +328,7 @@ export default function KatalogRefactored() {
                                             <td className="p-3 text-slate-500 text-xs">{f.updated_at ? new Date(f.updated_at).toLocaleDateString('tr-TR') : '—'}</td>
                                             <td className="p-3 font-black text-slate-900">₺{parseFloat(f.satis_fiyati_tl).toFixed(2)}</td>
                                             <td className="p-3 text-slate-500">{f.birim_maliyet_tl ? `₺${parseFloat(f.birim_maliyet_tl).toFixed(2)}` : '—'}</td>
-                                            <td className={`p-3 font-black ${kar >= 20 ? 'text-emerald-600' : 'text-red-600'}`}>{kar ? `%${kar}` : '—'}</td>
+                                            <td className={`p-3 font-black ${kar && parseFloat(kar) >= 20 ? 'text-emerald-600' : 'text-red-600'}`}>{kar ? `%${kar}` : '—'}</td>
                                         </tr>
                                     );
                                 })}
@@ -342,7 +342,7 @@ export default function KatalogRefactored() {
             {k.sonSenkron && (
                 <div className="fixed bottom-4 right-4 bg-slate-900 text-emerald-400 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-xl z-50">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                    Stok Canlı | {k.sonSenkron.toLocaleTimeString('tr-TR')}
+                    Stok Canlı | {/** @type {any} */(k.sonSenkron)?.toLocaleTimeString('tr-TR')}
                 </div>
             )}
         </div>

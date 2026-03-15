@@ -68,7 +68,7 @@ export async function trendSil(id, kullaniciAd) {
         await supabase.from('b0_sistem_loglari').insert([{
             tablo_adi: 'b1_arge_trendler', islem_tipi: 'SILME',
             eski_veri: silinecek, kullanici_adi: kullaniciAd || 'Atölye Lideri'
-        }]).catch(() => { });
+        }]);
     }
     const { error } = await supabase.from('b1_arge_trendler').delete().eq('id', id);
     if (error) throw error;

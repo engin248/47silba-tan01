@@ -32,7 +32,7 @@ export async function maliyetGuncelle(id, payload) {
 }
 
 export async function maliyetSil(id, kullaniciLabel) {
-    await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_maliyet_kayitlari', islem_tipi: 'SILME', kullanici_adi: kullaniciLabel || 'Maliyet Sorumlusu', eski_veri: { id } }]).catch(() => { });
+    await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_maliyet_kayitlari', islem_tipi: 'SILME', kullanici_adi: kullaniciLabel || 'Maliyet Sorumlusu', eski_veri: { id } }]);
     const { error } = await supabase.from('b1_maliyet_kayitlari').delete().eq('id', id);
     if (error) throw error;
 }

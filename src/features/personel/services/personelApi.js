@@ -66,7 +66,7 @@ export async function personelSil(id, kullaniciLabel) {
         tablo_adi: 'b1_personel', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'İK Yetkilisi',
         eski_veri: { id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_personel').delete().eq('id', id);
     if (error) throw error;
 }
@@ -93,7 +93,7 @@ export async function devamSil(id, kullaniciLabel) {
     await supabase.from('b0_sistem_loglari').insert([{
         tablo_adi: 'b1_personel_devam', islem_tipi: 'SILME',
         kullanici_adi: kullaniciLabel || 'İK Yetkilisi', eski_veri: { id }
-    }]).catch(() => { });
+    }]);
     const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
     if (error) throw error;
 }

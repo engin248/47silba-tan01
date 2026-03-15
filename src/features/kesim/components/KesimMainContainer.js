@@ -20,23 +20,24 @@ const DURUMLAR = ['kesimde', 'tamamlandi', 'iptal'];
 const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 
 export default function KesimMainContainer() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */(rawKullanici);
     const { lang } = useLang();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [mounted, setMounted] = useState(false);
 
-    const [kesimler, setKesimler] = useState([]);
-    const [modeller, setModeller] = useState([]);
+    const [kesimler, setKesimler] = useState(/** @type {any[]} */([]));
+    const [modeller, setModeller] = useState(/** @type {any[]} */([]));
     const [formAcik, setFormAcik] = useState(false);
-    const [form, setForm] = useState(BOSH_KESIM);
+    const [form, setForm] = useState(/** @type {any} */(BOSH_KESIM));
     const [arama, setArama] = useState('');
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtreDurum, setFiltreDurum] = useState('hepsi');
     const [barkodAcik, setBarkodAcik] = useState(false);
-    const [seciliKesim, setSeciliKesim] = useState(null);
-    const [duzenleId, setDuzenleId] = useState(null);
-    const [islemdeId, setIslemdeId] = useState(null);
+    const [seciliKesim, setSeciliKesim] = useState(/** @type {any} */(null));
+    const [duzenleId, setDuzenleId] = useState(/** @type {any} */(null));
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null));
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -95,7 +96,7 @@ export default function KesimMainContainer() {
         };
 
         if (!navigator.onLine) {
-            cevrimeKuyrugaAl('b1_kesim_operasyonlari', payload);
+            cevrimeKuyrugaAl('b1_kesim_operasyonlari', duzenleId ? 'UPDATE' : 'INSERT', /** @type {any} */({ ...payload, id: duzenleId }));
             goster('⚠️ İnternet Yok: Kesimhane kayıtları kuyruğa alındı. Wifi gelince merkeze yollanacak.', 'success');
             setForm(BOSH_KESIM); setFormAcik(false); setDuzenleId(null);
             setLoading(false);
@@ -176,7 +177,7 @@ export default function KesimMainContainer() {
                     kalem_aciklama: `KSM-${k.id} Kesim Firesi Otomatik Yansıma (%${k.fire_orani})`,
                     tutar_tl: fireZarari > 0 ? fireZarari : parseFloat(k.fire_orani),
                     onay_durumu: 'hesaplandi'
-                }]).catch(() => { });
+                }]);
             }
 
             goster(`✅ M4 Üretim İş Emri oluşturuldu! ${k.b1_model_taslaklari?.model_kodu} — ${k.kesilen_net_adet} adet`);
@@ -222,8 +223,7 @@ export default function KesimMainContainer() {
         if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
         setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Kesim kaydını silmek için Yönetici PIN girin:'
+            /** @type {any} */(kullanici)
         );
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
         if (!confirm('Bu kesim kaydını fiziksel silmek yerine arşive (iptal) kaldırmak istediğinize emin misiniz?')) { setIslemdeId(null); return; }
@@ -232,7 +232,7 @@ export default function KesimMainContainer() {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: 'b1_kesim_operasyonlari', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi M3',
                     eski_veri: { durum: 'Soft Delete / Arşive alındı.', model_kodu: m_kodu, id: id }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
             await supabase.from('b1_kesim_operasyonlari').update({ durum: 'iptal' }).eq('id', id);
             yukle(); goster('Kayıt arşive (iptal durumuna) alındı.');
@@ -256,7 +256,7 @@ export default function KesimMainContainer() {
         toplamAdet: kesimler.reduce((s, k) => s + (parseInt(k.kesilen_net_adet) || 0), 0),
     };
 
-    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = /** @type {any} */ ({ width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
     const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     if (!mounted) return null;

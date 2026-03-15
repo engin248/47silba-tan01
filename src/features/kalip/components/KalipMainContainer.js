@@ -268,7 +268,7 @@ export default function KalipMainContainer() {
                     islem_tipi: 'SILME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from(tablo).delete().eq('id', id);

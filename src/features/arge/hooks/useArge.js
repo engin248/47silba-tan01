@@ -130,8 +130,8 @@ export function useArge(kullanici, isAR = false) {
             if (yeniDurum === 'onaylandi') {
                 const onaylayanAd = kullanici?.ad || 'Atölye Lideri (PIN)';
                 const ilgiliTrend = trendler.find(t => t.id === id);
-                await supabase.from('b1_agent_loglari').insert([{ ajan_adi: 'Trend Kâşifi', islem_tipi: 'Trend Onaylandı', mesaj: `Onaylayan: ${onaylayanAd}`, sonuc: 'basarili', created_at: new Date().toISOString() }]).catch(() => { });
-                fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: `🚀 YENİ TREND ONAYLANDI!\n📌 ${ilgiliTrend?.baslik || ''}\n👤 ${onaylayanAd}` }) }).catch(() => { });
+                await supabase.from('b1_agent_loglari').insert([{ ajan_adi: 'Trend Kâşifi', islem_tipi: 'Trend Onaylandı', mesaj: `Onaylayan: ${onaylayanAd}`, sonuc: 'basarili', created_at: new Date().toISOString() }]);
+                fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: `🚀 YENİ TREND ONAYLANDI!\n📌 ${ilgiliTrend?.baslik || ''}\n👤 ${onaylayanAd}` }) });
             }
         }
     };
@@ -143,7 +143,7 @@ export function useArge(kullanici, isAR = false) {
         if (!navigator.onLine) { await cevrimeKuyrugaAl('b1_arge_trendler', 'DELETE', { id }); return goster('Silme kuyruğa alındı.'); }
         try {
             const silinecek = trendler.find(t => t.id === id);
-            if (silinecek) await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_arge_trendler', islem_tipi: 'SILME', eski_veri: silinecek, kullanici_adi: kullanici?.ad || 'Atölye Lideri' }]).catch(() => { });
+            if (silinecek) await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_arge_trendler', islem_tipi: 'SILME', eski_veri: silinecek, kullanici_adi: kullanici?.ad || 'Atölye Lideri' }]);
             const { error } = await supabase.from('b1_arge_trendler').delete().eq('id', id);
             if (!error) goster('Silindi.');
             else throw error;

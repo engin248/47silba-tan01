@@ -21,16 +21,17 @@ const SEKMELER = [
 ];
 
 export default function MaliyetMainContainer() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */(rawKullanici);
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('giris');
-    const [maliyetler, setMaliyetler] = useState([]);
-    const [orderler, setOrderler] = useState([]);
-    const [form, setForm] = useState(BOSH_FORM);
+    const [maliyetler, setMaliyetler] = useState(/** @type {any[]} */([]));
+    const [orderler, setOrderler] = useState(/** @type {any[]} */([]));
+    const [form, setForm] = useState(/** @type {any} */(BOSH_FORM));
     const [formAcik, setFormAcik] = useState(false);
-    const [duzenleId, setDuzenleId] = useState(null);
+    const [duzenleId, setDuzenleId] = useState(/** @type {any} */(null));
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtreTip, setFiltreTip] = useState('hepsi');
@@ -40,11 +41,11 @@ export default function MaliyetMainContainer() {
     const [csvModal, setCsvModal] = useState(false);
     const [csvText, setCsvText] = useState('');
     const [aramaMetni, setAramaMetni] = useState('');
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
     const menuRef = useRef(null);
 
     useEffect(() => {
-        const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuAcik(false); };
+        const handler = (e) => { if (menuRef.current && !(/** @type {any} */(menuRef.current).contains(e.target))) setMenuAcik(false); };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
@@ -145,7 +146,7 @@ export default function MaliyetMainContainer() {
 
         // [AI ZIRHI]: Offline Modu (Kriter J)
         if (!navigator.onLine) {
-            await cevrimeKuyrugaAl('b1_maliyet_kayitlari', duzenleId ? 'UPDATE' : 'INSERT', form);
+            await cevrimeKuyrugaAl('b1_maliyet_kayitlari', duzenleId ? 'UPDATE' : 'INSERT', /** @type {any} */(form));
             return goster('⚡ Çevrimdışı: Kuyruğa alındı.');
         }
         setLoading(true);
@@ -188,14 +189,13 @@ export default function MaliyetMainContainer() {
         if (islemdeId === id) return;
         setIslemdeId(id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Maliyet kalemini silmek için Yönetici PIN girin:'
+            /** @type {any} */(kullanici)
         );
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Hatalı yetki!', 'error'); }
         if (!confirm('Bu maliyet kalemi silinsin mi?')) { setIslemdeId(null); return; }
         try {
             // [AI ZIRHI]: B0 Kara Kutu (Kriter 25)
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_maliyet_kayitlari', islem_tipi: 'SILME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { id } }]).catch(() => { });
+            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_maliyet_kayitlari', islem_tipi: 'SILME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { id } }]);
             const { error } = await supabase.from('b1_maliyet_kayitlari').delete().eq('id', id);
             if (error) throw error;
             yukle(); goster('Silindi');
@@ -231,8 +231,7 @@ export default function MaliyetMainContainer() {
         if (islemdeId === 'tumunu_sil') return;
         setIslemdeId('tumunu_sil');
         const { yetkili: tYetkili, mesaj: tYetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'TÜM kayıtları silmek için Yönetici PIN girin:'
+            /** @type {any} */(kullanici)
         );
         if (!tYetkili) { setIslemdeId(null); return goster(tYetkiMesaj || 'Hatalı yetki!', 'error'); }
         if (!confirm(`DİKKAT: ${maliyetler.length} kayıt silinecek!`)) { setIslemdeId(null); return; }
@@ -250,7 +249,7 @@ export default function MaliyetMainContainer() {
     const toplamlar = MALIYET_TIPLERI.reduce((acc, tip) => {
         acc[tip] = maliyetler.filter(m => m.maliyet_tipi === tip).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
         return acc;
-    }, {});
+    }, /** @type {any} */({}));
     const genelToplam = Object.values(toplamlar).reduce((s, v) => s + v, 0);
     const onaysiz = maliyetler.filter(m => m.onay_durumu === 'hesaplandi').length;
 
@@ -271,7 +270,7 @@ export default function MaliyetMainContainer() {
         return tipOk && orderOk && aramaOk;
     });
 
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = /** @type {any} */ ({ width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) {

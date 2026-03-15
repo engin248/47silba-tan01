@@ -49,7 +49,7 @@ export async function POST(request) {
             islem_tipi: 'EKLEME',
             kullanici_adi: 'Server API (Güvenli Personel Kaydı)',
             eski_veri: { personel_kodu: dogrulama.data.personel_kodu }
-        }]).catch(() => { });
+        }]);
 
         return NextResponse.json({ basarili: true, personel: data?.[0] }, { status: 201 });
 

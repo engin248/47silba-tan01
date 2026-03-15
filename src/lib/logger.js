@@ -16,6 +16,11 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 // ─── MIMARI DÜZELTME: Kullanıcı bağlamı enjeksiyonu ────────────────
 // ESKİ: kullanici_adi = 'SISTEM_LOGGER' (tüm loglar aynı isimle)
 // YENİ: Gerçek kullanıcı grubu/zaaman log'a işleniyor
+/**
+ * @param {string} tip
+ * @param {any} veri
+ * @param {any} [kullanici]
+ */
 function supabaseLog(tip, veri, kullanici = null) {
     const kayit = {
         tablo_adi: veri?.tablo || 'sistem_geneli',
@@ -25,12 +30,16 @@ function supabaseLog(tip, veri, kullanici = null) {
         eski_veri: veri,
     };
     // Fire-and-forget — log hatası sistemi durdurmamalı
-    supabase.from('b0_sistem_loglari').insert([kayit]).then().catch(() => { });
+    supabase.from('b0_sistem_loglari').insert([kayit]).then();
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 export const logger = {
-    /** AI kararı logu — HermAI tarafından kullanılır (Kriter VV3, 80) */
+    /** 
+     * AI kararı logu — HermAI tarafından kullanılır (Kriter VV3, 80)
+     * @param {any} veri 
+     * @param {any} [kullanici]
+     */
     async aiDecision(veri, kullanici = null) {
         if (IS_DEV) console.log('[HermAI Karar]', veri);
         supabaseLog('AI_KARAR', veri, kullanici);
@@ -50,13 +59,23 @@ export const logger = {
         }
     },
 
-    /** API hata logu */
+    /** 
+     * API hata logu
+     * @param {string} mesaj 
+     * @param {any} veri 
+     * @param {any} [kullanici]
+     */
     error(mesaj, veri = {}, kullanici = null) {
         if (IS_DEV) console.error('[HATA]', mesaj, veri);
         supabaseLog('HATA', { mesaj, ...veri }, kullanici);
     },
 
-    /** Kritik işlem logu (silme, onay, kilit) — kullanıcı zorunlu */
+    /** 
+     * Kritik işlem logu (silme, onay, kilit) — kullanıcı zorunlu 
+     * @param {string} mesaj 
+     * @param {any} veri 
+     * @param {any} [kullanici]
+     */
     kritikIslem(mesaj, veri = {}, kullanici = null) {
         if (IS_DEV) console.warn('[KRİTİK]', mesaj, veri, '| Kullanıcı:', kullanici?.grup);
         supabaseLog('KRITIK_ISLEM', {
@@ -67,7 +86,12 @@ export const logger = {
         }, kullanici);
     },
 
-    /** Kullanıcı işlem logu */
+    /** 
+     * Kullanıcı işlem logu
+     * @param {string} islem 
+     * @param {any} veri 
+     * @param {any} [kullaniciObj]
+     */
     kullanici(islem, veri = {}, kullaniciObj = null) {
         if (IS_DEV) console.info('[KULLANICI]', islem, veri);
         supabaseLog('KULLANICI_ISLEM', { islem, ...veri }, kullaniciObj);

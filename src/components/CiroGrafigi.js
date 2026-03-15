@@ -9,7 +9,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export const secenekler = {
     responsive: true,
     plugins: {
-        legend: { position: 'top', labels: { color: '#94a3b8' } },
+        legend: { position: /** @type {const} */ ('top'), labels: { color: '#94a3b8' } },
         title: { display: true, text: 'Aylık Ciro & Maliyet Verim Analizi', color: '#f8fafc' },
     },
     scales: {
