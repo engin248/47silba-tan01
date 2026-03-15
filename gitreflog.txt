@@ -1,0 +1,10 @@
+d15a041 HEAD@{0}: commit: feat(M1_ARGE): Askeri Senato Ekranlari, SQL Optimizasyonu (pgvector) ve Otonom Izciler NIZAM a Eklendi
+5c994e6 HEAD@{1}: reset: moving to origin/main
+e6a3a97 HEAD@{2}: rebase (abort): returning to refs/heads/main
+5c994e6 HEAD@{3}: pull --rebase (start): checkout 5c994e655fea953fcd8cd52082703f53509ba86b
+e6a3a97 HEAD@{4}: commit: fix(types): ajan api kalkan onarimlari ve kalan ts zincir hatalari giderildi
+f9c6fd9 HEAD@{5}: rebase (abort): returning to refs/heads/main
+426979c HEAD@{6}: commit: feat(AI): The Order Ar-Ge AI otonom ajan altyapisi tamamlandi (Guvenlik filtreleri temizlendi)
+e8510b5 HEAD@{7}: commit: fix: ajan scriptleri tipleri, api supabase catch kaldirmalari ve uretim zinciri hatalari onarim
+5c994e6 HEAD@{8}: pull origin main --rebase (start): checkout 5c994e655fea953fcd8cd52082703f53509ba86b
+f9c6fd9 HEAD@{9}: commit: feat(AI): The Order Ar-Ge AI otonom ajan altyapisi tamamlandi (Guvenlik filtreleri temizlendi)

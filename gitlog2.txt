@@ -1,0 +1,29 @@
+commit d15a041687b6de81d51fc6bdc362bcc69976a4c6
+Author: engin248 <engin.ilgezdi1977@gmail.com>
+Date:   Mon Mar 16 01:54:13 2026 +0300
+
+    feat(M1_ARGE): Askeri Senato Ekranlari, SQL Optimizasyonu (pgvector) ve Otonom Izciler NIZAM a Eklendi
+
+commit 5c994e655fea953fcd8cd52082703f53509ba86b
+Author: engin248 <engin.ilgezdi1977@gmail.com>
+Date:   Mon Mar 16 01:23:41 2026 +0300
+
+    fix(scripts): Scriptlerin .env pathleri duzeltildi
+
+commit 775cac8a424881dcea854fd21932dc962ca53236
+Author: engin248 <engin.ilgezdi1977@gmail.com>
+Date:   Mon Mar 16 01:02:10 2026 +0300
+
+    feat(ai): 2. Ekip Yargic / Mastermind AI eklendi
+
+commit 4815e51ba61bfbd019eca28e8bb982470f1f794b
+Author: engin248 <engin.ilgezdi1977@gmail.com>
+Date:   Mon Mar 16 00:50:32 2026 +0300
+
+    feat(scrapers): Olu isci the scraper bot eklendi
+
+commit bbd60e04f34bb8386ef51aa2fb10fadc3d2b5b0e
+Author: engin248 <engin.ilgezdi1977@gmail.com>
+Date:   Mon Mar 16 00:48:40 2026 +0300
+
+    fix(types): ClientLayout type definitions and hooks

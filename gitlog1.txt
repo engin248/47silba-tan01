@@ -1,0 +1,1 @@
+d15a041 feat(M1_ARGE): Askeri Senato Ekranlari, SQL Optimizasyonu (pgvector) ve Otonom Izciler NIZAM a Eklendi

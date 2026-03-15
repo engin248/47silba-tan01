@@ -8,60 +8,64 @@ import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
+// Dünyanın En İyi Psikoloğu ve Tasarımcısı Perspektifinden: "ZEN / BİLGE" Mimarisi
+// Renk Psikolojisi: Göz yormayan toprak tonları (Stone), zihni dinç tutan yumuşak su yeşilleri (Teal/Mint),
+// keskin olmayan, yavaşça eriyen yuvarlatılmış hatlar (rounded-3xl). Karanlık ama bunaltıcı değil.
+
 const MODUL_GRUPLARI = [
     {
-        baslik: '🛡️ KARARGAH İSTİHBARATI',
-        renk: 'text-emerald-800',
+        baslik: 'KARARGAH İSTİHBARATI',
+        renk: 'text-stone-400',
         moduller: [
-            { name: 'Ajanlar', link: '/ajanlar', renk: 'bg-emerald-600/10 text-emerald-500 ring-1 ring-emerald-600/20 shadow-lg hover:bg-emerald-600/20 hover:text-emerald-400 hover:shadow-[0_0_15px_rgba(4,120,87,0.3)] transition-all duration-300' },
-            { name: 'Ar-Ge', link: '/arge', renk: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 shadow-lg hover:bg-emerald-500/20 hover:ring-emerald-500/40 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300' },
-            { name: 'Denetmen', link: '/denetmen', renk: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 shadow-lg hover:bg-emerald-500/20 hover:ring-emerald-500/40 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300' },
-            { name: 'Kameralar', link: '/kameralar', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 transition-all duration-300' },
-            { name: 'Haberleşme', link: '/haberlesme', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 transition-all duration-300' }
+            { name: 'Ajanlar', link: '/ajanlar' },
+            { name: 'Ar-Ge', link: '/arge' },
+            { name: 'Denetmen', link: '/denetmen' },
+            { name: 'Kameralar', link: '/kameralar' },
+            { name: 'Haberleşme', link: '/haberlesme' }
         ]
     },
     {
-        baslik: '⚙️ ÜRETİM MOTORU',
-        renk: 'text-emerald-800',
+        baslik: 'ÜRETİM MOTORU',
+        renk: 'text-stone-400',
         moduller: [
-            { name: 'Modelhane', link: '/modelhane', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Kalıp', link: '/kalip', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Kumaş', link: '/kumas', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Kesim', link: '/kesim', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'İmalat', link: '/imalat', renk: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 shadow-lg hover:bg-emerald-500/20 hover:ring-emerald-500/40 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300' },
-            { name: 'Üretim', link: '/uretim', renk: 'bg-emerald-600/10 text-emerald-500 ring-1 ring-emerald-600/20 shadow-lg hover:bg-emerald-600/20 hover:text-emerald-400 hover:shadow-[0_0_15px_rgba(4,120,87,0.3)] transition-all duration-300' }
+            { name: 'Modelhane', link: '/modelhane' },
+            { name: 'Kalıp', link: '/kalip' },
+            { name: 'Kumaş', link: '/kumas' },
+            { name: 'Kesim', link: '/kesim' },
+            { name: 'İmalat', link: '/imalat' },
+            { name: 'Üretim', link: '/uretim' }
         ]
     },
     {
-        baslik: '💰 HAZİNE & E-TİCARET',
-        renk: 'text-slate-100',
+        baslik: 'HAZİNE & E-TİCARET',
+        renk: 'text-stone-400',
         moduller: [
-            { name: 'Katalog', link: '/katalog', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Siparişler', link: '/siparisler', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Müşteriler', link: '/musteriler', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Kasa', link: '/kasa', renk: 'bg-emerald-600/10 text-emerald-500 ring-1 ring-emerald-600/20 shadow-lg hover:bg-emerald-600/20 hover:text-emerald-400 hover:shadow-[0_0_15px_rgba(4,120,87,0.3)] transition-all duration-300' },
-            { name: 'Maliyet', link: '/maliyet', renk: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 shadow-lg hover:bg-emerald-500/20 hover:ring-emerald-500/40 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300' },
-            { name: 'Muhasebe', link: '/muhasebe', renk: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 shadow-lg hover:bg-emerald-500/20 hover:ring-emerald-500/40 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300' },
-            { name: 'Stok', link: '/stok', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' }
+            { name: 'Katalog', link: '/katalog' },
+            { name: 'Siparişler', link: '/siparisler' },
+            { name: 'Müşteriler', link: '/musteriler' },
+            { name: 'Kasa', link: '/kasa' },
+            { name: 'Maliyet', link: '/maliyet' },
+            { name: 'Muhasebe', link: '/muhasebe' },
+            { name: 'Stok', link: '/stok' }
         ]
     },
     {
-        baslik: '🤝 İNSAN KAYNAKLARI',
-        renk: 'text-slate-100',
+        baslik: 'İNSAN KAYNAKLARI',
+        renk: 'text-stone-400',
         moduller: [
-            { name: 'Personel', link: '/personel', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Görevler', link: '/gorevler', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' }
+            { name: 'Personel', link: '/personel' },
+            { name: 'Görevler', link: '/gorevler' }
         ]
     },
     {
-        baslik: '🛠️ SİSTEM YÖNETİMİ',
-        renk: 'text-slate-100',
+        baslik: 'SİSTEM YÖNETİMİ',
+        renk: 'text-stone-400',
         moduller: [
-            { name: 'Raporlar', link: '/raporlar', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Tasarım', link: '/tasarim', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Güvenlik', link: '/guvenlik', renk: 'bg-emerald-600/10 text-emerald-500 ring-1 ring-emerald-600/20 shadow-lg hover:bg-emerald-600/20 hover:text-emerald-400 hover:shadow-[0_0_15px_rgba(4,120,87,0.3)] transition-all duration-300' },
-            { name: 'Ayarlar', link: '/ayarlar', renk: 'bg-[#121C2D]/60 text-slate-300 ring-1 ring-white/10 shadow-lg hover:bg-[#18263C]/90 hover:ring-emerald-500/50 hover:text-emerald-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300' },
-            { name: 'Giriş', link: '/giris', renk: 'bg-[#121C2D]/60 text-slate-400 ring-1 ring-stone-500/20 hover:bg-[#18263C]/90 hover:text-slate-200 transition-all duration-300' }
+            { name: 'Raporlar', link: '/raporlar' },
+            { name: 'Tasarım', link: '/tasarim' },
+            { name: 'Güvenlik', link: '/guvenlik' },
+            { name: 'Ayarlar', link: '/ayarlar' },
+            { name: 'Giriş', link: '/giris' }
         ]
     }
 ];
@@ -84,12 +88,11 @@ export function KarargahMainContainer() {
     const [gizlenIzleri, setGizlenIzleri] = useState(/** @type {any[]} */([]));
     const [modelArsiv, setModelArsiv] = useState(/** @type {any[]} */([]));
     const [izPanelAcik, setIzPanelAcik] = useState(false);
-    // [C5] Kamera widget için stream durumu
     const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
 
     useEffect(() => {
         const kontrol = async () => {
-            if (document.hidden) return; // 0 MALIYET POLITIKASI
+            if (document.hidden) return;
             try {
                 const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
                 const d = await res.json();
@@ -105,10 +108,8 @@ export function KarargahMainContainer() {
         return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
     }, []);
 
-    // ── 45 GÜN KURALI HESAPLAMA ────────────────────────────────────────────
     const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
 
-    // ── Mesaj verilerini çek ───────────────────────────────────────────────
     const mesajlariGetir = useCallback(async () => {
         try {
             const { count } = await supabase
@@ -117,7 +118,6 @@ export function KarargahMainContainer() {
                 .is('okundu_at', null);
             setMesajSayisi(count || 0);
 
-            // Son 3 aktif mesaj (widget)
             const { data: aktif } = await supabase
                 .from('b1_ic_mesajlar')
                 .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
@@ -125,12 +125,10 @@ export function KarargahMainContainer() {
                 .limit(3);
             setSonMesajlar(aktif || []);
 
-            // Gizlenmiş mesaj izleri — 45 gün içindekiler (urun_id OLMAYAN)
-            // Kural: urun_id varsa → Model Arşiv (kalıcı), yoksa → 45 gün sonra silinir
             const { data: gizli } = await supabase
                 .from('b1_mesaj_gizli')
                 .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
-                .gte('gizlendi_at', gun45Once)  // sadece son 45 gün
+                .gte('gizlendi_at', gun45Once)
                 .order('gizlendi_at', { ascending: false })
                 .limit(20);
 
@@ -140,7 +138,6 @@ export function KarargahMainContainer() {
             });
             setGizlenIzleri(izler);
 
-            // Model arşiv — urun_id bağlı, HİÇBİR ZAMAN silinmez, koordinatör görebilir
             const { data: model } = await supabase
                 .from('b1_ic_mesajlar')
                 .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
@@ -150,11 +147,10 @@ export function KarargahMainContainer() {
             setModelArsiv(model || []);
 
         } catch { /* sessiz */ }
-    }, []);
+    }, [gun45Once]);
 
     useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 
-    // Realtime — yeni mesaj / gizleme gelince güncelle
     useEffect(() => {
         const kanal = supabase.channel('karargah-mesaj-optimize')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
@@ -163,13 +159,11 @@ export function KarargahMainContainer() {
         return () => { supabase.removeChannel(kanal); };
     }, [mesajlariGetir]);
 
-    // NİZAMBOT — Son aktiviteleri çek
     useEffect(() => {
         const botLogCek = async () => {
-            if (document.hidden) return; // 0 MALIYET POLITIKASI
+            if (document.hidden) return;
             try {
-                // Bot token doğrulama
-                const res = await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
+                await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
                 const { data } = await supabase
                     .from('b1_agent_loglari')
                     .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
@@ -182,7 +176,6 @@ export function KarargahMainContainer() {
         };
         botLogCek();
 
-        // Polling (setInterval) yerine Realtime ile izle
         const kanal = supabase.channel('nizambot-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari', filter: 'ajan_adi=eq.NİZAMBOT' }, botLogCek)
             .subscribe();
@@ -197,84 +190,100 @@ export function KarargahMainContainer() {
     }, []);
 
 
-    const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
+    const fm = (/** @type {any} */ num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
 
     const SkeletonKutu = () => (
-        <div className="animate-pulse bg-slate-100 p-4 rounded-xl shadow-lg h-28 border border-slate-200 flex flex-col justify-between">
-            <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-            <div className="h-8 bg-slate-700 rounded w-3/4"></div>
+        <div className="animate-pulse bg-stone-800/40 p-5 rounded-[2rem] h-32 flex flex-col justify-between">
+            <div className="h-4 bg-stone-700 rounded-full w-1/2"></div>
+            <div className="h-8 bg-stone-700 rounded-lg w-3/4"></div>
         </div>
     );
 
     const isAdmin = /** @type {any} */ (kullanici)?.grup === 'tam' || /** @type {any} */ (kullanici)?.rol === 'admin';
 
     return (
-        <div className="bg-[#050B14] min-h-screen p-4 lg:p-6 text-slate-300 font-sans selection:bg-emerald-500 selection:bg-[#050B14] selection:text-emerald-400 pb-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#0A192F] via-[#050B14] to-[#010409]">
+        <div className="bg-[#151515] min-h-screen p-4 lg:p-8 text-stone-300 font-sans selection:bg-teal-900 selection:text-teal-200 pb-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1f1e1c] via-[#151515] to-[#101010]">
 
+            {/* Bildirim Baloncuğu */}
             {mesaj.text && (
-                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 px-8 rounded-lg font-bold shadow-2xl transition-all ${mesaj.type === 'error' ? 'bg-red-600 text-slate-100 border-2 border-red-500' : 'bg-emerald-600 text-slate-100'}`}>
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 py-3 px-8 rounded-full font-medium shadow-2xl transition-all backdrop-blur-md ${mesaj.type === 'error' ? 'bg-rose-900/80 text-rose-100 border border-rose-800/50' : 'bg-teal-900/80 text-teal-100 border border-teal-800/50'}`}>
                     {mesaj.text}
                 </div>
             )}
 
+            {/* AI Neden Modal - Huzurlu Hata Penceresi */}
             {aiNedenModal.acik && (
-                <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md p-6 rounded-2xl border border-rose-500/50 shadow-2xl relative">
-                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="absolute top-4 right-4 text-slate-500 hover:text-slate-100 font-black text-xl">✕</button>
-                        <h2 className="text-xl font-black text-amber-600 mb-2 flex items-center gap-2"><Bot /> HermAI Yorumlayıcı</h2>
-                        <div className="bg-white p-4 rounded-xl mb-4 ring-1 ring-white/5 border-0">
-                            <p className="text-sm font-semibold text-slate-600">
-                                <strong className="text-slate-100 block mb-1">Tespit Edilen Kök Neden (Kovaryans):</strong>
+                <div className="fixed inset-0 bg-[#0a0a0a]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-all">
+                    <div className="bg-[#1c1a19] w-full max-w-md p-8 rounded-[2rem] border border-stone-800 shadow-2xl relative">
+                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="absolute top-6 right-6 text-stone-500 hover:text-stone-300 transition-colors">✕</button>
+                        <h2 className="text-xl font-medium text-stone-200 mb-4 flex items-center gap-3"><Bot className="text-teal-500/80" /> Derin Analiz</h2>
+                        <div className="bg-[#242220] p-5 rounded-2xl mb-6 border border-stone-700/30">
+                            <p className="text-sm font-normal text-stone-400 leading-relaxed mb-4">
+                                <span className="text-stone-300 block mb-1 font-medium">Tespit Edilen Kök Neden:</span>
                                 {aiNedenModal.metin}
                             </p>
-                            <p className="mt-3 text-sm">
-                                <strong className="text-rose-600 block mb-1">Günlük Potansiyel Finansal Zarar:</strong>
-                                <span className="text-2xl font-black text-rose-600">₺ {fm(aiNedenModal.zarar)}</span>
+                            <p className="border-t border-stone-800 pt-4">
+                                <span className="text-stone-500 block mb-1 text-xs uppercase tracking-wider">Potansiyel Etki:</span>
+                                <span className="text-2xl font-light text-rose-300/80">₺ {fm(aiNedenModal.zarar)}</span>
                             </p>
                         </div>
-                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-lg font-bold text-slate-100 transition-all">Anlaşıldı, Kapat</button>
+                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="w-full bg-[#2a2826] hover:bg-[#322f2c] p-4 rounded-2xl font-medium text-stone-300 transition-all border border-stone-700/50">Anlaşıldı</button>
                     </div>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 xl:gap-6 min-h-[90vh]">
-                <div className="lg:col-span-3 flex flex-col gap-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 xl:gap-8 min-h-[90vh]">
+                <div className="lg:col-span-3 flex flex-col gap-6">
+
+                    {/* -- 4'LÜ BİLGELİK ve STRATEJİ METRİK KUTULARI -- */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {stats.yukleniyor ? (
                             <><SkeletonKutu /><SkeletonKutu /><SkeletonKutu /><SkeletonKutu /></>
                         ) : (
                             <>
-                                <Link href="/raporlar" passHref>
-                                    <div className="bg-[#030907]/80 backdrop-blur-xl ring-1 ring-emerald-900/40 text-amber-400 p-4 rounded-xl flex flex-col justify-between shadow-2xl h-28 transform transition-transform hover:scale-[1.03] cursor-pointer border-[1.5px] border-amber-500/40 hover:border-amber-400 hover:shadow-amber-500/20 group relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent"></div>
-                                        <span className="text-xs font-black opacity-90 uppercase truncate relative z-10 text-emerald-100 flex items-center justify-between">Günlük Ciro <span className="text-amber-500/50">💰</span></span>
-                                        <span className="text-3xl font-black truncate relative z-10 drop-shadow-md tracking-tight">
-                                            ₺ {isAdmin ? fm(stats.ciro + ((stats.ciro * simulasyon) / 100)) : '••••••'}
+                                <Link href="/raporlar" className="group">
+                                    <div className="bg-gradient-to-br from-[#1c1a19] to-[#151413] p-6 rounded-[2rem] flex flex-col justify-between shadow-xl shadow-black/10 h-32 border border-stone-800/80 hover:border-teal-900/50 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full blur-3xl group-hover:bg-teal-500/10 transition-colors"></div>
+                                        <span className="text-xs font-medium uppercase tracking-widest text-stone-500 relative z-10 flex items-center justify-between">
+                                            Günlük Ciro <span className="text-teal-600/50">✦</span>
+                                        </span>
+                                        <span className="text-3xl font-light tracking-tight text-stone-200 relative z-10">
+                                            {isAdmin ? `₺ ${fm(stats.ciro + ((stats.ciro * simulasyon) / 100))}` : '••••••'}
                                         </span>
                                     </div>
                                 </Link>
-                                <Link href="/maliyet" passHref>
-                                    <div className="bg-[#030907]/80 backdrop-blur-xl ring-1 ring-emerald-900/40 text-rose-300 p-4 rounded-xl flex flex-col justify-between shadow-2xl h-28 transform transition-transform hover:scale-[1.03] cursor-pointer border-[1.5px] border-emerald-900 hover:border-emerald-600 hover:shadow-emerald-500/20 group relative overflow-hidden">
-                                        <span className="text-xs font-black opacity-90 uppercase truncate relative z-10 text-emerald-100 flex items-center justify-between">Toplam Maliyet <span className="text-rose-400/50">📉</span></span>
-                                        <span className="text-2xl font-black truncate relative z-10">
-                                            ₺ {isAdmin ? fm(stats.maliyet) : '••••••'}
+
+                                <Link href="/maliyet" className="group">
+                                    <div className="bg-gradient-to-br from-[#1c1a19] to-[#151413] p-6 rounded-[2rem] flex flex-col justify-between shadow-xl shadow-black/10 h-32 border border-stone-800/80 hover:border-rose-900/30 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-colors"></div>
+                                        <span className="text-xs font-medium uppercase tracking-widest text-stone-500 relative z-10 flex items-center justify-between">
+                                            Toplam Maliyet <span className="text-rose-900/50">✦</span>
+                                        </span>
+                                        <span className="text-3xl font-light tracking-tight text-stone-300 relative z-10">
+                                            {isAdmin ? `₺ ${fm(stats.maliyet)}` : '••••••'}
                                         </span>
                                     </div>
                                 </Link>
-                                <Link href="/personel" passHref>
-                                    <div className="bg-[#030907]/80 backdrop-blur-xl ring-1 ring-emerald-900/40 text-slate-500 p-4 rounded-xl flex flex-col justify-between shadow-2xl h-28 transform transition-transform hover:scale-[1.03] cursor-pointer border-[1.5px] border-emerald-900 hover:border-emerald-600 hover:shadow-emerald-500/20 group relative overflow-hidden">
-                                        <span className="text-xs font-black opacity-90 uppercase truncate relative z-10 text-emerald-100 flex items-center justify-between">Personel Gider <span className="text-slate-400/50">👥</span></span>
-                                        <span className="text-2xl font-black truncate relative z-10">
-                                            ₺ {isAdmin ? fm(stats.personel) : '••••••'}
+
+                                <Link href="/personel" className="group">
+                                    <div className="bg-gradient-to-br from-[#1c1a19] to-[#151413] p-6 rounded-[2rem] flex flex-col justify-between shadow-xl shadow-black/10 h-32 border border-stone-800/80 hover:border-sky-900/30 transition-all duration-500 relative overflow-hidden">
+                                        <span className="text-xs font-medium uppercase tracking-widest text-stone-500 relative z-10 flex items-center justify-between">
+                                            Personel Gider <span className="text-sky-900/50">✦</span>
+                                        </span>
+                                        <span className="text-3xl font-light tracking-tight text-stone-300 relative z-10">
+                                            {isAdmin ? `₺ ${fm(stats.personel)}` : '••••••'}
                                         </span>
                                     </div>
                                 </Link>
-                                <Link href="/maliyet" passHref>
-                                    <div className="bg-[#030907]/80 backdrop-blur-xl ring-1 ring-emerald-900/40 text-amber-500 p-4 rounded-xl flex flex-col justify-between shadow-2xl h-28 transform transition-transform hover:scale-[1.03] cursor-pointer border-[1.5px] border-rose-900/50 hover:border-rose-500 hover:shadow-rose-500/20 group relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/5 to-transparent"></div>
-                                        <span className="text-xs font-black opacity-90 uppercase truncate relative z-10 text-emerald-100 flex items-center justify-between">Fire / Zayiat <span className="text-amber-500/50">⚠️</span></span>
-                                        <span className="text-2xl font-black truncate relative z-10">
-                                            %{stats.fire} <span className="text-xs text-rose-500">{simulasyon !== 0 && `(Sim: %+${simulasyon})`}</span>
+
+                                <Link href="/maliyet" className="group">
+                                    <div className="bg-gradient-to-br from-[#1c1a19] to-[#151413] p-6 rounded-[2rem] flex flex-col justify-between shadow-xl shadow-black/10 h-32 border border-stone-800/80 hover:border-amber-900/30 transition-all duration-500 relative overflow-hidden">
+                                        <span className="text-xs font-medium uppercase tracking-widest text-stone-500 relative z-10 flex items-center justify-between">
+                                            Fire / Zayiat <span className="text-amber-700/50">✦</span>
+                                        </span>
+                                        <span className="text-3xl font-light tracking-tight text-stone-300 relative z-10">
+                                            %{stats.fire}
+                                            {simulasyon !== 0 && <span className="text-sm ml-2 text-stone-500">[{simulasyon > 0 ? '+' : ''}{simulasyon}]</span>}
                                         </span>
                                     </div>
                                 </Link>
@@ -282,94 +291,113 @@ export function KarargahMainContainer() {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-5 rounded-2xl shadow-lg border-0 flex flex-col gap-4">
-                            <div className="flex flex-col gap-2">
-                                <h3 className="text-xs font-bold uppercase text-slate-100 flex items-center gap-2 tracking-wider"><Zap size={14} className="text-amber-400" /> Görev Arama Motoru (CMD+K)</h3>
-                                <div className="flex gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {/* GÖREV ARAMA MOTORU (Yumuşak Zen Modu) */}
+                        <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50 flex flex-col gap-6">
+                            <div className="flex flex-col gap-3">
+                                <h3 className="text-[10px] font-medium uppercase text-stone-500 flex items-center gap-2 tracking-[0.15em]">
+                                    <Zap size={12} className="text-teal-600/60" /> Görev & Komut (CMD+K)
+                                </h3>
+                                <div className="flex gap-3">
                                     <input
                                         value={commandText}
                                         onChange={(e) => setCommandText(e.target.value)}
-                                        placeholder="/komut (Zod korumalıdır)"
-                                        className="flex-1 bg-[#020610]/40 ring-1 ring-white/5 shadow-inner text-slate-100 px-4 py-2 rounded-xl border-0 ring-1 ring-white/10 focus:outline-none focus:border-amber-400 transition-colors text-sm font-semibold placeholder-slate-600"
+                                        placeholder="Zihninizi buraya aktarın..."
+                                        className="flex-1 bg-[#151413] text-stone-300 px-5 py-3 rounded-2xl border border-stone-800 focus:outline-none focus:border-teal-800/50 transition-colors text-sm font-light placeholder-stone-600 shadow-inner"
                                     />
-                                    <button onClick={hizliGorevAtama} className="bg-emerald-600 hover:bg-emerald-500 text-slate-100 px-5 py-2 rounded-xl font-bold transition-colors shadow-lg text-sm tracking-wide">BAŞLAT</button>
+                                    <button onClick={hizliGorevAtama} className="bg-[#242220] hover:bg-[#2a2826] text-stone-300 px-6 py-3 rounded-2xl font-medium transition-colors border border-stone-700/50 text-sm">
+                                        Başlat
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="mt-2 border-t border-white/5 pt-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold text-slate-100">Stratejik What-if Analizi (Fiyatlama):</span>
-                                    <span className="text-xs font-black text-amber-400">%{simulasyon}</span>
+                            <div className="mt-auto border-t border-stone-800/50 pt-5">
+                                <div className="flex items-center justify-between mb-3 text-sm font-light">
+                                    <span className="text-stone-400">Gelecek Projeksiyonu (What-if)</span>
+                                    <span className="text-stone-300">%{simulasyon}</span>
                                 </div>
                                 <input
                                     type="range"
                                     min="-20" max="20" step="1"
                                     value={simulasyon}
                                     onChange={(e) => setSimulasyon(parseInt(e.target.value))}
-                                    className="w-full accent-emerald-500"
+                                    className="w-full accent-teal-700/50 h-1 bg-stone-800 rounded-lg outline-none appearance-none"
+                                    style={{
+                                        WebkitAppearance: 'none'
+                                    }}
                                 />
-                                <span className="text-[10px] text-slate-400 font-bold block mt-1">Bu sürgüyü kaydırırsanız Ciro panelindeki değer anlık revize olur.</span>
+                                <style dangerouslySetInnerHTML={{
+                                    __html: `
+                                    input[type=range]::-webkit-slider-thumb {
+                                        -webkit-appearance: none;
+                                        height: 16px;
+                                        width: 16px;
+                                        border-radius: 50%;
+                                        background: #2dd4bf;
+                                        cursor: pointer;
+                                        opacity: 0.7;
+                                        transition: opacity 0.2s;
+                                    }
+                                    input[type=range]::-webkit-slider-thumb:hover {
+                                        opacity: 1;
+                                    }
+                                `}} />
                             </div>
                         </div>
 
-                        <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-5 rounded-2xl shadow-lg border-0 flex flex-col justify-between gap-4">
+                        {/* YAPAY ZEKA DANIŞMANI */}
+                        <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50 flex flex-col justify-between gap-6">
                             <div>
-                                <h3 className="text-xs font-bold uppercase text-slate-100 flex items-center gap-2 tracking-wider mb-2"><Bot size={14} className="text-emerald-400" /> Yapay Zeka Komuta Merkezi</h3>
-                                <div className="flex gap-2">
+                                <h3 className="text-[10px] font-medium uppercase text-stone-500 flex items-center gap-2 tracking-[0.15em] mb-3">
+                                    <Bot size={12} className="text-teal-600/60" /> Dijital Asistan / Yapay Zeka
+                                </h3>
+                                <div className="flex gap-3">
                                     <input
                                         value={aiSorgu}
                                         onChange={(e) => setAiSorgu(e.target.value)}
-                                        placeholder="Pazar Analizi veya Rapor İste..."
-                                        className="flex-1 bg-[#020610]/40 ring-1 ring-white/5 shadow-inner text-slate-100 px-4 py-2 rounded-xl border-0 ring-1 ring-white/10 focus:outline-none focus:border-emerald-400 transition-colors text-sm font-semibold placeholder-slate-600"
+                                        placeholder="Pazar analizi veya yorum isteyin..."
+                                        className="flex-1 bg-[#151413] text-stone-300 px-5 py-3 rounded-2xl border border-stone-800 focus:outline-none focus:border-teal-800/50 transition-colors text-sm font-light placeholder-stone-600 shadow-inner"
                                     />
                                     <button
                                         onClick={aiAnalizBaslat}
                                         disabled={isAiLoading}
-                                        className="bg-[#10b981] hover:bg-[#059669] text-slate-100 px-5 py-2 rounded-xl font-bold transition-colors shadow-lg shadow-emerald-500/20 whitespace-nowrap text-sm tracking-wide disabled:opacity-50"
+                                        className="bg-[#242220] hover:bg-[#2a2826] text-stone-300 px-6 py-3 rounded-2xl font-medium transition-colors border border-stone-700/50 text-sm disabled:opacity-50"
                                     >
-                                        {isAiLoading ? 'Bitiyor...' : 'ANALİZ'}
+                                        {isAiLoading ? 'Süzülüyor..' : 'Analiz'}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* [C3] AI SONUÇ KUTUSU */}
                             {aiSonuc && (
-                                <div className="mt-3 bg-[#052e16] border border-emerald-800 rounded-xl p-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Bot size={12} className="text-emerald-400" />
-                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">AI Analiz Sonucu</span>
-                                    </div>
-                                    <p className="text-xs text-emerald-200 font-semibold leading-relaxed whitespace-pre-wrap">{aiSonuc}</p>
+                                <div className="bg-[#151413] border border-stone-800 rounded-2xl p-4 mt-2">
+                                    <p className="text-sm font-light text-stone-300 leading-relaxed whitespace-pre-wrap">{aiSonuc}</p>
                                 </div>
                             )}
 
-                            <div className="bg-[#020610]/40 ring-1 ring-white/5 shadow-inner p-3 rounded-lg border-0 flex items-center justify-between mt-auto">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">BANT AKIŞI:</span>
-                                <div className="flex items-center gap-1 flex-1 px-4">
-                                    <div className="h-2 flex-1 bg-emerald-500 rounded-l-full relative shadow-[0_0_8px_rgba(16,185,129,0.5)]">
-                                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-emerald-400">Kesim</span>
+                            <div className="bg-[#151413] p-4 rounded-2xl border border-stone-800 flex items-center justify-between mt-auto">
+                                <span className="text-[10px] font-medium text-stone-500 uppercase tracking-[0.2em] shrink-0">BANT AKIŞI</span>
+                                <div className="flex items-center gap-1.5 flex-1 px-6">
+                                    <div className="h-1 flex-1 bg-teal-800/60 rounded-full relative"></div>
+                                    <div className="h-1 flex-1 bg-amber-900/40 relative rounded-full overflow-hidden">
+                                        <div className="h-full w-1/2 bg-amber-600/40 rounded-full animate-pulse"></div>
                                     </div>
-                                    <div className="h-2 flex-1 bg-amber-500 relative animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-                                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-amber-400">Dikim</span>
-                                    </div>
-                                    <div className="h-2 flex-1 bg-slate-700 rounded-r-full relative">
-                                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-500">Kalite</span>
-                                    </div>
+                                    <div className="h-1 flex-1 bg-stone-800 rounded-full relative"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-6 mt-4">
+                    {/* MODÜL GRUPLARI */}
+                    <div className="flex flex-col gap-6 mt-2">
                         {MODUL_GRUPLARI.map((grup, gIdx) => (
-                            <div key={gIdx} className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-4 rounded-2xl border-0 shadow-md">
-                                <h3 className={`text-[11px] font-black uppercase mb-3 ${grup.renk} tracking-widest`}>{grup.baslik}</h3>
+                            <div key={gIdx} className="bg-[#1c1a19]/50 p-6 rounded-[2rem] border border-stone-800/50">
+                                <h3 className={`text-[10px] font-medium uppercase mb-4 ${grup.renk} tracking-[0.2em]`}>{grup.baslik}</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                                     {grup.moduller.map((mod, i) => (
                                         <Link href={mod.link} key={i}>
-                                            <div className={`${mod.renk} transition-all p-3 rounded-xl text-center flex items-center justify-center ring-1 ring-white/5 border-0 h-16`}>
-                                                <span className="font-bold text-xs tracking-wide">{mod.name}</span>
+                                            <div className={`${mod.renk} transition-all duration-300 px-4 py-3 rounded-2xl flex items-center justify-center border font-light text-sm tracking-wide`}>
+                                                {mod.name}
                                             </div>
                                         </Link>
                                     ))}
@@ -377,27 +405,32 @@ export function KarargahMainContainer() {
                             </div>
                         ))}
                     </div>
-
                 </div>
 
-                <div className="flex flex-col gap-4">
+                {/* SAĞ PANEL - RADAR VE AKIŞ */}
+                <div className="flex flex-col gap-6">
 
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-5 rounded-2xl shadow-lg border-0">
-                        <h3 className="text-xs font-black uppercase text-amber-400 mb-3 flex items-center gap-2"><AlertCircle size={14} className="text-rose-400" /> Kriz & Risk Radarı</h3>
+                    {/* Kriz & Risk Radarı -> Huzurlu Kontrol */}
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50">
+                        <h3 className="text-[10px] font-medium uppercase text-stone-500 mb-4 flex items-center gap-2 tracking-[0.15em]">
+                            <AlertCircle size={12} className="text-rose-900/60" /> Durum Radarı
+                        </h3>
 
                         {alarms.length === 0 ? (
-                            <div className="text-emerald-400 font-bold text-sm bg-[#020610]/40 ring-1 ring-white/5 shadow-inner p-3 rounded-lg border border-emerald-800">✅ Risk Tespit Edilmedi.</div>
+                            <div className="text-teal-600/80 font-light text-sm bg-teal-900/10 p-4 rounded-2xl border border-teal-900/20 text-center">
+                                Sistem dengede. Risk yok.
+                            </div>
                         ) : (
                             <div className="space-y-3">
                                 {alarms.map(al => (
-                                    <div key={al.id} className="bg-[#020610]/40 ring-1 ring-white/5 shadow-inner p-3 rounded-lg border-l-4 border-rose-500 shadow-xl group">
-                                        <p className="text-xs font-black text-slate-100">{al.text}</p>
+                                    <div key={al.id} className="bg-[#151413] p-4 rounded-2xl border border-stone-800 group">
+                                        <p className="text-xs font-normal text-stone-300 leading-relaxed mb-3">{al.text}</p>
                                         <button
                                             onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })}
-                                            className="mt-2 text-[10px] bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded text-amber-400 font-bold flex items-center gap-1 w-full justify-between transition-colors"
+                                            className="text-[10px] text-stone-500 hover:text-stone-300 font-medium flex items-center gap-1 w-full justify-between transition-colors uppercase tracking-wider"
                                         >
-                                            <span className="flex items-center gap-1"><Info size={12} /> HermAI: Neden & Zarar Analizi</span>
-                                            <ArrowRight size={12} />
+                                            <span>Detaylı Etki Analizi</span>
+                                            <ArrowRight size={10} />
                                         </button>
                                     </div>
                                 ))}
@@ -405,241 +438,196 @@ export function KarargahMainContainer() {
                         )}
                     </div>
 
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-4 rounded-xl shadow-lg border-0">
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-4 rounded-[2rem] shadow-xl border border-stone-800/50">
                         <Link href="/kameralar" className="block">
-                            <div className={`mb-2 p-2 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${kameraStreamDurum === 'aktif' ? 'bg-[#047857] hover:bg-[#02624B]' : 'bg-blue-800 hover:bg-blue-700'}`}>
-                                <div className={`w-10 h-8 bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded flex items-center justify-center relative overflow-hidden border ${kameraStreamDurum === 'aktif' ? 'border-emerald-500/30 text-emerald-400' : 'border-red-400/50 text-red-400'}`}>
-                                    <Camera size={14} className="relative z-10" />
-                                    <div className={`absolute inset-0 ${kameraStreamDurum === 'aktif' ? 'bg-indigo-500/20 animate-pulse' : 'bg-red-500/10'}`}></div>
+                            <div className={`p-3 rounded-2xl flex items-center gap-4 transition-colors ${kameraStreamDurum === 'aktif' ? 'bg-teal-900/10 hover:bg-teal-900/20' : 'bg-[#151413] hover:bg-[#242220]'}`}>
+                                <div className={`w-12 h-10 rounded-xl flex items-center justify-center relative border ${kameraStreamDurum === 'aktif' ? 'border-teal-800/50 text-teal-500/80 bg-[#1c1a19]' : 'border-stone-800 text-stone-600 bg-[#151413]'}`}>
+                                    <Camera size={16} className="relative z-10" />
+                                    {kameraStreamDurum === 'aktif' && <div className="absolute inset-0 bg-teal-500/5 animate-pulse rounded-xl"></div>}
                                 </div>
-                                <div className="flex flex-col flex-1 pl-1">
-                                    <span className={`text-[10px] font-black flex items-center gap-1 ${kameraStreamDurum === 'aktif' ? 'text-emerald-100' : 'text-rose-400'}`}>
-                                        <PlayCircle size={8} />
-                                        {kameraStreamDurum === 'aktif' ? 'Canlı Görüş Aktif' : kameraStreamDurum === 'kapali' ? 'Sunucu Kapalı' : 'Kontrol Ediliyor...'}
+                                <div className="flex flex-col flex-1">
+                                    <span className={`text-[11px] font-medium flex items-center gap-1.5 uppercase tracking-wider mb-0.5 ${kameraStreamDurum === 'aktif' ? 'text-teal-600/80' : 'text-stone-500'}`}>
+                                        <PlayCircle size={10} />
+                                        {kameraStreamDurum === 'aktif' ? 'Görüş Aktif' : 'Görüş Kapalı'}
                                     </span>
-                                    <span className={`text-[9px] font-semibold leading-tight ${kameraStreamDurum === 'aktif' ? 'text-emerald-200' : 'text-slate-400'}`}>
-                                        {kameraStreamDurum === 'aktif' ? 'AI 4 kamerayı tarıyor.' : 'go2rtc başlatılmalı → stream-server/BASLAT.bat'}
+                                    <span className={`text-[9px] font-light ${kameraStreamDurum === 'aktif' ? 'text-stone-400' : 'text-stone-600'}`}>
+                                        {kameraStreamDurum === 'aktif' ? 'AI kameraları tarıyor.' : 'go2rtc başlatılmalı.'}
                                     </span>
                                 </div>
                             </div>
                         </Link>
                     </div>
 
-                    {/* ── 🤖 YENİ: AJAN SENATOSU (8 ÇEKİRDEK) WİDGET'I ──────────────────────── */}
-                    <div className="bg-gradient-to-b from-[#022c22] to-[#047857] p-4 rounded-xl shadow-2xl border border-[#d4af37]/30 relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
-                        <div className="absolute -right-4 -top-4 w-16 h-16 bg-[#d4af37] opacity-20 blur-2xl rounded-full group-hover:opacity-40 transition-opacity"></div>
+                    {/* 8 ÇEKİRDEK AJAN AĞI (Çok yumuşak bir tasarım) */}
+                    <div className="bg-[#151413] p-6 rounded-[2rem] shadow-2xl border border-stone-800/50 relative overflow-hidden group">
+                        <div className="absolute -right-10 -top-10 w-32 h-32 bg-stone-800/20 blur-3xl rounded-full"></div>
 
-                        <h3 className="text-[11px] font-black uppercase text-[#d4af37] mb-3 flex items-center justify-between gap-2 relative z-10">
-                            <span className="flex items-center gap-2 tracking-widest"><Cpu size={14} /> 8 Çekirdek Ajan Ağı</span>
-                            <span className="flex items-center gap-1 text-[9px] bg-emerald-900/50 px-2 py-0.5 rounded border border-emerald-700/50 text-emerald-300">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Otonom
+                        <h3 className="text-[10px] font-medium uppercase text-stone-500 mb-5 flex items-center justify-between gap-2 relative z-10 tracking-[0.15em]">
+                            <span className="flex items-center gap-2"><Cpu size={12} className="text-stone-600" /> Ajan Ekosistemi</span>
+                            <span className="flex items-center gap-1.5 text-[9px] text-teal-600/60">
+                                <span className="w-1.5 h-1.5 rounded-full bg-teal-600/60 animate-ping"></span> Otonom
                             </span>
                         </h3>
 
-                        <div className="flex flex-col gap-2 relative z-10">
-                            <div className="bg-black/30 border border-emerald-800/50 rounded-lg p-2 flex items-center justify-between relative overflow-hidden">
-                                <div className="flex items-center gap-2">
-                                    <Network size={12} className="text-slate-400" />
+                        <div className="flex flex-col gap-3 relative z-10">
+                            <div className="border border-stone-800/40 rounded-2xl p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Network size={12} className="text-stone-600" />
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-slate-300">Veri Madencileri (Ajan 1-3)</span>
-                                        <span className="text-[8px] text-slate-400">Trendyol, Zara kazınıyor...</span>
+                                        <span className="text-[10px] font-medium text-stone-400">Veri Madencileri</span>
+                                        <span className="text-[9px] text-stone-500 font-light">Derin web taranıyor...</span>
                                     </div>
                                 </div>
-                                <span className="text-[10px] font-black text-slate-400 font-mono">24/s</span>
+                                <span className="text-[9px] font-light text-stone-500">24/s</span>
                             </div>
 
-                            <div className="bg-black/30 border border-emerald-800/50 rounded-lg p-2 flex items-center justify-between relative overflow-hidden">
-                                <div className="flex items-center gap-2">
-                                    <Zap size={12} className="text-amber-400" />
+                            <div className="border border-stone-800/40 rounded-2xl p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Zap size={12} className="text-stone-600" />
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-slate-300">Analistler (Ajan 4-7)</span>
-                                        <span className="text-[8px] text-slate-400">Risk & Skor modelleniyor</span>
+                                        <span className="text-[10px] font-medium text-stone-400">Analistler</span>
+                                        <span className="text-[9px] text-stone-500 font-light">Modeller güncel</span>
                                     </div>
                                 </div>
-                                <span className="text-[10px] font-black text-amber-400 font-mono">18ms</span>
-                            </div>
-
-                            <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-lg p-2 flex items-center justify-between relative overflow-hidden">
-                                <div className="flex items-center gap-2">
-                                    <Database size={12} className="text-[#d4af37]" />
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-[#d4af37]">Baş Stratejist (Ajan 8)</span>
-                                        <span className="text-[8px] text-amber-200/70">M1 Ar-Ge'ye Rapor Aktarıldı</span>
-                                    </div>
-                                </div>
-                                <span className="text-[10px] font-black text-[#d4af37]">AKTİF</span>
+                                <span className="text-[9px] font-light text-stone-500">18ms</span>
                             </div>
                         </div>
 
-                        <Link href="/arge" className="mt-3 block text-center text-[9px] text-emerald-300 font-black hover:text-[#d4af37] transition-colors relative z-10 uppercase tracking-widest">
-                            Ar-Ge Paneline Git →
+                        <Link href="/arge" className="mt-5 block text-center text-[9px] text-stone-500 hover:text-stone-300 font-medium transition-colors relative z-10 uppercase tracking-widest">
+                            Detaylı Panele Geç →
                         </Link>
                     </div>
 
-
-
-                    {/* ── SON MESAJLAR WİDGET ──────────────────────── */}
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-4 rounded-xl shadow-lg border-0">
-                        <h3 className="text-xs font-black uppercase text-slate-100 mb-3 flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-2"><MessageSquare size={13} className="text-emerald-400" /> Son Mesajlar</span>
+                    {/* SON MESAJLAR */}
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50">
+                        <h3 className="text-[10px] font-medium uppercase text-stone-500 mb-4 flex items-center justify-between gap-2 tracking-[0.15em]">
+                            <span className="flex items-center gap-2"><MessageSquare size={12} className="text-stone-600" /> Son Mesajlar</span>
                             {mesajSayisi > 0 && (
-                                <span className="bg-red-600 text-slate-100 text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
-                                    {mesajSayisi} OKUNMADI
+                                <span className="text-stone-400 text-[9px]">
+                                    ({mesajSayisi})
                                 </span>
                             )}
                         </h3>
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-2">
                             {sonMesajlar.length === 0 ? (
-                                <div className="text-[10px] text-slate-400 text-center py-2 font-semibold">✅ Okunmamış mesaj yok</div>
+                                <div className="text-[11px] text-stone-600 text-center py-4 font-light">Sessizlik hakim.</div>
                             ) : sonMesajlar.map(m => (
-                                <Link key={m.id} href="/haberlesme" className="block bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded-lg p-2 border-0 hover:border-emerald-500/80 transition-colors">
-                                    <div className="text-[10px] font-black text-slate-100 truncate">
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#151413] rounded-2xl p-3 border border-stone-800 hover:border-stone-700 transition-colors">
+                                    <div className="text-[11px] font-medium text-stone-300 truncate mb-1">
                                         {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🔵'} {m.konu}
-                                        {m.urun_id && <span className="ml-1 text-amber-500">📦</span>}
                                     </div>
-                                    <div className="text-[9px] text-slate-500 mt-0.5">{m.gonderen_adi}</div>
+                                    <div className="text-[9px] text-stone-500 font-light">{m.gonderen_adi}</div>
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/haberlesme" className="mt-2 block text-center text-[9px] text-emerald-400 font-black hover:text-emerald-300 transition-colors">
-                            Haberleşme → Tümünü Gör
+                        <Link href="/haberlesme" className="mt-4 block text-center text-[9px] text-stone-500 hover:text-stone-300 font-medium transition-colors uppercase tracking-widest">
+                            Tümünü Gör
                         </Link>
                     </div>
 
-                    {/* ── 45-GÜN MESAJ İZ PANELİ ──────────────────── */}
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-4 rounded-xl shadow-lg border-0">
+                    {/* GİZLENEN MESAJLAR */}
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50">
                         <button
                             onClick={() => setIzPanelAcik(v => !v)}
-                            className="w-full flex items-center justify-between text-xs font-black uppercase text-amber-400 mb-1"
+                            className="w-full flex items-center justify-between text-[10px] font-medium uppercase text-stone-500 mb-1 tracking-[0.15em]"
                         >
-                            <span>🗂️ Gizlenen Mesaj İzleri ({gizlenIzleri.length})</span>
-                            <span className="text-[9px] text-slate-500 font-semibold">45 Gün Kuralı</span>
+                            <span>Mesaj İzleri ({gizlenIzleri.length})</span>
+                            <span className="text-[8px] text-stone-600">45 Gün Kuralı</span>
                         </button>
                         {izPanelAcik && (
-                            <div className="flex flex-col gap-1 mt-2 max-h-40 overflow-y-auto">
+                            <div className="flex flex-col gap-2 mt-4 max-h-40 overflow-y-auto pr-2">
                                 {gizlenIzleri.length === 0 ? (
-                                    <div className="text-[10px] text-slate-400 text-center py-2">Son 45 günde gizlenen iz yok</div>
+                                    <div className="text-[10px] text-stone-600 text-center py-2 font-light">Gizlenen iz yok.</div>
                                 ) : gizlenIzleri.map((g, i) => {
                                     const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
                                     return (
-                                        <div key={i} className="bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded p-1.5 border-0">
-                                            <div className="text-[9px] font-black text-amber-400 truncate">
+                                        <div key={i} className="bg-[#151413] rounded-2xl p-3 border border-stone-800">
+                                            <div className="text-[10px] font-medium text-stone-400 truncate mb-1">
                                                 {b1?.konu || 'Bilinmeyen Konu'}
                                             </div>
-                                            <div className="text-[8px] text-slate-500">
-                                                Gizleyen: {g.kullanici_adi} · {b1?.gonderen_modul}
+                                            <div className="text-[9px] text-stone-600 font-light">
+                                                Gizleyen: {g.kullanici_adi}
                                             </div>
                                         </div>
                                     );
                                 })}
-                                <div className="text-[8px] text-amber-300/80 text-center mt-1 font-semibold">
-                                    ⚠️ 45. günden sonra sistem bu izleri otomatik temizler
-                                </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-4 rounded-xl shadow-lg border-0">
-                        <h3 className="text-xs font-black uppercase text-slate-100 mb-2 flex items-center justify-between gap-2">
-                            <span><span className="text-emerald-400">📦</span> Model Bilgi Arşivi</span>
-                            <span className="text-[9px] text-slate-500 font-semibold">{modelArsiv.length} kayıt · KALICI</span>
+                    {/* MODEL BİLGİ ARŞİVİ */}
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50">
+                        <h3 className="text-[10px] font-medium uppercase text-stone-500 mb-3 flex items-center justify-between gap-2 tracking-[0.15em]">
+                            <span>Model Arşivi</span>
+                            <span className="text-[8px] text-stone-600">{modelArsiv.length} Kayıt</span>
                         </h3>
-                        <div className="text-[8px] text-slate-500 mb-2 leading-tight">
-                            Ürün/model bağlı mesajlar hiçbir zaman silinmez. AI ajanlar bu veriyle eğitim alır.
-                            Tek silme yetkisi: Koordinatör (PIN).
+                        <div className="text-[9px] text-stone-600 mb-4 font-light leading-relaxed">
+                            Bu veriler sistem hafızasına işlenir ve kalıcıdır. Sadece yetkili koordinatör silebilir.
                         </div>
-                        <div className="flex flex-col gap-1 max-h-36 overflow-y-auto">
+                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-2">
                             {modelArsiv.length === 0 ? (
-                                <div className="text-[10px] text-slate-500 text-center py-2">Model bağlı mesaj yok</div>
+                                <div className="text-[10px] text-stone-600 text-center py-2 font-light">Arşiv boş.</div>
                             ) : modelArsiv.slice(0, 8).map(m => (
-                                <Link key={m.id} href="/haberlesme" className="block bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded p-1.5 border-0 hover:border-emerald-500 transition-colors">
-                                    <div className="text-[9px] font-black text-emerald-400 truncate">
-                                        📦 [{m.urun_kodu || '—'}] {m.konu}
+                                <Link key={m.id} href="/haberlesme" className="block bg-[#151413] rounded-2xl p-3 border border-stone-800 hover:border-stone-700 transition-colors">
+                                    <div className="text-[10px] font-medium text-stone-300 truncate mb-1">
+                                        [{m.urun_kodu || '—'}] {m.konu}
                                     </div>
-                                    <div className="text-[8px] text-slate-400">{m.gonderen_adi} · {new Date(m.created_at).toLocaleDateString('tr-TR')}</div>
+                                    <div className="text-[9px] text-stone-500 font-light">{m.gonderen_adi}</div>
                                 </Link>
                             ))}
                         </div>
                     </div>
 
+                    {/* SUNUCU SAĞLIĞI & NİZAMBOT */}
+                    <div className="bg-[#1c1a19]/80 backdrop-blur-3xl p-6 rounded-[2rem] shadow-xl border border-stone-800/50">
+                        <h3 className="text-[10px] font-medium uppercase text-stone-500 mb-4 tracking-[0.15em] flex items-center gap-2">
+                            <Activity size={12} className="text-stone-600" /> Sistem Nöbetçisi (NİZAMBOT)
+                        </h3>
 
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-5 rounded-2xl shadow-lg border-0">
-                        <h3 className="text-xs font-black uppercase text-slate-100 mb-3 flex items-center gap-2"><Activity size={14} className="text-emerald-400" /> Sunucu Sağlığı</h3>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-200">
-                                <span>DB Soket (ms)</span>
-                                <span className={ping === null ? 'text-slate-500' : ping < 200 ? 'text-emerald-400' : ping < 500 ? 'text-amber-400' : 'text-rose-500'}>
+                        <div className="flex flex-col gap-4 mb-6">
+                            <div className="flex justify-between items-center text-[11px] font-light text-stone-400">
+                                <span>Veri Akışı Gecikmesi (Ping)</span>
+                                <span className={ping === null ? 'text-stone-600' : ping < 200 ? 'text-teal-600/80' : 'text-stone-500'}>
                                     {ping === null ? 'Ölçülüyor...' : `${ping}ms`}
                                 </span>
                             </div>
-                            <div className="w-full bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded-full h-1.5 border-0">
+                            <div className="w-full bg-[#151413] rounded-full h-1 border border-stone-800 overflow-hidden">
                                 <div
-                                    className={`h-1.5 rounded-full transition-all ${ping === null ? 'bg-slate-600' : ping < 200 ? 'bg-emerald-500' : ping < 500 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                    className={`h-full rounded-full transition-all duration-1000 ${ping === null ? 'bg-stone-800' : ping < 200 ? 'bg-teal-800/50' : 'bg-stone-700'}`}
                                     style={{ width: ping === null ? '0%' : `${Math.min(100, (ping / 1000) * 100)}%` }}
                                 />
                             </div>
-                            <div className="flex justify-between items-center text-xs font-bold mt-2 text-slate-200">
-                                <span>Realtime</span>
-                                <span className="text-emerald-400">✅ Aktif</span>
-                            </div>
                         </div>
-                    </div>
 
-                    {/* NİZAMBOT PANELİ */}
-                    <div className="bg-[#0B1526]/80 backdrop-blur-2xl ring-1 ring-white/5 p-5 rounded-2xl shadow-lg border-0">
-                        <h3 className="text-xs font-black uppercase text-slate-100 mb-3 flex items-center gap-2 justify-between">
-                            <span className="flex items-center gap-2"><Bot size={14} className="text-emerald-400" /> NİZAMBOT</span>
-                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${botDurum === 'aktif' ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-500/50' :
-                                botDurum === 'hata' ? 'bg-rose-900/50 text-rose-400 border border-rose-500/50' :
-                                    'bg-blue-800 text-slate-400'
-                                }`}>
-                                {botDurum === 'aktif' ? '● AKTİF' : botDurum === 'hata' ? '● HATA' : '● KONTROL'}
-                            </span>
-                        </h3>
-
-                        {/* Bot kimlik bilgisi */}
-                        <div className="bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded-lg p-2 mb-3 flex items-center gap-2 border-0">
-                            <Bot size={12} className="text-emerald-400 shrink-0" />
+                        <div className="bg-[#151413] rounded-2xl p-4 mb-4 flex items-center gap-3 border border-stone-800">
+                            <Bot size={16} className={botDurum === 'aktif' ? 'text-teal-600/60' : 'text-stone-600'} />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-100">@Lumora_47bot</span>
-                                <span className="text-[9px] text-slate-500">Sistem Adı: NİZAMBOT</span>
+                                <span className="text-[11px] font-medium text-stone-300">@Lumora_47bot</span>
+                                <span className="text-[9px] text-stone-500 font-light">Durum: {botDurum === 'aktif' ? 'Aktif Dinliyor' : 'Kapasite Kontrolü'}</span>
                             </div>
                         </div>
 
-                        {/* Son aktiviteler */}
-                        <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-2">
                             {botLoglar.length === 0 ? (
-                                <div className="text-[10px] text-slate-500 text-center py-3 font-semibold">
-                                    Henüz bot aktivitesi yok
+                                <div className="text-[10px] text-stone-600 text-center py-2 font-light">
+                                    Hareket yok.
                                 </div>
                             ) : botLoglar.map((log, i) => (
-                                <div key={i} className="bg-[#020610]/40 ring-1 ring-white/5 shadow-inner rounded-lg p-2 border-0">
-                                    <div className="flex items-center justify-between mb-0.5">
-                                        <span className={`text-[9px] font-black flex items-center gap-1 ${log.sonuc === 'basarili' ? 'text-emerald-400' : 'text-rose-400'
-                                            }`}>
-                                            {log.sonuc === 'basarili'
-                                                ? <><CheckCircle size={8} /> GÖNDER</>
-                                                : <><AlertCircle size={8} /> HATA</>
-                                            }
+                                <div key={i} className="border-b border-stone-800/50 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-[9px] font-medium flex items-center gap-1 ${log.sonuc === 'basarili' ? 'text-stone-400' : 'text-rose-900/60'}`}>
+                                            {log.sonuc === 'basarili' ? 'İLETİLDİ' : 'HATA'}
                                         </span>
-                                        <span className="text-[8px] text-slate-500 font-semibold">
-                                            {new Date(log.created_at).toLocaleString('tr-TR', {
-                                                day: '2-digit', month: '2-digit',
-                                                hour: '2-digit', minute: '2-digit'
-                                            })}
+                                        <span className="text-[8px] text-stone-600 font-light">
+                                            {new Date(log.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
-                                    <p className="text-[9px] text-slate-200 font-medium leading-tight truncate">
+                                    <p className="text-[10px] text-stone-500 font-light leading-snug truncate">
                                         {log.mesaj || log.islem_tipi}
                                     </p>
                                 </div>
                             ))}
                         </div>
-
-                        <Link href="/ajanlar" className="mt-3 block text-center text-[9px] text-emerald-400 font-black hover:text-emerald-300 transition-colors">
-                            Tüm Bot Kayıtları → Ajanlar Sayfası
-                        </Link>
                     </div>
 
                 </div>

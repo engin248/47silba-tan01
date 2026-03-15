@@ -1,0 +1,294 @@
+node_modules/events/events.js(37,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(...items: ConcatArray<string>[]): string[]', gave the following error.
+    Argument of type 'symbol[]' is not assignable to parameter of type 'ConcatArray<string>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type 'symbol[]' is not assignable to type 'string[]'.
+          Type 'symbol' is not assignable to type 'string'.
+  Overload 2 of 2, '(...items: (string | ConcatArray<string>)[]): string[]', gave the following error.
+    Argument of type 'symbol[]' is not assignable to parameter of type 'string | ConcatArray<string>'.
+      Type 'symbol[]' is not assignable to type 'ConcatArray<string>'.
+        The types returned by 'slice(...)' are incompatible between these types.
+          Type 'symbol[]' is not assignable to type 'string[]'.
+            Type 'symbol' is not assignable to type 'string'.
+node_modules/events/events.js(143,9): error TS2339: Property 'context' does not exist on type 'Error'.
+node_modules/events/events.js(216,9): error TS2339: Property 'emitter' does not exist on type 'Error'.
+node_modules/events/events.js(217,9): error TS2339: Property 'type' does not exist on type 'Error'.
+node_modules/events/events.js(218,9): error TS2339: Property 'count' does not exist on type 'Error'.
+node_modules/events/events.js(239,10): error TS2339: Property 'target' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(239,37): error TS2339: Property 'type' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(239,48): error TS2339: Property 'wrapFn' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(242,19): error TS2339: Property 'listener' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(242,38): error TS2339: Property 'target' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(243,17): error TS2339: Property 'listener' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(243,37): error TS2339: Property 'target' does not exist on type 'onceWrapper'.
+node_modules/events/events.js(284,15): error TS2532: Object is possibly 'undefined'.
+node_modules/events/events.js(337,17): error TS2532: Object is possibly 'undefined'.
+node_modules/events/events.js(425,10): error TS2532: Object is possibly 'undefined'.
+node_modules/react/cjs/react.development.js(72,9): error TS2322: Type 'Console' is not assignable to type 'boolean'.
+node_modules/react/cjs/react.development.js(73,62): error TS2339: Property 'error' does not exist on type 'boolean'.
+node_modules/react/cjs/react.development.js(163,54): error TS2339: Property 'getOwner' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(170,22): error TS2532: Object is possibly 'undefined'.
+node_modules/react/cjs/react.development.js(171,30): error TS2339: Property 'isReactWarning' does not exist on type '() => any'.
+node_modules/react/cjs/react.development.js(346,21): error TS2349: This expression is not callable.
+  Type 'Boolean' has no call signatures.
+node_modules/react/cjs/react.development.js(371,52): error TS2339: Property 'key' does not exist on type 'true'.
+node_modules/react/cjs/react.development.js(377,53): error TS2339: Property 'key' does not exist on type 'true'.
+node_modules/react/cjs/react.development.js(388,40): error TS2339: Property 'key' does not exist on type 'boolean'.
+node_modules/react/cjs/react.development.js(389,32): error TS2339: Property '_store' does not exist on type 'boolean'.
+node_modules/react/cjs/react.development.js(390,33): error TS2339: Property '_store' does not exist on type 'boolean'.
+node_modules/react/cjs/react.development.js(396,7): error TS2322: Type 'number' is not assignable to type 'boolean'.
+node_modules/react/cjs/react.development.js(417,26): error TS2339: Property 'call' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(564,25): error TS2339: Property 'length' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(572,52): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+node_modules/react/cjs/react.development.js(603,74): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+node_modules/react/cjs/react.development.js(609,28): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.development.js(611,16): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.development.js(612,7): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.development.js(670,10): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+node_modules/react/cjs/react.development.js(671,37): error TS2345: Argument of type '{ map: (children: any, func: any, context: any) => any; forEach: (children: any, forEachFunc: any, forEachContext: any) => void; count: (children: any) => number; toArray: (children: any) => any; only: (children: any) => any; }' is not assignable to parameter of type 'PropertyKey'.
+node_modules/react/cjs/react.development.js(695,28): error TS2339: Property 'createTask' does not exist on type 'Console'.
+node_modules/react/cjs/react.development.js(696,19): error TS2339: Property 'createTask' does not exist on type 'Console'.
+node_modules/react/cjs/react.development.js(700,5): error TS2739: Type '{ react_stack_bottom_frame: (callStackForError: any) => any; }' is missing the following properties from type '{ isMounted: string[]; replaceState: string[]; }': isMounted, replaceState
+node_modules/react/cjs/react.development.js(756,5): error TS2739: Type 'Function' is missing the following properties from type '{ isMounted: string[]; replaceState: string[]; }': isMounted, replaceState
+node_modules/react/cjs/react.development.js(757,7): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(f: Function): Function', gave the following error.
+    Object literal may only specify known properties, and '__proto__' does not exist in type 'Function'.
+  Overload 2 of 3, '(o: { isMounted: string[]; replaceState: string[]; }): Readonly<{ isMounted: string[]; replaceState: string[]; }>', gave the following error.
+    Object literal may only specify known properties, and '__proto__' does not exist in type '{ isMounted: string[]; replaceState: string[]; }'.
+  Overload 3 of 3, '(o: { isMounted: string[]; replaceState: string[]; }): Readonly<{ isMounted: string[]; replaceState: string[]; }>', gave the following error.
+    Object literal may only specify known properties, and '__proto__' does not exist in type '{ isMounted: string[]; replaceState: string[]; }'.
+node_modules/react/cjs/react.development.js(759,16): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(810,20): error TS2322: Type 'never[]' is not assignable to type 'null'.
+node_modules/react/cjs/react.development.js(816,48): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+node_modules/react/cjs/react.development.js(856,60): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+node_modules/react/cjs/react.development.js(905,17): error TS2322: Type 'any[]' is not assignable to type 'null'.
+node_modules/react/cjs/react.development.js(927,48): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+node_modules/react/cjs/react.development.js(944,41): error TS2532: Object is possibly 'undefined'.
+node_modules/react/cjs/react.development.js(948,38): error TS2339: Property 'isReactWarning' does not exist on type '() => any'.
+node_modules/react/cjs/react.development.js(958,14): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+node_modules/react/cjs/react.development.js(960,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.development.js(961,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.development.js(962,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.development.js(963,14): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.development.js(1007,7): error TS2322: Type '{}' is not assignable to type 'number'.
+node_modules/react/cjs/react.development.js(1010,14): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+node_modules/react/cjs/react.development.js(1021,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'boolean' have no overlap.
+node_modules/react/cjs/react.development.js(1022,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'boolean' have no overlap.
+node_modules/react/cjs/react.development.js(1023,13): error TS2367: This comparison appears to be unintentional because the types 'string' and 'boolean' have no overlap.
+node_modules/react/cjs/react.development.js(1024,16): error TS2538: Type 'boolean' cannot be used as an index type.
+node_modules/react/cjs/react.development.js(1024,35): error TS2538: Type 'boolean' cannot be used as an index type.
+node_modules/react/cjs/react.development.js(1026,35): error TS2339: Property 'children' does not exist on type 'number'.
+node_modules/react/cjs/react.development.js(1035,11): error TS2339: Property 'children' does not exist on type 'number'.
+node_modules/react/cjs/react.development.js(1038,14): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+node_modules/react/cjs/react.development.js(1038,26): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+node_modules/react/cjs/react.development.js(1039,24): error TS2538: Type 'boolean' cannot be used as an index type.
+node_modules/react/cjs/react.development.js(1039,40): error TS2538: Type 'boolean' cannot be used as an index type.
+node_modules/react/cjs/react.development.js(1039,67): error TS2538: Type 'boolean' cannot be used as an index type.
+node_modules/react/cjs/react.development.js(1118,30): error TS2339: Property 'createTask' does not exist on type 'Console'.
+node_modules/react/cjs/react.development.js(1118,51): error TS2339: Property 'createTask' does not exist on type 'Console'.
+node_modules/react/cjs/react.development.js(1156,7): error TS2322: Type '{ _updatedFibers: Set<any>; }' is not assignable to type 'null'.
+node_modules/react/cjs/react.development.js(1161,11): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+node_modules/react/cjs/react.development.js(1181,38): error TS2339: Property 'types' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(1182,30): error TS2339: Property 'types' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(1186,29): error TS2339: Property 'types' does not exist on type 'never'.
+node_modules/react/cjs/react.development.js(1191,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1194,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1197,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1204,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1212,14): error TS18047: 'dispatcher' is possibly 'null'.
+node_modules/react/cjs/react.development.js(1215,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1218,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1225,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1228,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1231,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1234,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1241,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1248,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1251,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1254,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1257,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1260,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1263,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1270,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1277,14): error TS2531: Object is possibly 'null'.
+node_modules/react/cjs/react.development.js(1280,28): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.development.js(1282,16): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.development.js(1283,7): error TS2304: Cannot find name '__REACT_DEVTOOLS_GLOBAL_HOOK__'.
+node_modules/react/cjs/react.production.js(168,17): error TS2349: This expression is not callable.
+  Type 'Boolean' has no call signatures.
+node_modules/react/cjs/react.production.js(186,30): error TS2339: Property 'replace' does not exist on type 'boolean'.
+node_modules/react/cjs/react.production.js(207,3): error TS2322: Type 'number' is not assignable to type 'boolean'.
+node_modules/react/cjs/react.production.js(222,20): error TS2339: Property 'call' does not exist on type 'never'.
+node_modules/react/cjs/react.production.js(358,12): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(377,10): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+node_modules/react/cjs/react.production.js(379,9): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.production.js(380,9): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.production.js(381,9): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.production.js(382,10): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+node_modules/react/cjs/react.production.js(428,22): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+node_modules/react/cjs/react.production.js(457,3): error TS2322: Type '{}' is not assignable to type 'null'.
+node_modules/react/cjs/react.production.js(462,7): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+node_modules/react/cjs/react.production.js(472,23): error TS2339: Property 'types' does not exist on type 'never'.
+node_modules/react/cjs/react.production.js(477,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(480,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(483,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(486,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(489,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(493,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(496,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(499,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(502,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(505,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(508,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(511,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(514,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(517,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(520,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(523,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(526,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(533,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+node_modules/react/cjs/react.production.js(540,10): error TS18047: 'ReactSharedInternals.H' is possibly 'null'.
+src/ai/explain/localExplainer.js(72,5): error TS2741: Property 'counterfactual' is missing in type '{ karar: string; neden: string; guven: number; etkenler: { faktor: string; deger: any; agirlik: number; }[]; timestamp: string; }' but required in type '{ neden: string; guven: number; etkenler: any[]; counterfactual: string; }'.
+src/app/api/gorev-ekle/route.js(10,5): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/is-emri-ekle/route.js(9,5): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/kur/route.js(37,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Object literal may only specify known properties, and 'next' does not exist in type 'RequestInit'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Object literal may only specify known properties, and 'next' does not exist in type 'RequestInit'.
+src/app/api/kur/route.js(57,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Object literal may only specify known properties, and 'next' does not exist in type 'RequestInit'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Object literal may only specify known properties, and 'next' does not exist in type 'RequestInit'.
+src/app/api/musteri-ekle/route.js(10,5): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/personel-ekle/route.js(10,5): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/pin-dogrula/route.js(119,63): error TS18048: 'durum.kalanSaniye' is possibly 'undefined'.
+src/app/api/stok-alarm/route.js(90,13): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "b0_sistem_loglari", unknown, "POST">'. Did you mean 'match'?
+src/app/api/telegram-bildirim/route.js(21,35): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/telegram-bildirim/route.js(29,33): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/app/api/telegram-bildirim/route.js(29,46): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/app/api/telegram-bildirim/route.js(52,18): error TS2339: Property 'catch' does not exist on type 'PostgrestBuilder<any, { son_vurus_saati: any; son_mesaj_ozeti: any; }, false>'.
+src/app/api/telegram-bildirim/route.js(54,34): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/app/api/telegram-bildirim/route.js(54,47): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/app/api/telegram-webhook/route.js(46,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/ClientLayout.js(88,45): error TS2322: Type '{ key: string; item: { href: string; icon: react.ForwardRefExoticComponent<any>; labelTR: string; labelAR: string; group: string; badge?: undefined; } | { href: string; icon: react.ForwardRefExoticComponent<any>; labelTR: string; labelAR: string; badge: string; group: string; }; }' is not assignable to type '{ item: any; }'.
+  Property 'key' does not exist on type '{ item: any; }'.
+src/app/ClientLayout.js(369,14): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/app/ClientLayout.js(370,18): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/app/ClientLayout.js(371,22): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/app/ClientLayout.js(372,26): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/app/ClientLayout.js(374,34): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/app/layout.js(43,18): error TS2741: Property 'children' is missing in type '{}' but required in type '{ children: any; }'.
+src/components/ErrorBoundary.jsx(101,14): error TS2339: Property 'setState' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(105,38): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(116,61): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(124,14): error TS2339: Property 'setState' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(130,22): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(131,29): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(136,35): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/ErrorBoundary.jsx(142,21): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+src/components/shared/index.js(6,44): error TS2307: Cannot find module './SayfaBasligi' or its corresponding type declarations.
+src/features/ajanlar/services/ajanlarApi.js(131,16): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/features/ajanlar/services/ajanlarApi.js(131,32): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/features/arge/components/ArgeSayfasi.js(7,10): error TS2303: Circular definition of import alias 'default'.
+src/features/arge/hooks/useArge.js(88,17): error TS18048: 'mevcutlar.length' is possibly 'undefined'.
+src/features/arge/services/argeApi.js(41,9): error TS18048: 'mevcutlar.length' is possibly 'undefined'.
+src/features/ayarlar/components/AyarlarRefactored.jsx(107,22): error TS2741: Property 'children' is missing in type '{ icon: react.ForwardRefExoticComponent<any>; renk: string; baslik: string; aciklama: string; }' but required in type '{ icon: any; renk: any; baslik: any; aciklama: any; children: any; }'.
+src/features/ayarlar/components/AyarlarRefactored.jsx(152,18): error TS2741: Property 'children' is missing in type '{ icon: react.ForwardRefExoticComponent<any>; renk: string; baslik: string; aciklama: string; }' but required in type '{ icon: any; renk: any; baslik: any; aciklama: any; children: any; }'.
+src/features/ayarlar/components/AyarlarRefactored.jsx(174,18): error TS2741: Property 'children' is missing in type '{ icon: react.ForwardRefExoticComponent<any>; renk: string; baslik: string; aciklama: string; }' but required in type '{ icon: any; renk: any; baslik: any; aciklama: any; children: any; }'.
+src/features/ayarlar/components/AyarlarRefactored.jsx(187,18): error TS2741: Property 'children' is missing in type '{ icon: react.ForwardRefExoticComponent<any>; renk: string; baslik: string; aciklama: string; }' but required in type '{ icon: any; renk: any; baslik: any; aciklama: any; children: any; }'.
+src/features/ayarlar/components/AyarlarRefactored.jsx(195,18): error TS2741: Property 'children' is missing in type '{ icon: react.ForwardRefExoticComponent<any>; renk: string; baslik: string; aciklama: string; }' but required in type '{ icon: any; renk: any; baslik: any; aciklama: any; children: any; }'.
+src/features/ayarlar/services/ayarlarApi.js(88,13): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '"postgres_changes"' is not assignable to parameter of type '"system"'.
+src/features/denetmen/components/DenetmenMainContainer.js(479,84): error TS18047: 'e.target' is possibly 'null'.
+src/features/gorevler/components/GorevlerMainContainer.js(342,73): error TS2322: Type '{ key: any; g: any; draggable: true; }' is not assignable to type '{ g: any; draggable?: boolean | undefined; }'.
+  Property 'key' does not exist on type '{ g: any; draggable?: boolean | undefined; }'.
+src/features/gorevler/components/GorevlerMainContainer.js(359,52): error TS2322: Type '{ key: any; g: any; draggable: false; }' is not assignable to type '{ g: any; draggable?: boolean | undefined; }'.
+  Property 'key' does not exist on type '{ g: any; draggable?: boolean | undefined; }'.
+src/features/haberlesme/components/HaberlesmeMainContainer.js(194,34): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/features/haberlesme/components/HaberlesmeMainContainer.js(194,62): error TS2339: Property 'webkitSpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/features/kameralar/hooks/useMotionDetection.js(54,33): error TS2810: Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.
+src/features/kameralar/hooks/useMotionDetection.js(99,49): error TS2810: Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.
+src/features/katalog/services/katalogApi.js(86,39): error TS2345: Argument of type '{ urun_kodu: any; urun_adi: any; urun_adi_ar: any; satis_fiyati_tl: number; satis_fiyati_usd: number | null; birim_maliyet_tl: number; bedenler: any; renkler: any; stok_adeti: number; min_stok: number; ... 5 more ...; fotograf_url3: any; }' is not assignable to parameter of type 'string'.
+src/features/katalog/services/katalogApi.js(93,13): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/katalog/services/katalogApi.js(135,13): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '"postgres_changes"' is not assignable to parameter of type '"system"'.
+src/features/kumas/hooks/useKumas.js(110,39): error TS2554: Expected 0-2 arguments, but got 3.
+src/features/personel/hooks/usePersonelV2.js(111,21): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/personel/hooks/usePersonelV2.js(161,21): error TS18048: 'mevcutDevam.length' is possibly 'undefined'.
+src/features/personel/hooks/usePersonelV2.js(199,9): error TS18047: 'w' is possibly 'null'.
+src/features/personel/hooks/usePersonelV2.js(200,9): error TS18047: 'w' is possibly 'null'.
+src/features/personel/services/personelApi.js(41,13): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/personel/services/personelApi.js(84,9): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/uretim/hooks/useIsEmri.js(126,40): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/features/uretim/hooks/useIsEmri.js(262,21): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/uretim/hooks/useIsEmri.js(389,17): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/uretim/services/uretimApi.js(40,9): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/features/uretim/services/uretimApi.js(109,9): error TS18048: 'mevcut.length' is possibly 'undefined'.
+src/lib/agents/ekip1/OluIsciTaburu.js(15,23): error TS2307: Cannot find module 'puppeteer' or its corresponding type declarations.
+src/lib/agents/ekip1/OluIsciTaburu.js(16,26): error TS2307: Cannot find module 'cheerio' or its corresponding type declarations.
+src/lib/agents/scraper/OluIsciScraper.js(14,23): error TS2307: Cannot find module 'puppeteer' or its corresponding type declarations.
+src/lib/agents/scraper/OluIsciScraper.js(50,80): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/lib/agents/scraper/OluIsciScraper.js(51,80): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/lib/agents/scraper/OluIsciScraper.js(52,78): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/lib/agents/scraper/OluIsciScraper.js(53,81): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/lib/ai/hermContext.js(24,46): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/lib/ai/hermContext.js(40,40): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/lib/ai/hermExplainer.js(68,9): error TS2353: Object literal may only specify known properties, and 'tumEtkenler' does not exist in type '{ aciklamaTR: any; karsiOlgu: any; enOnemliEtken: any; guvenskoru: any; }'.
+src/lib/ai/hermLoop.js(43,5): error TS2322: Type 'null' is not assignable to type 'number'.
+src/lib/ai/visionAjanCore.js(9,14): error TS1064: The return type of an async function or method must be the global Promise<T> type. Did you mean to write 'Promise<any>'?
+src/lib/ajanlar-v2.js(80,36): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/ajanlar-v2.js(98,117): error TS2345: Argument of type '"b2_urun_katalogu"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(150,125): error TS2345: Argument of type '"b2_kasa_hareketleri"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(224,121): error TS2345: Argument of type '"b2_siparisler"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(307,21): error TS2345: Argument of type '"b2_urun_katalogu"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(328,21): error TS2345: Argument of type '"b1_muhasebe_raporlari"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(341,44): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/ajanlar-v2.js(344,66): error TS2345: Argument of type '"b1_agent_loglari"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(358,52): error TS2345: Argument of type '"b2_kasa_hareketleri"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(568,21): error TS2345: Argument of type '"b1_muhasebe_raporlari"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(615,82): error TS2345: Argument of type '"b2_kasa_hareketleri"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(631,90): error TS2345: Argument of type '"b2_kasa_hareketleri"' is not assignable to parameter of type 'null | undefined'.
+src/lib/ajanlar-v2.js(844,46): error TS2493: Tuple type '[PromiseSettledResult<{ basarili: boolean; brifing: string; sonuc: { kontrol_sayisi: number; bulgular: string[]; kritik: number; }; hata?: undefined; } | { basarili: boolean; hata: any; brifing?: undefined; sonuc?: undefined; }>, PromiseSettledResult<...>, PromiseSettledResult<...>, PromiseSettledResult<...>]' of length '4' has no element at index '4'.
+src/lib/ajanlar.js(28,9): error TS18048: 'var_.length' is possibly 'undefined'.
+src/lib/ajanlar.js(79,48): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/lib/ajanlar.js(117,48): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/lib/ajanlar.js(142,50): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/ajanlar.js(143,50): error TS2339: Property 'model_kodu' does not exist on type '{ model_adi: any; model_kodu: any; }[]'.
+src/lib/ajanlar.js(152,44): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/lib/apiClient.js(66,28): error TS2339: Property 'headers' does not exist on type '{}'.
+src/lib/components/ui/BildirimZili.js(59,34): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/components/ui/BildirimZili.js(59,42): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/modelHafizasi.js(18,22): error TS2552: Cannot find name 'ModelHafizasi'. Did you mean 'modelHafizasiOku'?
+src/lib/modelHafizasi.js(56,17): error TS2353: Object literal may only specify known properties, and 'kritikNotSayisi' does not exist in type '{ devamEdebilir: boolean; uyariMesaji: string | null; }'.
+src/lib/modelHafizasi.js(73,13): error TS2353: Object literal may only specify known properties, and 'kritikNotSayisi' does not exist in type '{ devamEdebilir: boolean; uyariMesaji: string | null; }'.
+src/lib/modelHafizasi.js(80,58): error TS2353: Object literal may only specify known properties, and 'hata' does not exist in type '{ devamEdebilir: boolean; uyariMesaji: string | null; }'.
+src/lib/utils/faturaYazdir.js(50,5): error TS18047: 'w' is possibly 'null'.
+src/lib/utils/faturaYazdir.js(51,5): error TS18047: 'w' is possibly 'null'.
+src/scripts/ai_mastermind/yargic.js(11,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/scripts/ai_mastermind/yargic.js(114,44): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/scripts/ai_mastermind/yargic.js(115,43): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/scripts/scrapers/oluisci.js(7,27): error TS2307: Cannot find module 'puppeteer-extra' or its corresponding type declarations.
+src/scripts/scrapers/oluisci.js(8,31): error TS2307: Cannot find module 'puppeteer-extra-plugin-stealth' or its corresponding type declarations.
+src/scripts/scrapers/oluisci.js(13,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/scripts/scrapers/oluisci.js(48,76): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/scripts/scrapers/oluisci.js(49,95): error TS2339: Property 'innerText' does not exist on type 'Element'.
+src/scripts/scrapers/oluisci.js(99,21): error TS2810: Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.
+src/store/useAuthStore.js(25,24): error TS2307: Cannot find module 'zustand' or its corresponding type declarations.
+src/store/useAuthStore.js(26,44): error TS2307: Cannot find module 'zustand/middleware' or its corresponding type declarations.
+src/store/useAuthStore.js(81,40): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
