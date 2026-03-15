@@ -4,18 +4,32 @@
  * FAZ 4 Shared UI — Tüm sayfaların ortak başlık bileşeni
  * [FIX] renkler undefined geldiğinde TypeError: Cannot read '.bg' of undefined — ENGELLENDİ
  */
+/**
+ * @param {Object} props
+ * @param {any} [props.ikon]
+ * @param {any} [props.icon]
+ * @param {any} [props.renkler]
+ * @param {any} [props.iconColor]
+ * @param {any} [props.iconColor2]
+ * @param {any} [props.baslik]
+ * @param {any} [props.altBaslik]
+ * @param {any} [props.altbaslik]
+ * @param {any} [props.islemler]
+ * @param {any} [props.islemButonlari]
+ * @param {any} [props.sagIcerik]
+ */
 export default function SayfaBasligi({
-    /** @type {any} */ ikon: Ikon,
-    /** @type {any} */ icon = null,
-    /** @type {any} */ renkler = {},
-    /** @type {any} */ iconColor = '#047857',
-    /** @type {any} */ iconColor2 = '#065f46',
-    /** @type {any} */ baslik = '',
-    /** @type {any} */ altBaslik = null,
-    /** @type {any} */ altbaslik = null,
-    /** @type {any} */ islemler = null,
-    /** @type {any} */ islemButonlari = null,
-    /** @type {any} */ sagIcerik = null,
+    ikon: Ikon,
+    icon = null,
+    renkler = {},
+    iconColor = '#047857',
+    iconColor2 = '#065f46',
+    baslik = '',
+    altBaslik = null,
+    altbaslik = null,
+    islemler = null,
+    islemButonlari = null,
+    sagIcerik = null,
 }) {
     // icon prop'u React element olabilir (örn: <Factory size={24} color="white" />)
     // ikon prop'u ise component type olabilir (eski kullanım)

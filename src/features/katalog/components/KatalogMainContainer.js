@@ -48,7 +48,8 @@ const KATEGORILER = ['genel', 'gomlek', 'pantolon', 'elbise', 'dis_giyim', 'ic_g
 const KAT_LABEL = { genel: 'Genel', gomlek: 'Gömlek', pantolon: 'Pantolon', elbise: 'Elbise', dis_giyim: 'Dış Giyim', ic_giyim: 'İç Giyim', spor: 'Spor', aksesuar: 'Aksesuar' };
 
 export default function KatalogSayfasi() {
-    const { kullanici, sayfaErisim } = useAuth();
+    const { kullanici: rawKullanici, sayfaErisim } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const erisim = /** @type {any} */ (sayfaErisim)('/katalog');
 
     const [usdKur, setUsdKur] = useState(USD_KUR_VARSAYILAN); // [A-02] Canlı döviz kuru
@@ -121,7 +122,7 @@ export default function KatalogSayfasi() {
                 teklif_icerik: mesajMetni,
                 kanal: 'whatsapp',
                 gonderim_durumu: 'gonderildi',
-                gonderen: /** @type {any} */ (kullanici)?.label || 'Satış Yetkilisi',
+                gonderen: kullanici?.label || 'Satış Yetkilisi',
             }]);
         } catch { }
     };
@@ -512,9 +513,7 @@ export default function KatalogSayfasi() {
                 yukle();
                 goster(`✅ Toplu İşlem Tamamlandı! EKLENEN: ${eklendi} | HATALI SATIR: ${hataSayisi}`, eklendi > 0 ? 'success' : 'error');
 
-                if (eklendi > 0) {
-                    telegramBildirim(`📦 KATALOG TOPLU YÜKLEME\n${/** @type {any} */ (kullanici)?.label || 'M9 Yetkilisi'} tarafından Excel aracıyla kataloga ${eklendi} yeni ürün eklendi.`);
-                }
+                telegramBildirim(`📦 KATALOG TOPLU YÜKLEME\n${kullanici?.label || 'M9 Yetkilisi'} tarafından Excel aracıyla kataloga ${eklendi} yeni ürün eklendi.`);
 
             } catch (err) {
                 setTopluYukleniyor(false);
@@ -537,7 +536,7 @@ export default function KatalogSayfasi() {
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b2_urun_katalogu', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M9 Yetkilisi',
+                    tablo_adi: 'b2_urun_katalogu', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'M9 Yetkilisi',
                     eski_veri: { durum: 'M9 Urun kalici silindi.', urun_kodu: m_kodu }
                 }]);
             } catch (e) { }

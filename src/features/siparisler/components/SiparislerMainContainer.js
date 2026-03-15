@@ -36,7 +36,8 @@ const PARA_BIRIMLERI = [
 const BOSH_FORM = { musteri_id: '', siparis_no: '', kanal: 'magaza', notlar: '', acil: false, para_birimi: 'TL', odeme_yontemi: 'nakit', termin_tarihi: '' };
 
 export default function SiparislerSayfasi() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang } = useLang();
     const { hermCalistir, hermSonuc, hermYukleniyor, hermTemizle } = useHermAi();
@@ -426,7 +427,7 @@ export default function SiparislerSayfasi() {
                 ikon={ShoppingCart}
                 renkler={/** @type {any} */ ({ bg: 'linear-gradient(135deg,#047857,#065f46)' })}
                 baslik={isAR ? 'إدارة الطلبات' : 'Sipariş Yönetimi'}
-                altBaslik={isAR ? 'استلام → تأكيد → شحن → تسليم' : 'Al → Onayla → Hazırla → Kargoyla → Teslim'}
+                altBaslik={/** @type {any} */ (isAR ? 'استلام → تأكيد → شحن → تسليم' : 'Al → Onayla → Hazırla → Kargoyla → Teslim')}
                 islemButonlari={/** @type {any} */(
                     <>
                         <button onClick={() => { setForm({ ...BOSH_FORM, siparis_no: siparisNoUret() }); setFormAcik(!formAcik); }}

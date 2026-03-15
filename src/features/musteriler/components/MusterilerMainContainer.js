@@ -23,7 +23,8 @@ const BOSH_FORM = {
 };
 
 export default function MusterilerSayfasi() {
-    const { kullanici } = useAuth();
+    const { kullanici: rawKullanici } = useAuth();
+    const kullanici = /** @type {any} */ (rawKullanici);
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang, setLang } = useLang();  // Context'ten al — anlık güncelleme
     const [musteriler, setMusteriler] = useState(/** @type {any[]} */([]));
