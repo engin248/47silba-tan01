@@ -49,6 +49,7 @@ const NAV_ITEMS = [
 
 // ─── SAYFA ERİŞİM KONTROLÜ ────────────────────────────────────
 function SidebarInner({ isAR }) {
+    /** @type {any} */
     const { kullanici, cikisYap, sayfaErisim } = useAuth();
     const pathname = usePathname();
 
@@ -57,6 +58,7 @@ function SidebarInner({ isAR }) {
         return sayfaErisim(href) !== null;
     };
 
+    /** @param {{item: any}} props */
     const NavItem = ({ item }) => {
         if (!gorunur(item.href)) return null;
         const aktif = pathname === item.href;
@@ -126,13 +128,15 @@ function SidebarInner({ isAR }) {
     );
 }
 
-// ─── LAYOUT WRAPPER (Auth kontrolü) ───────────────────────────
+/** @param {{children: any}} props */
 function LayoutInner({ children }) {
+    /** @type {any} */
     const { kullanici, yukleniyor } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
     const { lang, setLang } = useLang();
     const [sidebarAcik, setSidebarAcik] = useState(false);
+    /** @type {[any, any]} */
     const [canliBildirim, setCanliBildirim] = useState(null);
     const isAR = lang === 'ar';
 
@@ -203,7 +207,7 @@ function LayoutInner({ children }) {
                 setTimeout(() => setCanliBildirim(null), 10000);
             }).subscribe();
 
-        return () => supabase.removeChannel(sub);
+        return () => { supabase.removeChannel(sub); };
     }, [kullanici, isGiris]);
 
     useEffect(() => {
@@ -358,7 +362,7 @@ function LayoutInner({ children }) {
     );
 }
 
-// ─── ANA EXPORT: CLIENT LAYOUT SARMALAYICI ────────────────────
+/** @param {{children: any}} props */
 export default function ClientLayout({ children }) {
     return (
         <ErrorBoundary modulAd="Uygulama Çekirdeği">
