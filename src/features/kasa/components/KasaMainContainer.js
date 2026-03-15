@@ -65,30 +65,43 @@ export default function KasaMainContainer() {
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [hareketler, setHareketler] = useState([]);
-    const [musteriler, setMusteriler] = useState([]);
-    const [personeller, setPersoneller] = useState([]); // [M13-M7 KÖPRÜSÜ ZIRHI]
+    const [hareketler, setHareketler] = useState(/** @type {any[]} */([]));
+    const [musteriler, setMusteriler] = useState(/** @type {any[]} */([]));
+    const [personeller, setPersoneller] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ ZIRHI]
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtreTip, setFiltreTip] = useState('hepsi');
     const [filtreOnay, setFiltreOnay] = useState('hepsi');
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
-        setYetkiliMi(erisebilir);
+        const isYetkili = /** @type {any} */ (kullanici)?.grup === 'tam' || uretimPin;
+        setYetkiliMi(isYetkili);
 
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime WebSocket (Kriter 20 & 34)
-            const kanal = supabase.channel('kasa-gercek-zamanli')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, () => yukle())
-                .subscribe();
-            yukle();
-            return () => supabase.removeChannel(kanal);
-        }
+        let kanal;
+        const baslatKanal = () => {
+            if (isYetkili && !document.hidden) {
+                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
+                kanal = supabase.channel('kasa-gercek-zamanli-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, yukle)
+                    .subscribe();
+            }
+        };
+
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); }
+        };
+
+        baslatKanal();
+        if (isYetkili) yukle();
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
     }, [kullanici]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
@@ -173,16 +186,13 @@ export default function KasaMainContainer() {
     const sil = async (id) => {
         if (islemdeId === id) return;
         setIslemdeId(id);
-        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Silme işlemi Yönetici yetkisi gerektirir. PIN:'
-        );
+        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(kullanici);
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem!', 'error'); }
         if (!confirm('Bu kasa kaydı silinsin mi?')) { setIslemdeId(null); return; }
 
         // KRİTER 114: Kasa Sabitlenip Kilitlendi mi? Kasa Log Değiştirilemez!
-        const kasaKaydi = hareketler.find((h) => h.id === id);
-        if (kasaKaydi?.onay_durumu === 'onaylandi') {
+        const kasaKaydi = hareketler.find((h) => /** @type {any} */(h).id === id);
+        if (/** @type {any} */ (kasaKaydi)?.onay_durumu === 'onaylandi') {
             setIslemdeId(null); return goster('🔒 DİJİTAL ADALET KİLİDİ: Banka güvenlik regülasyonları gereği Onaylanmış Kasa hareketleri ASLA SİLİNEMEZ!', 'error');
         }
 
@@ -190,9 +200,9 @@ export default function KasaMainContainer() {
         try {
             await supabase.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_kasa_hareketleri', islem_tipi: 'SILME',
-                kullanici_adi: kullanici?.label || 'Kasa Yetkilisi',
+                kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Kasa Yetkilisi',
                 eski_veri: { mesaj: `Kasa hareketi silindi. ID: ${id}` }
-            }]).catch(() => { });
+            }]);
         } catch (e) { }
 
         try {
@@ -225,100 +235,101 @@ export default function KasaMainContainer() {
         return tipOk && onayOk;
     });
 
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {'border-box'} */ ('border-box'), outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) return (
-        <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: 16, margin: '2rem' }}>
-            <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-            <h2 style={{ color: '#b91c1c', fontWeight: 900 }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-            <p style={{ color: '#7f1d1d', fontWeight: 600 }}>Kasa & Finans verileri gizlidir. Üretim PİN girişi zorunludur.</p>
+        <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl" dir={isAR ? 'rtl' : 'ltr'}>
+            <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+            <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+            <p className="text-rose-300 font-bold mt-2">Kasa & Finans verileri gizlidir. Üretim PİN girişi zorunludur.</p>
         </div>
     );
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#059669,#047857)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DollarSign size={24} color="white" />
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+                        <DollarSign size={24} className="text-emerald-50" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'الصندوق والمالية' : 'Kasa & Finans'}</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'التحصيل → الموافقة → الرصيد → متابعة الشيكات' : 'Tahsilat → Onay → Bakiye → Çek/Senet Takibi'}</p>
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">{isAR ? 'الصندوق والمالية' : 'Kasa & Finans'}</h1>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">{isAR ? 'التحصيل → الموافقة → الرصيد → متابعة الشيكات' : 'Tahsilat → Onay → Bakiye → Çek/Senet Takibi'}</p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div className="flex flex-wrap gap-2">
                     <button onClick={() => { setForm(BOSH_FORM); setFormAcik(!formAcik); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#059669', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(5,150,105,0.4)' }}>
+                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20 border-b-4 border-emerald-800 transition-all">
                         <Plus size={18} /> Yeni Hareket
                     </button>
                     <button onClick={yukle} disabled={loading}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f1f5f9', color: '#374151', border: '2px solid #e2e8f0', padding: '10px 16px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
+                        className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all">
                         <RefreshCw size={15} /> Yenile
                     </button>
                     {/* [A-03] CSV Export */}
                     <button
                         onClick={() => kasaCsvIndir(hareketler, filtreTip, filtreOnay)}
                         title="Kasa hareketlerini CSV olarak indir"
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0f172a', color: '#34d399', border: 'none', padding: '10px 16px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem' }}>
+                        className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-emerald-400 border-b-4 border-slate-950 px-4 py-2.5 rounded-xl font-black text-sm shadow-md transition-all">
                         ⬇️ CSV İndir
                     </button>
                 </div>
             </div>
 
             {/* ÖZET KUTULARI */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NAKİT TAHSİLAT</div>
-                    <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>₺{nakitTahsilat.toFixed(2)}</div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 shadow-sm">
+                    <div className="text-[10px] font-black text-emerald-700 uppercase mb-1">NAKİT TAHSİLAT</div>
+                    <div className="text-2xl font-black text-emerald-600 tracking-tight">₺{nakitTahsilat.toFixed(2)}</div>
                 </div>
-                <div style={{ background: '#eff6ff', border: '2px solid #bfdbfe', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#1e3a8a', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>BANKA / EFT / POS</div>
-                    <div style={{ fontWeight: 900, color: '#2563eb', fontSize: '1.35rem' }}>₺{bankaEftPos.toFixed(2)}</div>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
+                    <div className="text-[10px] font-black text-blue-800 uppercase mb-1">BANKA / EFT / POS</div>
+                    <div className="text-2xl font-black text-blue-600 tracking-tight">₺{bankaEftPos.toFixed(2)}</div>
                 </div>
-                <div style={{ background: '#f5f3ff', border: '2px solid #ddd6fe', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#4c1d95', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ÇEK & SENET</div>
-                    <div style={{ fontWeight: 900, color: '#7c3aed', fontSize: '1.35rem' }}>₺{evrakCekSenet.toFixed(2)}</div>
+                <div className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 shadow-sm">
+                    <div className="text-[10px] font-black text-violet-800 uppercase mb-1">ÇEK & SENET</div>
+                    <div className="text-2xl font-black text-violet-600 tracking-tight">₺{evrakCekSenet.toFixed(2)}</div>
                 </div>
-                <div style={{ background: netBakiye >= 0 ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>NET TL BAKİYE</div>
-                    <div style={{ fontWeight: 900, color: netBakiye >= 0 ? '#34d399' : '#fca5a5', fontSize: '1.35rem' }}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
+                <div className={`border-2 rounded-2xl p-4 shadow-sm ${netBakiye >= 0 ? 'bg-slate-900 border-emerald-500/50' : 'bg-red-900 border-red-500/50'}`}>
+                    <div className="text-[10px] font-black text-slate-400 uppercase mb-1">NET TL BAKİYE</div>
+                    <div className={`text-2xl font-black tracking-tight ${netBakiye >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
                 </div>
-                <div style={{ background: '#fefce8', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Bekleyen İşlem</div>
-                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.15rem' }}>₺{bekleyen.toFixed(2)}</div>
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 shadow-sm">
+                    <div className="text-[10px] font-black text-amber-800 uppercase mb-1">Bekleyen İşlem</div>
+                    <div className="text-2xl font-black text-amber-600 tracking-tight">₺{bekleyen.toFixed(2)}</div>
                 </div>
-                <div style={{ background: vadesi.length > 0 ? '#fef2f2' : '#f8fafc', border: `2px solid ${vadesi.length > 0 ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Vadesi Geçen</div>
-                    <div style={{ fontWeight: 900, color: vadesi.length > 0 ? '#ef4444' : '#0f172a', fontSize: '1.15rem' }}>{vadesi.length} Adet</div>
+                <div className={`border-2 rounded-2xl p-4 shadow-sm ${vadesi.length > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`text-[10px] font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-slate-500'}`}>Vadesi Geçen</div>
+                    <div className={`text-2xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-slate-800'}`}>{vadesi.length} Adet</div>
                 </div>
             </div>
 
             {/* GÜNLÜK KAPANIŞ VE BORÇ RAPORU VİDGETLERİ */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}> GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
-                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.2rem', marginBottom: 4 }}>Bugün Tahsilat: ₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
+                        <div className="text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
+                        <div className="text-xl font-black text-slate-800 mb-1">Bugün Tahsilat: <span className="text-emerald-600">₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</span></div>
+                        <div className="text-xs font-bold text-slate-400">Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
                     </div>
-                    <button onClick={() => window.print()} style={{ background: '#0f172a', color: 'white', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Gün Sonu Kes </button>
+                    <button onClick={() => window.print()} className="bg-slate-900 hover:bg-slate-800 border-b-4 border-slate-950 text-white rounded-xl px-4 py-2 font-black text-xs uppercase transition-all whitespace-nowrap">Gün Sonu Kes</button>
                 </div>
 
-                <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '2px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <div style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}> MÜŞTERİ BORÇ RİSKİ</div>
-                        <div style={{ fontWeight: 900, color: '#ef4444', fontSize: '1.2rem', marginBottom: 4 }}>Açık / Riskliler: {(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>Bakiye riski &gt; 10.000 TL olan cari hesaplar.</div>
+                        <div className="text-[10px] font-black text-red-600 uppercase mb-1 tracking-widest">MÜŞTERİ BORÇ RİSKİ</div>
+                        <div className="text-xl font-black text-slate-800 mb-1">Açık / Riskliler: <span className="text-red-600">{(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</span></div>
+                        <div className="text-xs font-bold text-slate-400">Bakiye riski &gt; 10.000 TL olan cari hesaplar.</div>
                     </div>
-                    <Link href="/musteriler" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 16px', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'none' }}>Müşteriler Görüntüle </Link>
+                    <Link href="/musteriler" className="bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-700 rounded-xl px-4 py-2 font-black text-xs uppercase transition-all no-underline whitespace-nowrap">Müşteriler Görüntüle</Link>
                 </div>
             </div>
+
             {/* MESAJ */}
             {mesaj.text && (
-                <div style={{ padding: '10px 16px', marginBottom: '1rem', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: '2px solid', borderColor: mesaj.type === 'error' ? '#ef4444' : '#10b981', background: mesaj.type === 'error' ? '#fef2f2' : '#ecfdf5', color: mesaj.type === 'error' ? '#b91c1c' : '#065f46' }}>
+                <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                     {mesaj.text}
                 </div>
             )}
@@ -377,95 +388,85 @@ export default function KasaMainContainer() {
             )}
 
             {/* FİLTRELER */}
-            <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginRight: 4 }}>TİP:</span>
+            <div className="flex flex-wrap items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] font-black text-slate-500 mr-1 uppercase">TİP:</span>
                 {['hepsi', ...HAREKET_TIPLERI].map(t => (
                     <button key={t} onClick={() => setFiltreTip(t)}
-                        style={{
-                            padding: '5px 12px', borderRadius: 8, border: '2px solid', fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem', transition: 'all 0.15s',
-                            borderColor: filtreTip === t ? (TIP_RENK[t] || '#374151') : '#e5e7eb',
-                            background: filtreTip === t ? (TIP_RENK[t] || '#374151') : 'white',
-                            color: filtreTip === t ? 'white' : '#374151'
-                        }}>
+                        style={{ backgroundColor: filtreTip === t ? (TIP_RENK[t] || '#334155') : 'transparent', color: filtreTip === t ? 'white' : '#475569', borderColor: filtreTip === t ? 'transparent' : '#cbd5e1' }}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border-2 transition-all`}>
                         {t === 'hepsi' ? 'Tümü' : `${TIP_ICON[t]} ${t.replace('_', ' ')}`}
                     </button>
                 ))}
-                <div style={{ width: 1, background: '#e5e7eb', margin: '0 4px', height: 24 }} />
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginRight: 4 }}>ONAY:</span>
+                <div className="w-[2px] h-6 bg-slate-200 mx-2" />
+                <span className="text-[10px] font-black text-slate-500 mr-1 uppercase">ONAY:</span>
                 {['hepsi', 'bekliyor', 'onaylandi', 'iptal'].map(o => (
                     <button key={o} onClick={() => setFiltreOnay(o)}
-                        style={{
-                            padding: '5px 12px', borderRadius: 8, border: '2px solid', fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem',
-                            borderColor: filtreOnay === o ? '#374151' : '#e5e7eb',
-                            background: filtreOnay === o ? '#374151' : 'white',
-                            color: filtreOnay === o ? 'white' : '#374151'
-                        }}>
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border-2 transition-all ${filtreOnay === o ? 'bg-slate-700 text-white border-transparent' : 'bg-transparent text-slate-600 border-slate-200'}`}>
                         {o === 'hepsi' ? 'Tümü' : o === 'bekliyor' ? '⏳ Bekliyor' : o === 'onaylandi' ? '✅ Onaylı' : '❌ İptal'}
                     </button>
                 ))}
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, marginLeft: 8 }}>{filtreli.length} işlem</span>
+                <span className="text-xs font-bold text-slate-400 ml-auto bg-white px-2 py-1 rounded-md border border-slate-200">{filtreli.length} işlem listeleniyor</span>
             </div>
 
             {/* LİSTE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="flex flex-col gap-3">
                 {loading && filtreli.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', fontWeight: 700 }}>⏳ Yükleniyor...</div>
+                    <div className="text-center py-12 text-slate-400 font-bold uppercase tracking-widest bg-slate-50 rounded-2xl border-2 border-slate-100">⏳ Yükleniyor...</div>
                 )}
                 {!loading && filtreli.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
-                        <DollarSign size={40} style={{ color: '#e5e7eb', margin: '0 auto 0.5rem' }} />
-                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>Kasa hareketi yok. "Yeni Hareket" ile başlayın.</p>
+                    <div className="text-center py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">
+                        <DollarSign size={48} className="text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500 font-bold text-lg">Kasa hareketi bulunamadı.</p>
+                        <p className="text-slate-400 text-sm">"Yeni Hareket" butonu ile ilk işlemi ekleyin.</p>
                     </div>
                 )}
                 {filtreli.map(h => (
-                    <div key={h.id} style={{ background: 'white', border: '2px solid', borderColor: h.onay_durumu === 'onaylandi' ? '#6ee7b7' : h.onay_durumu === 'iptal' ? '#fca5a5' : '#fde68a', borderRadius: 12, padding: '0.875rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 8, background: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+                    <div key={h.id} style={{ borderColor: h.onay_durumu === 'onaylandi' ? '#34d399' : h.onay_durumu === 'iptal' ? '#fca5a5' : '#fcd34d' }} className="bg-white border-l-8 border-y border-r border-slate-200 rounded-xl p-4 flex justify-between items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-4 flex-1">
+                            <div style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 font-black">
                                 {TIP_ICON[h.hareket_tipi] || '💰'}
                             </div>
-                            <div>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{h.aciklama}</div>
-                                <div style={{ display: 'flex', gap: 6, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }}>
+                            <div className="flex-1 min-w-0">
+                                <div className="font-black text-slate-800 text-lg truncate whitespace-normal mb-1">{h.aciklama}</div>
+                                <div className="flex gap-2 flex-wrap items-center">
+                                    <span style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="text-[10px] font-black px-2.5 py-1 rounded uppercase tracking-wider">
                                         {h.hareket_tipi?.replace('_', ' ')}
                                     </span>
-                                    <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', color: '#64748b' }}>
+                                    <span className="text-[10px] font-black px-2.5 py-1 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">
                                         {h.odeme_yontemi?.replace('_', ' ')}
                                     </span>
                                     {h.b2_musteriler?.ad_soyad && (
-                                        <span style={{ fontSize: '0.62rem', color: '#3b82f6', fontWeight: 700 }}>👤 {h.b2_musteriler.ad_soyad}</span>
+                                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">👤 {h.b2_musteriler.ad_soyad}</span>
                                     )}
                                     {h.b1_personel?.ad_soyad && (
-                                        <span style={{ fontSize: '0.62rem', color: '#8b5cf6', fontWeight: 700 }}>👷 {h.b1_personel.ad_soyad} (Avans)</span>
+                                        <span className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded">👷 {h.b1_personel.ad_soyad} (Avans)</span>
                                     )}
                                     {h.vade_tarihi && (
-                                        <span style={{ fontSize: '0.62rem', fontWeight: 700, color: new Date(h.vade_tarihi) < new Date() ? '#ef4444' : '#f59e0b' }}>
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${new Date(h.vade_tarihi) < new Date() ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50'}`}>
                                             ⏰ Vade: {formatTarih(h.vade_tarihi)}
                                         </span>
                                     )}
-                                    <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>🗓 {formatTarih(h.created_at)}</span>
+                                    <span className="text-xs font-medium text-slate-400">🗓 {formatTarih(h.created_at)}</span>
                                 </div>
                             </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                            <div style={{ fontWeight: 900, color: TIP_RENK[h.hareket_tipi] || '#0f172a', fontSize: '1rem' }}>
+                        <div className="flex items-center gap-4 shrink-0">
+                            <div style={{ color: TIP_RENK[h.hareket_tipi] || '#0f172a' }} className="font-black text-xl text-right">
                                 ₺{parseFloat(h.tutar_tl || 0).toFixed(2)}
                             </div>
-                            {h.onay_durumu === 'bekliyor' && (
-                                <button disabled={islemdeId === h.id} onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
-                                    style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === h.id ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4, opacity: islemdeId === h.id ? 0.5 : 1 }}>
-                                    <CheckCircle size={12} /> {islemdeId === h.id ? '...' : 'Onayla'}
-                                </button>
-                            )}
-                            <span style={{
-                                fontSize: '0.62rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6,
-                                background: h.onay_durumu === 'onaylandi' ? '#ecfdf5' : h.onay_durumu === 'iptal' ? '#fef2f2' : '#fefce8',
-                                color: h.onay_durumu === 'onaylandi' ? '#059669' : h.onay_durumu === 'iptal' ? '#ef4444' : '#d97706'
-                            }}>
-                                {h.onay_durumu === 'onaylandi' ? '✅ Onaylı' : h.onay_durumu === 'iptal' ? '❌ İptal' : '⏳ Bekliyor'}
-                            </span>
-                            <button disabled={islemdeId === h.id} onClick={() => sil(h.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: islemdeId === h.id ? 'wait' : 'pointer', opacity: islemdeId === h.id ? 0.5 : 1 }}>
-                                <Trash2 size={13} />
+                            <div className="flex flex-col gap-1 w-[110px]">
+                                <span className={`text-[10px] font-black w-full text-center px-2 py-1.5 rounded-lg border ${h.onay_durumu === 'onaylandi' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : h.onay_durumu === 'iptal' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                                    {h.onay_durumu === 'onaylandi' ? '✅ ONAYLI' : h.onay_durumu === 'iptal' ? '❌ İPTAL' : '⏳ BEKLİYOR'}
+                                </span>
+                                {h.onay_durumu === 'bekliyor' && (
+                                    <button disabled={islemdeId === h.id} onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
+                                        className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors ${islemdeId === h.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                        <CheckCircle size={10} /> {islemdeId === h.id ? '...' : 'TASDİK ET'}
+                                    </button>
+                                )}
+                            </div>
+                            <button disabled={islemdeId === h.id} onClick={() => sil(h.id)} className={`p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors border border-red-200 ${islemdeId === h.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                <Trash2 size={16} />
                             </button>
                         </div>
                     </div>

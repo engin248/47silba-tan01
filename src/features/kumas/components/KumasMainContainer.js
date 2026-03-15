@@ -61,17 +61,27 @@ export default function KumasArsiviSayfasi() {
         setYetkiliMi(erisebilir);
 
         let kanal;
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34) (Schema public Kısıtlaması Eklenmiştir)
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_kumas_arsivi' }, () => { yukle(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_aksesuar_arsivi' }, () => { yukle(); })
-                .subscribe();
-        }
+        const baslatKanal = () => {
+            if (erisebilir && !document.hidden) {
+                // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34) (Visibility Optimizasyonu)
+                kanal = supabase.channel('islem-gercek-zamanli-ai-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_kumas_arsivi' }, yukle)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_aksesuar_arsivi' }, yukle)
+                    .subscribe();
+            }
+        };
 
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); }
+        };
+
+        baslatKanal();
         yukle();
 
-        return () => { if (kanal) supabase.removeChannel(kanal); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
 
     }, [sekme, kullanici?.id, kullanici?.grup]);
 
@@ -314,10 +324,10 @@ export default function KumasArsiviSayfasi() {
     // 🟢 GÜVENLİK KALKANI EKRANI
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Kumaş Arşivi verileri gizlidir. Görüntülemek için Üretim PİN veya Yetkili Kullanıcı girişi gereklidir.</p>
+            <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl">
+                <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+                <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+                <p className="text-rose-300 font-bold mt-2">Kumaş & Hammadde Arşivi state sırrıdır. THE ORDER PİN yetkisi gereklidir.</p>
             </div>
         );
     }
@@ -325,53 +335,53 @@ export default function KumasArsiviSayfasi() {
     return (
         <div dir={isAR ? 'rtl' : 'ltr'}>
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Layers size={24} color="white" />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+                        <Layers size={24} className="text-emerald-50" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                            {isAR ? 'أرشيف الأقمشة والمواد' : 'Kumaş & Materyal Arşivi'}
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">
+                            {isAR ? 'أرشيف الأقمشة والمواد' : 'M2 Kumaş & Materyal Deposu'}
                         </h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
-                            {isAR ? 'كتالوج رقمي — يتم اختيار القماش المناسب لكل نموذج من هنا' : 'Dijital kartela — modele hangi kumaşın gideceği buradan seçilir'}
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
+                            {isAR ? 'كتالوج رقمي — يتم اختيار القماش المناسب لكل نموذج من هنا' : 'THE ORDER Hammadde Zırhı'}
                         </p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div className="flex gap-3">
                     <button onClick={() => setFormAcik(!formAcik)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
-                        <Plus size={18} /> {isAR ? 'إضافة جديد' : 'Yeni Ekle'}
+                        className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-[0_4px_14px_rgba(4,120,87,0.3)] hover:shadow-[0_4px_20px_rgba(4,120,87,0.5)]">
+                        <Plus size={18} /> {isAR ? 'إضافة جديد' : 'YENİ ENVANTER'}
                     </button>
                     {/* CC Kriteri (M3 - Kalıp'a geçiş için akış rotası) */}
-                    <Link href="/kalip" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
-                            📐 Kalıp & Serileme (M3) Geç
+                    <Link href="/kalip" className="no-underline">
+                        <button className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-[0_4px_14px_rgba(217,119,6,0.3)] hover:shadow-[0_4px_20px_rgba(217,119,6,0.5)] border border-amber-400/30">
+                            📐 KALIP & SERİLEME (M3)
                         </button>
                     </Link>
                 </div>
             </div>
 
             {/* İSTATİSTİK KARTLARI */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 {[
-                    { label: 'Toplam Kumaş', val: kumaslar.length, color: '#047857', bg: '#ecfdf5' },
-                    { label: '⚠️ Kritik Stok', val: kumaslar.filter(k => (k.stok_mt || 0) <= (k.min_stok_mt || 10)).length, color: '#dc2626', bg: '#fef2f2' },
-                    { label: 'Aksesuar', val: aksesuarlar.length, color: '#d97706', bg: '#fffbeb' },
-                    { label: 'Tedarikçi', val: tedarikciler.length, color: '#374151', bg: '#f8fafc' },
+                    { label: 'Toplam Kumaş', val: kumaslar.length, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+                    { label: '⚠️ Kritik Stok', val: kumaslar.filter(k => (k.stok_mt || 0) <= (k.min_stok_mt || 10)).length, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
+                    { label: 'Aksesuar', val: aksesuarlar.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+                    { label: 'Tedarikçi', val: tedarikciler.length, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
                 ].filter(Boolean).map((s, i) => (
-                    <div key={i} style={{ background: s?.bg, border: `1px solid ${s?.color}25`, borderRadius: 12, padding: '0.875rem' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
-                        <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
+                    <div key={i} className={`${s.bg} border ${s.border} rounded-xl p-4 shadow-sm`}>
+                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">{s.label}</div>
+                        <div className={`font-black text-2xl ${s.color}`}>{s.val}</div>
                     </div>
                 ))}
             </div>
 
             {/* MESAJ */}
             {mesaj.text && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', marginBottom: '1rem', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: '2px solid', borderColor: mesaj.type === 'error' ? '#ef4444' : '#10b981', background: mesaj.type === 'error' ? '#fef2f2' : '#ecfdf5', color: mesaj.type === 'error' ? '#b91c1c' : '#065f46' }}>
-                    {mesaj.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />} {mesaj.text}
+                <div className={`flex items-center gap-3 px-4 py-3 mb-4 rounded-xl font-bold text-sm border-2 animate-pulse ${mesaj.type === 'error' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-emerald-500 bg-emerald-50 text-emerald-700'}`}>
+                    {mesaj.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />} {mesaj.text}
                 </div>
             )}
 

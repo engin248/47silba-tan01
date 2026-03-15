@@ -57,28 +57,48 @@ export default function ImalatMainContainer() {
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
 
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
-        setYetkiliMi(erisebilir);
+        const isYetkili = kullanici?.grup === 'tam' || uretimPin;
+        setYetkiliMi(isYetkili);
 
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime WebSocket (Kriter 20 & 34)
-            const kanal = supabase.channel('imalat-gercek-zamanli')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'v2_order_production_steps' }, () => {
-                    if (mainTab === 'uretim') yukleSahadakiIsler();
-                    else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'production_orders' }, () => {
-                    if (mainTab === 'teknik_gorus' || mainTab === 'modelhane') yukleTeknikFoyler();
-                })
-                .subscribe();
+        let kanal;
+        const baslatKanal = () => {
+            if (isYetkili && !document.hidden) {
+                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
+                kanal = supabase.channel('imalat-gercek-zamanli-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'v2_order_production_steps' }, () => {
+                        if (mainTab === 'uretim') yukleSahadakiIsler();
+                        else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'production_orders' }, () => {
+                        if (mainTab === 'teknik_gorus' || mainTab === 'modelhane') yukleTeknikFoyler();
+                    })
+                    .subscribe();
+            }
+        };
 
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else {
+                baslatKanal();
+                if (mainTab === 'teknik_gorus') yukleTeknikFoyler();
+                else if (mainTab === 'modelhane') yukleTeknikFoyler();
+                else if (mainTab === 'uretim') { yukleSahadakiIsler(); yuklePersoneller(); }
+                else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
+            }
+        };
+
+        baslatKanal();
+
+        if (isYetkili) {
             if (mainTab === 'teknik_gorus') yukleTeknikFoyler();
             else if (mainTab === 'modelhane') yukleTeknikFoyler();
             else if (mainTab === 'uretim') { Promise.allSettled([yukleSahadakiIsler(), yuklePersoneller()]); }
             else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
-
-            return () => { supabase.removeChannel(kanal); };
         }
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
         // [RENDER ZIRHI]: Auth Refetch Döngüsü bozuldu, Obje yerine ID ve Grup primiti bağlandı.
     }, [mainTab, kullanici?.id, kullanici?.grup]);
 
@@ -314,10 +334,10 @@ export default function ImalatMainContainer() {
 
     if (!yetkiliMi) {
         return (
-            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>{isAR ? 'تم حظر الدخول غير المصرح به' : 'YETKİSİZ GİRİŞ ENGELLENDİ'}</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>{isAR ? 'بيانات الإنتاج والمسارات (M4) سرية. يرجى إدخال رمز PIN للإنتاج للعرض.' : 'M4 İmalat ve Bant verileri gizlidir. Görüntülemek için Üretim PİN girişi yapın.'}</p>
+            <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl" dir={isAR ? 'rtl' : 'ltr'}>
+                <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+                <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">{isAR ? 'تم حظر الدخول غير المصرح به' : 'YETKİSİZ GİRİŞ ENGELLENDİ'}</h2>
+                <p className="text-rose-300 font-bold mt-2">{isAR ? 'بيانات الإنتاج والمسارات (M6) سرية. يرجى إدخال رمز PIN للإنتاج للعرض.' : 'M4 İmalat ve Bant verileri gizlidir. Görüntülemek için Üretim PİN girişi yapın.'}</p>
             </div>
         );
     }
@@ -524,45 +544,45 @@ export default function ImalatMainContainer() {
             {mainTab === 'uretim' && (
                 <div className="animate-fade-in">
                     {/* KANBAN TOGGLE */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                    <div className="flex justify-end mb-4">
                         <button
                             onClick={() => setImalatGorunum(v => v === 'liste' ? 'kanban' : 'liste')}
-                            style={{ background: imalatGorunum === 'kanban' ? '#7c3aed' : '#475569', color: 'white', border: 'none', padding: '8px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
+                            className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-md ${imalatGorunum === 'kanban' ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
                             {imalatGorunum === 'kanban' ? (isAR ? '📋 عرض القائمة' : '📋 Liste Görünümü') : (isAR ? '📦 لوحة كانبان' : '📦 Kanban Board')}
                         </button>
                     </div>
 
                     {/* KANBAN BOARD */}
                     {imalatGorunum === 'kanban' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '2rem' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                             {[
-                                { key: 'assigned', label: isAR ? '📋 تم التعيين' : '📋 Atandı', renk: '#3b82f6' },
-                                { key: 'in_progress', label: isAR ? '⚙️ قيد الإنتاج' : '⚙️ Üretimde', renk: '#f59e0b' },
-                                { key: 'waiting_for_proof', label: isAR ? '🔍 قيد المراجعة' : '🔍 Onay Bekl.', renk: '#8b5cf6' },
-                                { key: 'blocked_machine', label: isAR ? '🔴 عطل' : '🔴 Arıza', renk: '#ef4444' },
+                                { key: 'assigned', label: isAR ? '📋 تم التعيين' : '📋 Atandı', renk: 'blue', border: 'border-blue-500/30', bg: 'bg-slate-50' },
+                                { key: 'in_progress', label: isAR ? '⚙️ قيد الإنتاج' : '⚙️ Üretimde', renk: 'amber', border: 'border-amber-500/30', bg: 'bg-slate-50' },
+                                { key: 'waiting_for_proof', label: isAR ? '🔍 قيد المراجعة' : '🔍 Onay Bekl.', renk: 'violet', border: 'border-violet-500/30', bg: 'bg-slate-50' },
+                                { key: 'blocked_machine', label: isAR ? '🔴 عطل' : '🔴 Arıza', renk: 'rose', border: 'border-rose-500/30', bg: 'bg-slate-50' },
                             ].map(kolon => (
-                                <div key={kolon.key} style={{ background: '#f8fafc', border: `2px solid ${kolon.renk}30`, borderRadius: 12, padding: '0.75rem', minHeight: 180 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
-                                        <span style={{ fontWeight: 800, fontSize: '0.78rem', color: kolon.renk }}>{kolon.label}</span>
-                                        <span style={{ background: `${kolon.renk}20`, color: kolon.renk, fontWeight: 700, fontSize: '0.65rem', padding: '1px 7px', borderRadius: 8 }}>
+                                <div key={kolon.key} className={`${kolon.bg} border-2 ${kolon.border} rounded-2xl p-4 min-h-[220px]`}>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className={`font-black text-sm text-${kolon.renk}-600`}>{kolon.label}</span>
+                                        <span className={`bg-${kolon.renk}-100 text-${kolon.renk}-700 font-bold text-xs px-2.5 py-1 rounded-lg`}>
                                             {sahadakiIsler.filter(i => i.status === kolon.key).length}
                                         </span>
                                     </div>
                                     {sahadakiIsler.filter(i => i.status === kolon.key).map(is => (
-                                        <div key={is.id} style={{ background: 'white', borderRadius: 8, padding: '0.625rem', marginBottom: '0.375rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: `1px solid ${kolon.renk}20` }}>
-                                            <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#0f172a' }}>{is.v2_production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
-                                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{is.v2_production_orders?.v2_models?.model_name || '—'}</div>
+                                        <div key={is.id} className={`bg-white rounded-xl p-3 mb-2 shadow-sm border border-${kolon.renk}-100`}>
+                                            <div className="font-black text-xs text-slate-800">{is.v2_production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
+                                            <div className="text-[10px] font-bold text-slate-500 mb-2">{is.v2_production_orders?.v2_models?.model_name || '—'}</div>
                                             {kolon.key === 'assigned' && (
-                                                <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} style={{ marginTop: 4, fontSize: '0.6rem', fontWeight: 800, background: '#eff6ff', color: '#2563eb', border: 'none', padding: '2px 8px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className={`mt-1 font-black text-[10px] bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors w-full ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                     {islemdeId === is.id ? '...' : (isAR ? '▶ ابدأ' : '▶ Başlat')}
                                                 </button>
                                             )}
                                             {kolon.key === 'in_progress' && (
-                                                <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
-                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#ecfdf5', color: '#059669', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                <div className="flex gap-2 mt-1">
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className={`flex-1 font-black text-[10px] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                         {islemdeId === is.id ? '...' : (isAR ? '✓ إنهاء' : '✓ Bitir')}
                                                     </button>
-                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} style={{ fontSize: '0.6rem', fontWeight: 800, background: '#fef2f2', color: '#dc2626', border: 'none', padding: '2px 6px', borderRadius: 4, cursor: islemdeId === is.id ? 'wait' : 'pointer', opacity: islemdeId === is.id ? 0.5 : 1 }}>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className={`flex-1 font-black text-[10px] bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                         {islemdeId === is.id ? '...' : (isAR ? '⚠ عطل' : '⚠ Arıza')}
                                                     </button>
                                                 </div>
@@ -570,7 +590,7 @@ export default function ImalatMainContainer() {
                                         </div>
                                     ))}
                                     {sahadakiIsler.filter(i => i.status === kolon.key).length === 0 && (
-                                        <div style={{ textAlign: 'center', padding: '1rem', color: '#cbd5e1', fontSize: '0.7rem' }}>{isAR ? 'فارغ' : 'Boş'}</div>
+                                        <div className="text-center p-4 text-slate-400 text-[10px] font-bold uppercase">{isAR ? 'فارغ' : 'Görev Yok'}</div>
                                     )}
                                 </div>
                             ))}

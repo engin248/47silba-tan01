@@ -138,7 +138,7 @@ export default function AjanlarMainContainer() {
     const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('gorevler'); // 'gorevler' | 'konfigur'
-    const [gorevler, setGorevler] = useState([]);
+    const [gorevler, setGorevler] = useState(/** @type {any[]} */([]));
     const [loading, setLoading] = useState(true);
     const [formAcik, setFormAcik] = useState(false);
     const [form, setForm] = useState(BOS_FORM);
@@ -147,7 +147,7 @@ export default function AjanlarMainContainer() {
     const [filtre, setFiltre] = useState('hepsi');
     const [secilenGorev, setSecilenGorev] = useState(null);
     const [istatistik, setIstatistik] = useState({ toplam: 0, tamamlandi: 0, calisıyor: 0, hata: 0, bekliyor: 0 });
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
     const [konfig, setKonfig] = useState(() => {
         if (typeof window !== 'undefined') {
             const k = localStorage.getItem('ajan_konfig');
@@ -160,7 +160,7 @@ export default function AjanlarMainContainer() {
     useEffect(() => {
         let ajanPin = false;
         try { ajanPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { ajanPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
-        const erisebilir = kullanici?.grup === 'tam' || ajanPin;
+        const erisebilir = /** @type {any} */ (kullanici)?.grup === 'tam' || ajanPin;
         setYetkiliMi(erisebilir);
 
         let kanal;
@@ -178,10 +178,10 @@ export default function AjanlarMainContainer() {
 
     // [BUGFIX]: Polling devre dışı kalmıştı (dead code). Düzeltildi.
     useEffect(() => {
-        pollingRef.current = setInterval(() => {
+        pollingRef.current = /** @type {any} */ (setInterval(() => {
             if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
-        }, 5000);
-        return () => clearInterval(pollingRef.current);
+        }, 5000));
+        return () => clearInterval(/** @type {any} */(pollingRef.current));
     }, [gorevler]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
@@ -266,10 +266,7 @@ export default function AjanlarMainContainer() {
     };
 
     const gorevSil = async (id) => {
-        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Bu ajan görevini silmek için Yönetici PIN kodunu girin:'
-        );
+        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(kullanici);
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
         if (!confirm('Görevi sil?')) return;
 
@@ -285,12 +282,12 @@ export default function AjanlarMainContainer() {
                     islem_tipi: 'SILME',
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
             if (error) throw error;
-            setGorevler(p => p.filter(g => g.id !== id));
+            setGorevler(p => p.filter(g => /** @type {any} */(g).id !== id));
             if (secilenGorev?.id === id) setSecilenGorev(null);
             goster('Görev silindi!');
         } catch (error) { goster('Silinemedi: ' + error.message, 'error'); }
@@ -309,47 +306,47 @@ export default function AjanlarMainContainer() {
     const filtreliGorevler = filtre === 'hepsi' ? gorevler : gorevler.filter(g => g.durum === filtre);
 
 
-    const sure = (bas, bit) => { if (!bas || !bit) return null; const ms = new Date(bit) - new Date(bas); if (ms < 1000) return `${ms}ms`; if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`; return `${Math.floor(ms / 60000)}dk`; };
+    const sure = (bas, bit) => { if (!bas || !bit) return null; const ms = /** @type {any} */ (new Date(bit)) - /** @type {any} */ (new Date(bas)); if (ms < 1000) return `${ms}ms`; if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`; return `${Math.floor(ms / 60000)}dk`; };
     const ajanBilgisi = (ad) => AJAN_LISTESI.find(a => a.ad === ad) || AJAN_LISTESI[5];
     const oncelikBilgisi = (d) => ONCELIK.find(o => o.deger === d) || ONCELIK[2];
     const durumBilgisi = (d) => DURUM_CONFIG[d] || DURUM_CONFIG.bekliyor;
 
     if (!yetkiliMi) {
         return (
-            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>AI Ajan komuta merkezi verileri gizlidir. Görüntülemek için Yetkili Kullanıcı girişi gereklidir.</p>
+            <div dir={isAR ? 'rtl' : 'ltr'} className="p-12 text-center bg-red-50 border-2 border-red-200 rounded-2xl m-8">
+                <Lock size={48} className="text-red-500 mx-auto mb-4" />
+                <h2 className="text-red-700 text-xl font-black uppercase">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+                <p className="text-red-900 font-semibold mt-2">AI Ajan komuta merkezi verileri gizlidir. Görüntülemek için Yetkili Kullanıcı girişi gereklidir.</p>
             </div>
         );
     }
 
     return (
-        <div style={{ fontFamily: 'inherit' }}>
+        <div className="font-sans">
 
             {/* ─── BAŞLIK ─── */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(99,102,241,0.4)' }}>
-                        <Bot size={26} color="white" />
+            <div className="flex justify-between items-start mb-6 flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-[0_4px_14px_rgba(99,102,241,0.4)]">
+                        <Bot size={26} className="text-white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>AI Ajan Komuta Merkezi</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                        <h1 className="text-2xl font-black text-slate-900 m-0">AI Ajan Komuta Merkezi</h1>
+                        <p className="text-xs text-slate-500 mt-1 font-semibold">
                             Görev Tahtası — Ajanlar okur, sonuçları kendi tablolarına yazar
                         </p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={yukle} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 10, fontWeight: 700, cursor: 'pointer', color: '#374151', fontSize: '0.82rem' }}>
+                <div className="flex gap-2 flex-wrap">
+                    <button onClick={yukle} className="flex items-center gap-1.5 px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold cursor-pointer text-slate-700 text-sm hover:bg-slate-50 transition-colors">
                         <RefreshCw size={14} /> Yenile
                     </button>
-                    <button onClick={() => setFormAcik(!formAcik)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: 'white', border: 'none', padding: '10px 22px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(99,102,241,0.4)' }}>
+                    <button onClick={() => setFormAcik(!formAcik)} className="flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-purple-500 text-white border-none px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm shadow-[0_4px_14px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.6)] transition-all transform hover:-translate-y-0.5">
                         <Plus size={18} /> Yeni Görev Emri
                     </button>
                     {/* CC Kriteri Otomatik Rota (Müfettiş'e Geçiş) */}
-                    <a href="/denetmen" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#0f172a', color: 'white', border: 'none', padding: '10px 22px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(15,23,42,0.3)' }}>
+                    <a href="/denetmen" className="no-underline">
+                        <button className="flex items-center gap-2 bg-slate-900 text-white border-none px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm shadow-[0_4px_14px_rgba(15,23,42,0.3)] hover:bg-slate-800 transition-colors">
                             <Bot size={18} /> Denetmen (Müfettiş)
                         </button>
                     </a>
@@ -358,42 +355,40 @@ export default function AjanlarMainContainer() {
 
             {/* ─── MESAJ ─── */}
             {mesaj.text && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', marginBottom: '1rem', borderRadius: 10, border: '2px solid', fontWeight: 700, fontSize: '0.875rem', borderColor: mesaj.type === 'error' ? '#ef4444' : '#10b981', background: mesaj.type === 'error' ? '#fef2f2' : '#ecfdf5', color: mesaj.type === 'error' ? '#b91c1c' : '#065f46' }}>
+                <div className={`flex items-center gap-2.5 px-4 py-3 mb-4 rounded-xl border-2 font-bold text-sm ${mesaj.type === 'error' ? 'border-red-500 bg-red-50 text-red-700' : 'border-emerald-500 bg-emerald-50 text-emerald-800'}`}>
                     {mesaj.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
                     {mesaj.text}
                 </div>
             )}
 
             {/* ─── İSTATİSTİKLER ─── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
                 {[
-                    { label: 'Toplam Görev', val: istatistik.toplam, renk: '#6366f1', bg: '#f5f3ff' },
-                    { label: 'Bekliyor', val: istatistik.bekliyor, renk: '#94a3b8', bg: '#f8fafc' },
-                    { label: 'Çalışıyor', val: istatistik.calisıyor, renk: '#f59e0b', bg: '#fffbeb' },
-                    { label: 'Tamamlandı', val: istatistik.tamamlandi, renk: '#10b981', bg: '#ecfdf5' },
-                    { label: 'Hata', val: istatistik.hata, renk: '#ef4444', bg: '#fef2f2' },
+                    { label: 'Toplam Görev', val: istatistik.toplam, renk: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+                    { label: 'Bekliyor', val: istatistik.bekliyor, renk: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-100' },
+                    { label: 'Çalışıyor', val: istatistik.calisıyor, renk: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
+                    { label: 'Tamamlandı', val: istatistik.tamamlandi, renk: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+                    { label: 'Hata', val: istatistik.hata, renk: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
                 ].map((k, i) => (
-                    <div key={i} style={{ background: k.bg, border: `2px solid ${k.renk}25`, borderRadius: 12, padding: '0.875rem', textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>{k.label}</div>
-                        <div style={{ fontWeight: 900, fontSize: '1.8rem', color: k.renk, lineHeight: 1 }}>{k.val}</div>
+                    <div key={i} className={`${k.bg} border-2 ${k.border} rounded-xl p-3.5 text-center`}>
+                        <div className="text-[10px] text-slate-500 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
+                        <div className={`font-black text-2xl md:text-3xl leading-none ${k.renk}`}>{k.val}</div>
                     </div>
                 ))}
             </div>
 
             {/* ─── SEKMELER ─── */}
-            <div style={{ display: 'flex', gap: 4, marginBottom: '1.25rem', background: '#f1f5f9', borderRadius: 12, padding: 4 }}>
+            <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1">
                 {[
                     { key: 'gorevler', label: '📋 Görev Tahtası', desc: 'İş emirleri' },
                     { key: 'konfigur', label: '⚙️ Ajan Yapılandırma', desc: 'Aktif/Pasif' },
                 ].map(s => (
-                    <button key={s.key} onClick={() => setSekme(s.key)} style={{
-                        flex: 1, padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s',
-                        background: sekme === s.key ? 'white' : 'transparent',
-                        color: sekme === s.key ? '#6366f1' : '#64748b',
-                        boxShadow: sekme === s.key ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                    }}>
+                    <button key={s.key} onClick={() => setSekme(s.key)} className={`
+                        flex-1 px-4 py-2.5 rounded-lg border-none cursor-pointer font-bold text-sm transition-all text-center
+                        ${sekme === s.key ? 'bg-white text-indigo-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}
+                    `}>
                         {s.label}
-                        <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 600, color: '#94a3b8', marginTop: 1 }}>{s.desc}</span>
+                        <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">{s.desc}</span>
                     </button>
                 ))}
             </div>

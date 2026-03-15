@@ -5,21 +5,21 @@
  * [FIX] renkler undefined geldiğinde TypeError: Cannot read '.bg' of undefined — ENGELLENDİ
  */
 export default function SayfaBasligi({
-    ikon: Ikon,
-    icon,
-    renkler = {},
-    iconColor = '#047857',
-    iconColor2 = '#065f46',
-    baslik,
-    altBaslik,
-    altbaslik,
-    islemler,
-    islemButonlari,
-    sagIcerik,
+    /** @type {any} */ ikon: Ikon,
+    /** @type {any} */ icon = null,
+    /** @type {any} */ renkler = {},
+    /** @type {any} */ iconColor = '#047857',
+    /** @type {any} */ iconColor2 = '#065f46',
+    /** @type {any} */ baslik = '',
+    /** @type {any} */ altBaslik = null,
+    /** @type {any} */ altbaslik = null,
+    /** @type {any} */ islemler = null,
+    /** @type {any} */ islemButonlari = null,
+    /** @type {any} */ sagIcerik = null,
 }) {
     // icon prop'u React element olabilir (örn: <Factory size={24} color="white" />)
     // ikon prop'u ise component type olabilir (eski kullanım)
-    const ikonArkaplan = renkler?.bg
+    const ikonArkaplan = (/** @type {any} */ (renkler))?.bg
         || (iconColor ? `linear-gradient(135deg,${iconColor},${iconColor2})` : 'linear-gradient(135deg,#047857,#065f46)');
 
     return (
@@ -29,7 +29,7 @@ export default function SayfaBasligi({
                     {/* icon: React element (yeni kullanım) */}
                     {icon && icon}
                     {/* ikon: Component type (eski kullanım) */}
-                    {Ikon && !icon && <Ikon size={24} color={renkler?.ikon || 'white'} />}
+                    {Ikon && !icon && <Ikon size={24} color={(/** @type {any} */ (renkler))?.ikon || 'white'} />}
                 </div>
                 <div>
                     <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{baslik}</h1>

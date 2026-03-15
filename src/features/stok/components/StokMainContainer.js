@@ -20,13 +20,13 @@ const BOSH_HAREKET = { urun_id: '', hareket_tipi: 'giris', adet: '', aciklama: '
 
 export default function StokDepoKarargahi() {
     const { kullanici, sayfaErisim } = useAuth();
-    const erisim = sayfaErisim('/stok');
+    const erisim = /** @type {any} */ (sayfaErisim)('/stok');
     const [mounted, setMounted] = useState(false);
     const { lang } = useLang();  // Context'ten al — anlık güncelleme
 
     // Tablolar
-    const [stokEnvanteri, setStokEnvanteri] = useState([]);
-    const [hareketler, setHareketler] = useState([]);
+    const [stokEnvanteri, setStokEnvanteri] = useState(/** @type {any[]} */([]));
+    const [hareketler, setHareketler] = useState(/** @type {any[]} */([]));
 
     // Formlar ve Durumlar
     const [formAcik, setFormAcik] = useState(false);
@@ -34,7 +34,7 @@ export default function StokDepoKarargahi() {
     const [yeniHareket, setYeniHareket] = useState(BOSH_HAREKET);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [arama, setArama] = useState('');
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
 
@@ -42,7 +42,7 @@ export default function StokDepoKarargahi() {
         setMounted(true);
 
         let isMounted = true;
-        let kanal;
+        let kanal = /** @type {any} */ (null);
         if (erisim !== 'yok') {
             kanal = supabase.channel('stok-gercek-zamanli')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_stok_hareketleri' }, () => {
@@ -97,7 +97,7 @@ export default function StokDepoKarargahi() {
         if (islemdeId === 'kayit') return;
         setIslemdeId('kayit');
         if (!yeniHareket.urun_id) { setIslemdeId(null); return showMessage('Lütfen bir depo ürünü seçin!', 'error'); }
-        if (!yeniHareket.adet || yeniHareket.adet <= 0) { setIslemdeId(null); return showMessage('Adet bilgisi sıfırdan büyük olmalı!', 'error'); }
+        if (!yeniHareket.adet || /** @type {any} */ (yeniHareket.adet) <= 0) { setIslemdeId(null); return showMessage('Adet bilgisi sıfırdan büyük olmalı!', 'error'); }
 
         setLoading(true);
         const payload = {
@@ -110,7 +110,7 @@ export default function StokDepoKarargahi() {
 
         // Offline PWA Zırhı
         if (!navigator.onLine) {
-            await cevrimeKuyrugaAl('b2_stok_hareketleri', payload);
+            await cevrimeKuyrugaAl('b2_stok_hareketleri', 'INSERT', /** @type {any} */(payload));
             showMessage('⚠️ İnternet Yok: Stok hareketi çevrimdışı kuyruğa alındı. Sistem bağlantı bulunca senkronize edecek.', 'success');
             setYeniHareket(BOSH_HAREKET);
             setFormAcik(false);
@@ -160,8 +160,7 @@ export default function StokDepoKarargahi() {
         if (islemdeId === 'sil_' + id) return;
         setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Bu hareketi iptal etmek için Yönetici PIN kodunu girin:'
+            kullanici
         );
         if (!yetkili) { setIslemdeId(null); return showMessage(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
@@ -170,9 +169,9 @@ export default function StokDepoKarargahi() {
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'M11 Sorumlusu',
+                    tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M11 Sorumlusu',
                     eski_veri: { durum: `Silinen ürün kodu: ${urun_kodu}, Stok hareketi ID: ${id}` }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             const { error } = await supabase.from('b2_stok_hareketleri').delete().eq('id', id);
@@ -202,7 +201,7 @@ export default function StokDepoKarargahi() {
 
     const filtrelenmisStok = stokEnvanteri.filter(s => s.urun_kodu?.toLowerCase().includes(arama.toLowerCase()) || s.urun_adi?.toLowerCase().includes(arama.toLowerCase()));
 
-    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     return (

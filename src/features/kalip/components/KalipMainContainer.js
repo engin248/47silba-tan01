@@ -43,17 +43,28 @@ export default function KalipMainContainer() {
         setYetkiliMi(erisebilir);
 
         let kanal;
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Hedeflenmiş Tablolar)
-            kanal = supabase.channel('islem-gercek-zamanli-ai-kalip')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, () => { yukle(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, () => { yukle(); })
-                .subscribe();
-        }
+        const baslatKanal = () => {
+            if (erisebilir && !document.hidden) {
+                // [AI ZIRHI]: Realtime Websocket (Hedeflenmiş Tablolar - Visibility Optimizasyonu)
+                kanal = supabase.channel('islem-gercek-zamanli-ai-kalip-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, yukle)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, yukle)
+                    .subscribe();
+            }
+        };
 
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); }
+        };
+
+        baslatKanal();
         yukle();
 
-        return () => { if (kanal) supabase.removeChannel(kanal); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
+
     }, [sekme, kullanici?.id, kullanici?.grup]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı — redeclaration fix)
@@ -297,10 +308,10 @@ export default function KalipMainContainer() {
     // 🟢 GÜVENLİK KALKANI EKRANI
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Kalıp ve Modeller gizlidir. Görüntülemek için Üretim PİN veya Yetkili Kullanıcı girişi gereklidir.</p>
+            <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl">
+                <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+                <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+                <p className="text-rose-300 font-bold mt-2">Kalıp ve Modeller gizlidir. THE ORDER PİN yetkisi gereklidir.</p>
             </div>
         );
     }
@@ -308,29 +319,29 @@ export default function KalipMainContainer() {
     return (
         <div dir={isAR ? 'rtl' : 'ltr'}>
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#f59e0b,#d97706)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <BookOpen size={24} color="white" />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-amber-900 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-500/30">
+                        <BookOpen size={24} className="text-amber-50" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                            {isAR ? 'القالب والتسلسل' : 'Kalıp & Serileme'}
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">
+                            {isAR ? 'القالب والتسلسل' : 'M3 Kalıp & Serileme Karargahı'}
                         </h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
                             {isAR ? 'إنشاء نموذج → استخراج القالب → تسلسل المقاسات → حساب الاستهلاك' : 'Model taslağı → Kalıp çıkar → Beden serile → Metraj hesapla'}
                         </p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div className="flex gap-3">
                     <button onClick={() => setFormAcik(!formAcik)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f59e0b', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,158,11,0.4)' }}>
-                        <Plus size={18} /> {sekme === 'modeller' ? (isAR ? 'نموذج جديد' : 'Yeni Model') : (isAR ? 'قالب جديد' : 'Yeni Kalıp')}
+                        className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-[0_4px_14px_rgba(245,158,11,0.3)] hover:shadow-[0_4px_20px_rgba(245,158,11,0.5)] border border-amber-400/30">
+                        <Plus size={18} /> {sekme === 'modeller' ? (isAR ? 'نموذج جديد' : 'YENİ MODEL TASLAĞI') : (isAR ? 'قالب جديد' : 'YENİ KALIP/PASTAL')}
                     </button>
                     {/* CC Kriteri (M4 Modelhane'ye geçiş akış rotası) */}
-                    <Link href="/modelhane" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#10b981', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
-                            🧵 Modelhaneye (M4) Geç
+                    <Link href="/modelhane" className="no-underline">
+                        <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-[0_4px_14px_rgba(79,70,229,0.3)] hover:shadow-[0_4px_20px_rgba(79,70,229,0.5)] border border-indigo-400/30">
+                            🧵 MODELHANE (M4) GEÇ
                         </button>
                     </Link>
                 </div>
@@ -338,8 +349,8 @@ export default function KalipMainContainer() {
 
             {/* MESAJ */}
             {mesaj.text && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', marginBottom: '1rem', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: '2px solid', borderColor: mesaj.type === 'error' ? '#ef4444' : '#10b981', background: mesaj.type === 'error' ? '#fef2f2' : '#ecfdf5', color: mesaj.type === 'error' ? '#b91c1c' : '#065f46' }}>
-                    {mesaj.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />} {mesaj.text}
+                <div className={`flex items-center gap-3 px-4 py-3 mb-4 rounded-xl font-bold text-sm border-2 animate-pulse ${mesaj.type === 'error' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-emerald-500 bg-emerald-50 text-emerald-700'}`}>
+                    {mesaj.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />} {mesaj.text}
                 </div>
             )}
 

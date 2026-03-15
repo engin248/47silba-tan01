@@ -26,7 +26,7 @@ export default function MusterilerSayfasi() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const { lang, setLang } = useLang();  // Context'ten al — anlık güncelleme
-    const [musteriler, setMusteriler] = useState([]);
+    const [musteriler, setMusteriler] = useState(/** @type {any[]} */([]));
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [duzenleId, setDuzenleId] = useState(null);
@@ -38,15 +38,15 @@ export default function MusterilerSayfasi() {
 
     // B-05: Müşteri İletişim Geçmişi (Timeline)
     const [timelineAcik, setTimelineAcik] = useState(false);
-    const [seciliMusteri, setSeciliMusteri] = useState(null);
-    const [timelineLoglari, setTimelineLoglari] = useState([]);
+    const [seciliMusteri, setSeciliMusteri] = useState(/** @type {any} */(null));
+    const [timelineLoglari, setTimelineLoglari] = useState(/** @type {any[]} */([]));
     const [yeniNot, setYeniNot] = useState('');
     const [notEkleniyor, setNotEkleniyor] = useState(false);
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
+        const erisebilir = /** @type {any} */ (kullanici)?.grup === 'tam' || uretimPin;
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
@@ -55,7 +55,7 @@ export default function MusterilerSayfasi() {
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_musteriler' }, () => yukle())
                 .subscribe();
             yukle();
-            return () => supabase.removeChannel(kanal);
+            return () => { supabase.removeChannel(kanal); };
         }
     }, [kullanici]);
 
@@ -165,7 +165,7 @@ export default function MusterilerSayfasi() {
             await supabase.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_musteriler',
                 islem_tipi: 'NOT',
-                kullanici_adi: kullanici?.label || 'Saha Yetkilisi',
+                kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Saha Yetkilisi',
                 eski_veri: { musteri_kodu: seciliMusteri.musteri_kodu, mesaj: yeniNot }
             }]);
             setYeniNot('');
@@ -188,6 +188,8 @@ export default function MusterilerSayfasi() {
             kara_liste: m.kara_liste || false,
             risk_limiti: m.risk_limiti || '',
             aktif: m.aktif !== false,
+            segment: m.segment || 'B',
+            notlar: m.notlar || '',
         });
         setDuzenleId(m.id);
         setFormAcik(true);
@@ -214,7 +216,7 @@ export default function MusterilerSayfasi() {
     const sil = async (id, kod) => {
         if (islemdeId === 'sil_' + id) return;
         setIslemdeId('sil_' + id);
-        if (kullanici?.grup !== 'tam') {
+        if (/** @type {any} */ (kullanici)?.grup !== 'tam') {
             const pin = prompt('Müşteri silme Yönetici yetkisi gerektirir. PİN:');
             if (pin !== (process.env.NEXT_PUBLIC_ADMIN_PIN || '9999')) { setIslemdeId(null); return goster('Yetkisiz işlem!', 'error'); }
         }
@@ -224,9 +226,9 @@ export default function MusterilerSayfasi() {
         try {
             await supabase.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_musteriler', islem_tipi: 'SILME',
-                kullanici_adi: kullanici?.label || 'Saha Yetkilisi',
+                kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Saha Yetkilisi',
                 eski_veri: { musteri_kodu: kod, mesaj: 'Müşteri kaydı kalıcı olarak silindi.' }
-            }]).catch(() => { });
+            }]);
         } catch (e) { }
 
         try {
@@ -253,7 +255,7 @@ export default function MusterilerSayfasi() {
     };
 
     const isAR = lang === 'ar';
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) return (
@@ -282,7 +284,7 @@ export default function MusterilerSayfasi() {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <button onClick={() => setLang(l => l === 'tr' ? 'ar' : 'tr')}
+                    <button onClick={() => setLang(/** @type {any} */(lang === 'tr' ? 'ar' : 'tr'))}
                         style={{ padding: '6px 14px', background: '#f1f5f9', border: '2px solid #e2e8f0', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem' }}>
                         {lang === 'tr' ? '🇸🇦 AR' : '🇹🇷 TR'}
                     </button>

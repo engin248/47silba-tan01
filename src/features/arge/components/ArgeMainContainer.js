@@ -82,9 +82,9 @@ export default function ArgeSayfasi() {
         // GÜÇLENDİRİLDİ: Karargâh ile Eşzamanlı SessionStorage ve Base64 Şifre Çözücü Mimarisine geçildi.
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
 
-        setYetkiliMi(kullanici?.grup === 'tam' || uretimPin);
+        setYetkiliMi(/** @type {any} */(kullanici)?.grup === 'tam' || uretimPin);
 
-        if (!(kullanici?.grup === 'tam' || uretimPin)) return;
+        if (!(/** @type {any} */ (kullanici)?.grup === 'tam' || uretimPin)) return;
 
         verileriCek();
 
@@ -264,7 +264,7 @@ export default function ArgeSayfasi() {
         }
 
         setLoading(true);
-        setIslemdeId('kaydet_modal');
+        setIslemdeId(/** @type {any} */('kaydet_modal'));
         try {
             const { data: mevcutlar } = await supabase.from('b1_arge_trendler')
                 .select('id').eq('baslik', form.baslik.trim());
@@ -278,12 +278,12 @@ export default function ArgeSayfasi() {
             let nihaiGorselUrl = form.gorsel_url?.trim() || null;
 
             if (form.gorsel_dosyasi && navigator.onLine) {
-                const dosyaUzantisi = form.gorsel_dosyasi.name?.split('.').pop() || 'jpg';
+                const dosyaUzantisi = /** @type {any} */ (form.gorsel_dosyasi).name?.split('.').pop() || 'jpg';
                 const dosyaAdi = `${Date.now()}_${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('arge_gorselleri')
-                    .upload(`trendler/${dosyaAdi}`, form.gorsel_dosyasi, {
+                    .upload(`trendler/${dosyaAdi}`, /** @type {any} */(form.gorsel_dosyasi), {
                         cacheControl: '3600',
                         upsert: false
                     });
@@ -306,8 +306,8 @@ export default function ArgeSayfasi() {
                 platform: form.platform,
                 kategori: form.kategori,
                 hedef_kitle: form.hedef_kitle,
-                talep_skoru: parseInt(form.talep_skoru),
-                zorluk_derecesi: parseInt(form.zorluk_derecesi) || 5,
+                talep_skoru: Number(form.talep_skoru),
+                zorluk_derecesi: Number(form.zorluk_derecesi) || 5,
                 referans_linkler: form.referans_link ? [form.referans_link.trim()] : null,
                 gorsel_url: nihaiGorselUrl,
                 aciklama: (!duzenleId && !(form.aciklama || '').includes('[AI ONAYSIZ]')) ? `[AI ONAYSIZ / MANUEL KAYIT] ${form.aciklama.trim()}` : form.aciklama.trim() || null,
@@ -352,7 +352,7 @@ export default function ArgeSayfasi() {
 
     const durumGuncelle = async (id, yeniDurum) => {
         if (islemdeId === 'durum_' + id) return;
-        setIslemdeId('durum_' + id);
+        setIslemdeId(/** @type {any} */('durum_' + id));
 
         const { error } = await supabase
             .from('b1_arge_trendler')
@@ -409,10 +409,7 @@ export default function ArgeSayfasi() {
 
     const sil = async (id) => {
         // 🟢 GÜVENLİK: Sunucu taraflı PIN doğrulama (NEXT_PUBLIC_ADMIN_PIN sızdırılmaz)
-        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Sadece TAM YETKİLİ personeller silebilir.\nLütfen Yönetici PIN kodunuzu girin:'
-        );
+        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(kullanici);
         if (!yetkili) return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error');
 
         if (!confirm(isAR ? 'هل أنت متأكد من الحذف الحقيقي؟ لا يمكن التراجع!' : 'Silmek istediğinize çok emin misiniz? (Bu işlem geri alınamaz)')) return;
@@ -425,7 +422,7 @@ export default function ArgeSayfasi() {
         }
 
         if (islemdeId === 'sil_' + id) return;
-        setIslemdeId('sil_' + id);
+        setIslemdeId(/** @type {any} */('sil_' + id));
 
         try {
             // 25. KRİTER ONARIMI: "KARA KUTU / İZCİ" (Soft Delete Simülasyonu)
@@ -436,8 +433,8 @@ export default function ArgeSayfasi() {
                     tablo_adi: 'b1_arge_trendler',
                     islem_tipi: 'SILME',
                     eski_veri: silinecek,
-                    kullanici_adi: kullanici?.ad || 'Atölye Lideri (PIN)'
-                }]).catch(() => { }); // tablo yoksa çökmesin (graceful graceful fallback)
+                    kullanici_adi: /** @type {any} */ (kullanici)?.ad || 'Atölye Lideri (PIN)'
+                }]);
             }
 
             const { error } = await supabase.from('b1_arge_trendler').delete().eq('id', id);
@@ -481,7 +478,7 @@ export default function ArgeSayfasi() {
         setYenidenAraniyor(trend.id);
         try {
             const gunFark = trend.arsiv_tarihi
-                ? Math.floor((Date.now() - new Date(trend.arsiv_tarihi)) / 86400000) : 30;
+                ? Math.floor((Date.now() - /** @type {any} */ (new Date(trend.arsiv_tarihi))) / 86400000) : 30;
             const orijinalKarar = trend.herm_karari || 'Belirtilmemiş';
             const orijinalSkor = trend.talep_skoru || '?';
             const platform = trend.platform || 'genel';
@@ -627,13 +624,13 @@ export default function ArgeSayfasi() {
             {/* AI SONUÇLARI */}
             {aiSonuclar && aiPanelAcik && (
                 <div style={{ marginTop: '1rem' }}>
-                    {aiSonuclar.ozet && (
+                    {/** @type {any} */ (aiSonuclar).ozet && (
                         <div style={{ background: '#1e293b', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '0.75rem', color: '#cbd5e1', fontSize: '0.82rem', lineHeight: 1.6, borderLeft: '3px solid #059669' }}>
-                            💡 {aiSonuclar.ozet}
+                            💡 {/** @type {any} */ (aiSonuclar).ozet}
                         </div>
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '1rem' }}>
-                        {(aiSonuclar.sonuclar || []).map((s, i) => (
+                        {(/** @type {any} */ (aiSonuclar).sonuclar || []).map((/** @type {any} */ s, /** @type {any} */ i) => (
                             <M1_TrendSonucKarti
                                 key={i}
                                 sonuc={s}
@@ -748,7 +745,7 @@ export default function ArgeSayfasi() {
                                 <input
                                     type="range" min="1" max="10"
                                     value={form.talep_skoru}
-                                    onChange={e => setForm({ ...form, talep_skoru: e.target.value })}
+                                    onChange={e => setForm({ ...form, talep_skoru: /** @type {any} */ (e.target.value) })}
                                     style={{ width: '100%', cursor: 'pointer', accentColor: skorRenk(form.talep_skoru) }}
                                 />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginTop: 4 }}>
@@ -764,7 +761,7 @@ export default function ArgeSayfasi() {
                                 <input
                                     type="range" min="1" max="10"
                                     value={form.zorluk_derecesi || 5}
-                                    onChange={e => setForm({ ...form, zorluk_derecesi: e.target.value })}
+                                    onChange={e => setForm({ ...form, zorluk_derecesi: /** @type {any} */ (e.target.value) })}
                                     style={{ width: '100%', cursor: 'pointer', accentColor: '#4f46e5' }}
                                 />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginTop: 4 }}>
@@ -811,11 +808,11 @@ export default function ArgeSayfasi() {
                                     id="arge-kamera-input"
                                     style={{ display: 'none' }}
                                     onChange={(e) => {
-                                        const file = e.target.files[0];
+                                        const file = (/** @type {any} */ (e.target)).files?.[0];
                                         if (file) {
                                             if (file.size > 500 * 1024) return goster('Dosya çok büyük! Veritabanı sağlığı için maksimum 500 KB resim yükleyebilirsiniz.', 'error');
                                             const reader = new FileReader();
-                                            reader.onloadend = () => setForm({ ...form, gorsel_url: reader.result, gorsel_dosyasi: file }); // Görsel Storage için yedeği özel değişkende tutulur
+                                            reader.onloadend = () => setForm({ ...form, gorsel_url: /** @type {string} */ (reader.result), gorsel_dosyasi: /** @type {any} */ (file) }); // Görsel Storage için yedeği özel değişkende tutulur
                                             reader.readAsDataURL(file);
                                         }
                                     }}
@@ -925,17 +922,18 @@ export default function ArgeSayfasi() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {filtreliTrendler.map(trend => (
                             <M1_UrunRecetesi
-                                key={trend.id}
+                                key={/** @type {any} */ (trend).id}
                                 trend={trend}
-                                isExpanded={secilenTrend?.id === trend.id}
-                                onToggleExpand={() => setSecilenTrend(secilenTrend?.id === trend.id ? null : trend)}
                                 onDurumGuncelle={durumGuncelle}
                                 onSil={sil}
                                 onDuzenle={() => {
                                     setForm({
                                         baslik: trend.baslik, baslik_ar: trend.baslik_ar || '', platform: trend.platform,
-                                        kategori: trend.kategori, talep_skoru: trend.talep_skoru, referans_link: trend.referans_linkler?.[0] || '',
-                                        gorsel_url: trend.gorsel_url || '', aciklama: trend.aciklama || '', aciklama_ar: trend.aciklama_ar || ''
+                                        kategori: trend.kategori, hedef_kitle: trend.hedef_kitle || 'kadın',
+                                        talep_skoru: trend.talep_skoru, zorluk_derecesi: trend.zorluk_derecesi || 5,
+                                        referans_link: trend.referans_linkler?.[0] || '',
+                                        gorsel_url: trend.gorsel_url || '', gorsel_dosyasi: null,
+                                        aciklama: trend.aciklama || '', aciklama_ar: trend.aciklama_ar || ''
                                     });
                                     setDuzenleId(trend.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
@@ -964,12 +962,12 @@ export default function ArgeSayfasi() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
                             {arsivTrendler.map(trend => {
                                 const gunFark = trend.arsiv_tarihi
-                                    ? Math.floor((Date.now() - new Date(trend.arsiv_tarihi)) / 86400000) : null;
+                                    ? Math.floor((Date.now() - /** @type {any} */ (new Date(trend.arsiv_tarihi))) / 86400000) : null;
                                 const dogrulamaGeldiMi = trend.dogrulama_zamani
                                     && trend.dogrulama_durumu !== 'yapildi'
                                     && new Date(trend.dogrulama_zamani) <= new Date();
                                 const kalanGun = trend.dogrulama_zamani && trend.dogrulama_durumu === 'bekliyor'
-                                    ? Math.max(0, Math.ceil((new Date(trend.dogrulama_zamani) - Date.now()) / 86400000)) : null;
+                                    ? Math.max(0, Math.ceil((/** @type {any} */ (new Date(trend.dogrulama_zamani)) - Date.now()) / 86400000)) : null;
 
                                 return (
                                     <div key={trend.id} style={{

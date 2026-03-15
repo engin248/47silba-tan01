@@ -1,4 +1,4 @@
-export default function FiltreDugmeleri({ secenekler, aktifDeger, onClickSecenegi, renkler }) {
+export default function FiltreDugmeleri({ /** @type {any} */ secenekler, /** @type {any} */ aktifDeger, /** @type {any} */ onClickSecenegi, /** @type {any} */ renkler = {} }) {
     // secenekler: { v: 'beklemede', l: '⏳ Beklemede', r: '#f59e0b' } array
     return (
         <>
@@ -6,7 +6,7 @@ export default function FiltreDugmeleri({ secenekler, aktifDeger, onClickSeceneg
                 if (s === '|') return <div key={`sep-${idx}`} style={{ width: 1, background: '#e5e7eb', margin: '0 4px' }} />;
 
                 const aktif = aktifDeger === s.v || s.isBooleanActive;
-                const r = s.r || renkler?.aktifBg || '#3b82f6';
+                const r = s.r || (/** @type {any} */ (renkler))?.aktifBg || '#3b82f6';
 
                 return (
                     <button

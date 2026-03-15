@@ -7,12 +7,12 @@ import { TrendingUp, Plus, ExternalLink, Bot, Zap, AlertTriangle, CheckCircle2, 
  * Hermes V2'nin döndürdüğü tek bir trend sonucunu gösterir.
  * Kaşif butonu: /api/agent/kasif üzerinden "Satar mı?" analizi tetikler.
  */
-export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
+export default function M1_TrendSonucKarti({ /** @type {any} */ sonuc, /** @type {any} */ onKaydet, /** @type {any} */ isAR }) {
     const [kasifYukleniyor, setKasifYukleniyor] = useState(false);
-    const [kasifSonucu, setKasifSonucu] = useState(null);
+    const [kasifSonucu, setKasifSonucu] = useState(/** @type {any} */(null));
     const [kasifAcik, setKasifAcik] = useState(false);
 
-    const skorRenk = (s) => s >= 70 ? '#10b981' : s >= 40 ? '#f59e0b' : '#ef4444';
+    const skorRenk = (/** @type {any} */ s) => s >= 70 ? '#10b981' : s >= 40 ? '#f59e0b' : '#ef4444';
     const skor = sonuc.trend_skoru ?? sonuc.talep_skoru ?? 50;
 
     const kasifAnaliz = async () => {
@@ -93,23 +93,23 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
                 )}
 
                 {/* Kaşif Sonucu */}
-                {kasifAcik && kasifSonucu && !kasifSonucu.error && (
-                    <div style={{ marginTop: '0.75rem', background: kasifSonucu.satarMi ? '#f0fdf4' : '#fef2f2', border: `2px solid ${kasifSonucu.satarMi ? '#10b981' : '#ef4444'}`, borderRadius: 10, padding: '0.75rem' }}>
+                {kasifAcik && kasifSonucu && !(/** @type {any} */ (kasifSonucu).error) && (
+                    <div style={{ marginTop: '0.75rem', background: /** @type {any} */ (kasifSonucu).satarMi ? '#f0fdf4' : '#fef2f2', border: `2px solid ${/** @type {any} */ (kasifSonucu).satarMi ? '#10b981' : '#ef4444'}`, borderRadius: 10, padding: '0.75rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                            {kasifSonucu.satarMi
+                            {/** @type {any} */ (kasifSonucu).satarMi
                                 ? <CheckCircle2 size={14} color="#10b981" />
                                 : <AlertTriangle size={14} color="#ef4444" />}
-                            <span style={{ fontWeight: 900, fontSize: '0.8rem', color: kasifSonucu.satarMi ? '#065f46' : '#991b1b' }}>
-                                {kasifSonucu.satarMi ? '✅ KAŞİF: SATAR' : '❌ KAŞİF: SATMAZ'}
-                                {kasifSonucu.kararGuven && ` (Güven: ${kasifSonucu.kararGuven}/10)`}
+                            <span style={{ fontWeight: 900, fontSize: '0.8rem', color: /** @type {any} */ (kasifSonucu).satarMi ? '#065f46' : '#991b1b' }}>
+                                {/** @type {any} */ (kasifSonucu).satarMi ? '✅ KAŞİF: SATAR' : '❌ KAŞİF: SATMAZ'}
+                                {/** @type {any} */ (kasifSonucu).kararGuven && ` (Güven: ${/** @type {any} */ (kasifSonucu).kararGuven}/10)`}
                             </span>
                         </div>
-                        {kasifSonucu.piyasaOzeti && (
-                            <p style={{ fontSize: '0.72rem', color: '#374151', margin: '0 0 6px' }}>{kasifSonucu.piyasaOzeti}</p>
+                        {/** @type {any} */ (kasifSonucu).piyasaOzeti && (
+                            <p style={{ fontSize: '0.72rem', color: '#374151', margin: '0 0 6px' }}>{/** @type {any} */ (kasifSonucu).piyasaOzeti}</p>
                         )}
-                        {kasifSonucu.tavsiye && (
+                        {/** @type {any} */ (kasifSonucu).tavsiye && (
                             <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', margin: 0, fontStyle: 'italic' }}>
-                                → {kasifSonucu.tavsiye}
+                                → {/** @type {any} */ (kasifSonucu).tavsiye}
                             </p>
                         )}
                         <button onClick={() => setKasifAcik(false)} style={{ marginTop: 6, fontSize: '0.65rem', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -118,9 +118,9 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
                     </div>
                 )}
 
-                {kasifSonucu?.error && (
+                {/** @type {any} */ (kasifSonucu)?.error && (
                     <div style={{ marginTop: 8, color: '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
-                        ⚠️ {kasifSonucu.error}
+                        ⚠️ {/** @type {any} */ (kasifSonucu).error}
                     </div>
                 )}
             </div>

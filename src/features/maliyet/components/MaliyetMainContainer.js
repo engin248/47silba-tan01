@@ -91,17 +91,31 @@ export default function MaliyetMainContainer() {
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
-        setYetkiliMi(erisebilir);
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime WebSocket (Kriter 20 & 34)
-            const kanal = supabase.channel('maliyet-gercek-zamanli')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_maliyet_kayitlari' }, () => { yukle(); })
-                .subscribe();
-            yukle();
-            return () => { supabase.removeChannel(kanal); };
-        }
-    }, [kullanici, yukle]);
+        const isYetkili = kullanici?.grup === 'tam' || uretimPin;
+        setYetkiliMi(isYetkili);
+
+        let kanal;
+        const baslatKanal = () => {
+            if (isYetkili && !document.hidden) {
+                // [AI ZIRHI]: Realtime WebSocket (Kriter 20 & 34 - Visibility Optimizasyonu)
+                kanal = supabase.channel('maliyet-gercek-zamanli-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_maliyet_kayitlari' }, yukle)
+                    .subscribe();
+            }
+        };
+
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); }
+        };
+
+        baslatKanal();
+        yukle();
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
+    }, [kullanici?.grup, kullanici?.id, yukle]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
@@ -262,10 +276,10 @@ export default function MaliyetMainContainer() {
 
     if (!yetkiliMi) {
         return (
-            <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Maliyet Verileri gizlidir. Üretim PİN girişi zorunludur.</p>
+            <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl" dir={isAR ? 'rtl' : 'ltr'}>
+                <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+                <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+                <p className="text-rose-300 font-bold mt-2">Maliyet Verileri gizlidir. Üretim PİN girişi zorunludur.</p>
             </div>
         );
     }
@@ -273,44 +287,44 @@ export default function MaliyetMainContainer() {
     return (
         <div>
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DollarSign size={24} color="white" />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+                        <DollarSign size={24} className="text-emerald-50" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'مركز التكلفة' : 'Maliyet Merkezi'}</h1>
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'تكلفة الوحدة · سعر البيع · تحليل الربح' : 'Birim maliyet · Satış fiyatı · Kar analizi'}</p>
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">{isAR ? 'مركز التكلفة' : 'M5 Maliyet Karargahı'}</h1>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">{isAR ? 'تكلفة الوحدة · سعر البيع · تحليل الربح' : 'Birim maliyet · Satış fiyatı · Kar analizi'}</p>
                     </div>
                 </div>
                 {/* SPLIT BUTTON */}
-                <div ref={menuRef} style={{ position: 'relative', display: 'flex' }}>
+                <div ref={menuRef} className="relative flex shadow-[0_4px_14px_rgba(4,120,87,0.3)] hover:shadow-[0_4px_20px_rgba(4,120,87,0.5)] rounded-xl transition-all">
                     <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(!formAcik); setSekme('giris'); setMenuAcik(false); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px 0 0 10px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
-                        <Plus size={18} /> Maliyet Ekle
+                        className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-l-xl font-black text-sm border-y border-l border-emerald-500/30">
+                        <Plus size={18} /> MALİYET EKLE
                     </button>
                     <button onClick={() => setMenuAcik(!menuAcik)}
-                        style={{ background: '#065f46', color: 'white', border: 'none', borderLeft: '1px solid rgba(255,255,255,0.3)', padding: '10px 10px', borderRadius: '0 10px 10px 0', cursor: 'pointer' }}>
-                        <ChevronDown size={16} />
+                        className="bg-emerald-800 hover:bg-emerald-700 text-white px-3 py-2.5 rounded-r-xl border-y border-r border-emerald-500/30 border-l border-l-emerald-600">
+                        <ChevronDown size={18} />
                     </button>
                     {menuAcik && (
-                        <div style={{ position: 'absolute', top: '110%', right: 0, background: 'white', border: '2px solid #e2e8f0', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', minWidth: 220, zIndex: 100 }}>
+                        <div className="absolute top-[110%] right-0 bg-white border-2 border-slate-200 rounded-xl shadow-2xl min-w-[220px] z-50 overflow-hidden">
                             <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(true); setSekme('giris'); setMenuAcik(false); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', borderRadius: '10px 10px 0 0' }}>
-                                <Plus size={15} color="#06b6d4" /> Tek Maliyet Ekle
+                                className="flex items-center gap-3 w-full px-4 py-3 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm text-left transition-colors">
+                                <Plus size={16} className="text-cyan-500" /> Tek Maliyet Ekle
                             </button>
                             <button onClick={() => { setCsvModal(true); setMenuAcik(false); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', borderTop: '1px solid #f1f5f9' }}>
-                                <Upload size={15} color="#8b5cf6" /> Gider Toplu Yükle (CSV)
+                                className="flex items-center gap-3 w-full px-4 py-3 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm text-left border-t border-slate-100 transition-colors">
+                                <Upload size={16} className="text-violet-500" /> Gider Toplu Yükle (CSV)
                             </button>
-                            <Link href="/muhasebe" style={{ textDecoration: 'none', display: 'block', borderTop: '1px solid #f1f5f9' }}>
-                                <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#16a34a' }}>
-                                    <BarChart2 size={15} color="#16a34a" /> Muhasebe (M8)
+                            <Link href="/muhasebe" className="no-underline block border-t border-slate-100">
+                                <button className="flex items-center gap-3 w-full px-4 py-3 bg-white hover:bg-slate-50 text-emerald-600 font-bold text-sm text-left transition-colors">
+                                    <BarChart2 size={16} className="text-emerald-500" /> Muhasebe (M8)
                                 </button>
                             </Link>
                             <button disabled={islemdeId === 'tumunu_sil'} onClick={() => { setMenuAcik(false); tumunuSil(); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: islemdeId === 'tumunu_sil' ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', borderTop: '1px solid #f1f5f9', borderRadius: '0 0 10px 10px', opacity: islemdeId === 'tumunu_sil' ? 0.5 : 1 }}>
-                                <Trash2 size={15} color="#dc2626" /> {islemdeId === 'tumunu_sil' ? 'Siliniyor...' : 'Tüm Kayıtları Sil'}
+                                className={`flex items-center gap-3 w-full px-4 py-3 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm text-left border-t border-rose-100 transition-colors ${islemdeId === 'tumunu_sil' ? 'opacity-50 cursor-wait' : ''}`}>
+                                <Trash2 size={16} className="text-rose-600" /> {islemdeId === 'tumunu_sil' ? 'Siliniyor...' : 'Tüm Kayıtları Sil'}
                             </button>
                         </div>
                     )}

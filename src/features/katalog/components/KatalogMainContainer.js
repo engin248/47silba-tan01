@@ -49,7 +49,7 @@ const KAT_LABEL = { genel: 'Genel', gomlek: 'Gömlek', pantolon: 'Pantolon', elb
 
 export default function KatalogSayfasi() {
     const { kullanici, sayfaErisim } = useAuth();
-    const erisim = sayfaErisim('/katalog');
+    const erisim = /** @type {any} */ (sayfaErisim)('/katalog');
 
     const [usdKur, setUsdKur] = useState(USD_KUR_VARSAYILAN); // [A-02] Canlı döviz kuru
     const [kurTarihi, setKurTarihi] = useState('');
@@ -66,7 +66,7 @@ export default function KatalogSayfasi() {
     const [finansGizli, setFinansGizli] = useState(true);
     const router = useRouter(); // [SPA FIX]
 
-    const [urunler, setUrunler] = useState([]);
+    const [urunler, setUrunler] = useState(/** @type {any[]} */([]));
     const [formAcik, setFormAcik] = useState(false);
     const [form, setForm] = useState(BOSH_URUN);
     const [duzenleId, setDuzenleId] = useState(null);
@@ -74,18 +74,18 @@ export default function KatalogSayfasi() {
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
 
     const [barkodAcik, setBarkodAcik] = useState(false);
-    const [seciliUrun, setSeciliUrun] = useState(null);
+    const [seciliUrun, setSeciliUrun] = useState(/** @type {any} */(null));
     const [arama, setArama] = useState('');
     const [kategoriFiltre, setKategoriFiltre] = useState('tumu');
     // KAT-04/05: SKU & Fiyat Geçmişi modal
     const [skuAcik, setSkuAcik] = useState(false);
     const [fiyatGecmisiAcik, setFiyatGecmisiAcik] = useState(false);
-    const [fiyatGecmisi, setFiyatGecmisi] = useState([]);
+    const [fiyatGecmisi, setFiyatGecmisi] = useState(/** @type {any[]} */([]));
     // KAT-06: Stok sync timestamp
-    const [sonSenkron, setSonSenkron] = useState(null);
+    const [sonSenkron, setSonSenkron] = useState(/** @type {any} */(null));
     const [skuBedenler, setSkuBedenler] = useState(['S', 'M', 'L', 'XL']);
     const [skuRenkler, setSkuRenkler] = useState(['Siyah', 'Beyaz']);
-    const [varyantStoklar, setVaryantStoklar] = useState({}); // [V3] Varyant Matris { 'S-Siyah': 10 }
+    const [varyantStoklar, setVaryantStoklar] = useState(/** @type {Record<string, any>} */({})); // [V3] Varyant Matris { 'S-Siyah': 10 }
 
     // [V3] Toplu Fiyat Güncelleme
     const [topluFiyatAcik, setTopluFiyatAcik] = useState(false);
@@ -94,7 +94,7 @@ export default function KatalogSayfasi() {
     // KAT-04 (B-04): Toplu Ürün Yükleme (Excel/CSV)
     const [topluYuklemeAcik, setTopluYuklemeAcik] = useState(false);
     const [topluYukleniyor, setTopluYukleniyor] = useState(false);
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
 
     useEffect(() => {
         setMounted(true);
@@ -121,7 +121,7 @@ export default function KatalogSayfasi() {
                 teklif_icerik: mesajMetni,
                 kanal: 'whatsapp',
                 gonderim_durumu: 'gonderildi',
-                gonderen: kullanici?.label || 'Satış Yetkilisi',
+                gonderen: /** @type {any} */ (kullanici)?.label || 'Satış Yetkilisi',
             }]);
         } catch { }
     };
@@ -166,7 +166,7 @@ export default function KatalogSayfasi() {
                 .limit(10);
             // Gerçek fiyat geçmişi tablosu yoksa mevcut kaydı satır olarak göster
             const gecmis = data || [];
-            if (gecmis.length === 0) gecmis.push({ satis_fiyati_tl: u.satis_fiyati_tl, birim_maliyet_tl: u.birim_maliyet_tl, updated_at: u.updated_at || u.created_at, not: 'Mevcut fiyat' });
+            if (gecmis.length === 0) gecmis.push(/** @type {any} */({ satis_fiyati_tl: u.satis_fiyati_tl, birim_maliyet_tl: u.birim_maliyet_tl, updated_at: u.updated_at || u.created_at, not_str: 'Mevcut fiyat' }));
             setFiyatGecmisi(gecmis);
         } catch { }
     };
@@ -183,7 +183,7 @@ export default function KatalogSayfasi() {
         try {
             const { data } = await supabase.from('b2_urun_varyant_stok').select('beden, renk, stok_adeti').eq('urun_id', u.id);
             if (data && data.length > 0) {
-                const map = {};
+                const map = /** @type {Record<string, any>} */ ({});
                 data.forEach(v => map[`${v.beden}-${v.renk}`] = v.stok_adeti);
                 setVaryantStoklar(map);
             }
@@ -236,7 +236,7 @@ export default function KatalogSayfasi() {
                 return goster('M8 Muhasebe modülünde kilitlenmiş hiçbir maliyet raporu bulunamadı!', 'error');
             }
 
-            const enGuncelMaliyetler = {};
+            const enGuncelMaliyetler = /** @type {Record<string, number>} */ ({});
             muhRapor.forEach(r => {
                 if (!enGuncelMaliyetler[r.urun_kodu] && r.net_uretim_miktari > 0) {
                     const topMal = parseFloat(r.toplam_maliyet_tl || 0) + parseFloat(r.ek_maliyet_tl || 0);
@@ -247,7 +247,7 @@ export default function KatalogSayfasi() {
             const { data: katalogUrunleri, error: errK } = await supabase.from('b2_urun_katalogu').select('id, urun_kodu, satis_fiyati_tl, birim_maliyet_tl');
             if (errK) throw errK;
 
-            const guncellenecekler = [];
+            const guncellenecekler = /** @type {any[]} */ ([]);
             katalogUrunleri.forEach(u => {
                 const yeniMaliyet = enGuncelMaliyetler[u.urun_kodu];
                 if (yeniMaliyet && yeniMaliyet !== parseFloat(u.birim_maliyet_tl)) {
@@ -340,7 +340,7 @@ export default function KatalogSayfasi() {
         setIslemdeId('kayit');
         if (!form.urun_kodu.trim()) { setIslemdeId(null); return goster('Ürün Kodu zorunludur.', 'error'); }
         if (!form.urun_adi.trim()) { setIslemdeId(null); return goster('Ürün Adı zorunludur.', 'error'); }
-        if (!form.satis_fiyati_tl || form.satis_fiyati_tl <= 0) { setIslemdeId(null); return goster('Geçerli bir Satış Fiyatı girin.', 'error'); }
+        if (!form.satis_fiyati_tl || parseFloat(/** @type {any} */(form.satis_fiyati_tl)) <= 0) { setIslemdeId(null); return goster('Geçerli bir Satış Fiyatı girin.', 'error'); }
 
         setLoading(true);
         const payload = {
@@ -369,7 +369,7 @@ export default function KatalogSayfasi() {
         } else { payload.kar_marji_yuzde = 0; }
 
         if (!navigator.onLine) {
-            await cevrimeKuyrugaAl('b2_urun_katalogu', payload);
+            await cevrimeKuyrugaAl('b2_urun_katalogu', 'INSERT', /** @type {any} */(payload));
             goster('✅ Çevrimdışı: Ürün kuyruğa eklendi. Bağlantı gelince yollanacak.', 'success');
             setForm(BOSH_URUN); setFormAcik(false); setDuzenleId(null);
             setLoading(false);
@@ -446,7 +446,7 @@ export default function KatalogSayfasi() {
 
         reader.onload = async (evt) => {
             try {
-                const bstr = evt.target.result;
+                const bstr = /** @type {any} */ (evt.target)?.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const wsname = wb.SheetNames[0];
                 const ws = wb.Sheets[wsname];
@@ -513,7 +513,7 @@ export default function KatalogSayfasi() {
                 goster(`✅ Toplu İşlem Tamamlandı! EKLENEN: ${eklendi} | HATALI SATIR: ${hataSayisi}`, eklendi > 0 ? 'success' : 'error');
 
                 if (eklendi > 0) {
-                    telegramBildirim(`📦 KATALOG TOPLU YÜKLEME\n${kullanici?.label || 'M9 Yetkilisi'} tarafından Excel aracıyla kataloga ${eklendi} yeni ürün eklendi.`);
+                    telegramBildirim(`📦 KATALOG TOPLU YÜKLEME\n${/** @type {any} */ (kullanici)?.label || 'M9 Yetkilisi'} tarafından Excel aracıyla kataloga ${eklendi} yeni ürün eklendi.`);
                 }
 
             } catch (err) {
@@ -528,8 +528,7 @@ export default function KatalogSayfasi() {
         if (islemdeId === 'sil_' + id) return;
         setIslemdeId('sil_' + id);
         const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici,
-            'Bu ürünü silmek için Yönetici PIN girin:'
+            kullanici
         );
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
@@ -538,9 +537,9 @@ export default function KatalogSayfasi() {
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b2_urun_katalogu', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'M9 Yetkilisi',
+                    tablo_adi: 'b2_urun_katalogu', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M9 Yetkilisi',
                     eski_veri: { durum: 'M9 Urun kalici silindi.', urun_kodu: m_kodu }
-                }]).catch(() => { });
+                }]);
             } catch (e) { }
 
             await supabase.from('b2_urun_katalogu').delete().eq('id', id);
@@ -554,7 +553,7 @@ export default function KatalogSayfasi() {
     };
 
     const isAR = mounted && lang === 'ar';
-    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     const filtreliUrunler = urunler.filter(u =>
@@ -851,7 +850,7 @@ export default function KatalogSayfasi() {
                                         <button onClick={() => { setSeciliUrun(u); setBarkodAcik(true); }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a', padding: '5px 7px', borderRadius: 7, cursor: 'pointer', display: 'flex' }}><QrCode size={14} /></button>
                                         {erisim === 'full' && (
                                             <>
-                                                <button onClick={() => { setForm({ urun_kodu: u.urun_kodu, urun_adi: u.urun_adi, urun_adi_ar: u.urun_adi_ar || '', satis_fiyati_tl: u.satis_fiyati_tl, birim_maliyet_tl: u.birim_maliyet_tl || '', bedenler: u.bedenler || '', renkler: u.renkler || '', stok_adeti: u.stok_adeti, min_stok: u.min_stok, durum: u.durum, kategori_ust: u.kategori_ust || '', kategori_alt: u.kategori_alt || '', fotograf_url: u.fotograf_url || '', fotograf_url2: u.fotograf_url2 || '', fotograf_url3: u.fotograf_url3 || '' }); setDuzenleId(u.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '5px 7px', borderRadius: 7, cursor: 'pointer' }}>✏️</button>
+                                                <button onClick={() => { setForm({ urun_kodu: u.urun_kodu, urun_adi: u.urun_adi, urun_adi_ar: u.urun_adi_ar || '', satis_fiyati_tl: u.satis_fiyati_tl, satis_fiyati_usd: u.satis_fiyati_usd || '', birim_maliyet_tl: u.birim_maliyet_tl || '', sku_not: u.sku_not || '', bedenler: u.bedenler || '', renkler: u.renkler || '', stok_adeti: u.stok_adeti, min_stok: u.min_stok, durum: u.durum, kategori_ust: u.kategori_ust || '', kategori_alt: u.kategori_alt || '', fotograf_url: u.fotograf_url || '', fotograf_url2: u.fotograf_url2 || '', fotograf_url3: u.fotograf_url3 || '' }); setDuzenleId(u.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '5px 7px', borderRadius: 7, cursor: 'pointer' }}>✏️</button>
                                                 <button disabled={islemdeId === 'sil_' + u.id} onClick={() => sil(u.id, u.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 7px', borderRadius: 7, cursor: islemdeId === 'sil_' + u.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + u.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
                                             </>
                                         )}
@@ -888,7 +887,7 @@ export default function KatalogSayfasi() {
                                 {(u.fotograf_url || u.fotograf_url2 || u.fotograf_url3) && (
                                     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                                         {[u.fotograf_url, u.fotograf_url2, u.fotograf_url3].filter(Boolean).map((f, i) => (
-                                            <img key={i} src={f} alt={`foto${i + 1}`} style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }} onError={e => { e.target.style.display = 'none'; }} />
+                                            <img key={i} src={f} alt={`foto${i + 1}`} style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }} onError={e => { /** @type {any} */ (e.target).style.display = 'none'; }} />
                                         ))}
                                     </div>
                                 )}
@@ -993,7 +992,7 @@ export default function KatalogSayfasi() {
                                                 <td style={{ padding: '8px 12px', color: '#64748b' }}>{f.updated_at ? new Date(f.updated_at).toLocaleDateString('tr-TR') : '-'}</td>
                                                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>₺{parseFloat(f.satis_fiyati_tl).toFixed(2)}</td>
                                                 <td style={{ padding: '8px 12px', textAlign: 'right', color: '#64748b' }}>{f.birim_maliyet_tl ? `₺${parseFloat(f.birim_maliyet_tl).toFixed(2)}` : '-'}</td>
-                                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: kar >= 20 ? '#059669' : '#dc2626' }}>{kar ? `%${kar}` : '-'}</td>
+                                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: (/** @type {any} */ (kar) >= 20) ? '#059669' : '#dc2626' }}>{kar ? `%${kar}` : '-'}</td>
                                             </tr>
                                         );
                                     })}

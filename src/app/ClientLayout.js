@@ -62,9 +62,9 @@ function SidebarInner({ isAR }) {
         const aktif = pathname === item.href;
         return (
             <Link href={item.href} className="nav-item"
-                style={{ paddingLeft: isAR ? '8px' : '14px', paddingRight: isAR ? '14px' : '8px', opacity: aktif ? 1 : 0.85, minHeight: '44px' }}>
-                <item.icon size={16} />
-                <span style={{ flex: 1, fontSize: '0.94rem' }}>{isAR ? item.labelAR : item.labelTR}</span>
+                style={{ paddingLeft: isAR ? '8px' : '14px', paddingRight: isAR ? '14px' : '8px', opacity: aktif ? 1 : 0.85, minHeight: '36px', marginBottom: '2px' }}>
+                <item.icon size={18} />
+                <span style={{ flex: 1, fontSize: '1.05rem', fontWeight: 600 }}>{isAR ? item.labelAR : item.labelTR}</span>
                 {item.badge && (
                     <span style={{ fontSize: '0.55rem', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}
                         className={`badge-${item.group}`}>
@@ -80,7 +80,7 @@ function SidebarInner({ isAR }) {
         if (items.length === 0) return null;
         return (
             <>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color, letterSpacing: '0.1em', padding: '10px 8px 3px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 900, color, letterSpacing: '0.15em', padding: '12px 8px 4px', textTransform: 'uppercase' }}>
                     {isAR ? labelAR : label}
                 </div>
                 {items.map(item => <NavItem key={item.href} item={item} />)}
@@ -100,10 +100,10 @@ function SidebarInner({ isAR }) {
                 )
             ))}
 
-            <NavGroup label="▸ 1. BİRİM" labelAR="▸ الوحدة الأولى" color="#3b82f6" groupKey="birim1" />
-            <NavGroup label="▸ 2. BİRİM" labelAR="▸ الوحدة الثانية" color="#f97316" groupKey="birim2" />
-            <NavGroup label="▸ YÖNETİM" labelAR="▸ الإدارة" color="#6b7280" groupKey="yonetim" />
-            <NavGroup label="▸ SİSTEM" labelAR="▸ النظام" color="#8b5cf6" groupKey="sistem" />
+            <NavGroup label="▸ 1. BİRİM" labelAR="▸ الوحدة الأولى" color="#6ee7b7" groupKey="birim1" />
+            <NavGroup label="▸ 2. BİRİM" labelAR="▸ الوحدة الثانية" color="#fcd34d" groupKey="birim2" />
+            <NavGroup label="▸ YÖNETİM" labelAR="▸ الإدارة" color="#cbd5e1" groupKey="yonetim" />
+            <NavGroup label="▸ SİSTEM" labelAR="▸ النظام" color="#c4b5fd" groupKey="sistem" />
 
             {/* Alt — Kullanıcı bilgisi + çıkış */}
             {kullanici && (
@@ -232,12 +232,12 @@ function LayoutInner({ children }) {
             <aside className={`sidebar${sidebarAcik ? ' mobile-open' : ''}`}>
                 {/* Başlık */}
                 <div style={{ padding: '1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.25rem' }}>
-                    <h1 style={{ fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
                         <span style={{ color: '#f59e0b' }}>mizanet</span>
                         <span style={{ color: '#6ee7b7' }}>.com</span>
                     </h1>
-                    <p style={{ fontSize: '0.75rem', color: '#e2e8f0', margin: '6px 0 0', fontWeight: 700, letterSpacing: '0.05em' }}>
-                        Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım
+                    <p style={{ fontSize: '0.85rem', color: '#e2e8f0', margin: '6px 0 0', fontWeight: 700, letterSpacing: '0.05em', lineHeight: '1.4' }}>
+                        Adil Düzen · Şeffaf Maliyet<br />Adaletli Dağıtım
                     </p>
                 </div>
 
@@ -285,7 +285,7 @@ function LayoutInner({ children }) {
                                 <line x1="3" y1="18" x2="21" y2="18" />
                             </svg>
                         </button>
-                        <div>
+                        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                             {(() => {
                                 const aktifItem = NAV_ITEMS.find(n => n.href === pathname);
                                 const baslikMtn = pathname === '/'
@@ -295,8 +295,8 @@ function LayoutInner({ children }) {
                                         : "THE ORDER / NİZAM";
 
                                 return (
-                                    <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#1e293b', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        {aktifItem && <aktifItem.icon size={18} style={{ color: '#047857' }} />}
+                                    <h2 style={{ margin: 0, fontSize: pathname === '/' ? '1.5rem' : '1.2rem', fontWeight: 900, color: '#02624B', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        {aktifItem && <aktifItem.icon size={pathname === '/' ? 26 : 20} style={{ color: '#047857' }} />}
                                         {baslikMtn}
                                     </h2>
                                 );

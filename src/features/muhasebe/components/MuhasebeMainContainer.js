@@ -26,17 +26,30 @@ export default function MuhasebeMainContainer() {
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
-        setYetkiliMi(erisebilir);
+        const isYetkili = kullanici?.grup === 'tam' || uretimPin;
+        setYetkiliMi(isYetkili);
 
-        if (erisebilir) {
-            // [AI ZIRHI]: WebSocket dinleyicisi sadece b1_muhasebe_raporlari na daraltıldı.
-            const kanal = supabase.channel('muhasebe-gercek-zamanli')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_muhasebe_raporlari' }, () => { yukle(); })
-                .subscribe();
-            yukle();
-            return () => { supabase.removeChannel(kanal); };
-        }
+        let kanal;
+        const baslatKanal = () => {
+            if (isYetkili && !document.hidden) {
+                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
+                kanal = supabase.channel('muhasebe-gercek-zamanli-optimize')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_muhasebe_raporlari' }, yukle)
+                    .subscribe();
+            }
+        };
+
+        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+
+        const handleVisibility = () => {
+            if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); }
+        };
+
+        baslatKanal();
+        if (isYetkili) yukle();
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { durdurKanal(); document.removeEventListener('visibilitychange', handleVisibility); };
     }, [kullanici]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
@@ -306,32 +319,34 @@ export default function MuhasebeMainContainer() {
 
     if (!yetkiliMi) {
         return (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKİSİZ GİRİŞ ENGELLENDİ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Muhasebe Raporu gizlidir. Görüntülemek için Üretim PİN girişi zorunludur.</p>
+            <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl" dir={isAR ? 'rtl' : 'ltr'}>
+                <Lock size={48} className="mx-auto mb-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
+                <h2 className="text-xl font-black text-rose-500 uppercase tracking-widest">YETKİSİZ GİRİŞ ENGELLENDİ</h2>
+                <p className="text-rose-300 font-bold mt-2">Muhasebe Raporu gizlidir. Görüntülemek için Üretim PİN girişi zorunludur.</p>
             </div>
         );
     }
 
     return (
-        <div dir={isAR ? 'rtl' : 'ltr'}>
+        <div className="space-y-6" dir={isAR ? 'rtl' : 'ltr'}>
             {/* BAŞLIK */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
-                <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FileCheck size={24} color="white" />
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+                        <FileCheck size={24} className="text-emerald-50" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">
+                            {isAR ? 'المحاسبة والتقارير النهائية' : 'Muhasebe & Final Rapor'}
+                        </h1>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
+                            {isAR ? 'مراجعة → موافقة الشيف → قفل → تحويل إلى الوحدة الثانية' : 'İncele → Şef onayı → Kilitle → 2. Birime devir'}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                        {isAR ? 'المحاسبة والتقارير النهائية' : 'Muhasebe & Final Rapor'}
-                    </h1>
-                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
-                        {isAR ? 'مراجعة → موافقة الشيف → قفل → تحويل إلى الوحدة الثانية' : 'İncele → Şef onayı → Kilitle → 2. Birime devir'}
-                    </p>
-                </div>
-                <div style={{ marginLeft: 'auto' }}>
-                    <Link href="/" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
+                <div className="ml-auto">
+                    <Link href="/" className="no-underline">
+                        <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20 border-b-4 border-emerald-800 transition-all">
                             Ana Sayfaya Dön
                         </button>
                     </Link>
@@ -339,53 +354,53 @@ export default function MuhasebeMainContainer() {
             </div>
 
             {/* İSTATİSTİK KARTLARI */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                    { label: 'Toplam Rapor', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
-                    { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, color: '#d97706', bg: '#fffbeb' },
-                    { label: '✅ Onaylı', val: istatistik.onaylandi, color: '#10b981', bg: '#f0fdf4' },
-                    { label: '🔒 Kilitli', val: istatistik.kilitli, color: '#0f172a', bg: '#f8fafc' },
+                    { label: 'Toplam Rapor', val: istatistik.toplam, colorClass: 'text-emerald-700', bgClass: 'bg-emerald-50 border-emerald-200' },
+                    { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-200' },
+                    { label: '✅ Onaylı', val: istatistik.onaylandi, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
+                    { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-slate-800', bgClass: 'bg-slate-50 border-slate-200' },
                 ].map((s, i) => (
-                    <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.875rem 1rem' }}>
-                        <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
-                        <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
+                    <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1 tracking-widest">{s.label}</div>
+                        <div className={`font-black text-2xl ${s.colorClass}`}>{s.val}</div>
                     </div>
                 ))}
             </div>
 
             {/* ARAMA */}
-            <div style={{ position: 'relative', marginBottom: '1.25rem', maxWidth: 420 }}>
-                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <div className="relative max-w-md">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
                     placeholder="Model kodu veya adına göre ara..."
-                    style={{ ...inp, paddingLeft: 36, maxWidth: '100%' }} />
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" />
             </div>
 
             {mesaj.text && (
-                <div style={{ padding: '10px 16px', marginBottom: '1rem', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: '2px solid', borderColor: mesaj.type === 'error' ? '#ef4444' : '#10b981', background: mesaj.type === 'error' ? '#fef2f2' : '#ecfdf5', color: mesaj.type === 'error' ? '#b91c1c' : '#065f46' }}>
+                <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                     {mesaj.text}
                 </div>
             )}
 
             {/* ÜRETİMDEN OTOMATIK RAPOR OLUŞTUR */}
             {raporsizemOrders.length > 0 && (
-                <div style={{ background: 'linear-gradient(135deg,#fef3c7,#fffbeb)', border: '2px solid #f59e0b', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '1.1rem' }}>⚡</span>
-                        <span style={{ fontWeight: 800, color: '#92400e', fontSize: '0.9rem' }}>
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-2xl p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-xl">⚡</span>
+                        <span className="font-black text-amber-900 text-sm uppercase tracking-wider">
                             {raporsizemOrders.length} Tamamlanmış Üretim — Muhasebe Raporu Bekliyor!
                         </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div className="flex flex-col gap-2">
                         {raporsizemOrders.map(o => (
-                            <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', borderRadius: 10, padding: '0.625rem 0.875rem', border: '1px solid #fde68a' }}>
+                            <div key={o.id} className="flex justify-between items-center bg-white rounded-xl p-3 border-2 border-amber-200 shadow-sm">
                                 <div>
-                                    <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#fde68a', color: '#92400e', padding: '2px 7px', borderRadius: 4, marginRight: 8 }}>{o.model_kodu}</span>
-                                    <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>{o.model_adi || 'Model'}</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: 8 }}>{o.hedef_adet} adet</span>
+                                    <span className="text-xs font-black bg-amber-200 text-amber-900 px-2 py-1 rounded inline-block mr-2 uppercase">{o.model_kodu}</span>
+                                    <span className="font-bold text-slate-800 text-sm uppercase">{o.model_adi || 'Model'}</span>
+                                    <span className="text-xs font-bold text-slate-400 ml-2">{o.hedef_adet} adet</span>
                                 </div>
                                 <button onClick={() => uretimdenRaporOlustur(o)} disabled={loading}
-                                    style={{ padding: '6px 14px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem' }}>
+                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap">
                                     📋 Rapor Oluştur
                                 </button>
                             </div>
@@ -402,78 +417,52 @@ export default function MuhasebeMainContainer() {
                 const fark = toplamGercek - toplamHedef;
                 const pct = toplamHedef > 0 ? ((fark / toplamHedef) * 100).toFixed(1) : 0;
                 return (
-                    <div style={{ background: fark > 0 ? 'linear-gradient(135deg,#fef2f2,#fee2e2)' : 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '2px solid ' + (fark > 0 ? '#fca5a5' : '#6ee7b7'), borderRadius: 16, padding: '1.25rem', marginBottom: '1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.875rem' }}>
-                            <span style={{ fontSize: '1.2rem' }}>{fark > 0 ? '⚠️' : ''}</span>
-                            <span style={{ fontWeight: 900, color: fark > 0 ? '#991b1b' : '#065f46', fontSize: '0.92rem' }}>
+                    <div className={`border-2 rounded-2xl p-5 shadow-sm ${fark > 0 ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300'}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="text-xl">{fark > 0 ? '⚠️' : '✅'}</span>
+                            <span className={`font-black uppercase tracking-widest text-sm ${fark > 0 ? 'text-red-800' : 'text-emerald-800'}`}>
                                 BÜTÇE vs GERÇEK ANALİZİ — {raporlar.length} Rapor
                             </span>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
-                            <div style={{ background: 'white', borderRadius: 10, padding: '0.875rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Toplam Hedef</div>
-                                <div style={{ fontWeight: 900, color: '#374151', fontSize: '1.1rem', marginTop: 4 }}>₺{toplamHedef.toFixed(0)}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
+                                <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
                             </div>
-                            <div style={{ background: 'white', borderRadius: 10, padding: '0.875rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Toplam Gerçek</div>
-                                <div style={{ fontWeight: 900, color: fark > 0 ? '#dc2626' : '#059669', fontSize: '1.1rem', marginTop: 4 }}>₺{toplamGercek.toFixed(0)}</div>
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
+                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
                             </div>
-                            <div style={{ background: 'white', borderRadius: 10, padding: '0.875rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Sapma</div>
-                                <div style={{ fontWeight: 900, color: fark > 0 ? '#dc2626' : '#059669', fontSize: '1.1rem', marginTop: 4 }}>{fark > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({pct > 0 ? '+' : ''}{pct}%)</div>
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sapma</div>
+                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fark > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({pct > 0 ? '+' : ''}{pct}%)</div>
                             </div>
-                        </div>
-                    </div>
-                );
-            })()}
-            {/* [M8] BÜTÇE vs GERÇEK ANALİZİ */}
-            {raporlar.length > 0 && (() => {
-                const tH = raporlar.reduce((s, r) => s + parseFloat(r.hedeflenen_maliyet_tl || 0), 0);
-                const tG = raporlar.reduce((s, r) => s + parseFloat(r.gerceklesen_maliyet_tl || 0), 0);
-                const fark = tG - tH;
-                const pct = tH > 0 ? ((fark / tH) * 100).toFixed(1) : 0;
-                return (
-                    <div style={{ background: fark > 0 ? '#fef2f2' : '#ecfdf5', border: `2px solid ${fark > 0 ? '#fca5a5' : '#6ee7b7'}`, borderRadius: 16, padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
-                        <div style={{ fontWeight: 900, color: fark > 0 ? '#991b1b' : '#065f46', fontSize: '0.88rem', marginBottom: '0.75rem' }}>
-                            {fark > 0 ? '⚠️' : '✅'} BÜTÇE vs GERÇEK — {raporlar.length} Rapor Analizi
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.625rem' }}>
-                            {[
-                                { label: 'Toplam Hedef', val: `₺${tH.toFixed(0)}`, color: '#374151' },
-                                { label: 'Toplam Gerçek', val: `₺${tG.toFixed(0)}`, color: fark > 0 ? '#dc2626' : '#059669' },
-                                { label: 'Sapma', val: `${fark > 0 ? '+' : ''}${fark.toFixed(0)}₺ (${pct}%)`, color: fark > 0 ? '#dc2626' : '#059669' },
-                            ].map((m, i) => (
-                                <div key={i} style={{ background: 'white', borderRadius: 10, padding: '0.75rem', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '0.58rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
-                                    <div style={{ fontWeight: 900, color: m.color, fontSize: '1rem' }}>{m.val}</div>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 );
             })()}
 
             {/* DEVİR GEÇİŞ KAPISI */}
-            <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ fontSize: '1.5rem' }}>🚪</div>
-                <div>
-                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>2. Birime Geçiş Kapısı</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700 flex items-center gap-4">
+                <div className="text-3xl">🚪</div>
+                <div className="flex-1">
+                    <div className="font-black text-white text-sm tracking-wide">2. Birime Geçiş Kapısı</div>
+                    <div className="text-xs text-slate-400 font-bold mt-1">Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
                 </div>
-                <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>KİLİTLİ RAPOR</div>
-                    <div style={{ fontWeight: 900, color: '#34d399', fontSize: '1.4rem' }}>{istatistik.kilitli}</div>
+                <div className="text-center bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
+                    <div className="text-[10px] text-slate-400 font-black tracking-widest uppercase mb-1">Kilitli Rapor</div>
+                    <div className="font-black text-emerald-400 text-3xl leading-none">{istatistik.kilitli}</div>
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-start' }}>
+            <div className="flex flex-wrap lg:flex-nowrap gap-6 items-start">
                 {/* RAPOR LİSTESİ */}
-                <div style={{ flex: '1 1 350px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                <div className="w-full lg:w-1/2 xl:w-5/12 shrink-0">
+                    <div className="flex flex-col gap-3">
                         {!loading && filtreliRaporlar.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
-                                <FileCheck size={40} style={{ color: '#e5e7eb', marginBottom: '0.5rem' }} />
-                                <p style={{ color: '#94a3b8', fontWeight: 700 }}>
+                            <div className="text-center p-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                                <FileCheck size={40} className="text-slate-200 mb-3 mx-auto" />
+                                <p className="text-slate-400 font-bold">
                                     {aramaMetni ? 'Arama sonucu bulunamadı.' : 'Final rapor yok. M6 Üretim Bandından devir başlatın.'}
                                 </p>
                             </div>
@@ -481,58 +470,60 @@ export default function MuhasebeMainContainer() {
                         {filtreliRaporlar.map(r => {
                             const pct = parseFloat(asimPct(r));
                             const kilitli = r.rapor_durumu === 'kilitlendi';
+                            const isSelected = secilenRapor?.id === r.id;
+
                             return (
                                 <div key={r.id}
                                     onClick={() => raporSec(r)}
-                                    style={{ background: secilenRapor?.id === r.id ? '#ecfdf5' : 'white', border: '2px solid', borderColor: secilenRapor?.id === r.id ? '#047857' : kilitli ? '#0f172a' : '#f1f5f9', borderRadius: 12, padding: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: secilenRapor?.id === r.id ? '0 4px 16px rgba(4,120,87,0.15)' : 'none' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-emerald-50 border-emerald-600 shadow-md shadow-emerald-600/10' : kilitli ? 'bg-white border-slate-800 hover:border-slate-800 shadow-sm' : 'bg-white border-slate-100 hover:border-emerald-300 hover:shadow-sm'}`}>
+                                    <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <div style={{ display: 'flex', gap: 6, marginBottom: '0.375rem' }}>
-                                                <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: 4 }}>
+                                            <div className="flex gap-2 mb-2">
+                                                <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase tracking-wider">
                                                     {r.model_kodu || r.id?.slice(0, 8) || 'Rapor'}
                                                 </span>
-                                                <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
+                                                <span className="text-[10px] font-black px-2 py-0.5 rounded tracking-wider uppercase" style={{ background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
                                                     {DURUM_LABEL[r.rapor_durumu]}
                                                 </span>
                                             </div>
-                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>
+                                            <div className="font-black text-slate-800 text-sm tracking-tight uppercase">
                                                 {r.model_adi || r.model_kodu || 'Model'}
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
-                                            <div style={{ fontWeight: 900, color: pct > 0 ? '#ef4444' : '#10b981', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                        <div className="flex flex-col gap-2 items-end">
+                                            <div className={`font-black text-sm flex items-center gap-1 ${pct > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
                                                 {pct > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} %{Math.abs(pct)}
                                             </div>
                                             {/* Eylem butonları */}
                                             {!kilitli ? (
-                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+                                                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => duzenleAc(r)}
-                                                        style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
-                                                        <Edit2 size={11} style={{ display: 'inline', marginRight: 2 }} />Düzenle
+                                                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg flex items-center justify-center transition-colors">
+                                                        <Edit2 size={13} />
                                                     </button>
                                                     <button disabled={islemdeId === 'sil_' + r.id} onClick={() => raporSil(r)}
-                                                        style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: islemdeId === 'sil_' + r.id ? 'wait' : 'pointer', fontSize: '0.7rem', opacity: islemdeId === 'sil_' + r.id ? 0.5 : 1 }}>
-                                                        <Trash2 size={11} />
+                                                        className={`bg-red-50 text-red-600 hover:bg-red-100 p-1.5 rounded-lg flex items-center justify-center transition-colors ${islemdeId === 'sil_' + r.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                                        <Trash2 size={13} />
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+                                                <div onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => zeyilnameAc(r)}
-                                                        style={{ background: '#fffbeb', border: 'none', color: '#b45309', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
+                                                        className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider transition-colors">
                                                         ➕ Zeyilname (Ek)
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem', marginTop: '0.625rem' }}>
-                                        <div style={{ background: '#f8fafc', borderRadius: 6, padding: '5px 10px' }}>
-                                            <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>HEDEF</div>
-                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                                            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
+                                            <div className="font-black text-slate-700 text-sm">₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
-                                        <div style={{ background: pct > 10 ? '#fef2f2' : '#f0fdf4', borderRadius: 6, padding: '5px 10px' }}>
-                                            <div style={{ fontSize: '0.6rem', color: pct > 10 ? '#dc2626' : '#059669', fontWeight: 700 }}>GERÇEK TOPLAM</div>
-                                            <div style={{ fontWeight: 800, color: pct > 10 ? '#dc2626' : '#059669', fontSize: '0.88rem' }}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
+                                        <div className={`rounded-xl p-2.5 border ${pct > 10 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
+                                            <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${pct > 10 ? 'text-red-500' : 'text-emerald-600'}`}>Gerçek Toplam</div>
+                                            <div className={`font-black text-sm ${pct > 10 ? 'text-red-600' : 'text-emerald-700'}`}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -543,31 +534,31 @@ export default function MuhasebeMainContainer() {
 
                 {/* SEÇİLEN RAPOR DETAY */}
                 {secilenRapor && (
-                    <div style={{ flex: '1.5 1 400px', background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.25rem', alignSelf: 'flex-start', position: 'sticky', top: 10 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h2 style={{ fontWeight: 900, color: '#0f172a', margin: 0, fontSize: '1rem' }}>📊 Rapor Detayı</h2>
-                            <button onClick={() => setSecilenRapor(null)} style={{ background: '#f1f5f9', border: 'none', color: '#64748b', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                    <div className="w-full lg:w-1/2 xl:w-7/12 shrink-0 bg-white border-4 border-emerald-600 rounded-3xl p-6 lg:sticky lg:top-6 shadow-2xl shadow-emerald-900/10">
+                        <div className="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4">
+                            <h2 className="font-black text-slate-800 text-lg uppercase tracking-wider flex items-center gap-2 m-0"><span className="text-xl">📊</span> Rapor Detayı (Z-Raporu)</h2>
+                            <button onClick={() => setSecilenRapor(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors">✕</button>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '1rem' }}>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                             {[
-                                { label: 'Hedef Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, color: '#374151' },
-                                { label: 'Gerçekleşen', val: `₺${(parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) + parseFloat(secilenRapor.ek_maliyet_tl || 0)).toFixed(2)}`, color: parseFloat(secilenRapor.fark_tl) > 0 ? '#dc2626' : '#059669' },
-                                { label: 'Zeyilname (Ek)', val: `₺${parseFloat(secilenRapor.ek_maliyet_tl || 0).toFixed(2)}`, color: '#b45309' },
-                                { label: 'Birim Adet Mal.', val: `₺${birimMaliyet(secilenRapor)}`, color: '#D4AF37' },
-                                { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, color: '#059669' },
-                                { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, color: '#ef4444' },
+                                { label: 'Hedef Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-slate-700' },
+                                { label: 'Gerçekleşen', val: `₺${(parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) + parseFloat(secilenRapor.ek_maliyet_tl || 0)).toFixed(2)}`, colorClass: (parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) - parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0)) > 0 ? 'text-red-600' : 'text-emerald-600' },
+                                { label: 'Zeyilname (Ek)', val: `₺${parseFloat(secilenRapor.ek_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-amber-700' },
+                                { label: 'Birim Adet Mal.', val: `₺${birimMaliyet(secilenRapor)}`, colorClass: 'text-amber-500' },
+                                { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, colorClass: 'text-emerald-600' },
+                                { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, colorClass: 'text-red-500' },
                             ].map((m, i) => (
-                                <div key={i} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
-                                    <div style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</div>
-                                    <div style={{ fontWeight: 900, color: m.color, fontSize: '0.95rem', marginTop: 2 }}>{m.val}</div>
+                                <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
+                                    <div className={`font-black text-base ${m.colorClass}`}>{m.val}</div>
                                 </div>
                             ))}
                         </div>
 
                         {secilenRapor.notlar && (
-                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginBottom: '1rem', fontSize: '0.82rem', color: '#92400e' }}>
-                                📝 {secilenRapor.notlar}
+                            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6 text-sm font-bold text-amber-900 shadow-inner">
+                                <span className="mr-2">📝</span> {secilenRapor.notlar}
                             </div>
                         )}
 
@@ -578,76 +569,80 @@ export default function MuhasebeMainContainer() {
                                 return acc;
                             }, {});
                             const totalUI = Object.values(uMaliyetData).reduce((a, b) => a + b, 0);
-                            const mRenk = { personel_iscilik: '#3b82f6', isletme_gideri: '#f59e0b', fason_islem: '#8b5cf6', hammadde: '#10b981', diger: '#94a3b8' };
+                            const mRenkBg = { personel_iscilik: 'bg-blue-500', isletme_gideri: 'bg-amber-500', fason_islem: 'bg-purple-500', hammadde: 'bg-emerald-500', diger: 'bg-slate-400' };
+                            const mRenkBorder = { personel_iscilik: 'border-blue-500', isletme_gideri: 'border-amber-500', fason_islem: 'border-purple-500', hammadde: 'border-emerald-500', diger: 'border-slate-400' };
+
                             return (
-                                <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '12px', border: '1px solid #e2e8f0', borderRadius: 10 }}>
-                                    <div style={{ fontWeight: 800, color: '#374151', fontSize: '0.8rem', marginBottom: '0.75rem', textTransform: 'uppercase' }}>💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+                                <div className="mb-6 bg-slate-50 p-5 border-2 border-slate-200 rounded-2xl">
+                                    <div className="font-black text-slate-600 text-[11px] mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
 
                                     {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
-                                    <div style={{ display: 'flex', height: 16, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
+                                    <div className="flex h-5 rounded-lg overflow-hidden mb-4 shadow-inner">
                                         {Object.entries(uMaliyetData).map(([tip, miktar]) => {
                                             const w = Math.max((miktar / (totalUI || 1)) * 100, 1); // min 1% for visibility
-                                            return <div key={tip} style={{ width: `${w}%`, background: mRenk[tip] || mRenk.diger, opacity: 0.95 }} title={`${tip}: ₺${miktar.toFixed(2)}`} />;
+                                            return <div key={tip} style={{ width: `${w}%` }} className={`${mRenkBg[tip] || mRenkBg.diger} opacity-95 hover:opacity-100 transition-opacity cursor-help`} title={`${MALIYET_LABEL[tip] || tip}: ₺${miktar.toFixed(2)}`} />;
                                         })}
                                     </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '0.75rem' }}>
+                                    <div className="flex flex-wrap gap-2 mb-4">
                                         {Object.entries(uMaliyetData).map(([tip, miktar]) => {
                                             const yuzdeUi = ((miktar / (totalUI || 1)) * 100).toFixed(1);
                                             return (
-                                                <div key={tip} style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 800, background: 'white', padding: '2px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #cbd5e1' }}>
-                                                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: mRenk[tip] || mRenk.diger }} />
-                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span style={{ color: '#94a3b8' }}>(%{yuzdeUi})</span>
+                                                <div key={tip} className="text-xs text-slate-600 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2">
+                                                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${mRenkBg[tip] || mRenkBg.diger}`} />
+                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-[10px]">(%{yuzdeUi})</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
 
-                                    <div style={{ height: 1, background: '#e2e8f0', margin: '8px 0' }} />
-                                    <h5 style={{ margin: '8px 0', color: '#0f172a', fontSize: '0.7rem', fontWeight: 800 }}>Maliyet Detay Dökümü</h5>
-                                    {ilgiliMaliyetler.map(m => (
-                                        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 6, background: 'white', marginBottom: '0.25rem', borderLeft: `3px solid ${mRenk[m.maliyet_tipi] || mRenk.diger}` }}>
-                                            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>{m.kalem_aciklama}</span>
-                                            <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.82rem' }}>₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
-                                        </div>
-                                    ))}
+                                    <div className="h-0.5 bg-slate-200 my-4" />
+                                    <h5 className="my-3 text-slate-800 text-xs font-black uppercase tracking-wider">Maliyet Detay Dökümü</h5>
+                                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-1.5 custom-scrollbar">
+                                        {ilgiliMaliyetler.map((m, idx) => (
+                                            <div key={m.id || idx} className={`flex justify-between items-center p-3 rounded-xl bg-white border-l-4 border-r border-y border-slate-100 shadow-sm hover:shadow-md transition-shadow ${mRenkBorder[m.maliyet_tipi] || mRenkBorder.diger}`}>
+                                                <span className="text-xs text-slate-700 font-bold">{m.kalem_aciklama}</span>
+                                                <span className="font-black text-slate-800 text-sm">₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             );
                         })()}
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div className="flex flex-col gap-3">
                             {secilenRapor.rapor_durumu === 'taslak' && (
                                 <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
-                                    style={{ padding: '10px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === secilenRapor.id ? 'wait' : 'pointer', opacity: islemdeId === secilenRapor.id ? 0.5 : 1 }}>
-                                    {islemdeId === secilenRapor.id ? '...' : '📤 Şef Onayına Gönder'}
+                                    className={`p-3 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                    {islemdeId === secilenRapor.id ? 'İşleniyor...' : '📤 Şef Onayına Gönder'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'sef_onay_bekliyor' && (
                                 <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'onaylandi')}
-                                    style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === secilenRapor.id ? 'wait' : 'pointer', opacity: islemdeId === secilenRapor.id ? 0.5 : 1 }}>
-                                    {islemdeId === secilenRapor.id ? '...' : '✅ Şef Onayı Ver'}
+                                    className={`p-3 bg-emerald-500 hover:bg-emerald-600 border-b-4 border-emerald-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                    {islemdeId === secilenRapor.id ? 'İşleniyor...' : '✅ Şef Onayı Ver'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'onaylandi' && (
                                 <button disabled={islemdeId === 'devir_' + secilenRapor.id} onClick={() => devirKapat(secilenRapor)}
-                                    style={{ padding: '10px', background: 'linear-gradient(135deg,#0f172a,#1e293b)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'devir_' + secilenRapor.id ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: islemdeId === 'devir_' + secilenRapor.id ? 0.5 : 1 }}>
-                                    <Lock size={16} /> {islemdeId === 'devir_' + secilenRapor.id ? 'Kilitleniyor...' : 'Kilitle & 2. Birime Devret'}
+                                    className={`p-4 bg-slate-900 hover:bg-black border-l-8 border-emerald-500 text-white rounded-xl font-black flex items-center justify-center gap-3 transition-all ${islemdeId === 'devir_' + secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                    <Lock size={18} /> {islemdeId === 'devir_' + secilenRapor.id ? 'Kilitleniyor...' : 'Kilitle & 2. Birime Devret'}
                                 </button>
                             )}
                             {secilenRapor.rapor_durumu === 'kilitlendi' && (
-                                <div style={{ padding: '10px', background: '#0f172a', color: '#34d399', borderRadius: 10, fontWeight: 800, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                    <Lock size={16} /> KİLİTLİ — 2. BİRİMDE
+                                <div className="p-4 bg-slate-900 border-l-8 border-emerald-500 text-emerald-400 rounded-xl font-black text-center flex items-center justify-center gap-3 shadow-inner">
+                                    <Lock size={18} /> KİLİTLİ — 2. BİRİMDE
                                 </div>
                             )}
                             {secilenRapor.rapor_durumu !== 'kilitlendi' && (
                                 <button onClick={() => duzenleAc(secilenRapor)}
-                                    style={{ padding: '8px', background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                    <Edit2 size={13} /> Zayiat / Hedef / Not Düzenle
+                                    className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors">
+                                    <Edit2 size={16} /> Zayiat / Hedef / Not Düzenle
                                 </button>
                             )}
                             {/* [A-04] Yazdır / PDF */}
                             <button
                                 onClick={() => window.print()}
-                                style={{ padding: '8px', background: '#f8fafc', border: '2px solid #e2e8f0', color: '#374151', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                className="p-3 bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors mt-2">
                                 🖨️ Raporu Yazdır / PDF
                             </button>
                         </div>
@@ -657,58 +652,59 @@ export default function MuhasebeMainContainer() {
 
             {/* DÜZENLE MODAL */}
             {duzenleModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-                    <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                            <h3 style={{ fontWeight: 900, color: '#0f172a', margin: 0 }}>✏️ Rapor Düzenle</h3>
-                            <button onClick={() => setDuzenleModal(null)} style={{ background: '#f1f5f9', border: 'none', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', color: '#64748b', fontWeight: 700 }}>✕</button>
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-lg shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-black text-slate-800 text-xl m-0 flex items-center gap-2">✏️ Rapor Düzenle</h3>
+                            <button onClick={() => setDuzenleModal(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors">✕</button>
                         </div>
-                        <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 14px', marginBottom: '1rem', fontSize: '0.82rem', fontWeight: 700, color: '#065f46' }}>
-                            📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)} {duzenleModal.zeyilname_modu && <span style={{ background: '#fcd34d', color: '#78350f', padding: '2px 6px', borderRadius: 4, marginLeft: 8 }}>M8 Zeyilname Ek Fatura</span>}
+                        <div className="bg-emerald-50 border-2 border-emerald-100 rounded-xl p-3 mb-6 text-sm font-black text-emerald-800 flex items-center flex-wrap gap-2 uppercase tracking-wide">
+                            📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)}
+                            {duzenleModal.zeyilname_modu && <span className="bg-amber-400 text-amber-950 px-2 py-0.5 rounded ml-2 text-xs">M8 Zeyilname Ek Fatura</span>}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                        <div className="flex flex-col gap-5">
                             {!duzenleModal.zeyilname_modu ? (
                                 <>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Zayiat Adet</label>
+                                        <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Zayiat Adet</label>
                                         <input type="number" min="0" value={duzenleForm.zayiat_adet}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
-                                            style={inp} />
+                                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all" />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6, textTransform: 'uppercase' }}>Bütçelenen Hedef Maliyet Kapasitesi</label>
-                                        <div style={{ position: 'relative' }}>
+                                        <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Bütçelenen Hedef Maliyet Kapasitesi</label>
+                                        <div className="relative">
                                             <input type="number" min="0" step="100" value={duzenleForm.hedeflenen_maliyet_tl}
                                                 onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
-                                                style={{ ...inp, paddingLeft: 30 }} />
-                                            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: '#64748b' }}>₺</span>
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all" />
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">₺</span>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#b45309', marginBottom: 6, textTransform: 'uppercase' }}>Ek Maliyet Farkı (Zeyilname)</label>
-                                    <div style={{ position: 'relative' }}>
+                                <div className="bg-amber-50 border-2 border-amber-200 p-4 rounded-xl">
+                                    <label className="block text-[11px] font-black text-amber-800 mb-2 uppercase tracking-widest">Ek Maliyet Farkı (Zeyilname)</label>
+                                    <div className="relative">
                                         <input type="number" min="0" step="10" value={duzenleForm.ek_maliyet_tl}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, ek_maliyet_tl: e.target.value })} placeholder="Fason fiyat farkı, kargo vb.."
-                                            style={{ ...inp, paddingLeft: 30, borderColor: '#f59e0b', background: '#fffbeb' }} />
-                                        <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#b45309' }}>₺</span>
+                                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-amber-300 rounded-xl font-black text-amber-900 outline-none focus:border-amber-500 transition-all placeholder:text-amber-300 placeholder:font-medium" />
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-600">₺</span>
                                     </div>
-                                    <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4 }}>Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
+                                    <p className="text-[10px] font-bold text-amber-700/70 mt-3 leading-relaxed">Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
                                 </div>
                             )}
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#374151', marginBottom: 6 }}>Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
+                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
                                 <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
                                     onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
-                                    placeholder="İç not, açıklama..." style={{ ...inp, resize: 'vertical' }} />
+                                    placeholder="İç not, açıklama..." className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all resize-y custom-scrollbar" />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: '1.25rem' }}>
-                            <button onClick={() => setDuzenleModal(null)} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                        <div className="flex gap-3 justify-end mt-8 border-t-2 border-slate-100 pt-6">
+                            <button onClick={() => setDuzenleModal(null)} className="px-6 py-2.5 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition-all">İptal</button>
                             <button onClick={duzenleKaydet} disabled={loading}
-                                style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#d97706', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                                className={`px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 border-b-4 border-emerald-800 text-white rounded-xl font-black transition-all flex items-center gap-2 ${loading ? 'opacity-70 cursor-wait' : ''}`}>
                                 {loading ? '...' : '✅ Kaydet'}
                             </button>
                         </div>
