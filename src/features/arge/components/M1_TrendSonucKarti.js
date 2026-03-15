@@ -7,7 +7,10 @@ import { TrendingUp, Plus, ExternalLink, Bot, Zap, AlertTriangle, CheckCircle2, 
  * Hermes V2'nin döndürdüğü tek bir trend sonucunu gösterir.
  * Kaşif butonu: /api/agent/kasif üzerinden "Satar mı?" analizi tetikler.
  */
-export default function M1_TrendSonucKarti({ /** @type {any} */ sonuc, /** @type {any} */ onKaydet, /** @type {any} */ isAR }) {
+/**
+ * @param {{ sonuc: any, onKaydet: any, isAR: any, key?: any }} props
+ */
+export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
     const [kasifYukleniyor, setKasifYukleniyor] = useState(false);
     const [kasifSonucu, setKasifSonucu] = useState(/** @type {any} */(null));
     const [kasifAcik, setKasifAcik] = useState(false);

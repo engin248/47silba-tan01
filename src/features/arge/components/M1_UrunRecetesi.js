@@ -7,7 +7,10 @@ import NextLink from 'next/link';
  * Onaylanmış bir trendin 6 bloklu ürün reçetesini gösterir.
  * Gateway Butonu: Skor normalse M2'ye fiziksel onay gönderir.
  */
-export default function M1_UrunRecetesi({ /** @type {any} */ trend, /** @type {any} */ onDurumGuncelle, /** @type {any} */ onSil, /** @type {any} */ onDuzenle, /** @type {any} */ isAR, /** @type {any} */ yetkiliMi, /** @type {any} */ islemdeId }) {
+/**
+ * @param {{ trend: any, onDurumGuncelle: any, onSil: any, onDuzenle: any, isAR: any, yetkiliMi: any, islemdeId: any, key?: any }} props
+ */
+export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzenle, isAR, yetkiliMi, islemdeId }) {
     const skor = trend.talep_skoru ?? 5;
     const zorluk = trend.zorluk_derecesi ?? 5;
     const skorRenk = (/** @type {any} */ s) => s >= 8 ? '#10b981' : s >= 5 ? '#f59e0b' : '#ef4444';

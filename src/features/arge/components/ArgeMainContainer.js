@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, CheckCircle2, XCircle, Clock, ExternalLink, AlertTriangle, Bot, ChevronDown, Globe, BarChart3, Tag, Link, Eye, Trash2, Lock, Camera } from 'lucide-react';
+import { TrendingUp, Plus, CheckCircle2, XCircle, Clock, ExternalLink, AlertTriangle, Bot, ChevronDown, Globe, BarChart3, Tag, Link, Eye, Trash2, Lock, Camera, Network, Cpu, Database, Zap } from 'lucide-react';
 import NextLink from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
@@ -612,6 +612,84 @@ export default function ArgeSayfasi() {
             )}
 
             {/* AI TREND ARAMA KUTUSU */}
+
+            {/* ── 🤖 YENİ: 8 ÇEKİRDEKLİ OTONOM İSTİHBARAT AĞI WİDGET'I ──────────────────────── */}
+            <div style={{ marginBottom: '1.5rem', background: 'linear-gradient(135deg, #022c22, #064e3b)', borderRadius: '16px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 10px 25px rgba(2, 44, 34, 0.5)' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'url("/noise.png")', opacity: 0.05, mixBlendMode: 'overlay' }}></div>
+                <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: '#d4af37', filter: 'blur(40px)', opacity: 0.15, borderRadius: '50%' }}></div>
+
+                <div style={{ padding: '1.25rem', position: 'relative', zIndex: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
+                        <h2 style={{ fontSize: '0.85rem', fontWeight: 900, color: '#d4af37', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <Cpu size={16} /> {isAR ? 'شبكة الاستخبارات المستقلة ذات 8 نوى' : '8 Çekirdekli Otonom İstihbarat Ağı'}
+                        </h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, color: '#6ee7b7' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', display: 'inline-block', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></span>
+                            SİSTEM DEVREDE
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                        {/* Veri Madencileri */}
+                        <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(94, 234, 212, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ background: 'rgba(56, 189, 248, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                    <Network size={16} color="#38bdf8" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Veri Madencileri (3)</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>Pazar taranıyor...</div>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#38bdf8', fontFamily: 'monospace' }}>2.4k</div>
+                                <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Canlı İşlem</div>
+                            </div>
+                        </div>
+
+                        {/* Analistler */}
+                        <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ background: 'rgba(251, 191, 36, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                    <Zap size={16} color="#fbbf24" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Trend Analistleri (4)</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>Skorlama hesaplanıyor</div>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace' }}>%92</div>
+                                <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Karar İsabeti</div>
+                            </div>
+                        </div>
+
+                        {/* Kâhin */}
+                        <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ background: 'rgba(212, 175, 55, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                    <Database size={16} color="#d4af37" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d4af37' }}>Baş Stratejist (1)</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#fde68a', marginTop: '2px', opacity: 0.8 }}>pgvector arşivi</div>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#10b981', fontFamily: 'monospace' }}>HAZIR</div>
+                                <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Nihai Onay</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <style>{`
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; transform: scale(1); }
+                        50% { opacity: .5; transform: scale(1.1); }
+                    }
+                `}</style>
+            </div>
+
             <M1_AramaMotoru
                 aiSorgu={aiSorgu}
                 setAiSorgu={setAiSorgu}

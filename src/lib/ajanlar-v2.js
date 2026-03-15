@@ -6,8 +6,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const sb = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+    (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://mock.supabase.co',
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim() || 'mock-key'
 );
 
 // ─── AJAN İSİMLERİ KONFİGÜRASYONU ──────────────────────────
@@ -63,6 +63,7 @@ async function alarmYaz(uyari_tipi, seviye, baslik, mesaj, kaynak_tablo = null, 
 // ============================================================
 export async function sabahSubayi() {
     const isim = AJAN_ISIMLERI.SABAH;
+    /** @type {{ kontrol_sayisi: number, bulgular: string[], kritik: number }} */
     const sonuc = { kontrol_sayisi: 0, bulgular: [], kritik: 0 };
     const tarih = new Date().toLocaleDateString('tr-TR');
 
@@ -91,7 +92,7 @@ export async function sabahSubayi() {
             .eq('aktif', true)
             .eq('stok_adeti', 0)
             .limit(10);
-        if (sifirStok?.length > 0) {
+        if (sifirStok && sifirStok.length > 0) {
             sonuc.bulgular.push(`🔴 ${sifirStok.length} ürün stok sıfır: ${sifirStok.slice(0, 3).map(u => u.urun_adi_tr).join(', ')}`);
             sonuc.kritik++;
             await alarmYaz('dusuk_stok', 'kritik', `${sifirStok.length} ürün stok sıfır`, 'Sabah taraması bulgusu', 'b2_urun_katalogu');
@@ -102,7 +103,7 @@ export async function sabahSubayi() {
         const { data: trendler } = await sb.from('b1_arge_trendler')
             .select('id')
             .eq('durum', 'inceleniyor');
-        if (trendler?.length > 0) {
+        if (trendler && trendler.length > 0) {
             sonuc.bulgular.push(`🔍 ${trendler.length} Ar-Ge trendi koordinatör onayı bekliyor`);
         }
 
@@ -114,7 +115,7 @@ export async function sabahSubayi() {
             .in('durum', ['bekliyor', 'devam_ediyor'])
             .lt('bitis_tarihi', bugun)
             .limit(10);
-        if (gecikme?.length > 0) {
+        if (gecikme && gecikme.length > 0) {
             sonuc.bulgular.push(`⏰ ${gecikme.length} üretim emri gecikmeli`);
             sonuc.kritik++;
         }
@@ -127,7 +128,7 @@ export async function sabahSubayi() {
             .eq('odendi', false)
             .lt('vade_tarihi', bugun)
             .limit(10);
-        if (faturalar?.length > 0) {
+        if (faturalar && faturalar.length > 0) {
             const toplam = faturalar.reduce((s, f) => s + (f.tutar || 0), 0);
             sonuc.bulgular.push(`💸 ${faturalar.length} vadesi geçmiş borç — Toplam: ₺${toplam.toFixed(0)}`);
             sonuc.kritik++;
@@ -164,7 +165,7 @@ export async function sabahSubayi() {
         const { data: ajanGorev } = await sb.from('b1_ajan_gorevler')
             .select('id')
             .eq('durum', 'bekliyor');
-        if (ajanGorev?.length > 0) {
+        if (ajanGorev && ajanGorev.length > 0) {
             sonuc.bulgular.push(`🤖 ${ajanGorev.length} ajan görevi çalıştırılmayı bekliyor`);
         }
 
@@ -196,6 +197,7 @@ export async function sabahSubayi() {
 // ============================================================
 export async function aksamci() {
     const isim = AJAN_ISIMLERI.AKSAM;
+    /** @type {{ kontrol_sayisi: number, ozet: string[] }} */
     const sonuc = { kontrol_sayisi: 0, ozet: [] };
 
     try {
@@ -217,7 +219,7 @@ export async function aksamci() {
             .gte('teslim_tarihi', yarin + 'T00:00:00')
             .lt('teslim_tarihi', yarin + 'T23:59:59')
             .neq('durum', 'teslim_edildi');
-        if (yarinTeslim?.length > 0) {
+        if (yarinTeslim && yarinTeslim.length > 0) {
             sonuc.ozet.push(`📦 Yarın teslim: ${yarinTeslim.length} sipariş — ${yarinTeslim.slice(0, 2).map(s => s.siparis_kodu || s.id.slice(0, 6)).join(', ')}`);
             await alarmYaz('diger', 'bilgi', `Yarın ${yarinTeslim.length} sipariş teslimi var`, 'Akşamcı hatırlatması', 'b2_siparisler');
         } else {
@@ -251,7 +253,7 @@ export async function aksamci() {
         const { data: yarimKalan } = await sb.from('b1_uretim_kayitlari')
             .select('id, modul')
             .eq('durum', 'devam_ediyor');
-        if (yarimKalan?.length > 0) {
+        if (yarimKalan && yarimKalan.length > 0) {
             sonuc.ozet.push(`⏸️ Yarım kalan: ${yarimKalan.length} iş devam ediyor`);
         }
 
@@ -282,6 +284,7 @@ export async function aksamci() {
 // ============================================================
 export async function nabiz() {
     const isim = AJAN_ISIMLERI.NABIZ;
+    /** @type {{ kontrol_sayisi: number, alarmlar: any[] }} */
     const sonuc = { kontrol_sayisi: 0, alarmlar: [] };
 
     try {
@@ -350,7 +353,7 @@ export async function nabiz() {
             .eq('odendi', false)
             .lt('vade_tarihi', bugun)
             .limit(1);
-        if (vadeli?.length > 0) {
+        if (vadeli && vadeli.length > 0) {
             await alarmYaz('diger', 'uyari', 'Vadesi Geçmiş Borç Var',
                 `${vadeli.length} ödeme gecikmiş`, 'b2_kasa_hareketleri');
         }
@@ -384,6 +387,7 @@ export async function nabiz() {
 // ============================================================
 export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
     const isim = AJAN_ISIMLERI.ZINCIR;
+    /** @type {{ islenenler: number, gecisler: string[] }} */
     const sonuc = { islenenler: 0, gecisler: [] };
 
     try {
@@ -538,6 +542,7 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
 // ============================================================
 export async function finansKalkani() {
     const isim = AJAN_ISIMLERI.FINANS;
+    /** @type {{ kontrol_sayisi: number, alarmlar: any[] }} */
     const sonuc = { kontrol_sayisi: 0, alarmlar: [] };
 
     try {

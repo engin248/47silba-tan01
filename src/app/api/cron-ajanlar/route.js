@@ -61,11 +61,15 @@ export async function GET(req) {
                 if (!mesaiDisi) {
                     // Mesai içi NVR kapanması: Kritik hata
                     // 1- Supabase tabloya yaz (Tablo varsa basar, yoksa sessiz gecer - zero trust)
-                    await supabaseAdmin.from('camera_events').insert([{
-                        camera_id: null,
-                        event_type: 'offline_alarm',
-                        video_url: null
-                    }]).catch(() => null);
+                    try {
+                        await supabaseAdmin.from('camera_events').insert([{
+                            camera_id: null,
+                            event_type: 'offline_alarm',
+                            video_url: null
+                        }]);
+                    } catch (e) {
+                        // ignore error
+                    }
 
                     // 2- Telegram Uyarisi At (Hayati!)
                     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -80,11 +84,15 @@ export async function GET(req) {
                     }
                 } else {
                     // Mesai dışı NVR Kapanması: Normal, pasif log
-                    await supabaseAdmin.from('camera_events').insert([{
-                        camera_id: null,
-                        event_type: 'offline_sleep',
-                        video_url: null
-                    }]).catch(() => null);
+                    try {
+                        await supabaseAdmin.from('camera_events').insert([{
+                            camera_id: null,
+                            event_type: 'offline_sleep',
+                            video_url: null
+                        }]);
+                    } catch (e) {
+                        // ignore error
+                    }
                 }
             }
 

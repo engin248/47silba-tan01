@@ -10,9 +10,9 @@ import { hataBildir } from '@/lib/hataBildirim';
 // ─── POST /api/kumas-ekle ──────────────────────────────────────
 export async function POST(request) {
     const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-);
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+    );
     try {
         // 1. RATE LIMIT KONTROLÜ
         const forwarded = request.headers.get('x-forwarded-for');
@@ -77,12 +77,16 @@ export async function POST(request) {
         if (error) throw error;
 
         // 6. KARA KUTU LOG
-        await supabaseAdmin.from('b0_sistem_loglari').insert([{
-            tablo_adi: tablo,
-            islem_tipi: 'EKLEME',
-            kullanici_adi: 'Server API (Güvenli Ekleme)',
-            eski_veri: { bilgi: `${kodDegeri} kodu ile yeni kayıt eklendi.` }
-        }]).catch(() => { /* log hatası sistemi durdurmasın */ });
+        try {
+            await supabaseAdmin.from('b0_sistem_loglari').insert([{
+                tablo_adi: tablo,
+                islem_tipi: 'EKLEME',
+                kullanici_adi: 'Server API (Güvenli Ekleme)',
+                eski_veri: { bilgi: `${kodDegeri} kodu ile yeni kayıt eklendi.` }
+            }]);
+        } catch (e) {
+            // log hatası sistemi durdurmasın
+        }
 
         return NextResponse.json({ basarili: true, kayit: data?.[0] }, { status: 201 });
 
