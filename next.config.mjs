@@ -52,17 +52,5 @@ const nextConfig = {
     reactStrictMode: true,
 };
 
-const sentryOptions = {
-    org: process.env.SENTRY_ORG, // Vercel environment variable
-    project: process.env.SENTRY_PROJECT, // Vercel environment variable
-    silent: true,
-    widenClientFileUpload: true,
-    hideSourceMaps: true,
-    disableLogger: true,
-    automaticVercelMonitors: true,
-    tunnelRoute: '/api/sys-health',
-};
-
-// Sentry'nin dev ortamında Webpack JS/CSS chunklarını bozmasını (500 ERR_ABORTED) engellemek için
-// köklü çözüm olarak Sentry wrapper'ını dev ortamında iptal ediyoruz.
-export default process.env.NODE_ENV === 'development' ? nextConfig : withSentryConfig(nextConfig, sentryOptions);
+// Sentry wrapper sorunlu olduğu için (özellikle App Router chunk 500 hataları ve _document hatası) tamamen devre dışı bırakıldı.
+export default nextConfig;
