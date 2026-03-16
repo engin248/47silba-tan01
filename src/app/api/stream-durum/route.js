@@ -7,17 +7,17 @@ export const maxDuration = 5; // Vercel Serverless: max 5s — 503 önlemi
 export async function GET() {
     const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL || process.env.GO2RTC_URL || 'http://localhost:1984';
 
-    // Vercel üretim ortamında go2rtc lokal servis değil — anında kapat, sonsuz retry'ı engelle
+    // Vercel/production ortamında go2rtc lokal servis — 200 ile kapali döndür
+    // ÖNEMLİ: 503 yerine 200 kullanılıyor — tarayıcı konsol hatası önleniyor
     if (process.env.VERCEL === '1' || process.env.VERCEL_URL) {
         return NextResponse.json({
             durum: 'kapali',
             url: go2rtcUrl,
             mesaj: 'go2rtc Vercel ortamında çalışmaz — yerel sunucu gerekli',
         }, {
-            status: 503,
+            status: 200,
             headers: {
-                'Retry-After': '300',   // 5 dakika bekle — sonsuz döngüyü kırar
-                'Cache-Control': 'no-store',
+                'Cache-Control': 'public, max-age=300',  // 5 dakika cache — gereksiz istekleri azaltır
             }
         });
     }
