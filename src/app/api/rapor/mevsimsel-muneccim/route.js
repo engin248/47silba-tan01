@@ -88,13 +88,15 @@ export async function GET(req) {
         uyarilar.push(`⏰ ${ilerideGun} gün öncesinden hammadde ve üretim kapasitesini hazırlayın.`);
 
         // ─ Log ───────────────────────────────────────────────
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Mevsimsel Müneccim',
-            islem_tipi: 'mevsim_tahmini',
-            kaynak_tablo: 'b1_arge_trendler + b2_siparisler',
-            sonuc: 'basarili',
-            mesaj: `${hedefAy}. ay için son 3 yıl analizi tamamlandı. Tahmini ciro: ${Math.round(ciroOrtalama).toLocaleString('tr-TR')} TL`,
-        }]);
+        if (ciroOrtalama > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Mevsimsel Müneccim',
+                islem_tipi: 'mevsim_tahmini',
+                kaynak_tablo: 'b1_arge_trendler + b2_siparisler',
+                sonuc: 'basarili',
+                mesaj: `${hedefAy}. ay için son 3 yıl analizi tamamlandı. Tahmini ciro: ${Math.round(ciroOrtalama).toLocaleString('tr-TR')} TL`,
+            }]);
+        }
 
         return NextResponse.json({
             basarili: true,

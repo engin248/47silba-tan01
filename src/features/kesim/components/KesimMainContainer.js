@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const BOSH_KESIM = {
     model_taslak_id: '', pastal_kat_sayisi: '', kesilen_net_adet: '',
-    fire_orani: '0', durum: 'kesimde',
+    fire_orani: '5', durum: 'kesimde',
     kesimci_adi: '', kesim_tarihi: '', beden_dagilimi: '{}', notlar: '', kumas_topu_no: '', kullanilan_kumas_mt: ''
 };
 const DURUMLAR = ['kesimde', 'tamamlandi', 'iptal'];
@@ -198,8 +198,8 @@ export default function KesimMainContainer() {
                     onay_durumu: 'hesaplandi'
                 }]);
 
-                // 🔴 AKILLI ALARM: Fire %4'ü geçerse Sistem Uyarılarına "Kök Neden" tebligatı fırlat
-                if (fireYuzde > 4) {
+                // 🔴 AKILLI ALARM: Fire %5'i geçerse Sistem Uyarılarına "Kök Neden" tebligatı fırlat
+                if (fireYuzde > 5) {
                     await supabase.from('b1_sistem_uyarilari').insert([{
                         baslik: `🚨 Kritik Kesim Firesi (%${fireYuzde.toFixed(1)}) - Model: ${k.b1_model_taslaklari?.model_kodu || 'Bilinmiyor'}`,
                         mesaj: `${k.kesilen_net_adet} adetlik kesimde ${kayipKumasMt.toFixed(1)} metre kumaş israf oldu. Gizli Zarar Tutarı: ₺${gercekZararTl.toFixed(0)}.\n\nKÖK NEDEN TAHMİNLERİ:\n1. Pastal yerleşim optimizasyonu verimsiz yapıldı.\n2. Kumaş eni modele uygun gelmediği için boşluklar metrajı artırdı.\n3. Defolu kumaş kısımları makaslandığı için çıkıntılar yükseldi.`,
@@ -391,11 +391,7 @@ export default function KesimMainContainer() {
                             <label style={lbl}>{isAR ? 'عدد طبقات الباستال *' : 'Pastal Kat Sayısı *'}</label>
                             <input type="number" dir="ltr" value={form.pastal_kat_sayisi} placeholder="Örn: 200"
                                 onChange={e => {
-                                    const pastal = e.target.value;
-                                    const netAdet = parseInt(form.kesilen_net_adet) || 0;
-                                    const pastalInt = parseInt(pastal) || 0;
-                                    const fire = pastalInt > 0 && netAdet > 0 ? (((pastalInt - netAdet) / pastalInt) * 100).toFixed(1) : form.fire_orani;
-                                    setForm({ ...form, pastal_kat_sayisi: pastal, fire_orani: fire });
+                                    setForm({ ...form, pastal_kat_sayisi: e.target.value });
                                 }} style={inp} />
                         </div>
 
@@ -403,11 +399,7 @@ export default function KesimMainContainer() {
                             <label style={lbl}>{isAR ? 'الكمية الصافية المقطوعة' : 'Net Çıkan Adet'}</label>
                             <input type="number" dir="ltr" value={form.kesilen_net_adet} placeholder="Örn: 195"
                                 onChange={e => {
-                                    const net = e.target.value;
-                                    const pastal = parseInt(form.pastal_kat_sayisi) || 0;
-                                    const netInt = parseInt(net) || 0;
-                                    const fire = pastal > 0 && netInt > 0 ? (((pastal - netInt) / pastal) * 100).toFixed(1) : form.fire_orani;
-                                    setForm({ ...form, kesilen_net_adet: net, fire_orani: fire });
+                                    setForm({ ...form, kesilen_net_adet: e.target.value });
                                 }} style={inp} />
                         </div>
 
@@ -421,7 +413,7 @@ export default function KesimMainContainer() {
                             <label style={lbl}>Fire Oranı (%) ⚙️</label>
                             <input type="number" dir="ltr" value={form.fire_orani} disabled={false}
                                 onChange={e => setForm({ ...form, fire_orani: e.target.value })}
-                                style={{ ...inp, background: parseFloat(form.fire_orani) > 4 ? '#fef2f2' : 'white', borderColor: parseFloat(form.fire_orani) > 4 ? '#ef4444' : '#e2e8f0' }} />
+                                style={{ ...inp, background: parseFloat(form.fire_orani) > 5 ? '#fef2f2' : 'white', borderColor: parseFloat(form.fire_orani) > 5 ? '#ef4444' : '#e2e8f0' }} />
                         </div>
 
                         <div>

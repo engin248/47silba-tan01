@@ -72,13 +72,15 @@ export async function GET(req) {
 
         // ─ Log ───────────────────────────────────────────────
         const toptan = kumerlenmisMalzemeler.filter(m => m.kac_modelde >= 3);
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Kumbaracı (Akıllı Kümeleme)',
-            islem_tipi: 'malzeme_kumeleme',
-            kaynak_tablo: 'b1_model_taslaklari + b1_modelhane_kayitlari',
-            sonuc: 'basarili',
-            mesaj: `${(kaliplar || []).length + (modelhane || []).length} model analiz edildi. ${toptan.length} malzemede toptan alım önerisi üretildi.`,
-        }]);
+        if (toptan.length > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Kumbaracı (Akıllı Kümeleme)',
+                islem_tipi: 'malzeme_kumeleme',
+                kaynak_tablo: 'b1_model_taslaklari + b1_modelhane_kayitlari',
+                sonuc: 'basarili',
+                mesaj: `${(kaliplar || []).length + (modelhane || []).length} model analiz edildi. ${toptan.length} malzemede toptan alım önerisi üretildi.`,
+            }]);
+        }
 
         return NextResponse.json({
             basarili: true,

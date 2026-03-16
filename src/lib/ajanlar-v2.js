@@ -517,10 +517,12 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
 
         // ── KONTROL NOKTASI 8: Genel Zincir Sağlık ──────────────
         sonuc.islenenler++;
-        await logYaz(isim, 'zincir_tarama',
-            `${sonuc.gecisler.length > 0 ? sonuc.gecisler.join(' | ') : 'Aktif zincir geçişi yok. Sistem normal.'}`,
-            sonuc.gecisler.length > 0 ? 'basarili' : 'basarili'
-        );
+        if (sonuc.gecisler.length > 0) {
+            await logYaz(isim, 'zincir_tarama',
+                `${sonuc.gecisler.join(' | ')}`,
+                'basarili'
+            );
+        }
 
         console.log(`[${isim}] ⛓️ ${sonuc.islenenler} modül kontrol | ${sonuc.gecisler.length} geçiş`);
         return { basarili: true, sonuc };
@@ -839,9 +841,10 @@ export async function muhasebeYazici() {
 export async function tumAjanlariCalistir() {
     const [sabah, aksam, nabizSonuc, zincir, finans] = await Promise.allSettled([
         sabahSubayi(),
+        aksamci(),
         nabiz(),
         zincirci(),
         finansKalkani(),
     ]);
-    return { sabah, nabizSonuc, zincir, finans };
+    return { sabah, aksam, nabizSonuc, zincir, finans };
 }

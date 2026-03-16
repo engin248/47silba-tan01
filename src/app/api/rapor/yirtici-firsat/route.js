@@ -70,13 +70,15 @@ export async function GET(req) {
         firsatlar.sort((a, b) => b.firsat_skoru - a.firsat_skoru);
 
         // ─ Log ───────────────────────────────────────────────
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Yırtıcı Fırsat Botu',
-            islem_tipi: 'firsat_tarama',
-            kaynak_tablo: 'b2_urun_katalogu + b1_arge_products',
-            sonuc: firsatlar.length > 0 ? 'uyari' : 'basarili',
-            mesaj: `${(stokUrunler || []).length} stok ürünü × ${(trendyolVerisi || []).length} Trendyol kaydı tarandı. ${firsatlar.length} fırsat bulundu.`,
-        }]);
+        if (firsatlar.length > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Yırtıcı Fırsat Botu',
+                islem_tipi: 'firsat_tarama',
+                kaynak_tablo: 'b2_urun_katalogu + b1_arge_products',
+                sonuc: 'uyari',
+                mesaj: `${(stokUrunler || []).length} stok ürünü × ${(trendyolVerisi || []).length} Trendyol kaydı tarandı. ${firsatlar.length} fırsat bulundu.`,
+            }]);
+        }
 
         return NextResponse.json({
             basarili: true,
