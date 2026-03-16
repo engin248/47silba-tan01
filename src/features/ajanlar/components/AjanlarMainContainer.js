@@ -50,7 +50,7 @@ const VARSAYILAN_KONFIGUR = {
         isim: 'Zincirci', ikon: '⛓️', renk: '#10b981',
         gorevler: [
             { id: 'zn_1', ad: 'M1→M2: Trend onaylandı → Kumaş', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'zn_2', ad: 'M2→M3: Kumaş seçildi → Kalıp', aktif: true, tablo: 'b1_kumas_arsiv', neden_pasif: '' },
+            { id: 'zn_2', ad: 'M2→M3: Kumaş seçildi → Kalıp', aktif: true, tablo: 'b1_kumas_arsivi', neden_pasif: '' }, // [K1 FIX] Hayalet tablo adı düzeltildi
             { id: 'zn_3', ad: 'M3→M4: Kalıp hazır → Modelhane', aktif: true, tablo: 'b1_model_taslaklari', neden_pasif: '' },
             { id: 'zn_4', ad: 'M4→M5: Numune onaylı → Kesim', aktif: true, tablo: 'b1_modelhane_kayitlari', neden_pasif: '' },
             { id: 'zn_5', ad: 'M5→M6: Kesim bitti → Üretim', aktif: false, tablo: 'b1_kesim_emirleri', neden_pasif: 'Kesim emirleri tablosu yok' },

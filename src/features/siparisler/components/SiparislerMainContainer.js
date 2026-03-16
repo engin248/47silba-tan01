@@ -210,7 +210,7 @@ export default function SiparislerSayfasi() {
         setIslemdeId('durum_' + id);
         try {
             // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli
-            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum').eq('id', id).single();
+            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum, toplam_tutar_tl, siparis_no, musteri_id, odeme_yontemi').eq('id', id).single();
             if (mevcutSiparis && mevcutSiparis.durum === durum) {
                 return goster(`⚠️ Sipariş zaten "${DURUM_LABEL[durum] || durum}" durumunda! Mükerrer işlem engellendi.`, 'error');
             }
@@ -241,8 +241,22 @@ export default function SiparislerSayfasi() {
 
                 // Teslim olunca — stok zaten onaylandi'da düşüldü, tekrar düşme
             } else if (durum === 'teslim') {
-                goster('🎉 Sipariş teslim edildi.');
-                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${id}`);
+                // ✅ [KRİTİK DÜZELTME #2] Kasa Entegrasyonu: Teslim edilen siparişin tahsilatını Kasa'ya devret
+                try {
+                    await supabase.from('b2_kasa_hareketleri').insert([{
+                        hareket_tipi: 'tahsilat',
+                        odeme_yontemi: mevcutSiparis?.odeme_yontemi || 'nakit',
+                        tutar_tl: mevcutSiparis?.toplam_tutar_tl || 0,
+                        aciklama: `Otonom Sipariş Tahsilatı (Sipariş No: ${mevcutSiparis?.siparis_no || id})`,
+                        musteri_id: mevcutSiparis?.musteri_id || null,
+                        onay_durumu: 'onaylandi' // Sistem aktardığı için direkt onaylı
+                    }]);
+                } catch (e) {
+                    console.error('Kasa yazma hatası:', e);
+                }
+
+                goster('🎉 Sipariş teslim edildi ve tahsilat (Gelir) Kasa modülüne aktarıldı!');
+                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş No: ${mevcutSiparis?.siparis_no || id}\nTahsilat işlemleri Kasaya yönlendirildi.`);
 
             } else if (durum === 'kargoda') {
                 goster('🚚 Kargoya verildi.');

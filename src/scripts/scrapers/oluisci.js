@@ -73,14 +73,24 @@ async function rakipVerisiKazi(hedefUrl, markaAdi) {
         console.log(`[ÖLÜ İŞÇİ] Operasyon Tamamlandı. ${urunler.length} adet ham veri yakalandı.`);
 
         // --- SINIR ÇİZGİSİ (ÇAKIŞMA KALKANI) ---
-        // Sadece ve sadece b1_arge_products'a fırlatır. Asla analiz yapmaz, karar vermez!
-        // Not: Tablo yapısı b1_arge_products (id, aranan_kelime, veri_kaynagi, ham_veri, islenen_durum, created_at, isleyen_ajan, islendigi_tarih, extracted_data)
+        // 🚨 EKİP BETA: VPS/Cron Uyumlu Scraper Refactorizasyonu 
+        // Vercel uyuşmazlığı nedeniyle script bağımsız çalışabilir hale getirildi. 
         if (urunler.length > 0) {
-            const { error } = await supabase.from('b1_arge_products').insert(urunler);
+
+            const eklenecek_veriler = urunler.map(urun => ({
+                aranan_kelime: markaAdi,
+                veri_kaynagi: urun.veri_kaynagi,
+                ham_veri: JSON.parse(urun.ham_veri),
+                islenen_durum: 'bekliyor',
+                isleyen_ajan: 'bot_oluisci', // NİZAM Okyanus Ajanı 1
+                created_at: new Date().toISOString()
+            }));
+
+            const { error } = await supabase.from('b1_arge_products').insert(eklenecek_veriler);
             if (error) {
                 console.error('[ÖLÜ İŞÇİ] Veritabanı Reddi! Sınır ihlali veya format hatası:', error.message);
             } else {
-                console.log(`[ÖLÜ İŞÇİ] Başarıyla NİZAM'ın midesine (${urunler.length} ürün) bırakıldı. Uyku moduna geçiliyor.`);
+                console.log(`[ÖLÜ İŞÇİ] Başarıyla NİZAM'ın midesine (${urunler.length} ürün) bırakıldı. VPS üzerinde Uyku moduna geçiliyor.`);
             }
         }
 

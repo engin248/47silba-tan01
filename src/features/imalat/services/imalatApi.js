@@ -26,8 +26,32 @@ export async function imalatEmriKaydet(payload) {
 }
 
 export async function imalatDurumGuncelle(id, durum) {
-    const { error } = await supabase.from('production_orders').update({ status: durum, ...(durum === 'completed' ? { end_time: new Date().toISOString() } : {}) }).eq('id', id);
+    const { error } = await supabase.from('production_orders').update({ status: durum, ...(durum === 'completed' ? { updated_at: new Date().toISOString() } : {}) }).eq('id', id); // [M1 FIX] end_time sütunu yok, updated_at kullanıldı
     if (error) throw error;
+
+    // 🚨 EKİP GAMMA: Üretim-Stok Entegrasyonu (Otomasyon Pınarı)
+    // Eğer üretim bittiyse (completed -> Devir/Mağazaya Sevk) stoklardan otomatik düşüş ve giriş yap
+    if (durum === 'completed') {
+        try {
+            // 1. İş Emrine ait Model/Ürün Kodunu Çek
+            const { data: emir } = await supabase.from('production_orders').select('model_id, quantity').eq('id', id).single();
+            if (emir && emir.model_id) {
+                const islemTarihi = new Date().toISOString();
+                // 2. b2_stok_hareketleri Tablosuna Otonom İşlemleri Yaz (Transaction simülasyonu)
+                await supabase.from('b2_stok_hareketleri').insert([
+                    // ÇIKIŞ: İmalata Sevk Edilen Kumaş / Hammadde (Formülasyon: Adet x 1.5m kumaş varsayımı veya revize edilebilir)
+                    { urun_kodu: 'HAMMADDE-KUMAS', hareket_yonu: 'cikis', miktar: emir.quantity * 1.5, birim: 'Metre', islem_tarihi: islemTarihi, aciklama: `[OTONOM] ${emir.model_id} kodlu imalat için kumaş çıkışı`, referans_tipi: 'imalat', referans_id: id },
+                    // GİRİŞ: Üretimden Gelen Bitmiş Ürün Stoğu
+                    { urun_kodu: emir.model_id, hareket_yonu: 'giris', miktar: emir.quantity, birim: 'Adet', islem_tarihi: islemTarihi, aciklama: `[OTONOM] ${emir.model_id} kodlu imalat tamamlandı (Mağazaya M4 Sevk)`, referans_tipi: 'imalat', referans_id: id }
+                ]);
+
+                // Ekstra Otonom Log
+                await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'OTOMATIK_STOK_GUNCELLEME', kullanici_adi: 'SİSTEM (GAMMA AJAN)', eski_veri: { durum: 'imalat_bitti', emir_id: id, miktar: emir.quantity } }]);
+            }
+        } catch (stokErr) {
+            console.error("Otomatik stok güncellenirken hata oluştu (Sessiz Fallback):", stokErr);
+        }
+    }
 }
 
 export async function imalatEmriSil(id, kullaniciLabel) {

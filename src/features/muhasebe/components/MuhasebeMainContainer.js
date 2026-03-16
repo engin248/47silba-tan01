@@ -61,7 +61,13 @@ export default function MuhasebeMainContainer() {
         setLoading(true);
         try {
             const req1 = supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(200);
-            const req2 = supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi, hedef_adet').eq('durum', 'tamamlandi').order('created_at', { ascending: false }).limit(200);
+
+            // 🚨 EKİP GAMMA: Muhasebe ID Çakışması düzeltildi. Artık Model Taslakları yerine tamamlanmış İş Emirleri (production_orders) listeleniyor
+            const req2 = supabase.from('production_orders')
+                .select('id, quantity, status, b1_model_taslaklari:model_id(model_kodu, model_adi)')
+                .eq('status', 'completed')
+                .order('updated_at', { ascending: false }).limit(200);
+
             const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
             const [rRes, mRes] = await Promise.race([
                 Promise.allSettled([req1, req2]),
@@ -75,7 +81,14 @@ export default function MuhasebeMainContainer() {
             }
             if (mRes.status === 'fulfilled' && mRes.value.data) {
                 const raporOrderIds = new Set(currentRaporlar.map(r => r.order_id));
-                setRaporsizemOrders(mRes.value.data.filter(o => !raporOrderIds.has(o.id)));
+                // Model ID asimetrisi giderildiği için listeye doğrudan emir.id ve birleşik model verileri set edilecek:
+                const maplenmisEmirler = mRes.value.data.map(o => ({
+                    id: o.id,
+                    model_kodu: o.b1_model_taslaklari?.model_kodu || 'Bilinmiyor',
+                    model_adi: o.b1_model_taslaklari?.model_adi || 'Bilinmeyen Model',
+                    hedef_adet: o.quantity || 0
+                }));
+                setRaporsizemOrders(maplenmisEmirler.filter(o => !raporOrderIds.has(o.id)));
             }
         } catch (error) { goster('Ağ bağlantısı koptu! ' + error.message, 'error'); }
         setLoading(false);
@@ -140,8 +153,34 @@ export default function MuhasebeMainContainer() {
                 rapor_durumu: 'kilitlendi', devir_durumu: true, onay_tarihi: new Date().toISOString()
             }).eq('id', rapor.id);
             if (error) throw error;
-            goster('✅ Rapor kilitlendi. 2. Birime devir tamamlandı!'); yukle(); setSecilenRapor(null);
-            telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi.`);
+
+            // ✅ [KRİTİK DÜZELTME #3] Stok Otomasyonu: Üretim kilitlendiği an Depoya Stok eklensin!
+            try {
+                const { data: orderData } = await supabase.from('production_orders')
+                    .select('model_id, b1_model_taslaklari(model_kodu)')
+                    .eq('id', rapor.order_id).single();
+
+                const mData = Array.isArray(orderData?.b1_model_taslaklari) ? orderData?.b1_model_taslaklari[0] : orderData?.b1_model_taslaklari;
+                const modelKodu = mData?.model_kodu;
+                const uretilen = parseInt(rapor.net_uretilen_adet) || 0;
+
+                if (modelKodu && uretilen > 0) {
+                    const { data: katalogUrunu } = await supabase.from('b2_urun_katalogu').select('id, stok_adeti').eq('urun_kodu', modelKodu).single();
+                    if (katalogUrunu) {
+                        await supabase.from('b2_stok_hareketleri').insert([{
+                            urun_id: katalogUrunu.id, hareket_tipi: 'giris', adet: uretilen,
+                            aciklama: `Üretimden Otonom Devir (Muhasebe Rapor ID: ${rapor.id})`
+                        }]);
+                        await supabase.from('b2_urun_katalogu').update({ stok_adeti: (katalogUrunu.stok_adeti || 0) + uretilen }).eq('id', katalogUrunu.id);
+                        goster(`📦 Otonom Stok Entegrasyonu: ${modelKodu} ürününe ${uretilen} adet stok eklendi.`);
+                    }
+                }
+            } catch (stockErr) {
+                console.error('Stok ekleme hatası:', stockErr);
+            }
+
+            goster('✅ Rapor kilitlendi. 2. Birime devir (Stok aktarımı dahil) tamamlandı!'); yukle(); setSecilenRapor(null);
+            telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi. Stoklar güncelendi.`);
         } catch (error) { goster('Devir hatası: ' + error.message, 'error'); }
         finally { setIslemdeId(null); }
     };

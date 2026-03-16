@@ -17,7 +17,7 @@ export async function GET(req) {
 
         // ─ Hareketsiz kumaşlar ────────────────────────────────
         const { data: atilKumaslar } = await sb
-            .from('b1_kumas_arsiv')
+            .from('b1_kumas_arsivi') // [K2 FIX] Hayalet tablo adı düzeltildi (sonda 'i' eksikti)
             .select('id, kumas_adi, renk, desen, miktar, birim, birim_fiyat, tedarikci, updated_at, created_at, durum, notlar')
             .lt('updated_at', esikTarih)
             .neq('durum', 'tukendi')
@@ -80,7 +80,7 @@ export async function GET(req) {
         await sb.from('b1_agent_loglari').insert([{
             ajan_adi: 'Atıl Sermaye Uyandırıcısı',
             islem_tipi: 'atil_sermaye_tarama',
-            kaynak_tablo: 'b1_kumas_arsiv + b2_urun_katalogu',
+            kaynak_tablo: 'b1_kumas_arsivi + b2_urun_katalogu', // [K2 FIX]
             sonuc: kritikler.length > 0 ? 'uyari' : 'basarili',
             mesaj: `${tumAtillar.length} hareketsiz kayıt tespit edildi. Bağlı sermaye: ${yapiliBagliSermaye.toLocaleString('tr-TR')} TL. ${kritikler.length} kritik (365+ gün).`,
         }]);
@@ -91,7 +91,7 @@ export async function GET(req) {
                 seviye: 'uyari',
                 baslik: `💤 ${kritikler.length} kalemde atıl sermaye (1 yılı aşkın)`,
                 mesaj: `Tahmini bağlı sermaye: ${yapiliBagliSermaye.toLocaleString('tr-TR')} TL`,
-                kaynak_tablo: 'b1_kumas_arsiv',
+                kaynak_tablo: 'b1_kumas_arsivi', // [K2 FIX]
                 durum: 'aktif',
             }]);
         }

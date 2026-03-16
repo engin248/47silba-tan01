@@ -73,7 +73,7 @@ export async function siparisKaydet(form, kalemler) {
 // ── Durum Güncelle ─────────────────────────────────────────────────────────────
 export async function durumGuncelle(id, durum, ekstraBilgi = {}) {
     // Mükerrer işlem engeli (U Kriteri)
-    const { data: mevcut } = await supabase.from('b2_siparisler').select('durum').eq('id', id).single();
+    const { data: mevcut } = await supabase.from('b2_siparisler').select('durum, siparis_no, toplam_tutar_tl').eq('id', id).single();
     if (mevcut?.durum === durum) throw new Error(`Sipariş zaten "${durum}" durumunda — mükerrer engellendi.`);
 
     const { error } = await supabase.from('b2_siparisler').update({ durum, ...ekstraBilgi }).eq('id', id);
@@ -81,7 +81,29 @@ export async function durumGuncelle(id, durum, ekstraBilgi = {}) {
 
     if (durum === 'teslim') {
         await stokDus(id);
-        telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${id}\nStok ciro işlemi yapıldı.`);
+
+        // 🚨 EKİP GAMMA: Sipariş ve Kasa Modülü Otomasyonu (Satış Tahsilatı)
+        try {
+            if (mevcut && mevcut.toplam_tutar_tl > 0) {
+                await supabase.from('b2_kasa_hareketleri').insert([{
+                    islem_tar: new Date().toISOString(),
+                    islem_tipi: 'gelir',
+                    tutar: mevcut.toplam_tutar_tl,
+                    para_birimi: 'TL',
+                    kategori: 'Satış Geliri',
+                    aciklama: `[OTONOM] Satış Tahsilatı - Sipariş No: ${mevcut.siparis_no}`,
+                    onay_durumu: 'taslak', // Finans yöneticisinin onayına düşmesi için taslak
+                    referans_tipi: 'siparis',
+                    referans_id: id
+                }]);
+                // Otonom Sistem Logu
+                await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b2_kasa_hareketleri', islem_tipi: 'OTOMATIK_KASA_GIRIS', kullanici_adi: 'SİSTEM (GAMMA AJAN)', eski_veri: { siparis_no: mevcut.siparis_no, tutar: mevcut.toplam_tutar_tl } }]);
+            }
+        } catch (kasaErr) {
+            console.error("Otomatik kasa kaydı atılırken hata oluştu (Sessiz Fallback):", kasaErr);
+        }
+
+        telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${mevcut?.siparis_no || id}\nStok çıkışı ve Finansal gelir tahakkuku yapıldı.`);
     } else if (durum === 'kargoda') {
         telegramBildirim(`🚚 SİPARİŞ KARGOYA VERİLDİ!\nSipariş ID: ${id}\nTakip: ${ekstraBilgi.kargo_takip_no || 'Belirtilmedi'}`);
     }

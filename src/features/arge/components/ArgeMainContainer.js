@@ -10,9 +10,10 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import M1_TrendSonucKarti from './M1_TrendSonucKarti';
-import M1_AramaMotoru from './M1_AramaMotoru';
 import M1_UrunRecetesi from './M1_UrunRecetesi';
+import M1_AramaMotoru from './M1_AramaMotoru';
 import { ModelMesajGecmisi } from '@/components/mesaj/ModelMesajGecmisi';
+import debounce from 'lodash/debounce'; // EKLENDİ (Render Thrashing Koruması)
 
 
 // =========================================================================
@@ -89,28 +90,34 @@ export default function ArgeSayfasi() {
         verileriCek();
 
         // CANLI AKIŞ WEBSOCKET (REALTIME) BAĞLANTISI YAPILDI (Optimizasyonlu)
+        // 🚨 EKİP BETA: Throttle/Debounce mekanizması ile DOM donmaları (Thrashing) önlendi
+        const handleTrendChanges = debounce((payload) => {
+            if (payload.eventType === 'INSERT') {
+                setTrendler(prev => [payload.new, ...prev]);
+            } else if (payload.eventType === 'UPDATE') {
+                setTrendler(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));
+            } else if (payload.eventType === 'DELETE') {
+                setTrendler(prev => prev.filter(t => t.id !== payload.old.id));
+            }
+        }, 1000); // Saniyede en fazla 1 state güncellemesi
+
         const kanal = supabase.channel('m1-arge-gercek-zamanli')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, (payload) => {
-                // [BANDWIDTH ZIRHI]: 15MB'lik verineriCek() çağrısı yerine, yalnızca değişen satır state'e enjekte edildi (2KB)
-                if (payload.eventType === 'INSERT') {
-                    setTrendler(prev => [payload.new, ...prev]);
-                } else if (payload.eventType === 'UPDATE') {
-                    setTrendler(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));
-                } else if (payload.eventType === 'DELETE') {
-                    setTrendler(prev => prev.filter(t => t.id !== payload.old.id));
-                }
-            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, handleTrendChanges)
             .subscribe();
 
+        const handleLogChanges = debounce((payload) => {
+            if (payload.new && payload.new.ajan_adi === 'Trend Kâşifi') {
+                setAgentLoglari(prev => [payload.new, ...prev].slice(0, 5));
+            }
+        }, 1000);
+
         const kanalLog = supabase.channel('m1-arge-log-gercek-zamanli')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari' }, (payload) => {
-                if (payload.new && payload.new.ajan_adi === 'Trend Kâşifi') {
-                    setAgentLoglari(prev => [payload.new, ...prev].slice(0, 5));
-                }
-            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari' }, handleLogChanges)
             .subscribe();
 
         return () => {
+            handleTrendChanges.cancel();
+            handleLogChanges.cancel();
             supabase.removeChannel(kanal);
             supabase.removeChannel(kanalLog);
         }
@@ -261,28 +268,29 @@ export default function ArgeSayfasi() {
         }
 
         // 🧬 SİSTEM HAFIZASI GERİ BİLDİRİM KONTROLÜ (Yeni — HermAI Kalkan)
-        // Form submit ÖNCE geçmiş başarısız/zarar eden kayıtlarla benzerlik tara
-        try {
-            const hafizaKontrol = await fetch('/api/rapor/sistem-hafizasi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ baslik: form.baslik.trim(), kategori: form.kategori, hedef_kitle: form.hedef_kitle }),
-            }).then(r => r.json());
+        // 🚨 EKİP GAMMA: Uyarıları zorla kaydetmek yerine kullanıcı inisiyatifine bırakma sistemi eklendi
+        if (islemdeId !== 'hafiza_onaylandi') {
+            try {
+                const hafizaKontrol = await fetch('/api/rapor/sistem-hafizasi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ baslik: form.baslik.trim(), kategori: form.kategori, hedef_kitle: form.hedef_kitle }),
+                }).then(r => r.json());
 
-            if (hafizaKontrol.engel) {
-                // %90+ benzerlik → TAM ENGEL
-                return goster(`🚫 SİSTEM HAFIZASI ENGELLEDİ: ${hafizaKontrol.mesaj}`, 'error');
+                if (hafizaKontrol.engel) {
+                    // %90+ benzerlik → TAM ENGEL
+                    return goster(`🚫 SİSTEM HAFIZASI ENGELLEDİ: ${hafizaKontrol.mesaj}`, 'error');
+                }
+                if (hafizaKontrol.uyari) {
+                    // %60-90 benzerlik → Uyarı (Kullanıcı onaylarsa geçer, yoksa iptal penceresi çalışmalı aslında, ama confirm() kullanıldı şimdilik hızlı geçiş için. İleride modal'a çevrilecek)
+                    const devamMı = confirm(`⚠️ Sistem Hafızası Risk Bildirdi:\n${hafizaKontrol.mesaj}\n\nYine de işleme devam etmek istiyor musunuz?`);
+                    if (!devamMı) return;
+                    setIslemdeId('hafiza_onaylandi'); // Tekrar aynı süzgece girmesin
+                }
+            } catch {
+                // API çağrısı başarısız olsa bile kaydetme işlemi engellenmez
             }
-            if (hafizaKontrol.uyari) {
-                // %60-90 benzerlik → Uyarı (ama devam edebilir)
-                goster(`⚠️ Sistem Hafızası Uyarısı: ${hafizaKontrol.mesaj}`, 'error');
-                // 2 saniye bekle — kullanıcı görsün, sonra devam et
-                await new Promise(r => setTimeout(r, 2000));
-            }
-        } catch {
-            // API çağrısı başarısız olsa bile kaydetme işlemi engellenmez
         }
-
 
         // U Kriteri Onarımı (Mükerrer Link Kontrolü)
         if (form.referans_link && form.referans_link.trim().length > 0) {
@@ -554,13 +562,28 @@ export default function ArgeSayfasi() {
                 body: JSON.stringify({ sorgu }),
             });
             const data = await res.json();
-            const yeniArastirma = data?.sonuc || data?.content || 'Sonuç alınamadı';
+            const veriOkumaHata = !data || (!data.sonuc && !data.content);
+            if (veriOkumaHata) {
+                // 🚨 EKİP GAMMA: Perplexity hatası sadece UI'da değil veritabanında da işaretlendi (Asılı kalma önlendi)
+                await supabase.from('b1_arge_trendler').update({
+                    yeniden_arastirma: 'HATA YAKALANDI: Ajan analiz edemedi.',
+                    dogrulama_durumu: 'hata'
+                }).eq('id', trend.id);
+                return goster('AI Ajanı yanıt veremedi veya sunucu hatası oluştu!', 'error');
+            }
+
+            const yeniArastirma = data?.sonuc || data?.content;
             const { error } = await supabase.from('b1_arge_trendler').update({
                 yeniden_arastirma: yeniArastirma,
                 dogrulama_durumu: 'arastirildi',
             }).eq('id', trend.id);
             if (!error) goster('🔄 Yeni araştırma tamamlandı — karşılaştırma hazır', 'success');
         } catch (e) {
+            // Ağ hatası vb durumlarda da asılı kalmasın
+            await supabase.from('b1_arge_trendler').update({
+                yeniden_arastirma: 'SİSTEM HATASI: ' + e.message,
+                dogrulama_durumu: 'hata'
+            }).eq('id', trend.id);
             goster('Araştırma hatası: ' + e.message, 'error');
         } finally {
             setYenidenAraniyor(null);
@@ -683,7 +706,7 @@ export default function ArgeSayfasi() {
                             const incelenanSayisi = trendler.filter(t => t.durum === 'inceleniyor').length;
                             const onayOrani = toplamTrend > 0 ? Math.round((onaylananSayisi / toplamTrend) * 100) : 0;
                             return (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* 🚨 EKİP ALPHA: sm:grid-cols-1 md:grid-cols-3 alt alta taşırma sağlandı (Native style objeleri Tailwind css className'e evrildi uyumluluk için) */}
                                     {/* Veri Madencileri — Gerçek trend sayısı */}
                                     <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(94, 234, 212, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -786,7 +809,7 @@ export default function ArgeSayfasi() {
                             {isAR ? 'تسجيل اتجاه جديد' : 'Yeni Trend Kaydı'}
                         </h2>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* 🚨 EKİP ALPHA: gridTemplateColumns sabiti grid-cols-1 md:grid-cols-2 esnekliğine çekildi */}
                             {/* Başlık TR */}
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -878,9 +901,9 @@ export default function ArgeSayfasi() {
                                     </label>
                                     <input
                                         type="range" min="1" max="10"
-                                        value={form.talep_skoru}
-                                        onChange={e => setForm({ ...form, talep_skoru: (e.target.value) })}
-                                        style={{ width: '100%', cursor: 'pointer', accentColor: skorRenk(form.talep_skoru) }}
+                                        value={form.talep_skoru || 5}
+                                        onChange={e => setForm({ ...form, talep_skoru: Number(e.target.value) })}
+                                        style={{ width: '100%', cursor: 'pointer', accentColor: skorRenk(form.talep_skoru), padding: '10px 0' /* 🚨 EKİP ALPHA: hitbox artışı */ }}
                                     />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginTop: 4 }}>
                                         <span>{isAR ? 'منخفض' : 'Düşük'}</span><span>{isAR ? 'متوسط' : 'Orta'}</span><span>{isAR ? 'مرتفع جداً' : 'Çok Yüksek'}</span>
@@ -895,8 +918,8 @@ export default function ArgeSayfasi() {
                                     <input
                                         type="range" min="1" max="10"
                                         value={form.zorluk_derecesi || 5}
-                                        onChange={e => setForm({ ...form, zorluk_derecesi: (e.target.value) })}
-                                        style={{ width: '100%', cursor: 'pointer', accentColor: '#4f46e5' }}
+                                        onChange={e => setForm({ ...form, zorluk_derecesi: Number(e.target.value) })}
+                                        style={{ width: '100%', cursor: 'pointer', accentColor: '#4f46e5', padding: '10px 0' /* 🚨 EKİP ALPHA: hitbox artışı */ }}
                                     />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginTop: 4 }}>
                                         <span>{isAR ? 'سهل جداً' : 'Çok Kolay'}</span><span>{isAR ? 'متوسط' : 'Orta'}</span><span>{isAR ? 'صعب جداً' : 'Çok Zor'}</span>
@@ -941,13 +964,44 @@ export default function ArgeSayfasi() {
                                         capture="environment"
                                         id="arge-kamera-input"
                                         style={{ display: 'none' }}
-                                        onChange={(e) => {
+                                        onChange={async (e) => {
                                             const file = ((e.target)).files?.[0];
                                             if (file) {
-                                                if (file.size > 500 * 1024) return goster('Dosya çok büyük! Veritabanı sağlığı için maksimum 500 KB resim yükleyebilirsiniz.', 'error');
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => setForm({ ...form, gorsel_url: (reader.result), gorsel_dosyasi: (file) }); // Görsel Storage için yedeği özel değişkende tutulur
-                                                reader.readAsDataURL(file);
+                                                // 🚨 EKİP BETA: İstemci tarafında HTML5 Canvas Resmi Küçültme Algoritması eklendi (Compressor)
+                                                // 500kb blokajı kaldırılıp 800x800'e downscale ediliyor.
+                                                try {
+                                                    const compressImage = async (fileItem) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            const img = new Image();
+                                                            const url = URL.createObjectURL(fileItem);
+                                                            img.onload = () => {
+                                                                const MAX_WIDTH = 800;
+                                                                const MAX_HEIGHT = 800;
+                                                                let width = img.width;
+                                                                let height = img.height;
+                                                                if (width > height && width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                                                                else if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                                                                const canvas = document.createElement('canvas');
+                                                                canvas.width = width; canvas.height = height;
+                                                                const ctx = canvas.getContext('2d');
+                                                                ctx.drawImage(img, 0, 0, width, height);
+                                                                canvas.toBlob((blob) => {
+                                                                    resolve(new File([blob], fileItem.name, { type: 'image/jpeg', lastModified: Date.now() }));
+                                                                    URL.revokeObjectURL(url);
+                                                                }, 'image/jpeg', 0.7);
+                                                            };
+                                                            img.onerror = () => reject('Resim okunamadı');
+                                                            img.src = url;
+                                                        });
+                                                    };
+                                                    goster('Resim sıkıştırılıyor, lütfen bekleyin...', 'success');
+                                                    const sikistirilmisDosya = await compressImage(file);
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setForm({ ...form, gorsel_url: (reader.result), gorsel_dosyasi: sikistirilmisDosya });
+                                                    reader.readAsDataURL(sikistirilmisDosya);
+                                                } catch (err) {
+                                                    goster('Kamera işleme esnasında kilitlendi.', 'error');
+                                                }
                                             }
                                         }}
                                     />
@@ -1290,7 +1344,7 @@ export default function ArgeSayfasi() {
                     )}
 
                     {/* SAĞ PANEL: İSTATİSTİK + AJAN LOG */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div className="flex flex-col gap-5 lg:w-[320px] w-full"> {/* 🚨 EKİP ALPHA: Mobil panel çakışması engellendi. Grid css className entegre edildi. */}
 
                         {/* İstatistik */}
                         <div style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: '20px', padding: '1.5rem', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)' }}>

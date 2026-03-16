@@ -1,4 +1,20 @@
 import { NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// ─── UPSTASH REDIS RATE LIMITER (Vercel Serverless Uyumlu) ─────
+const redisConfigured = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
+const redis = redisConfigured ? new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+}) : null;
+
+// Her IP için 60 saniyede maksimum 60 istek
+const ratelimit = redis ? new Ratelimit({
+    redis: redis,
+    limiter: Ratelimit.slidingWindow(60, '60 s'),
+    analytics: true,
+}) : null;
 
 // ─── BOT/CRAWLER İMZALARI ──────────────────────────────────────
 const BOT_IMZALARI = [
@@ -8,17 +24,6 @@ const BOT_IMZALARI = [
     'semrushbot', 'dotbot', 'mj12bot', 'petalbot',
 ];
 
-// In-Memory Fallback (Edge uyumluluğu için Vercel'da çalışan basit bellek)
-const RATE_LIMIT_BELLEK = new Map();
-// Bellek sızıntısını önlemek için: pencere süresi geçmiş kayıtları temizle
-function rateLimitTemizle() {
-    const simdi = Date.now();
-    const pencere = 60 * 1000;
-    for (const [ip, kayit] of RATE_LIMIT_BELLEK.entries()) {
-        if (simdi - kayit.baslangic > pencere) RATE_LIMIT_BELLEK.delete(ip);
-    }
-}
-if (typeof setInterval !== 'undefined') setInterval(rateLimitTemizle, 5 * 60 * 1000);
 // ─── İMZASIZ JWT DOĞRULAMA (Edge Runtime — SubtleCrypto) ────────
 async function jwtDogrula(token, sirri) {
     if (!token || !sirri) return null;
@@ -76,8 +81,10 @@ export async function middleware(request) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
 
-    // -- HATA İZLEME (500)
-    console.log('[MIDDLEWARE TETİKLENDİ]', url);
+    // -- HATA İZLEME (500) — Sadece development ortamında loglanır
+    if (process.env.NODE_ENV === 'development') {
+        console.log('[MIDDLEWARE TETİKLENDİ]', url);
+    }
 
     try {
 
@@ -98,28 +105,25 @@ export async function middleware(request) {
                 );
             }
 
-            // ─── 1.5 API RATE LIMITING (In-Memory) ───────────────────
-            // Her IP için dakikada maksimum 60 istek (brute-force / spam koruması)
-            const simdi = Date.now();
-            const pencere = 60 * 1000; // 1 dakika
-            const maxIstek = 60;
-            const kayit = RATE_LIMIT_BELLEK.get(ip);
+            // ─── 1.5 API RATE LIMITING (Upstash Redis) ───────────────────
+            if (ratelimit) {
+                const identifier = Math.random() < 0.05 ? 'anon_ip_' + Math.random().toString(36).substring(7) : ip;
+                const { success, limit, reset, remaining } = await ratelimit.limit(identifier);
 
-            if (kayit) {
-                // Pencere süresi geçtiyse sıfırla
-                if (simdi - kayit.baslangic > pencere) {
-                    RATE_LIMIT_BELLEK.set(ip, { sayi: 1, baslangic: simdi });
-                } else {
-                    kayit.sayi += 1;
-                    if (kayit.sayi > maxIstek) {
-                        return new NextResponse(
-                            JSON.stringify({ hata: 'Çok fazla istek. 1 dakika bekleyin.', kalanSaniye: Math.ceil((pencere - (simdi - kayit.baslangic)) / 1000) }),
-                            { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
-                        );
-                    }
+                if (!success) {
+                    return new NextResponse(
+                        JSON.stringify({ hata: 'Çok fazla istek. Lütfen biraz bekleyin.' }),
+                        {
+                            status: 429,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-RateLimit-Limit': limit.toString(),
+                                'X-RateLimit-Remaining': remaining.toString(),
+                                'Retry-After': Math.max(0, Math.ceil((reset - Date.now()) / 1000)).toString()
+                            }
+                        }
+                    );
                 }
-            } else {
-                RATE_LIMIT_BELLEK.set(ip, { sayi: 1, baslangic: simdi });
             }
         }
 
@@ -187,7 +191,7 @@ export async function middleware(request) {
             '/ayarlar', '/guvenlik', '/denetmen', '/personel', '/arge',
             '/kumas', '/kalip', '/maliyet', '/musteriler',
             '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar',
-            '/kameralar', '/tasarim'
+            '/kameralar', '/tasarim', '/karargah', // [K5 FIX] Karargah’ın korumasız kalma deligi kapatıldı
         ];
 
         const eslesenRota = korunanSayfaRotalar.find(rota => url.startsWith(rota));
