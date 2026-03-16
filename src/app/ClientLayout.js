@@ -179,11 +179,24 @@ function LayoutInner({ children }) {
         window.addEventListener('online', onOnline);
         window.addEventListener('offline', onOffline);
 
-        // Servis Worker Temizleme (Güvenli - Reload yok)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                for (let registration of registrations) registration.unregister();
-            }).catch(() => { });
+        // KÖKLÜ ÇÖZÜM: Tüm Eski Service Worker ve PWA Zombi Cache'lerini Yok Etme
+        if (typeof window !== 'undefined') {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                        console.log('SW Unregistered (Köklü Çözüm)');
+                    }
+                }).catch(() => { });
+            }
+            if ('caches' in window) {
+                caches.keys().then((keyList) => {
+                    return Promise.all(keyList.map((key) => {
+                        console.log('Eski PWA Cache Silindi:', key);
+                        return caches.delete(key);
+                    }));
+                }).catch(() => { });
+            }
         }
 
         return () => {
