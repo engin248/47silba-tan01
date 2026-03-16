@@ -102,7 +102,7 @@ export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzen
             {/* Gateway Butonu — M2'ye Aktar */}
             <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid rgba(241, 245, 249, 0.8)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 {gatewayAcik ? (
-                    <NextLink href={`/modelhane?trend_id=${trend.id}`} style={{ textDecoration: 'none' }}>
+                    <NextLink href={`/kumas?trend_id=${trend.id}`} style={{ textDecoration: 'none' }}>
                         <button style={{
                             display: 'flex', alignItems: 'center', gap: 6,
                             background: 'linear-gradient(135deg, #059669, #047857)', color: 'white',

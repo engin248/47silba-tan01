@@ -57,7 +57,7 @@ export default function ArgeSayfasi() {
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtre, setFiltre] = useState('tumu');
     const [secilenTrend, setSecilenTrend] = useState(null);
-    const [agentLoglari, setAgentLoglari] = useState(([]));
+    const [agentLoglari, setAgentLoglari] = useState(/** @type {any[]} */([]));
     const [duzenleId, setDuzenleId] = useState(null);
     // Zamansal Doğrulama
     const [yenidenAraniyor, setYenidenAraniyor] = useState(null);
@@ -102,8 +102,17 @@ export default function ArgeSayfasi() {
             })
             .subscribe();
 
+        const kanalLog = supabase.channel('m1-arge-log-gercek-zamanli')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari' }, (payload) => {
+                if (payload.new && payload.new.ajan_adi === 'Trend Kâşifi') {
+                    setAgentLoglari(prev => [payload.new, ...prev].slice(0, 5));
+                }
+            })
+            .subscribe();
+
         return () => {
             supabase.removeChannel(kanal);
+            supabase.removeChannel(kanalLog);
         }
         // [RENDER ZIRHI]: Dependency dizisi objeden primitive (saf kimlik) değişkenlere indirildi
     }, [kullanici?.id, kullanici?.grup]);
@@ -217,7 +226,7 @@ export default function ArgeSayfasi() {
             const { error } = await supabase.from('b1_arge_trendler').insert([{
                 baslik: baslik,
                 platform: PLATFORMLAR.includes(sonuc.platform) ? sonuc.platform : 'diger',
-                kategori: sonuc.kategori || 'diger',
+                kategori: KATEGORILER.includes(sonuc.kategori) ? sonuc.kategori : 'diger',
                 hedef_kitle: 'kadın',
                 talep_skoru: parseInt(sonuc.trend_skoru || sonuc.talep_skoru) || 5, // Yeni skorlama 
                 zorluk_derecesi: 5,
@@ -608,7 +617,7 @@ export default function ArgeSayfasi() {
                             <Bot size={12} /> {isAR ? 'الوكيل: مُنشَّط' : 'Ajan: Trend Kâşifi'}
                         </span>
                         <button
-                            onClick={() => setFormAcik(!formAcik)}
+                            onClick={() => { setFormAcik(!formAcik); window.scrollTo({ top: 300, behavior: 'smooth' }); }}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(4,120,87,0.4)', transition: 'all 0.2s' }}
                         >
                             <Plus size={18} />

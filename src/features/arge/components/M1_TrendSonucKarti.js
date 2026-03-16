@@ -22,6 +22,10 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
         if (kasifYukleniyor) return;
         setKasifYukleniyor(true);
         setKasifSonucu(null);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s Timeout
+
         try {
             const res = await fetch('/api/agent/kasif', {
                 method: 'POST',
@@ -33,12 +37,19 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
                     sezon: sonuc.sezon || 'genel',
                     hermesSkoru: skor,
                 }),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             const data = await res.json();
             setKasifSonucu(data);
             setKasifAcik(true);
         } catch (e) {
-            setKasifSonucu({ error: 'Kaşif bağlantı hatası: ' + e.message });
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') {
+                setKasifSonucu({ error: 'Kaşif bağlantısı zaman aşımına uğradı. Veri boyutu büyük olabilir veya ajan meşgul.' });
+            } else {
+                setKasifSonucu({ error: 'Kaşif bağlantı hatası: ' + e.message });
+            }
         } finally {
             setKasifYukleniyor(false);
         }

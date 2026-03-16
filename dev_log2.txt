@@ -108,3 +108,457 @@ Import trace for requested module:
 ./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
 ./node_modules/@sentry/node/build/cjs/index.js
 ./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ GET / 200 in 719ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 450ms
+ GET /_next/static/css/app/layout.css?v=1773647691908 404 in 449ms
+ GET /_next/static/chunks/main-app.js?v=1773647691908 404 in 388ms
+ GET /_next/static/chunks/app/not-found.js 404 in 118ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 122ms
+ GET /_next/static/chunks/app/error.js 404 in 121ms
+ GET /_next/static/chunks/app/page.js 404 in 120ms
+ GET /_next/static/chunks/app/global-error.js 404 in 116ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 55ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /_next/static/css/app/layout.css?v=1773647695799 404 in 55ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 52ms
+ GET /_next/static/chunks/main-app.js?v=1773647695799 404 in 125ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 122ms
+ GET /_next/static/chunks/app/not-found.js 404 in 120ms
+ GET /_next/static/chunks/app/error.js 404 in 121ms
+ GET /_next/static/chunks/app/page.js 404 in 117ms
+ GET /_next/static/chunks/app/global-error.js 404 in 30ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 27ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /_next/static/css/app/layout.css?v=1773647699742 404 in 60ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 62ms
+ GET /_next/static/chunks/main-app.js?v=1773647699742 404 in 121ms
+ GET /_next/static/chunks/app/not-found.js 404 in 117ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 120ms
+ GET /_next/static/chunks/app/page.js 404 in 116ms
+ GET /_next/static/chunks/app/error.js 404 in 119ms
+ GET /_next/static/chunks/app/global-error.js 404 in 27ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 40ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 48ms
+ GET /_next/static/css/app/layout.css?v=1773647702300 404 in 54ms
+ GET /_next/static/chunks/main-app.js?v=1773647702300 404 in 113ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 127ms
+ GET /_next/static/chunks/app/not-found.js 404 in 124ms
+ GET /_next/static/chunks/app/error.js 404 in 125ms
+ GET /_next/static/chunks/app/page.js 404 in 115ms
+ GET /_next/static/chunks/app/global-error.js 404 in 27ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
+   ▲ Next.js 15.3.6
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.4:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ○ Compiling /instrumentation ...
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ✓ Ready in 5.8s
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ GET / 200 in 5616ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 2283ms
+[MIDDLEWARE TETİKLENDİ] /
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 27ms
+ GET / 200 in 71ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 31ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 48ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 54ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 32ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 28ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 28ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 18ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 18ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 21ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 21ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 17ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 18ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+[MIDDLEWARE TETİKLENDİ] /
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\DumpStack.log.tmp'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\hiberfil.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\DumpStack.log.tmp'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\hiberfil.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ GET / 404 in 1843ms
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 82ms
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 13ms
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 151ms
+ GET /_next/static/css/app/layout.css?v=1773650801083 404 in 38ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 49ms
+ GET /_next/static/chunks/main-app.js?v=1773650801083 404 in 60ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 47ms
+ GET /_next/static/chunks/app/error.js 404 in 44ms
+ GET /_next/static/chunks/app/not-found.js 404 in 45ms
+ GET /_next/static/chunks/app/page.js 404 in 44ms
+ GET /_next/static/chunks/app/global-error.js 404 in 25ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ ⚠ ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/opentelemetry/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/server/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+ GET /karargah 200 in 706ms
+ GET /_next/static/css/app/layout.css?v=1773650836578 404 in 34ms
+ GET /_next/static/chunks/main-app.js?v=1773650836578 404 in 120ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 112ms
+ GET /_next/static/chunks/app/global-error.js 404 in 112ms
+ GET /_next/static/chunks/app/error.js 404 in 114ms
+ GET /_next/static/chunks/app/not-found.js 404 in 114ms
+[MIDDLEWARE TETİKLENDİ] /icon.png

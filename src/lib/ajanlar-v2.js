@@ -105,10 +105,10 @@ export async function sabahSubayi() {
         // ── KONTROL NOKTASI 4: Gecikmiş Üretim Emirleri ─────
         sonuc.kontrol_sayisi++;
         const bugun = new Date().toISOString().split('T')[0];
-        const { data: gecikme } = await sb.from('b1_uretim_kayitlari')
-            .select('id, modul, durum')
-            .in('durum', ['bekliyor', 'devam_ediyor'])
-            .lt('bitis_tarihi', bugun)
+        const { data: gecikme } = await sb.from('production_orders')
+            .select('id, status, planned_end_date')
+            .in('status', ['pending', 'in_progress'])
+            .lt('planned_end_date', bugun)
             .limit(10);
         if (gecikme && gecikme.length > 0) {
             sonuc.bulgular.push(`⏰ ${gecikme.length} üretim emri gecikmeli`);
@@ -201,10 +201,10 @@ export async function aksamci() {
 
         // ── KONTROL NOKTASI 1: Bugün Tamamlanan Üretim ──────
         sonuc.kontrol_sayisi++;
-        const { data: tamamlanan } = await sb.from('b1_uretim_kayitlari')
-            .select('id, modul')
-            .eq('durum', 'tamamlandi')
-            .gte('updated_at', bugun + 'T00:00:00');
+        const { data: tamamlanan } = await sb.from('production_orders')
+            .select('id')
+            .eq('status', 'completed')
+            .gte('end_time', bugun + 'T00:00:00');
         sonuc.ozet.push(`✅ Bugün tamamlanan üretim: ${tamamlanan?.length || 0} iş emri`);
 
         // ── KONTROL NOKTASI 2: Yarın Teslim Edilecek ────────
@@ -245,9 +245,9 @@ export async function aksamci() {
 
         // ── KONTROL NOKTASI 4: Yarım Kalan İşler ────────────
         sonuc.kontrol_sayisi++;
-        const { data: yarimKalan } = await sb.from('b1_uretim_kayitlari')
-            .select('id, modul')
-            .eq('durum', 'devam_ediyor');
+        const { data: yarimKalan } = await sb.from('production_orders')
+            .select('id')
+            .eq('status', 'in_progress');
         if (yarimKalan && yarimKalan.length > 0) {
             sonuc.ozet.push(`⏸️ Yarım kalan: ${yarimKalan.length} iş devam ediyor`);
         }
@@ -480,38 +480,39 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
 
         // ── KONTROL NOKTASI 6: Üretim→Maliyet (M6→M7) ──────────
         sonuc.islenenler++;
-        const { data: uretimBitti } = await sb.from('b1_uretim_kayitlari')
-            .select('id, model_id, adet')
-            .eq('durum', 'tamamlandi')
+        const { data: uretimBitti } = await sb.from('production_orders')
+            .select('id, model_id, quantity')
+            .eq('status', 'completed')
             .is('zincir_bildirim_m7', null)
             .limit(5);
         for (const u of (uretimBitti || [])) {
-            await sb.from('b1_maliyet_kalemleri').insert([{
-                uretim_kaydı_id: u.id,
-                hesaplama_durumu: 'bekliyor',
-                notlar: 'Zincirci otomatik oluşturdu',
+            await sb.from('b1_maliyet_kayitlari').insert([{
+                order_id: u.id,
+                maliyet_tipi: 'isletme_gideri',
+                onay_durumu: 'bekliyor',
+                kalem_aciklama: 'Zincirci otomatik oluşturdu (Maliyet hesabı)',
             }]).select();
-            await sb.from('b1_uretim_kayitlari').update({ zincir_bildirim_m7: new Date().toISOString() }).eq('id', u.id);
+            await sb.from('production_orders').update({ zincir_bildirim_m7: new Date().toISOString() }).eq('id', u.id);
             sonuc.gecisler.push(`M6→M7: Üretim bitti, maliyet hesabı açıldı`);
         }
 
         // ── KONTROL NOKTASI 7: Maliyet→Muhasebe (M7→M8) ─────────
         sonuc.islenenler++;
-        const { data: maliyetOnay } = await sb.from('b1_maliyet_kalemleri')
-            .select('id, toplam_maliyet')
-            .eq('hesaplama_durumu', 'onaylandi')
+        const { data: maliyetOnay } = await sb.from('b1_maliyet_kayitlari')
+            .select('id, order_id, tutar_tl')
+            .eq('onay_durumu', 'onaylandi')
             .is('zincir_bildirim_m8', null)
             .limit(5);
         for (const m of (maliyetOnay || [])) {
             await sb.from('b1_muhasebe_raporlari').insert([{
                 rapor_tipi: 'uretim_maliyet',
-                maliyet_kalemi_id: m.id,
-                hedeflenen_maliyet_tl: m.toplam_maliyet,
+                order_id: m.order_id,
+                hedeflenen_maliyet_tl: m.tutar_tl,
                 rapor_durumu: 'taslak',
                 notlar: 'Zincirci otomatik aktarım — M7→M8',
             }]).select();
-            await sb.from('b1_maliyet_kalemleri').update({ zincir_bildirim_m8: new Date().toISOString() }).eq('id', m.id);
-            sonuc.gecisler.push(`M7→M8: Maliyet muhasebeye aktarıldı ₺${m.toplam_maliyet}`);
+            await sb.from('b1_maliyet_kayitlari').update({ zincir_bildirim_m8: new Date().toISOString() }).eq('id', m.id);
+            sonuc.gecisler.push(`M7→M8: Maliyet muhasebeye aktarıldı ₺${m.tutar_tl}`);
         }
 
         // ── KONTROL NOKTASI 8: Genel Zincir Sağlık ──────────────
@@ -780,8 +781,8 @@ export async function muhasebeYazici() {
             .reduce((s, m) => s + (m.gerceklesen_maliyet_tl || 0), 0);
 
         // ── KONTROL NOKTASI 3: Tamamlanan Üretim ────────────
-        const { data: uretimler } = await sb.from('b1_uretim_kayitlari')
-            .select('id, model_id, adet, durum').eq('durum', 'tamamlandi').gte('created_at', ayBasi);
+        const { data: uretimler } = await sb.from('production_orders')
+            .select('id, model_id, quantity, status').eq('status', 'completed').gte('created_at', ayBasi);
         sonuc.uretim_tamamlanan = uretimler?.length || 0;
 
         // ── KONTROL NOKTASI 4: Sipariş Durumu ───────────────

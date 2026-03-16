@@ -19,7 +19,7 @@ const VARSAYILAN_KONFIGUR = {
             { id: 'sb_1', ad: 'Sipariş 2 gün teslim alarmı', aktif: false, tablo: 'b2_siparisler', neden_pasif: 'Gerçek sipariş takibi sisteme oturmadı' },
             { id: 'sb_2', ad: 'Sıfır stok alarmı', aktif: false, tablo: 'b2_urun_katalogu', neden_pasif: 'Stok akışı henüz gerçekçi değil' },
             { id: 'sb_3', ad: 'Onay bekleyen trend sayısı (sadece bilgi)', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'sb_4', ad: 'Üretim kayıt takibi (kim-ne-ne zaman)', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
+            { id: 'sb_4', ad: 'Üretim kayıt takibi (kim-ne-ne zaman)', aktif: true, tablo: 'production_orders', neden_pasif: '' },
             { id: 'sb_5', ad: 'Ödenmemiş fatura', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
             { id: 'sb_6', ad: 'Kasa bakiye özeti', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
             { id: 'sb_7', ad: 'Aktif personel sayısı', aktif: true, tablo: 'b1_personel', neden_pasif: '' },
@@ -29,10 +29,10 @@ const VARSAYILAN_KONFIGUR = {
     aksam: {
         isim: 'Akşamcı', ikon: '🌆', renk: '#6366f1',
         gorevler: [
-            { id: 'ak_1', ad: 'Bugün tamamlanan üretim', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
-            { id: 'ak_2', ad: 'Yarın teslim siparişleri', aktif: true, tablo: 'b2_siparisler', neden_pasif: '' },
-            { id: 'ak_3', ad: 'Günlük kasa özeti', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'ak_4', ad: 'Yarım kalan üretim işleri', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
+            { id: 'ak_1', ad: 'Bugün tamamlanan üretim', aktif: true, tablo: 'production_orders', neden_pasif: '' },
+            { id: 'ak_2', ad: 'Yarın teslim edilecek siparişler', aktif: true, tablo: 'b2_siparisler', neden_pasif: '' },
+            { id: 'ak_3', ad: 'Günlük gelir/gider özeti', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
+            { id: 'ak_4', ad: 'Yarım kalan üretim işleri', aktif: true, tablo: 'production_orders', neden_pasif: '' },
             { id: 'ak_5', ad: 'Kapanış logu yaz', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
         ]
     },
@@ -54,8 +54,8 @@ const VARSAYILAN_KONFIGUR = {
             { id: 'zn_3', ad: 'M3→M4: Kalıp hazır → Modelhane', aktif: true, tablo: 'b1_model_taslaklari', neden_pasif: '' },
             { id: 'zn_4', ad: 'M4→M5: Numune onaylı → Kesim', aktif: true, tablo: 'b1_modelhane_kayitlari', neden_pasif: '' },
             { id: 'zn_5', ad: 'M5→M6: Kesim bitti → Üretim', aktif: false, tablo: 'b1_kesim_emirleri', neden_pasif: 'Kesim emirleri tablosu yok' },
-            { id: 'zn_6', ad: 'M6→M7: Üretim bitti → Maliyet', aktif: false, tablo: 'b1_uretim_kayitlari', neden_pasif: 'Maliyet bağlantısı kurulmadı' },
-            { id: 'zn_7', ad: 'M7→M8: Maliyet onaylı → Muhasebe', aktif: false, tablo: 'b1_maliyet_kalemleri', neden_pasif: 'Maliyet kalemleri tablosu yok' },
+            { id: 'zn_6', ad: 'M6→M7: Üretim bitti → Maliyet', aktif: true, tablo: 'production_orders', neden_pasif: '' },
+            { id: 'zn_7', ad: 'M7→M8: Maliyet onaylı → Muhasebe', aktif: true, tablo: 'b1_maliyet_kayitlari', neden_pasif: '' },
             { id: 'zn_8', ad: 'Zincir sağlık raporu', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
         ]
     },
@@ -85,7 +85,7 @@ const VARSAYILAN_KONFIGUR = {
         gorevler: [
             { id: 'mh_1', ad: 'Aylık gelir/gider hesabı', aktif: true, tablo: 'b2_kasa_hareketleri', neden_pasif: '' },
             { id: 'mh_2', ad: 'Model kârlılık analizi', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
-            { id: 'mh_3', ad: 'Tamamlanan üretim özeti', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
+            { id: 'mh_3', ad: 'Tamamlanan üretim özeti', aktif: true, tablo: 'production_orders', neden_pasif: '' },
             { id: 'mh_4', ad: 'Sipariş teslim oranı', aktif: true, tablo: 'b2_siparisler', neden_pasif: '' },
             { id: 'mh_5', ad: 'Aktif personel özeti', aktif: true, tablo: 'b1_personel', neden_pasif: '' },
             { id: 'mh_6', ad: 'Aylık raporu muhasebe tablosuna yaz', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
