@@ -94,15 +94,10 @@ export default function KameralarMainContainer() {
     }, [kullanici]);
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
-    const streamDurumKontrol = useCallback(async () => {
-        // try {
-        //     const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-        //     const data = await res.json();
-        //     setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
-        // } catch {
-        //     setStreamDurum('kapali');
-        // }
-        setStreamDurum('kapali'); // Otonom Stream Gözlemi Kapatıldı
+    // [FIX] stream-durum polling tamamen kaldırıldı — production 503 döngüsü kesildi
+    // go2rtc sadece yerel sunucuda çalışır, production'da anlamsız istek atmasın
+    const streamDurumKontrol = useCallback(() => {
+        setStreamDurum('kapali');
     }, []);
 
     // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────
@@ -173,14 +168,8 @@ export default function KameralarMainContainer() {
         streamDurumKontrol();
     }, [yetkili]);
 
-    // Auto-polling for heartbeat (10s)
-    useEffect(() => {
-        if (!yetkili) return;
-        const interval = setInterval(() => {
-            streamDurumKontrol();
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [yetkili]);
+    // [FIX] Stream polling kaldırıldı — 503 döngüsü önlendi
+    // go2rtc production'da mevcut değil, interval gereksiz API isteği yaratıyordu
 
     // ── AI Olayları — Sayfa açılışında son 5 kaydı çek ──────────
     useEffect(() => {
