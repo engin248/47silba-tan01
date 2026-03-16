@@ -203,13 +203,25 @@ export default function UretimSayfasi() {
                         <div style={{ flex: 1 }}>
                             <h4 style={{ color: 'white', margin: '0 0 6px', fontWeight: 800 }}>Otonom Performans Terminali (Çift Barkod)</h4>
                             <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>1. Önce personel kartını okutun. 2. Sonra sepet/iş barkodunu okutarak işi başlatın veya bitirin.</p>
-                            {aktifPersonel && <div style={{ marginTop: 8, display: 'inline-block', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', color: '#34d399', borderRadius: 6, fontSize: '0.75rem', fontWeight: 800 }}>👨‍🔧 İşleme Hazır: {aktifPersonel.ad_soyad}</div>}
+                            {aktifPersonel && (
+                                <div style={{ marginTop: 8, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <div style={{ padding: '6px 12px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', color: '#34d399', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800 }}>👨‍🔧 İşleme Hazır: {aktifPersonel.ad_soyad}</div>
+                                    <button onClick={() => setIsReworkMod(!isReworkMod)} style={{ padding: '6px 12px', background: isReworkMod ? 'rgba(239, 68, 68, 0.15)' : 'rgba(51, 65, 85, 0.5)', border: `1px solid ${isReworkMod ? '#ef4444' : '#475569'}`, color: isReworkMod ? '#f87171' : '#94a3b8', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: isReworkMod ? '#ef4444' : '#64748b', boxShadow: isReworkMod ? '0 0 8px #ef4444' : 'none' }}></div>
+                                        {isReworkMod ? '🔧 TAMİR (REWORK)' : 'Normal Üretim'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                             <input ref={barkodInputRef} type="text" value={barkodOkutulanIsId} onChange={e => setBarkodOkutulanIsId(e.target.value)}
                                 placeholder={aktifPersonel ? "SEPET Barkodunu Okut..." : "YAKA Barkodunu Okut..."} style={{ ...inp, width: 220, border: `2px solid ${aktifPersonel ? '#10b981' : '#3b82f6'}`, background: '#1e293b', color: 'white', fontWeight: 700 }}
                                 onKeyDown={e => { if (e.key === 'Enter') ciftBarkodOtonomIslem(barkodOkutulanIsId); }} />
-                            <button onClick={() => ciftBarkodOtonomIslem(barkodOkutulanIsId)} style={{ background: aktifPersonel ? '#10b981' : '#3b82f6', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.3s' }}>OKUT</button>
+                            <Link href="/uretim-kiosk" target="_blank">
+                                <button style={{ background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.3s', height: '100%' }}>
+                                    📱 TAM EKRAN KİOSK
+                                </button>
+                            </Link>
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>

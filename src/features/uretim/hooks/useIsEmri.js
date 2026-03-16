@@ -68,6 +68,7 @@ export function useIsEmri(kullanici) {
     // [YENİ] Çift Barkod ve Performans State'leri
     const [aktifPersonel, setAktifPersonel] = useState(null);
     const [aktifOperasyonlar, setAktifOperasyonlar] = useState([]);
+    const [isReworkMod, setIsReworkMod] = useState(false); // [REWORK]
 
     const timerRef = useRef({});
     const barkodInputRef = useRef(null);
@@ -261,33 +262,49 @@ export function useIsEmri(kullanici) {
                 if (gecenSn < 10) {
                     goster('🚨 MANİPÜLASYON: Makine hızından daha kısa sürede iş bitirilemez!', 'error');
                 } else {
-                    // Performans tablosuna bitiş yaz (Uretilen Adet ve Prim Yargıç hesaplayacak)
-                    const { error } = await supabase.from('b1_personel_performans')
-                        .update({ bitis_saati: new Date().toISOString(), uretilen_adet: o.quantity })
-                        .eq('id', aktifPerf.id);
-                    if (error) throw error;
+                    const pyld = { bitis_saati: new Date().toISOString(), uretilen_adet: o.quantity };
 
-                    // Supabase triggerı veya Yargıç daha sonra primleri bu bitiş saatiyle hesaplayacak.
-                    // İş emrinin ana durumunu ileride otonom tamamla:
-                    if (o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
-                    goster(`✅ OTONOM: ${aktifPersonel.ad_soyad} için iş TAMAMLANDI.`);
-                    await yukle(); // Operasyon listesi dolsun
+                    if (!navigator.onLine) {
+                        // OFFLINE DAYANIKLILIK
+                        await cevrimeKuyrugaAl('b1_personel_performans', 'UPDATE', { id: aktifPerf.id, ...pyld });
+                        if (o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
+                        goster(`⚡ ÇEVRİMDIŞI zırhı devrede: ${aktifPersonel.ad_soyad} iş bitişi lokalde koruma altına alındı.`);
+                        setAktifOperasyonlar(prev => prev.filter(a => a.id !== aktifPerf.id)); // Arayüzden düş
+                    } else {
+                        // ONLİNE
+                        const { error } = await supabase.from('b1_personel_performans').update(pyld).eq('id', aktifPerf.id);
+                        if (error) throw error;
+
+                        // İş emrinin ana durumunu ileride otonom tamamla:
+                        if (o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
+                        goster(`✅ OTONOM: ${aktifPersonel.ad_soyad} için iş TAMAMLANDI.`);
+                        await yukle(); // Operasyon listesi dolsun
+                    }
                 }
             } else {
                 // YENİ İŞE BAŞLAMA
                 // Order pending ise in_progress yap
                 if (o.status === 'pending') await durumGuncelle(o.id, 'in_progress');
 
-                // b1_personel_performans kaydı aç
-                const { error } = await supabase.from('b1_personel_performans').insert([{
+                const pyld = {
                     personel_id: aktifPersonel.id,
                     order_id: o.id,
+                    is_rework: isReworkMod,
                     baslangic_saati: new Date().toISOString()
-                }]);
-                if (error) throw error;
+                };
 
-                goster(`⚡ OTONOM: ${aktifPersonel.ad_soyad} işe BAŞLADI.`);
-                await yukle();
+                if (!navigator.onLine) {
+                    // OFFLINE DAYANIKLILIK
+                    await cevrimeKuyrugaAl('b1_personel_performans', 'INSERT', pyld);
+                    goster(`⚡ ÇEVRİMDIŞI zırhı devrede: Başlangıç kaydı internet yokken de lokal DB'de tutuluyor.`);
+                } else {
+                    // b1_personel_performans kaydı aç
+                    const { error } = await supabase.from('b1_personel_performans').insert([pyld]);
+                    if (error) throw error;
+
+                    goster(`⚡ OTONOM: ${aktifPersonel.ad_soyad} işe BAŞLADI ${isReworkMod ? '🔧 (TAMİR/REWORK MODU)' : ''}.`);
+                    await yukle();
+                }
             }
         } catch (e) {
             goster(`Otonom Hata: ${e.message}`, 'error');
@@ -471,7 +488,7 @@ export function useIsEmri(kullanici) {
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, duzenleId,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
         islemdeId, setIslemdeId, // [SPAM ZIRHI]
-        aktifPersonel, setAktifPersonel, aktifOperasyonlar, // [ÇİFT BARKOD]
+        aktifPersonel, setAktifPersonel, aktifOperasyonlar, isReworkMod, setIsReworkMod, // [ÇİFT BARKOD + REWORK]
         // Fonksiyonlar
         yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, ciftBarkodOtonomIslem,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,

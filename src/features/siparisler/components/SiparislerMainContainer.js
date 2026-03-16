@@ -443,17 +443,17 @@ export default function SiparislerSayfasi() {
                 baslik={isAR ? 'إدارة الطلبات' : 'Sipariş Yönetimi'}
                 altBaslik={/** @type {any} */ (isAR ? 'استلام → تأكيد → شحن → تسليم' : 'Al → Onayla → Hazırla → Kargoyla → Teslim')}
                 islemButonlari={/** @type {any} */(
-                    <>
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                         <button onClick={() => { setForm({ ...BOSH_FORM, siparis_no: siparisNoUret() }); setFormAcik(!formAcik); }}
-                            className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white border-0 px-5 py-2.5 rounded-xl font-bold cursor-pointer transition-all shadow-[0_4px_14px_rgba(4,120,87,0.35)]">
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white border-0 px-5 py-2.5 rounded-xl font-bold cursor-pointer transition-all shadow-[0_4px_14px_rgba(4,120,87,0.35)]">
                             <Plus size={18} /> Yeni Sipariş
                         </button>
-                        <Link href="/stok" className="no-underline">
-                            <button className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm transition-all shadow-[0_4px_14px_rgba(217,119,6,0.35)]">
+                        <Link href="/stok" className="flex-1 sm:flex-none no-underline">
+                            <button className="w-full flex justify-center items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm transition-all shadow-[0_4px_14px_rgba(217,119,6,0.35)]">
                                 📦 Stoklar (M11)
                             </button>
                         </Link>
-                    </>
+                    </div>
                 )}
             />
 
