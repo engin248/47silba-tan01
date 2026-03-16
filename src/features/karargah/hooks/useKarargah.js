@@ -90,9 +90,9 @@ export function useKarargah() {
             // Aktif sistem uyarıları
             const { data: alarmData } = await supabase
                 .from('b1_sistem_uyarilari')
-                .select('id, uyari_tipi, seviye, baslik, mesaj, created_at')
+                .select('id, uyari_tipi, seviye, baslik, mesaj, olusturma') // created_at yerine olusturma
                 .eq('durum', 'aktif')
-                .order('created_at', { ascending: false })
+                .order('olusturma', { ascending: false })
                 .limit(10);
 
             const alarmlar = (alarmData || []).map(a => ({
