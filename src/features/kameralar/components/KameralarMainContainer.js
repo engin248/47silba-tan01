@@ -95,13 +95,14 @@ export default function KameralarMainContainer() {
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
     const streamDurumKontrol = useCallback(async () => {
-        try {
-            const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-            const data = await res.json();
-            setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
-        } catch {
-            setStreamDurum('kapali');
-        }
+        // try {
+        //     const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+        //     const data = await res.json();
+        //     setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
+        // } catch {
+        //     setStreamDurum('kapali');
+        // }
+        setStreamDurum('kapali'); // Otonom Stream Gözlemi Kapatıldı
     }, []);
 
     // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────

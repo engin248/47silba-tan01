@@ -90,19 +90,20 @@ export function KarargahMainContainer() {
     const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
 
     useEffect(() => {
-        const kontrol = async () => {
-            if (document.hidden) return;
-            try {
-                const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
-                const d = await res.json();
-                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
-            } catch { setKameraStreamDurum('kapali'); }
-        };
-        kontrol();
-        const iv = setInterval(kontrol, 15000);
-        const handleVisibility = () => { if (!document.hidden) kontrol(); };
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
+        // const kontrol = async () => {
+        //     if (document.hidden) return;
+        //     try {
+        //         const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+        //         const d = await res.json();
+        //         setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+        //     } catch { setKameraStreamDurum('kapali'); }
+        // };
+        // kontrol();
+        // const iv = setInterval(kontrol, 15000);
+        // const handleVisibility = () => { if (!document.hidden) kontrol(); };
+        // document.addEventListener('visibilitychange', handleVisibility);
+        // return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
+        setKameraStreamDurum('kapali'); // Otonom Gözlem Kapatıldı
     }, []);
 
     const mesajlariGetir = useCallback(async () => {

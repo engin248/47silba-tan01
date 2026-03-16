@@ -257,7 +257,15 @@ export default function AjanlarMainContainer() {
         if (!window.confirm(uyariMetni)) return;
         setCalistiriliyor(p => ({ ...p, [gorev_id]: true }));
         try {
-            const res = await fetch('/api/ajan-calistir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gorev_id }) });
+            const gorevObj = gorevler.find(g => g.id === gorev_id);
+            let endpoint = '/api/ajan-calistir'; // Default (Perplexity/Genel vb.)
+            if (gorevObj && (gorevObj.ajan_adi.includes('Yargıç') || gorevObj.ajan_adi.includes('Matematik'))) {
+                endpoint = '/api/ajan-yargic'; // Yeni Gemini Yargıç API'si
+            } else if (gorevObj && gorevObj.ajan_adi.includes('Köprü')) {
+                endpoint = '/api/kopru-ajan'; // Köprü Ajan API'si
+            }
+
+            const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gorev_id }) });
             const d = await res.json();
             d.basarili ? goster('✅ Görev tamamlandı!') : goster('⚠️ ' + (d.error || 'Hata'), 'error');
         } catch (e) { goster('Bağlantı hatası', 'error'); }
@@ -296,7 +304,7 @@ export default function AjanlarMainContainer() {
 
     const gorevToggle = (ajanKey, gorevId) => {
         const yeni = { ...konfig };
-        const idx = yeni[ajanKey].gorevler.findIndex(g => g.id === gorevId);
+        const idx = yeni[ajanKey].gorevler.findIndex(/** @type {any} */(g) => g.id === gorevId);
         yeni[ajanKey].gorevler[idx] = { ...yeni[ajanKey].gorevler[idx], aktif: !yeni[ajanKey].gorevler[idx].aktif };
         setKonfig(yeni);
         localStorage.setItem('ajan_konfig', JSON.stringify(yeni));
