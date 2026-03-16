@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
 // go2rtc stream sunucu sağlık kontrolü
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL || process.env.GO2RTC_URL || 'http://localhost:1984';
 
@@ -8,11 +10,15 @@ export async function GET() {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 3000);
 
-        const res = await fetch(`${go2rtcUrl}/api`, {
-            signal: controller.signal,
-            cache: 'no-store',
-        });
-        clearTimeout(timeout);
+        let res;
+        try {
+            res = await fetch(`${go2rtcUrl}/api`, {
+                signal: controller.signal,
+                cache: 'no-store',
+            });
+        } finally {
+            clearTimeout(timeout);
+        }
 
         if (res.ok) {
             const data = await res.json().catch(() => ({}));
