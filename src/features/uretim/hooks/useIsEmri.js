@@ -65,6 +65,10 @@ export function useIsEmri(kullanici) {
     const [seciliSiparisler, setSeciliSiparisler] = useState([]);
     const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
 
+    // [YENİ] Çift Barkod ve Performans State'leri
+    const [aktifPersonel, setAktifPersonel] = useState(null);
+    const [aktifOperasyonlar, setAktifOperasyonlar] = useState([]);
+
     const timerRef = useRef({});
     const barkodInputRef = useRef(null);
     const goster = createGoster(setMesaj);
@@ -90,12 +94,14 @@ export function useIsEmri(kullanici) {
             }
             if (pRes.data) setPersonel(pRes.data);
             if (dept === 'maliyet' || dept === 'devir') {
-                const [malRes, rRes] = await Promise.all([
+                const [malRes, rRes, perfRes] = await Promise.all([
                     Promise.race([supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200), timeout(10000)]),
                     Promise.race([supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(100), timeout(10000)]),
+                    Promise.race([supabase.from('b1_personel_performans').select('*, b1_personel(ad_soyad)').is('bitis_saati', null).limit(100), timeout(10000)]),
                 ]);
                 if (malRes.data) setMaliyetler(malRes.data);
                 if (rRes.data) setRaporlar(rRes.data);
+                if (perfRes.data) setAktifOperasyonlar(perfRes.data);
             }
         } catch (e) {
             goster('Sistem veri yükleme hatası: ' + e.message, 'error');
@@ -136,7 +142,17 @@ export function useIsEmri(kullanici) {
                     yeniSure[id] = Math.floor((Date.now() - baslangic_gercek) / 1000);
 
                     timerRef.current[id] = setInterval(() => {
-                        setSure(prev => ({ ...prev, [id]: Math.floor((Date.now() - baslangic_gercek) / 1000) }));
+                        setSure(prev => {
+                            const currentS = Math.floor((Date.now() - baslangic_gercek) / 1000);
+                            // ⏱️ OTO-ZAMAN AŞIMI (TIMEOUT) - 4 Saat = 14400 saniye
+                            if (currentS > 14400 && timerRef.current[id]) {
+                                clearInterval(timerRef.current[id]);
+                                goster(`⏱️ Zaman Aşımı: [ID: ${id}] işlemi 4 saati geçtiği için sistem tarafından durduruldu.`, 'error');
+                                // Normalde burada otomatik kapanma db flagi atılabilir, şimdilik sadece sayacı ezmesin
+                                return prev;
+                            }
+                            return { ...prev, [id]: currentS };
+                        });
                     }, 1000);
                 } else {
                     // Duraklatılmışsa süresini de kurtaralım
@@ -207,30 +223,80 @@ export function useIsEmri(kullanici) {
         }
     };
 
-    // ── BARKODLU OTONOM ─────────────────────────────────────────────────────
-    const barkodlaOtonomIslemYap = async (is_id) => {
-        if (!is_id) return;
-        const o = orders.find(x => x.id === is_id || x.id == is_id);
-        if (!o) return goster('Barkod sistemde bulunamadı!', 'error');
-        if (o.status === 'pending') {
-            await durumGuncelle(o.id, 'in_progress');
-            goster(`⏱️ OTONOM BAŞLATMA: [ID: ${o.id}] bantta.`);
-            baslat(o.id);
-        } else if (o.status === 'in_progress') {
-            const gecenSn = sure[o.id] || 0;
-            if (gecenSn < 15) {
-                setBarkodOkutulanIsId('');
-                return goster('🚨 MANİPÜLASYON TESPİTİ: Spam barkod engellendi.', 'error');
-            }
-            await durdurVePerformansPuanla(o.id);
-            await durumGuncelle(o.id, 'completed');
-            goster('✅ OTONOM BİTİRME: İş kapatıldı.');
-        } else if (o.status === 'completed') {
+    // ── ÇİFT BARKODLU OTONOM SİSTEM (YENİ MİMARİ) ─────────────────────────
+    const ciftBarkodOtonomIslem = async (okunanBarkod) => {
+        if (!okunanBarkod) return;
+
+        // 1. Önce okunan barkod bir PERSONEL mi diye bakıyoruz
+        const p = personel.find(x => x.barkod_no === okunanBarkod || x.personel_kodu === okunanBarkod);
+        if (p) {
+            setAktifPersonel(p);
             setBarkodOkutulanIsId('');
-            return goster('🔒 DİJİTAL KİLİT: Tamamlanmış paket tekrar açılamaz!', 'error');
+            goster(`👨‍🔧 Personel Onaylandı: ${p.ad_soyad}. Şimdi SEPET (İş) Barkodunu okutunuz.`);
+            if (barkodInputRef.current) barkodInputRef.current.focus();
+            return;
         }
-        setBarkodOkutulanIsId('');
-        if (barkodInputRef.current) barkodInputRef.current.focus();
+
+        // 2. Personel değilse, bir ÜRETİM EMRİ (Sepet) olmak zorunda
+        const o = orders.find(x => x.id === okunanBarkod || x.id == okunanBarkod || x.order_code === okunanBarkod);
+        if (!o) {
+            setBarkodOkutulanIsId('');
+            return goster('Barkod tanınmadı! (Ne personel yaka kartı ne de iş sepeti barkodu bulundu)', 'error');
+        }
+
+        // İş barkodu bulundu ama önce personel yaka kartı okutulmalıydı
+        if (!aktifPersonel) {
+            setBarkodOkutulanIsId('');
+            return goster('🔒 GÜVENLİK İHLALİ: Önce Personel (Yaka) Barkodunu okutmalısınız!', 'error');
+        }
+
+        setIslemdeId('barkod_islem');
+        try {
+            // Personelin aktif işlemlerinden siparişi bul
+            const aktifPerf = aktifOperasyonlar.find(ap => ap.personel_id === aktifPersonel.id && ap.order_id === o.id);
+
+            if (aktifPerf) {
+                // İŞİ BİTİRME
+                const gecenSn = Math.floor((new Date() - new Date(aktifPerf.baslangic_saati)) / 1000);
+                if (gecenSn < 10) {
+                    goster('🚨 MANİPÜLASYON: Makine hızından daha kısa sürede iş bitirilemez!', 'error');
+                } else {
+                    // Performans tablosuna bitiş yaz (Uretilen Adet ve Prim Yargıç hesaplayacak)
+                    const { error } = await supabase.from('b1_personel_performans')
+                        .update({ bitis_saati: new Date().toISOString(), uretilen_adet: o.quantity })
+                        .eq('id', aktifPerf.id);
+                    if (error) throw error;
+
+                    // Supabase triggerı veya Yargıç daha sonra primleri bu bitiş saatiyle hesaplayacak.
+                    // İş emrinin ana durumunu ileride otonom tamamla:
+                    if (o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
+                    goster(`✅ OTONOM: ${aktifPersonel.ad_soyad} için iş TAMAMLANDI.`);
+                    await yukle(); // Operasyon listesi dolsun
+                }
+            } else {
+                // YENİ İŞE BAŞLAMA
+                // Order pending ise in_progress yap
+                if (o.status === 'pending') await durumGuncelle(o.id, 'in_progress');
+
+                // b1_personel_performans kaydı aç
+                const { error } = await supabase.from('b1_personel_performans').insert([{
+                    personel_id: aktifPersonel.id,
+                    order_id: o.id,
+                    baslangic_saati: new Date().toISOString()
+                }]);
+                if (error) throw error;
+
+                goster(`⚡ OTONOM: ${aktifPersonel.ad_soyad} işe BAŞLADI.`);
+                await yukle();
+            }
+        } catch (e) {
+            goster(`Otonom Hata: ${e.message}`, 'error');
+        } finally {
+            setIslemdeId(null);
+            setBarkodOkutulanIsId('');
+            setAktifPersonel(null); // Çift barkod güvenlik kuralı: Her işlemde "Kart->İş" silsilesi zorunludur
+            if (barkodInputRef.current) barkodInputRef.current.focus();
+        }
     };
 
     // ── YENİ / DÜZENLE İŞ EMRİ ─────────────────────────────────────────────
@@ -405,8 +471,9 @@ export function useIsEmri(kullanici) {
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, duzenleId,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
         islemdeId, setIslemdeId, // [SPAM ZIRHI]
+        aktifPersonel, setAktifPersonel, aktifOperasyonlar, // [ÇİFT BARKOD]
         // Fonksiyonlar
-        yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
+        yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, ciftBarkodOtonomIslem,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
     };

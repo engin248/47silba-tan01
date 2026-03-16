@@ -688,7 +688,7 @@ export default function ArgeSayfasi() {
 
                 {/* ── 🤖 YENİ: 8 ÇEKİRDEKLİ OTONOM İSTİHBARAT AĞI WİDGET'I ──────────────────────── */}
                 <div style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, #020617 0%, #064e3b 100%)', borderRadius: '24px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(52, 211, 153, 0.15)', boxShadow: '0 20px 50px -15px rgba(2, 44, 34, 0.6)' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'url("/noise.png")', opacity: 0.08, mixBlendMode: 'overlay' }}></div>
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'repeating-radial-gradient(circle at 17% 32%, rgb(255,255,255) 0vw, transparent 1px), repeating-radial-gradient(circle at 62% 23%, rgb(255,255,255) 0vw, transparent 1px)', backgroundSize: '7px 7px', opacity: 0.03, mixBlendMode: 'overlay' }}></div>
                     <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: '#d4af37', filter: 'blur(40px)', opacity: 0.15, borderRadius: '50%' }}></div>
 
                     <div style={{ padding: '1.25rem', position: 'relative', zIndex: 10 }}>

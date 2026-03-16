@@ -25,10 +25,11 @@ export default function UretimSayfasi() {
         kronometer, sure, maliyetForm, setMaliyetForm, maliyetFormAcik, setMaliyetFormAcik,
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
-        durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
+        durumGuncelle, baslat, duraklat, durdur, formatSure, ciftBarkodOtonomIslem,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
         islemdeId, setIslemdeId, // [SPAM ZIRHI]
+        aktifPersonel, setAktifPersonel, aktifOperasyonlar, // [ÇİFT BARKOD]
     } = useIsEmri(kullanici);
 
     // Yetki kontrolü
@@ -197,17 +198,18 @@ export default function UretimSayfasi() {
             {/* ─── D-B: BAND & MONTAJ ──────────────────────────────────────── */}
             {dept === 'kesim' && (
                 <div>
-                    <div style={{ background: '#0f172a', border: '2px solid #334155', borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ padding: 10, background: '#1e293b', borderRadius: 8 }}><Play size={24} color="#34d399" /></div>
+                    <div style={{ background: '#0f172a', border: `2px solid ${aktifPersonel ? '#10b981' : '#334155'}`, borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', display: 'flex', gap: 12, alignItems: 'center', transition: 'all 0.3s' }}>
+                        <div style={{ padding: 10, background: aktifPersonel ? '#064e3b' : '#1e293b', borderRadius: 8 }}><Play size={24} color="#34d399" /></div>
                         <div style={{ flex: 1 }}>
-                            <h4 style={{ color: 'white', margin: '0 0 6px', fontWeight: 800 }}>Otonom Barkod Tarayıcı</h4>
-                            <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>Barkod okuyucuyla veya manuel ID girerek okutun. Önce başlatır, sonraki okutmada bitirir.</p>
+                            <h4 style={{ color: 'white', margin: '0 0 6px', fontWeight: 800 }}>Otonom Performans Terminali (Çift Barkod)</h4>
+                            <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>1. Önce personel kartını okutun. 2. Sonra sepet/iş barkodunu okutarak işi başlatın veya bitirin.</p>
+                            {aktifPersonel && <div style={{ marginTop: 8, display: 'inline-block', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', color: '#34d399', borderRadius: 6, fontSize: '0.75rem', fontWeight: 800 }}>👨‍🔧 İşleme Hazır: {aktifPersonel.ad_soyad}</div>}
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                             <input ref={barkodInputRef} type="text" value={barkodOkutulanIsId} onChange={e => setBarkodOkutulanIsId(e.target.value)}
-                                placeholder="İş Emri ID..." style={{ ...inp, width: 200, border: '2px solid #3b82f6', background: '#1e293b', color: 'white' }}
-                                onKeyDown={e => { if (e.key === 'Enter') barkodlaOtonomIslemYap(barkodOkutulanIsId); }} />
-                            <button onClick={() => barkodlaOtonomIslemYap(barkodOkutulanIsId)} style={{ background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 800, cursor: 'pointer' }}>OKUT</button>
+                                placeholder={aktifPersonel ? "SEPET Barkodunu Okut..." : "YAKA Barkodunu Okut..."} style={{ ...inp, width: 220, border: `2px solid ${aktifPersonel ? '#10b981' : '#3b82f6'}`, background: '#1e293b', color: 'white', fontWeight: 700 }}
+                                onKeyDown={e => { if (e.key === 'Enter') ciftBarkodOtonomIslem(barkodOkutulanIsId); }} />
+                            <button onClick={() => ciftBarkodOtonomIslem(barkodOkutulanIsId)} style={{ background: aktifPersonel ? '#10b981' : '#3b82f6', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.3s' }}>OKUT</button>
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>

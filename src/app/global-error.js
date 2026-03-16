@@ -14,8 +14,8 @@ export default function GlobalError({ error, reset }) {
             fetch('/api/telegram-bildirim', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mesaj: `🚨 [KRİTİK HATA] Küresel çökme kalkanı devreye girdi!\nHata: ${error?.message}` })
-            });
+                body: JSON.stringify({ mesaj: '⚠️ GLOBAL CRASH!\n\nUrl: /app/global-error.js\nHata: ' + error.message }),
+            }).catch(() => null);
         } catch { }
     }, [error]);
 

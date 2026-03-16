@@ -75,10 +75,12 @@ export function useKarargah() {
                 .reduce((t, h) => t + parseFloat(h.tutar_tl || 0), 0);
 
             // Bugünkü maliyetler
-            const { data: maliyetData } = await supabase
+            const { data: maliyetData, error: maliyetHata } = await supabase
                 .from('b1_maliyet_kayitlari')
                 .select('tutar_tl, maliyet_tipi')
                 .gte('created_at', bugunISO);
+
+            if (maliyetHata) console.error("Maliyet Çekme Hatası:", maliyetHata);
 
             const maliyet = (maliyetData || [])
                 .reduce((t, m) => t + parseFloat(m.tutar_tl || 0), 0);
@@ -88,17 +90,19 @@ export function useKarargah() {
                 .reduce((t, m) => t + parseFloat(m.tutar_tl || 0), 0);
 
             // Aktif sistem uyarıları
-            const { data: alarmData } = await supabase
+            const { data: alarmData, error: alarmHata } = await supabase
                 .from('b1_sistem_uyarilari')
-                .select('id, uyari_tipi, seviye, baslik, mesaj, olusturma') // created_at yerine olusturma
+                .select('id, uyari_tipi, seviye, baslik, mesaj, olusturma')
                 .eq('durum', 'aktif')
                 .order('olusturma', { ascending: false })
                 .limit(10);
 
+            if (alarmHata) console.error("Alarm Çekme Hatası:", alarmHata);
+
             const alarmlar = (alarmData || []).map(a => ({
                 id: a.id,
-                text: a.baslik || a.uyari_tipi || 'Sistem Uyarısı', // baslik eklendi daha iyi görünüm için
-                tip: a.seviye === 'krt' ? 'kirmizi' : 'sari', // seviye krt, yk, or vs.
+                text: a.baslik || a.uyari_tipi || 'Sistem Uyarısı',
+                tip: a.seviye === 'krt' ? 'kirmizi' : 'sari',
                 zarar: 0,
                 neden: a.mesaj || 'Analiz bekleniyor.'
             }));
