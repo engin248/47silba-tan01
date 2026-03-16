@@ -5,9 +5,9 @@ import { komutSchema } from '../schemas/komutSchema';
 
 export function useKarargah() {
     const [stats, setStats] = useState({ ciro: 0, maliyet: 0, personel: 0, fire: 0, yukleniyor: true });
-    const [alarms, setAlarms] = useState([]);
+    const [alarms, setAlarms] = useState(/** @type {any[]} */([]));
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
-    const [ping, setPing] = useState(null);
+    const [ping, setPing] = useState(/** @type {number|null} */(null));
 
     const [commandText, setCommandText] = useState('');
     const [aiSorgu, setAiSorgu] = useState('');
@@ -90,9 +90,9 @@ export function useKarargah() {
             // Aktif sistem uyarıları
             const { data: alarmData } = await supabase
                 .from('b1_sistem_uyarilari')
-                .select('id, uyari_tipi, seviye, mesaj, olusturma')
+                .select('id, uyari_tipi, seviye, baslik, mesaj, created_at')
                 .eq('durum', 'aktif')
-                .order('olusturma', { ascending: false })
+                .order('created_at', { ascending: false })
                 .limit(10);
 
             const alarmlar = (alarmData || []).map(a => ({
@@ -114,8 +114,10 @@ export function useKarargah() {
 
     useEffect(() => {
         veriCek();
+        // Sadece ilgili tablolarda değişiklik olunca yenile (tüm DB değil)
         const kanal = supabase.channel('karargah-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public' }, () => veriCek())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, () => { if (!document.hidden) veriCek(); })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); })
             .subscribe();
         return () => { supabase.removeChannel(kanal); };
     }, [veriCek]);
