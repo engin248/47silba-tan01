@@ -74,13 +74,15 @@ export async function GET(req) {
             }]);
         }
 
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Kör Nokta Fire Radarı',
-            islem_tipi: 'fire_analiz',
-            kaynak_tablo: 'production_orders',
-            sonuc: kritikler.length > 0 ? 'uyari' : 'basarili',
-            mesaj: `${fireRaporlari.length} model analiz edildi. ${kritikler.length} kritik fire vakası.`,
-        }]);
+        if (kritikler.length > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Kör Nokta Fire Radarı',
+                islem_tipi: 'fire_analiz',
+                kaynak_tablo: 'production_orders',
+                sonuc: 'uyari',
+                mesaj: `${fireRaporlari.length} model analiz edildi. ${kritikler.length} kritik fire vakası.`,
+            }]);
+        }
 
         return NextResponse.json({
             basarili: true,

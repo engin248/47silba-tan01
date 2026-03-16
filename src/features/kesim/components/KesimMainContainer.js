@@ -168,16 +168,45 @@ export default function KesimMainContainer() {
             }]).select().single();
             if (error) throw error;
 
-            // 💥 KASAP OPERASYONU: Kesim Firesi Otomatik Maliyete Yansıtılıyor
-            if (parseFloat(k.fire_orani) > 0) {
-                const fireZarari = parseFloat(k.fire_orani) * 15; // Kumaş MT birim fiyat tahmini
+            // 💥 KASAP OPERASYONU: Kesim Firesi Otomatik Maliyete Yansıtılıyor (DÜZELTİLDİ: Gerçek Sinsi Zarar Algoritması)
+            const fireYuzde = parseFloat(k.fire_orani) || 0;
+            if (fireYuzde > 0) {
+                const toplamKumasMt = parseFloat(k.kullanilan_kumas_mt) || 0;
+                let kayipKumasMt = 0;
+                // Kumaş harcaması girildiyse yüzdesini al, girilmediyse pastal başı 1.2mt ortalamasından yola çık
+                if (toplamKumasMt > 0) kayipKumasMt = (toplamKumasMt * fireYuzde) / 100;
+                else kayipKumasMt = (k.kesilen_net_adet * 1.2 * fireYuzde) / 100;
+
+                let kumasMtFiyat = 250; // Varsayılan yedek fiyat tahmini
+                try {
+                    if (k.kumas_topu_no) {
+                        const { data: kmData } = await supabase.from('b1_kumas_arsivi')
+                            .select('birim_maliyet_tl')
+                            .eq('kumas_kodu', k.kumas_topu_no.trim())
+                            .single();
+                        if (kmData && parseFloat(kmData.birim_maliyet_tl) > 0) kumasMtFiyat = parseFloat(kmData.birim_maliyet_tl);
+                    }
+                } catch (e) { console.warn("Dinamik kumaş fiyatı çekilemedi, varsayılana dönüldü."); }
+
+                const gercekZararTl = kayipKumasMt * kumasMtFiyat;
+
                 await supabase.from('b1_maliyet_kayitlari').insert([{
                     order_id: yeniEmir.id,
                     maliyet_tipi: 'fire_kaybi',
-                    kalem_aciklama: `KSM-${k.id} Kesim Firesi Otomatik Yansıma (%${k.fire_orani})`,
-                    tutar_tl: fireZarari > 0 ? fireZarari : parseFloat(k.fire_orani),
+                    kalem_aciklama: `KSM-${k.id} Kesim Firesi (%${fireYuzde.toFixed(1)}) — ${kayipKumasMt.toFixed(1)} MT Kumaş Kaybı`,
+                    tutar_tl: gercekZararTl > 0 ? gercekZararTl : fireYuzde,
                     onay_durumu: 'hesaplandi'
                 }]);
+
+                // 🔴 AKILLI ALARM: Fire %4'ü geçerse Sistem Uyarılarına "Kök Neden" tebligatı fırlat
+                if (fireYuzde > 4) {
+                    await supabase.from('b1_sistem_uyarilari').insert([{
+                        baslik: `🚨 Kritik Kesim Firesi (%${fireYuzde.toFixed(1)}) - Model: ${k.b1_model_taslaklari?.model_kodu || 'Bilinmiyor'}`,
+                        mesaj: `${k.kesilen_net_adet} adetlik kesimde ${kayipKumasMt.toFixed(1)} metre kumaş israf oldu. Gizli Zarar Tutarı: ₺${gercekZararTl.toFixed(0)}.\n\nKÖK NEDEN TAHMİNLERİ:\n1. Pastal yerleşim optimizasyonu verimsiz yapıldı.\n2. Kumaş eni modele uygun gelmediği için boşluklar metrajı artırdı.\n3. Defolu kumaş kısımları makaslandığı için çıkıntılar yükseldi.`,
+                        onem_derecesi: 'yuksek',
+                        durum: 'aktif'
+                    }]);
+                }
             }
 
             goster(`✅ M4 Üretim İş Emri oluşturuldu! ${k.b1_model_taslaklari?.model_kodu} — ${k.kesilen_net_adet} adet`);
@@ -383,20 +412,16 @@ export default function KesimMainContainer() {
                         </div>
 
                         <div>
-                            <label style={lbl}>Harcama (Metre) *</label>
-                            <input type="number" dir="ltr" value={form.kullanilan_kumas_mt || ''} placeholder="Kullanılan Total Kumaş / Örn: 150"
-                                onChange={e => {
-                                    const mt = parseFloat(e.target.value) || 0;
-                                    const adet = parseInt(form.kesilen_net_adet) || 1;
-                                    const ortalamaHarcama = mt > 0 && adet > 0 ? (mt / adet).toFixed(2) : '0';
-                                    setForm({ ...form, kullanilan_kumas_mt: e.target.value, fire_orani: ortalamaHarcama });
-                                }} style={inp} />
+                            <label style={lbl}>Toplam Harcanan Kumaş (MT)</label>
+                            <input type="number" dir="ltr" value={form.kullanilan_kumas_mt || ''} placeholder="Örn: 150 mt"
+                                onChange={e => setForm({ ...form, kullanilan_kumas_mt: e.target.value })} style={inp} />
                         </div>
 
                         <div>
-                            <label style={lbl}>Birim Harcama (mt/adet) 🔒</label>
-                            <input type="text" dir="ltr" value={form.fire_orani} disabled
-                                style={{ ...inp, background: '#f8fafc', color: '#94a3b8', cursor: 'not-allowed', borderColor: '#e2e8f0' }} />
+                            <label style={lbl}>Fire Oranı (%) ⚙️</label>
+                            <input type="number" dir="ltr" value={form.fire_orani} disabled={false}
+                                onChange={e => setForm({ ...form, fire_orani: e.target.value })}
+                                style={{ ...inp, background: parseFloat(form.fire_orani) > 4 ? '#fef2f2' : 'white', borderColor: parseFloat(form.fire_orani) > 4 ? '#ef4444' : '#e2e8f0' }} />
                         </div>
 
                         <div>

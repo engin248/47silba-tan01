@@ -113,15 +113,15 @@ export async function GET(req) {
         // ─ Özet ──────────────────────────────────────────────
         const darbogazlar = Object.values(sonuclar).filter(e => e.darbogaz_var);
 
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Darboğaz Teşhiscisi',
-            islem_tipi: 'darbogaz_analiz',
-            kaynak_tablo: 'b1_model_taslaklari',
-            sonuc: darbogazlar.length > 0 ? 'uyari' : 'basarili',
-            mesaj: darbogazlar.length > 0
-                ? `⚠️ ${darbogazlar.length} evrede darboğaz tespit edildi: ${darbogazlar.map(d => d.evre).join(', ')}`
-                : '✅ Tüm üretim evrelerinde süre normaller dahilinde.',
-        }]);
+        if (darbogazlar.length > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Darboğaz Teşhiscisi',
+                islem_tipi: 'darbogaz_analiz',
+                kaynak_tablo: 'b1_model_taslaklari',
+                sonuc: 'uyari',
+                mesaj: `⚠️ ${darbogazlar.length} evrede darboğaz tespit edildi: ${darbogazlar.map(d => d.evre).join(', ')}`,
+            }]);
+        }
 
         return NextResponse.json({
             basarili: true,

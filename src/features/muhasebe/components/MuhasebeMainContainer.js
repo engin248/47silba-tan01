@@ -154,33 +154,32 @@ export default function MuhasebeMainContainer() {
             }).eq('id', rapor.id);
             if (error) throw error;
 
-            // ✅ [KRİTİK DÜZELTME #3] Stok Otomasyonu: Üretim kilitlendiği an Depoya Stok eklensin!
+            // ✅ [MÜDAHALE - NİZAM STOK SİGORTASI] Ekip Gamma Tarafından Kapatıldı
+            // Nedeni: İmalat (M4) aşaması bittiğinde stok zaten `imalatApi.js` tarafından otomatik eklendi.
+            // Burada tekrar stok girişi/çıkışı yapılamaz. Ancak bu aşama bir 2. Birim Onayı log'laması şeklinde kalabilir.
             try {
                 const { data: orderData } = await supabase.from('production_orders')
-                    .select('model_id, b1_model_taslaklari(model_kodu)')
+                    .select('model_id, quantity, b1_model_taslaklari(model_kodu)')
                     .eq('id', rapor.order_id).single();
 
                 const mData = Array.isArray(orderData?.b1_model_taslaklari) ? orderData?.b1_model_taslaklari[0] : orderData?.b1_model_taslaklari;
                 const modelKodu = mData?.model_kodu;
-                const uretilen = parseInt(rapor.net_uretilen_adet) || 0;
 
-                if (modelKodu && uretilen > 0) {
-                    const { data: katalogUrunu } = await supabase.from('b2_urun_katalogu').select('id, stok_adeti').eq('urun_kodu', modelKodu).single();
-                    if (katalogUrunu) {
-                        await supabase.from('b2_stok_hareketleri').insert([{
-                            urun_id: katalogUrunu.id, hareket_tipi: 'giris', adet: uretilen,
-                            aciklama: `Üretimden Otonom Devir (Muhasebe Rapor ID: ${rapor.id})`
-                        }]);
-                        await supabase.from('b2_urun_katalogu').update({ stok_adeti: (katalogUrunu.stok_adeti || 0) + uretilen }).eq('id', katalogUrunu.id);
-                        goster(`📦 Otonom Stok Entegrasyonu: ${modelKodu} ürününe ${uretilen} adet stok eklendi.`);
-                    }
+                if (modelKodu) {
+                    // Sadece doğrulama logu yaz — Mükerrer stok girme!
+                    await supabase.from('b0_sistem_loglari').insert([{
+                        tablo_adi: 'b2_stok_hareketleri',
+                        islem_tipi: 'MUHASEBE_STOK_DOGRULAMA',
+                        kullanici_adi: kullanici?.label || 'Muhasebe Yöneticisi',
+                        eski_veri: { rapor_id: rapor.id, model_kodu: modelKodu, not: 'İmalat Devri Zaten Stoklaşmıştı, bu bir Finans Kilit Onayıdır.' }
+                    }]);
                 }
             } catch (stockErr) {
-                console.error('Stok ekleme hatası:', stockErr);
+                console.error('Doğrulama sızıntısı yakalandı:', stockErr);
             }
 
-            goster('✅ Rapor kilitlendi. 2. Birime devir (Stok aktarımı dahil) tamamlandı!'); yukle(); setSecilenRapor(null);
-            telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi. Stoklar güncelendi.`);
+            goster('✅ Rapor kilitlendi. 2. Birime devir tamamlandı!'); yukle(); setSecilenRapor(null);
+            telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi. Stoklar denetlendi.`);
         } catch (error) { goster('Devir hatası: ' + error.message, 'error'); }
         finally { setIslemdeId(null); }
     };

@@ -77,15 +77,15 @@ export async function GET(req) {
         const kritikler = tumAtillar.filter(a => a.hareketsiz_gun > 365);
 
         // ─ Log ───────────────────────────────────────────────
-        await sb.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Atıl Sermaye Uyandırıcısı',
-            islem_tipi: 'atil_sermaye_tarama',
-            kaynak_tablo: 'b1_kumas_arsivi + b2_urun_katalogu', // [K2 FIX]
-            sonuc: kritikler.length > 0 ? 'uyari' : 'basarili',
-            mesaj: `${tumAtillar.length} hareketsiz kayıt tespit edildi. Bağlı sermaye: ${yapiliBagliSermaye.toLocaleString('tr-TR')} TL. ${kritikler.length} kritik (365+ gün).`,
-        }]);
-
         if (kritikler.length > 0) {
+            await sb.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Atıl Sermaye Uyandırıcısı',
+                islem_tipi: 'atil_sermaye_tarama',
+                kaynak_tablo: 'b1_kumas_arsivi + b2_urun_katalogu', // [K2 FIX]
+                sonuc: 'uyari',
+                mesaj: `${tumAtillar.length} hareketsiz kayıt tespit edildi. Bağlı sermaye: ${yapiliBagliSermaye.toLocaleString('tr-TR')} TL. ${kritikler.length} kritik (365+ gün).`,
+            }]);
+
             await sb.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'atil_sermaye',
                 seviye: 'uyari',
