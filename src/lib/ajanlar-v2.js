@@ -204,7 +204,7 @@ export async function aksamci() {
         const { data: tamamlanan } = await sb.from('production_orders')
             .select('id')
             .eq('status', 'completed')
-            .gte('end_time', bugun + 'T00:00:00');
+            .gte('updated_at', bugun + 'T00:00:00'); // KÖK DÜZELTMESİ: end_time sütunu yok, updated_at kullanıldı
         sonuc.ozet.push(`✅ Bugün tamamlanan üretim: ${tamamlanan?.length || 0} iş emri`);
 
         // ── KONTROL NOKTASI 2: Yarın Teslim Edilecek ────────
@@ -256,7 +256,7 @@ export async function aksamci() {
         sonuc.kontrol_sayisi++;
         const { data: personel } = await sb.from('b1_personel')
             .select('ad, soyad')
-            .eq('aktif', true)
+            .eq('durum', 'aktif') // KÖK DÜZELTMESİ: boolean 'aktif' sütunu yok, string 'durum' kullanılıyor
             .limit(3);
         sonuc.ozet.push(`👥 Kapanış çeki yapıldı`);
 
@@ -289,16 +289,16 @@ export async function nabiz() {
         // ── KONTROL NOKTASI 1: Stok Alarmı ─────────────────
         sonuc.kontrol_sayisi++;
         const { data: kritikStok } = await sb.from('b2_urun_katalogu')
-            .select('id, urun_adi_tr, stok_adeti, min_stok_alarm')
+            .select('id, urun_adi_tr, stok_adeti, min_stok')
             .eq('aktif', true)
-            .not('min_stok_alarm', 'is', null);
+            .not('min_stok', 'is', null); // KÖK DÜZELTMESİ: min_stok_alarm sütunu yok, min_stok kullanılıyor
         for (const u of (kritikStok || [])) {
-            if (u.stok_adeti <= u.min_stok_alarm) {
+            if (u.stok_adeti <= u.min_stok) {
                 const alarm = await alarmYaz(
                     'dusuk_stok',
                     u.stok_adeti === 0 ? 'kritik' : 'uyari',
                     `${u.stok_adeti === 0 ? 'Stok Sıfır' : 'Düşük Stok'}: ${u.urun_adi_tr}`,
-                    `${u.stok_adeti} adet | Min: ${u.min_stok_alarm}`,
+                    `${u.stok_adeti} adet | Min: ${u.min_stok}`,
                     'b2_urun_katalogu', u.id
                 );
                 if (alarm) sonuc.alarmlar.push(alarm);

@@ -652,58 +652,67 @@ export default function ArgeSayfasi() {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                            {/* Veri Madencileri */}
-                            <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(94, 234, 212, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ background: 'rgba(56, 189, 248, 0.15)', padding: '8px', borderRadius: '8px' }}>
-                                        <Network size={16} color="#38bdf8" />
+                        {/* Gerçek veri: state'teki trendler tablosundan hesaplanır */}
+                        {(() => {
+                            const toplamTrend = trendler.length;
+                            const onaylananSayisi = trendler.filter(t => t.durum === 'onaylandi').length;
+                            const incelenanSayisi = trendler.filter(t => t.durum === 'inceleniyor').length;
+                            const onayOrani = toplamTrend > 0 ? Math.round((onaylananSayisi / toplamTrend) * 100) : 0;
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                                    {/* Veri Madencileri — Gerçek trend sayısı */}
+                                    <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(94, 234, 212, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ background: 'rgba(56, 189, 248, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                                <Network size={16} color="#38bdf8" />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Kayıtlı Trend</div>
+                                                <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>{incelenanSayisi} inceleniyor</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '1rem', fontWeight: 900, color: '#38bdf8', fontFamily: 'monospace' }}>{toplamTrend}</div>
+                                            <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Toplam</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Veri Madencileri (3)</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>Pazar taranıyor...</div>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#38bdf8', fontFamily: 'monospace' }}>2.4k</div>
-                                    <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Canlı İşlem</div>
-                                </div>
-                            </div>
 
-                            {/* Analistler */}
-                            <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ background: 'rgba(251, 191, 36, 0.15)', padding: '8px', borderRadius: '8px' }}>
-                                        <Zap size={16} color="#fbbf24" />
+                                    {/* Analistler — Gerçek onay oranı */}
+                                    <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ background: 'rgba(251, 191, 36, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                                <Zap size={16} color="#fbbf24" />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Onay Oranı</div>
+                                                <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>{onaylananSayisi} onaylandı</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '1rem', fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace' }}>%{onayOrani}</div>
+                                            <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Karar İsabeti</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0' }}>Trend Analistleri (4)</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>Skorlama hesaplanıyor</div>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace' }}>%92</div>
-                                    <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Karar İsabeti</div>
-                                </div>
-                            </div>
 
-                            {/* Kâhin */}
-                            <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ background: 'rgba(212, 175, 55, 0.15)', padding: '8px', borderRadius: '8px' }}>
-                                        <Database size={16} color="#d4af37" />
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d4af37' }}>Baş Stratejist (1)</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#fde68a', marginTop: '2px', opacity: 0.8 }}>pgvector arşivi</div>
+                                    {/* Baş Stratejist — Ajan log sayısı */}
+                                    <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ background: 'rgba(212, 175, 55, 0.15)', padding: '8px', borderRadius: '8px' }}>
+                                                <Database size={16} color="#d4af37" />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d4af37' }}>Baş Stratejist</div>
+                                                <div style={{ fontSize: '0.65rem', color: '#fde68a', marginTop: '2px', opacity: 0.8 }}>{agentLoglari.length} ajan logu</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '1rem', fontWeight: 900, color: '#10b981', fontFamily: 'monospace' }}>HAZIR</div>
+                                            <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Nihai Onay</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#10b981', fontFamily: 'monospace' }}>HAZIR</div>
-                                    <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Nihai Onay</div>
-                                </div>
-                            </div>
-                        </div>
+                            );
+                        })()}
                     </div>
                     <style>{`
                     @keyframes pulse {

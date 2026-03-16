@@ -1,110 +1,148 @@
+/**
+ * AJAN 2 — YARGIÇ (Skor Hesaplayıcı ve Karar Verici)
+ * Görev: b1_arge_trendler tablosundaki 'inceleniyor' trendleri değerlendirip
+ *        talep_skoru ve açıklama günceller, karar üretir.
+ * Çalıştır: node arge_ajanlari/Ajan2_Yargic.js
+ */
+require('dotenv').config({ path: __dirname + '/.env' });
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://cauptlsnqieegdrgotob.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-key'; // Service role (Supabase güvenliğinden geçmek için arka planda yetkiliyiz)
+const supabaseUrl = process.env.SUPABASE_URL || 'https://cauptlsnqieegdrgotob.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseKey || supabaseKey === 'fake-key') {
+    console.error('❌ HATA: SUPABASE_SERVICE_ROLE_KEY .env dosyasında tanımlı değil!');
+    process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const HEDEF_TABLO = 'b1_arge_trendler';
+const AJAN_ADI = 'Trend Kâşifi';
+
+/**
+ * THE ORDER Formülü: (Satış %35) + (Sosyal %30) + (Rakip %20) + (Sezon %15)
+ * Gerçek piyasa verileri entegre edilene kadar platform bazlı ağırlıklandırma kullanılır.
+ */
+function skorHesapla(trend) {
+    // Platform ağırlıkları (gerçek platform popülaritesine göre)
+    const platformKatsayisi = {
+        trendyol: 1.0,
+        amazon: 0.9,
+        instagram: 0.85,
+        pinterest: 0.7,
+        diger: 0.6,
+    };
+
+    // Kategori sezon uyumu (Mart 2026 - İlkbahar)
+    const sezonUyumu = {
+        gomlek: 10,      // Keten, yazlık — tam sezon
+        dis_giyim: 5,    // Kaban bitti, ceket başlıyor
+        pantolon: 8,
+        elbise: 9,
+        spor: 8,
+        ic_giyim: 7,
+        aksesuar: 7,
+        diger: 6,
+    };
+
+    const platform = trend.platform || 'diger';
+    const kategori = trend.kategori || 'diger';
+    const mevcutSkor = parseInt(trend.talep_skoru) || 5;
+
+    // Bileşenler (10 üzerinden normalize)
+    const satisBilesen = Math.min(10, mevcutSkor * (platformKatsayisi[platform] || 0.6));
+    const sosyalBilesen = Math.min(10, mevcutSkor * 0.9 + (platform === 'instagram' ? 1.5 : 0));
+    const rakipBilesen = Math.min(10, 5 + Math.random() * 3); // Rakip verisi henüz otomatik yok
+    const sezonBilesen = sezonUyumu[kategori] || 6;
+
+    // THE ORDER Formülü
+    const nihaiFirsat = (satisBilesen * 0.35) + (sosyalBilesen * 0.30) + (rakipBilesen * 0.20) + (sezonBilesen * 0.15);
+
+    // 1-10 aralığına normalize
+    return Math.min(10, Math.max(1, Math.round(nihaiFirsat)));
+}
+
+function kararUret(skor) {
+    if (skor >= 9) return { karar: 'ÜRETİM', emoji: '🚀' };
+    if (skor >= 7) return { karar: 'TEST ÜRETİMİ (Numune)', emoji: '🧪' };
+    if (skor >= 5) return { karar: 'İZLEME', emoji: '👁️' };
+    return { karar: 'REDDET', emoji: '❌' };
+}
+
 async function ajanYargic() {
-    console.log("════════════════════════════════════════════════════════════");
-    console.log("⚖️ AJAN 2 (YARGIÇ) UYANDI: Analiz ve Matematik Başladı...");
-    console.log("════════════════════════════════════════════════════════════\n");
+    console.log('════════════════════════════════════════════════════════════');
+    console.log('⚖️  AJAN 2 (YARGIÇ) UYANDI — Analiz ve Karar Sistemi Devrede');
+    console.log('════════════════════════════════════════════════════════════\n');
 
-    // 1. İşlenmemiş Ürünleri Al 
-    const { data: products, error } = await supabase
-        .from('b1_arge_products')
-        .select('*');
+    // Sadece 'inceleniyor' durumundaki ve ajan tarafından eklenen trendleri al
+    const { data: trendler, error } = await supabase
+        .from(HEDEF_TABLO)
+        .select('*')
+        .eq('durum', 'inceleniyor')
+        .like('baslik', '[AJAN]%'); // Sadece Ajan1'in eklediği kayıtlar
 
-    if (!products || products.length === 0) {
-        console.log("Yargılanacak yeni ürün bulunamadı. Kapatılıyor.");
+    if (error) {
+        console.error('[-] Veri çekme hatası:', error.message);
         return;
     }
 
-    for (let product of products) {
-        // Kontrol et: Bu ürün Yargılanmış mı?
-        const { data: existRow } = await supabase.from('b1_arge_strategy').select('id').eq('product_id', product.id);
-        if (existRow && existRow.length > 0) continue; // İşlenmişse es geç
-
-        console.log(`[+] Yargıya Çıkan Model: ${product.product_name}`);
-
-        // THE ORDER MATEMATİKSEL İLLÜZYONU (Gerçekçi LLM Skoru Simülasyonu)
-
-        // TREND SKORU BİLEŞENLERİ
-        // THE ORDER Formulü: (Satış %35) + (Sosyal %30) + (Rakip %20) + (Sezon %15)
-        let sales_growth = Math.floor(Math.random() * 40) + 60; // 60-100 arası başarılı
-        let social_growth = Math.floor(Math.random() * 40) + 60;
-        let comp_usage = Math.floor(Math.random() * 40) + 30; // Rakipler yeni başlamış olabilir (30-70)
-        let season_score = Math.floor(Math.random() * 20) + 80; // Sezona uygun (80-100)
-
-        let trend_score = (sales_growth * 0.35) + (social_growth * 0.30) + (comp_usage * 0.20) + (season_score * 0.15);
-        trend_score = Math.floor(trend_score);
-
-        // RİSK VE MALİYET HESAPLAMASI
-        let fabric_cost = Math.floor(Math.random() * 200) + 100;
-        let labor_cost = Math.floor(Math.random() * 100) + 50;
-        let production_cost = fabric_cost + labor_cost + 50;
-
-        let production_risk = Math.floor(Math.random() * 30);
-        let supply_risk = Math.floor(Math.random() * 30);
-
-        // NİHAİ FIRSAT SKORU (Trend Skoru - Risklerin Etkisi)
-        let opportunity_score = trend_score - (production_risk * 0.5) - (supply_risk * 0.5);
-        opportunity_score = Math.floor(opportunity_score) + 5; // Simülasyonda 70'i aşmaları için puanlama dopingi
-
-        let decision = "REDDET";
-        let qty = 0;
-
-        if (opportunity_score >= 85) {
-            decision = "ÜRETİM";
-            qty = 1000;
-        } else if (opportunity_score >= 70) {
-            decision = "TEST ÜRETİMİ (Numune)";
-            qty = 2; // Sizin özel vizyonunuz! Her bedenden 2 Adet.
-        } else if (opportunity_score >= 50) {
-            decision = "İZLEME";
-            qty = 0;
-        }
-
-        console.log(`    -> Trend Skoru Puanı   : ${Math.floor(trend_score)} / 100`);
-        console.log(`    -> Fırsat (Nihai) Skor : ${Math.floor(opportunity_score)} / 100`);
-        console.log(`    -> YARGI KARARI        : ${decision}\n`);
-
-        // ==========================================
-        // VERİTABANINA(SİLOYA) DAĞITIM VE BASKI 
-        // ==========================================
-
-        // 1. Trend Tablosu
-        await supabase.from('b1_arge_trend_data').insert([{
-            product_id: product.id,
-            sales_growth, social_growth, competitor_usage: comp_usage, season_score, trend_score
-        }]);
-
-        // NİZAM AR-GE KURALI: SADECE REDDEDİLMEYENLER İÇİN İŞLEM (BOT API MASRAFI KORUMASI)
-        if (decision !== "REDDET") {
-            // 2. Maliyet
-            await supabase.from('b1_arge_cost_analysis').insert([{
-                product_id: product.id,
-                fabric_cost, labor_cost, production_cost, target_retail_price: production_cost * 2.5,
-                fabric_consumption: 1.25, production_difficulty: "ORTA"
-            }]);
-
-            // 3. Risk
-            await supabase.from('b1_arge_risk_analysis').insert([{
-                product_id: product.id,
-                production_risk, supply_risk, season_risk: 10, trend_life: "Orta Trend (6-12 Ay)"
-            }]);
-        }
-
-        // 4. Strateji (Mühürleme)
-        await supabase.from('b1_arge_strategy').insert([{
-            product_id: product.id,
-            opportunity_score, decision, production_quantity: qty
-        }]);
-
+    if (!trendler || trendler.length === 0) {
+        console.log('ℹ️  Yargılanacak yeni ajan trendi bulunamadı.');
+        return;
     }
-    console.log("════════════════════════════════════════════════════════════");
-    console.log("🛑 YARGIÇ GÖREVİ TAMAMLADI. Mahkeme Kapandı.");
-    console.log("════════════════════════════════════════════════════════════");
+
+    console.log(`📋 ${trendler.length} trend yargılanacak...\n`);
+
+    let guncellenen = 0;
+    let reddedilen = 0;
+
+    for (const trend of trendler) {
+        console.log(`[+] Yargıya Çıkan: ${trend.baslik}`);
+
+        const yeniSkor = skorHesapla(trend);
+        const { karar, emoji } = kararUret(yeniSkor);
+
+        const yargicNotu = `\n\n---\n⚖️ YARGIÇ KARARI (Ajan2 Otomatik): ${emoji} ${karar}\n📊 Nihai Skor: ${yeniSkor}/10\n🏷️ THE ORDER Formülü: (Satış %35 + Sosyal %30 + Rakip %20 + Sezon %15)`;
+        const guncelAciklama = (trend.aciklama || '') + yargicNotu;
+
+        // b1_arge_trendler tablosunu güncelle — doğru tablo!
+        const { error: updateError } = await supabase
+            .from(HEDEF_TABLO)
+            .update({
+                talep_skoru: yeniSkor,
+                aciklama: guncelAciklama,
+                // Yüksek skorlu trendler otomatik onaylanabilir (isteğe bağlı)
+                // durum: yeniSkor >= 9 ? 'onaylandi' : 'inceleniyor',
+            })
+            .eq('id', trend.id);
+
+        if (updateError) {
+            console.error(`    [-] GÜNCELLEME HATASI: ${updateError.message}`);
+        } else {
+            console.log(`    -> Eski Skor: ${trend.talep_skoru} | Yeni Skor: ${yeniSkor}/10`);
+            console.log(`    -> YARGI KARARI: ${emoji} ${karar}\n`);
+            guncellenen++;
+
+            if (karar === 'REDDET') reddedilen++;
+
+            // Ajan log
+            await supabase.from('b1_agent_loglari').insert([{
+                ajan_adi: AJAN_ADI,
+                islem_tipi: 'Trend Yargılandı (Ajan2)',
+                mesaj: `${trend.baslik} → ${karar} | Skor: ${yeniSkor}/10`,
+                sonuc: karar === 'REDDET' ? 'basarisiz' : 'basarili',
+                created_at: new Date().toISOString(),
+            }]);
+        }
+    }
+
+    console.log('════════════════════════════════════════════════════════════');
+    console.log(`✅ Yargıç tamamladı. Güncellenen: ${guncellenen} | Reddedilen: ${reddedilen}`);
+    console.log('════════════════════════════════════════════════════════════');
 }
 
-ajanYargic();
+ajanYargic().catch(e => {
+    console.error('KRİTİK HATA:', e.message);
+    process.exit(1);
+});

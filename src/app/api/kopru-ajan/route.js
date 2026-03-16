@@ -97,7 +97,7 @@ export async function POST(req) {
         const { gorev_id } = body;
 
         const auth = req.headers.get('authorization');
-        const isCron = auth === `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret'}`;
+        const isCron = auth === `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`; // GÜVENLIK: NEXT_PUBLIC_ prefix'i kaldırıldı
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;

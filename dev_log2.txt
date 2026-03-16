@@ -562,3 +562,174 @@ Import trace for requested module:
  GET /_next/static/chunks/app/error.js 404 in 114ms
  GET /_next/static/chunks/app/not-found.js 404 in 114ms
 [MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 25ms
+ GET /_next/static/css/app/layout.css?v=1773650869003 404 in 29ms
+ GET /_next/static/chunks/main-app.js?v=1773650869003 404 in 32ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 76ms
+ GET /_next/static/chunks/app/error.js 404 in 75ms
+ GET /_next/static/chunks/app/not-found.js 404 in 74ms
+ GET /_next/static/chunks/app/global-error.js 404 in 75ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 40ms
+ GET /_next/static/css/app/layout.css?v=1773651100868 404 in 33ms
+ GET /_next/static/chunks/app/error.js 404 in 136ms
+ GET /_next/static/chunks/main-app.js?v=1773651100868 404 in 145ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 140ms
+ GET /_next/static/chunks/app/not-found.js 404 in 143ms
+ GET /_next/static/chunks/app/global-error.js 404 in 142ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 36ms
+ GET /_next/static/css/app/layout.css?v=1773651116329 404 in 29ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 111ms
+ GET /_next/static/chunks/app/not-found.js 404 in 110ms
+ GET /_next/static/chunks/app/global-error.js 404 in 109ms
+ GET /_next/static/chunks/main-app.js?v=1773651116329 404 in 114ms
+ GET /_next/static/chunks/app/error.js 404 in 111ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 39ms
+ GET /_next/static/css/app/layout.css?v=1773651120329 404 in 27ms
+ GET /_next/static/chunks/main-app.js?v=1773651120329 404 in 140ms
+ GET /_next/static/chunks/app/global-error.js 404 in 126ms
+ GET /_next/static/chunks/app/error.js 404 in 132ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 136ms
+ GET /_next/static/chunks/app/not-found.js 404 in 131ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 31ms
+ GET /_next/static/css/app/layout.css?v=1773651124939 404 in 53ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 207ms
+ GET /_next/static/chunks/main-app.js?v=1773651124939 404 in 215ms
+ GET /_next/static/chunks/app/error.js 404 in 205ms
+ GET /_next/static/chunks/app/global-error.js 404 in 200ms
+ GET /_next/static/chunks/app/not-found.js 404 in 203ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 40ms
+ GET /_next/static/css/app/layout.css?v=1773651136159 404 in 30ms
+ GET /_next/static/chunks/main-app.js?v=1773651136159 404 in 109ms
+ GET /_next/static/chunks/app/global-error.js 404 in 97ms
+ GET /_next/static/chunks/app/error.js 404 in 101ms
+ GET /_next/static/chunks/app/not-found.js 404 in 100ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 105ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /karargah
+ GET /karargah 200 in 43ms
+ GET /_next/static/css/app/layout.css?v=1773651211912 404 in 44ms
+ GET /_next/static/chunks/main-app.js?v=1773651211912 404 in 145ms
+ GET /_next/static/chunks/app/global-error.js 404 in 140ms
+ GET /_next/static/chunks/app/not-found.js 404 in 142ms
+ GET /_next/static/chunks/app/error.js 404 in 143ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 145ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 78ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 75ms
+ GET /_next/static/css/app/layout.css?v=1773651246532 404 in 71ms
+ GET /_next/static/chunks/main-app.js?v=1773651246532 404 in 153ms
+ GET /_next/static/chunks/app/error.js 404 in 148ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 146ms
+ GET /_next/static/chunks/app/not-found.js 404 in 138ms
+ GET /_next/static/chunks/app/page.js 404 in 138ms
+ GET /_next/static/chunks/app/global-error.js 404 in 25ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 25ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 46ms
+ GET /_next/static/css/app/layout.css?v=1773651382457 404 in 45ms
+ GET /_next/static/chunks/main-app.js?v=1773651382457 404 in 110ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 108ms
+ GET /_next/static/chunks/app/error.js 404 in 101ms
+ GET /_next/static/chunks/app/not-found.js 404 in 102ms
+ GET /_next/static/chunks/app/page.js 404 in 101ms
+ GET /_next/static/chunks/app/global-error.js 404 in 26ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 52ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 42ms
+ GET /_next/static/css/app/layout.css?v=1773651385339 404 in 53ms
+ GET /_next/static/chunks/main-app.js?v=1773651385339 404 in 51ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 90ms
+ GET /_next/static/chunks/app/not-found.js 404 in 87ms
+ GET /_next/static/chunks/app/error.js 404 in 89ms
+ GET /_next/static/chunks/app/page.js 404 in 85ms
+ GET /_next/static/chunks/app/global-error.js 404 in 37ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 24ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 43ms
+ GET /_next/static/css/app/layout.css?v=1773651389743 404 in 59ms
+ GET /_next/static/chunks/main-app.js?v=1773651389743 404 in 102ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 149ms
+ GET /_next/static/chunks/app/not-found.js 404 in 125ms
+ GET /_next/static/chunks/app/error.js 404 in 128ms
+ GET /_next/static/chunks/app/page.js 404 in 131ms
+ GET /_next/static/chunks/app/global-error.js 404 in 47ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 39ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 45ms
+ GET /_next/static/css/app/layout.css?v=1773651434128 404 in 50ms
+ GET /_next/static/chunks/main-app.js?v=1773651434128 404 in 42ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 96ms
+ GET /_next/static/chunks/app/not-found.js 404 in 94ms
+ GET /_next/static/chunks/app/error.js 404 in 96ms
+ GET /_next/static/chunks/app/page.js 404 in 91ms
+ GET /_next/static/chunks/app/global-error.js 404 in 46ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 27ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 49ms
+ GET /_next/static/css/app/layout.css?v=1773651477733 404 in 58ms
+ GET /_next/static/chunks/main-app.js?v=1773651477733 404 in 45ms
+ GET /_next/static/chunks/app/error.js 404 in 93ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 90ms
+ GET /_next/static/chunks/app/page.js 404 in 88ms
+ GET /_next/static/chunks/app/not-found.js 404 in 91ms
+ GET /_next/static/chunks/app/global-error.js 404 in 31ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /
+ GET / 200 in 39ms
+[MIDDLEWARE TETİKLENDİ] /.well-known/appspecific/com.chrome.devtools.json
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 45ms
+ GET /_next/static/css/app/layout.css?v=1773651727288 404 in 53ms
+ GET /_next/static/chunks/main-app.js?v=1773651727288 404 in 45ms
+ GET /_next/static/chunks/app/error.js 404 in 94ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 94ms
+ GET /_next/static/chunks/app/not-found.js 404 in 93ms
+ GET /_next/static/chunks/app/page.js 404 in 90ms
+ GET /_next/static/chunks/app/global-error.js 404 in 40ms
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png
+[MIDDLEWARE TETİKLENDİ] /icon.png

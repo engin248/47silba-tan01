@@ -91,7 +91,84 @@ const VARSAYILAN_KONFIGUR = {
             { id: 'mh_6', ad: 'Aylık raporu muhasebe tablosuna yaz', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
         ]
     },
+
+    // ─── MERKEZİ ZEKA ALGORİTMALARI (3 Aktif) ────────────────
+    merkezi_zeka: {
+        isim: 'Merkezi Zeka Kalkanı', ikon: '🧠', renk: '#c026d3',
+        gorevler: [
+            { id: 'mz_1', ad: 'HermAI Gerçeklik Freni — Yapay zeka halüsinasyonlarını geçmiş veriye göre filtreler', aktif: true, tablo: 'b1_arge_trendler + b1_maliyet_kayitlari', neden_pasif: '' },
+            { id: 'mz_2', ad: 'Veri Semizleme — Boş/geçersiz/çöp verilerin veritabanına girmesini engeller', aktif: true, tablo: 'b1_arge_products (yargic.js içinde)', neden_pasif: '' },
+            { id: 'mz_3', ad: 'Zırh ve Spam Kalkanı — Rate Limit, Bot engeli, Supabase RLS ile yetkisiz erişimi keser', aktif: true, tablo: 'API Middleware + Upstash Redis', neden_pasif: '' },
+        ]
+    },
+
+    // ─── YENİ İLAVELER (8 Yeni Algoritma) ────────────────────
+    kor_nokta: {
+        isim: '1. Kör Nokta Fire Radarı', ikon: '🔥', renk: '#f97316',
+        gorevler: [
+            { id: 'kn_1', ad: 'M5→M6 arası fire oranı hesapla (model bazında kumaş harcaması)', aktif: false, tablo: 'b1_kesim_emirleri + production_orders', neden_pasif: 'Geliştirme aşamasında — cron-ajanlar içine eklendi' },
+            { id: 'kn_2', ad: '📷 Vision AI — Kameradan üretim bandı parça sayımı', aktif: true, tablo: '/api/rapor/darbogaz (POST)', neden_pasif: '' },
+            { id: 'kn_3', ad: 'HermAI Gerçeklik Freni ile Vision sonucunu doğrula', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
+            { id: 'kn_4', ad: 'Düşük verimlilik alarmını sisteme yaz', aktif: true, tablo: 'b1_sistem_uyarilari', neden_pasif: '' },
+        ]
+    },
+    yirtici: {
+        isim: '2. Yırtıcı Fırsat Botu', ikon: '⚡', renk: '#eab308',
+        gorevler: [
+            { id: 'yr_1', ad: 'Trendyol canlı stok verisi çek (oluisci.js)', aktif: true, tablo: 'b1_arge_products (Scraper)', neden_pasif: '' },
+            { id: 'yr_2', ad: 'Elinizde olanla Trendyol\'da biteni eşleştir', aktif: false, tablo: 'b2_urun_katalogu + oluisci.js', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'yr_3', ad: '"Arz açığı → %15 zam" alarmı Telegram\'a gönder', aktif: false, tablo: 'Telegram API', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
+    darbogaz: {
+        isim: '3. Darboğaz Teşhiscisi', ikon: '⏱️', renk: '#059669',
+        gorevler: [
+            { id: 'db_1', ad: 'M3→M4 geçiş süresi ölç (Kalıp → Modelhane)', aktif: true, tablo: 'b1_model_taslaklari', neden_pasif: '' },
+            { id: 'db_2', ad: 'M4→M5 geçiş süresi ölç (Modelhane → Kesim)', aktif: true, tablo: 'b1_modelhane_kayitlari', neden_pasif: '' },
+            { id: 'db_3', ad: 'M5→M6 geçiş süresi ölç (Kesim → Üretim)', aktif: true, tablo: 'production_orders', neden_pasif: '' },
+            { id: 'db_4', ad: '📷 Vision Gateway — Gemini ile kare analizi kabul et', aktif: true, tablo: '/api/rapor/darbogaz (POST)', neden_pasif: '' },
+            { id: 'db_5', ad: 'Darboğaz tespitinde alarm + log yaz', aktif: true, tablo: 'b1_sistem_uyarilari + b1_agent_loglari', neden_pasif: '' },
+        ]
+    },
+    sabika: {
+        isim: '4. Tedarikçi/Fason Sabıka Kaydı', ikon: '🕵️', renk: '#dc2626',
+        gorevler: [
+            { id: 'sk_1', ad: 'Gecikme oranı hesapla (siparişe vs. teslim)', aktif: false, tablo: 'production_orders (siparis_tarihi)', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'sk_2', ad: 'Defo/iade oranını eşleştir', aktif: false, tablo: 'İade/Defo logları', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'sk_3', ad: '"Güven Skoru" karnesi yaz', aktif: false, tablo: 'b1_personel veya fason modülü', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
+    kumbaraci: {
+        isim: '5. Kumbaracı (Akıllı Kümeleme)', ikon: '🧺', renk: '#7c3aed',
+        gorevler: [
+            { id: 'km_1', ad: 'Gelecek haftanın Kalıp+Model metadatalarını çek', aktif: false, tablo: 'b1_model_taslaklari + b1_modelhane_kayitlari', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'km_2', ad: 'Ortak malzeme ihtiyaçlarını grupla (Düğme, Fermuar vb.)', aktif: false, tablo: 'Dahili Analiz (SQL GROUP BY)', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'km_3', ad: 'Toptan alım listesi döndür — Sabah Cronu', aktif: false, tablo: 'cron-ajanlar (Sabah)', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
+    hafiza: {
+        isim: '6. Sistem Hafızası Geri Bildirimi', ikon: '🧬', renk: '#0284c7',
+        gorevler: [
+            { id: 'hf_1', ad: 'Form submit anında geçmiş zarar eden modeli sorgula', aktif: false, tablo: 'b1_arge_trendler + b1_maliyet_kayitlari', neden_pasif: 'ArgeMainContainer içine entegre edilecek' },
+            { id: 'hf_2', ad: 'Eşleşen kayıt varsa BLOCK koy + uyar', aktif: false, tablo: 'Frontend Guard (ArgeMainContainer)', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
+    atil: {
+        isim: '7. Atıl Sermaye Uyandırıcısı', ikon: '💤', renk: '#9f1239',
+        gorevler: [
+            { id: 'at_1', ad: '180 günü aşan hareketsiz kumaşları tespit et', aktif: false, tablo: 'b1_kumas_arsiv (son güncelleme tarihi)', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'at_2', ad: 'Uyarı barını M2 Kumaş panelinde göster', aktif: false, tablo: 'src/features/kumas/', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
+    muneccim: {
+        isim: '8. Mevsimsel Müneccim', ikon: '🔮', renk: '#d97706',
+        gorevler: [
+            { id: 'mn_1', ad: 'Son 3 yılın aynı ayı satış + trend zirvesi SQL analizi', aktif: false, tablo: 'b1_arge_trendler + b2_siparisler (GROUP BY ay)', neden_pasif: 'Geliştirme aşamasında' },
+            { id: 'mn_2', ad: '"Geçen yıl bu ay X fırladı, önceden al!" uyarısı', aktif: false, tablo: 'Karargah Dashboard (Yeni Kart)', neden_pasif: 'Geliştirme aşamasında' },
+        ]
+    },
 };
+
 
 const AJAN_LISTESI = [
     { ad: 'Trend Kâşifi', ikon: '🔍', renk: '#3b82f6', modul: 'arge', aciklama: 'Trendyol, Amazon araştırır' },
@@ -701,7 +778,7 @@ export default function AjanlarMainContainer() {
                                     <span style={{ fontSize: '0.65rem', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 8 * * *</span>
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 12 }}>Tüm gece üretimini toparlar, dünkü verilerle güne başlama özeti oluşturur. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=sabah_ozeti</code>)</div>
-                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Sabah Cron Job çalıştırıldı.'); goster('Sabah cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=sabah_ozeti', { headers: { 'Authorization': 'Bearer ' + (process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret') } }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#fffbeb', border: '1px solid #fcd34d', color: '#d97706', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Sabah Cron Job çalıştırıldı.'); goster('Sabah cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=sabah_ozeti', { credentials: 'include' }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#fffbeb', border: '1px solid #fcd34d', color: '#d97706', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
                             </div>
                             {/* Gece Cron */}
                             <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: 10, padding: '12px' }}>
@@ -710,7 +787,7 @@ export default function AjanlarMainContainer() {
                                     <span style={{ fontSize: '0.65rem', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 3 * * *</span>
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 12 }}>Günlük tabloları sıkıştırır, eski logları (7+ gün) arşive kaldırır ve bakım yapar. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik</code>)</div>
-                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Gece Cron Job çalıştırıldı.'); goster('Gece cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik', { headers: { 'Authorization': 'Bearer ' + (process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret') } }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#e0e7ff', border: '1px solid #a5b4fc', color: '#4f46e5', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Gece Cron Job çalıştırıldı.'); goster('Gece cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik', { credentials: 'include' }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#e0e7ff', border: '1px solid #a5b4fc', color: '#4f46e5', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
                             </div>
                         </div>
                     </div>

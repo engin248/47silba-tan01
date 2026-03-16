@@ -85,7 +85,7 @@ export async function POST(req) {
 
         // Cron job şifre koruması (eğer dışarıdan çağrıldıysa)
         const auth = req.headers.get('authorization');
-        const isCron = auth === `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret'}`;
+        const isCron = auth === `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`;  // GÜVENLIK: NEXT_PUBLIC_ prefix'i kaldırıldı — secret yalnızca sunucuda kalır
 
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         const GEMINI_URL = GEMINI_API_KEY ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}` : null;
