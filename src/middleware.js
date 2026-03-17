@@ -86,6 +86,14 @@ export async function middleware(request) {
             return response;
         }
 
+        // ─── PUBLIC API ERKEN GEÇİŞ — JWT/Auth gerektirmez ────────
+        const isPublicApi = PUBLIC_API_ROTALAR.some(r => url.startsWith(r));
+        if (isPublicApi) {
+            const res = NextResponse.next();
+            res.headers.set('X-Powered-By', 'THE ORDER / NIZAM v2');
+            return res;
+        }
+
         // ─── 1. BOT/CRAWLER TESPİTİ ───────────────────────────────
         if (url.startsWith('/api/')) {
             const botTespitEdildi = BOT_IMZALARI.some(imza => userAgent.includes(imza));
