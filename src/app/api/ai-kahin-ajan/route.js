@@ -21,7 +21,6 @@ export async function POST(req) {
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
             .select('id, ad_soyad, aylik_maliyet_tl')
-            .eq('aktif', true)
             .limit(50);
 
         if (pError) {
