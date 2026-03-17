@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL, getST_RENK, getST_LABEL } from '@/features/uretim/hooks/useIsEmri';
 import { useUretimRecetesi } from '@/features/uretim/hooks/useUretimRecetesi';
+import M4_KameraSayaci from '@/features/uretim/components/M4_KameraSayaci';
 import YetkisizEkran from '@/components/shared/YetkisizEkran';
 import MesajBanner from '@/components/shared/MesajBanner';
 import SayfaBasligi from '@/components/ui/SayfaBasligi';
@@ -439,6 +440,11 @@ export default function UretimSayfasi() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* ─── D-D-K: KAMERALAR (M4 LOKAL EDGE) ───────────────────────── */}
+            {dept === 'kameralar' && (
+                <M4_KameraSayaci />
             )}
 
             {/* ─── D-D: MALİYET ───────────────────────────────────────────── */}

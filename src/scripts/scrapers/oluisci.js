@@ -37,17 +37,33 @@ async function rakipVerisiKazi(hedefUrl, markaAdi) {
 
     const page = await browser.newPage();
 
-    // Gerçek bir kullanıcı gibi davranmak için viewport ve User-Agent manipülasyonu
+    // User-Agent Havuzu (Trendyol Firewall atlatan güncel profiller)
+    const UA_POOL = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0'
+    ];
+    const secilenUA = UA_POOL[Math.floor(Math.random() * UA_POOL.length)];
+
+    // Gerçek bir kullanıcı gibi davranmak için viewport ve rastgele U-A manipülasyonu
     await page.setViewport({ width: 1366, height: 768 });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setUserAgent(secilenUA);
+
+    // Rastgele İnsani Bekleme Fonksiyonu (Soğutma/Throttle)
+    const bekleInsani = (min, max) => new Promise(r => setTimeout(r, Math.random() * (max - min) + min));
 
     try {
         console.log(`[ÖLÜ İŞÇİ] ${hedefUrl} hedefine sızılıyor...`);
         // Siteye gidilir, ağı yormamak için load yerine domcontentloaded beklenir
         await page.goto(hedefUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        console.log(`[ÖLÜ İŞÇİ] Ana sayfa yüklendi, ${secilenUA.includes('Mac') ? 'Mac' : 'Windows'} kamuflajıyla insan gibi inceleniyor...`);
+
+        // Rastgele bekleme (Bot tespitini kırar)
+        await bekleInsani(2500, 5000);
 
         // Gerçek insan simülasyonu (Aşağı kaydırma)
         await autoScroll(page);
+        await bekleInsani(1000, 2500); // Kaydırma sonrası ürünlerin tam oturmasını bekle
 
         // --- VERİ ÇEKME MANTIĞI (Örn: Trendyol / Zara HTML yapısına göre) ---
         // Not: Selector'lar siteler güncellendikçe değişir, bu bir şablondur.

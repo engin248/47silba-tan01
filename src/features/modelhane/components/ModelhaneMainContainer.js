@@ -584,7 +584,7 @@ export default function ModelhaneSayfasi() {
                         </div>
                         <div style={{ gridColumn: '1/-1' }}>
                             <label style={lbl}>Not</label>
-                            <textarea rows={2} value={formN.notlar} onChange={e => setFormN({ ...formN, notlar: e.target.value })} style={{ ...inp, resize: 'vertical' }} />
+                            <textarea dir="auto" rows={2} value={formN.notlar} onChange={e => setFormN({ ...formN, notlar: e.target.value })} style={{ ...inp, resize: 'vertical' }} />
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
@@ -641,7 +641,7 @@ export default function ModelhaneSayfasi() {
                                 {formT.yazili_adimlari.map((adim, i) => (
                                     <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(30px, 40px) 1fr minmax(70px, 100px) minmax(70px, 90px) minmax(60px, 70px) 32px', gap: '0.375rem', alignItems: 'center', background: '#0b1d1a', padding: '8px', borderRadius: 8 }}>
                                         <div style={{ textAlign: 'center', fontWeight: 900, color: '#f59e0b', fontSize: '1rem' }}>{i + 1}</div>
-                                        <input value={adim.aciklama} onChange={e => adimGuncelle(i, 'aciklama', e.target.value)} placeholder={`Adım ${i + 1}...`} style={{ ...inp, padding: '6px 10px' }} />
+                                        <input dir="auto" value={adim.aciklama} onChange={e => adimGuncelle(i, 'aciklama', e.target.value)} placeholder={`Adım ${i + 1}...`} style={{ ...inp, padding: '6px 10px' }} />
 
                                         <select value={adim.makine || 'Düz.M'} onChange={e => adimGuncelle(i, 'makine', e.target.value)} style={{ ...inp, padding: '6px', fontSize: '0.75rem' }}>
                                             <option value="Düz.M">Düz.M</option>

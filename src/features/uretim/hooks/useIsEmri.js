@@ -16,6 +16,7 @@ export const DEPARTMANLAR = [
     { id: 'receteler', ad: 'M6 Üretim Reçetesi (Rotalar)' },
     { id: 'kesim', ad: 'Bant & Montaj' },
     { id: 'kalite', ad: 'Kalite & Süre' },
+    { id: 'kameralar', ad: 'M4 Kamera Takip' },
     { id: 'maliyet', ad: 'Maliyet Girişi' },
     { id: 'devir', ad: 'Mağazaya Sevk' },
     { id: 'takip', ad: 'Canlı Pano' },

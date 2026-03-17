@@ -816,3 +816,18 @@ body {
     border-bottom: 0;
   }
 }
+
+/* ====================================================
+   B-04: ARAPÇA (RTL) KORUMA VE INPUT ZIRHI
+==================================================== */
+input[dir="rtl"], textarea[dir="rtl"], div[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: isolate;
+}
+
+.layout-container[style*="row-reverse"] input,
+.layout-container[style*="row-reverse"] textarea {
+  direction: rtl;
+  text-align: right;
+}
