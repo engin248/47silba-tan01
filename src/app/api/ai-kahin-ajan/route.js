@@ -3,17 +3,17 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // ═══════════════════════════════════════════════════════════
 //  /api/ai-kahin-ajan — Kâhin AI Ajanı
-//  Perplexity API (OpenAI-uyumlu) kullanıyor
+//  Gemini REST API (generativelanguage.googleapis.com)
 // ═══════════════════════════════════════════════════════════
 
 export async function POST(req) {
     try {
-        const PERPLEXITY_KEY = process.env.PERPLEXITY_API_KEY;
-        if (!PERPLEXITY_KEY) {
-            return NextResponse.json({ error: 'PERPLEXITY_API_KEY tanımlı değil.' }, { status: 500 });
+        const GEMINI_KEY = process.env.GEMINI_API_KEY;
+        if (!GEMINI_KEY) {
+            return NextResponse.json({ error: 'GEMINI_API_KEY Vercel ortam değişkenlerinde tanımlı değil.' }, { status: 500 });
         }
 
-        // 1. Personel verisi çek
+        // 1. Personel verisi çek (b1_personel — mevcut kolonlar)
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
             .select('id, ad_soyad, aylik_maliyet_tl')
@@ -54,46 +54,38 @@ export async function POST(req) {
   - Amorti: %${maliyet > 0 ? ((deger / maliyet) * 100).toFixed(0) : 0}\n\n`;
         }
 
-        // 4. Perplexity API çağrısı (OpenAI-uyumlu)
-        const aiRes = await fetch('https://api.perplexity.ai/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${PERPLEXITY_KEY}`,
-            },
-            body: JSON.stringify({
-                model: 'sonar',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `Sen acımasız ve net bir Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
+        const systemPrompt = `Sen acımasız ve net bir Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
 Fabrika patronuna Türkçe, kısa (max 5 paragraf), eyleme geçirilebilir "Kârlılık ve Adalet Raporu" sun.
 KURALLAR:
 1. Maliyet > Katma Değer → "Zarar Yazdırıyor" — eğitim/uyarı öner.
 2. Katma Değer > Maliyet → "Liyakat Yıldızı" — tebrik et.
 3. Kalite Puanı < 5 → Çok üretse bile disiplin uyarısı ver.
-4. Maksimum 5-6 paragraf. MD formatı. Agresif kurumsal dil. Boş övgü yok.`,
-                    },
-                    {
-                        role: 'user',
-                        content: `VERİLER:\n${isciAnalizMetni}`,
-                    },
-                ],
-                max_tokens: 1024,
-                temperature: 0.3,
-            }),
-        });
+4. Maksimum 5-6 paragraf. MD formatı. Agresif kurumsal dil. Boş övgü yok.`;
 
-        if (!aiRes.ok) {
-            const errText = await aiRes.text();
-            console.error('[Kâhin] Perplexity hatası:', aiRes.status, errText);
-            return NextResponse.json({ error: `Perplexity API hatası: ${aiRes.status}` }, { status: 502 });
+        // 4. Gemini REST API
+        const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `${systemPrompt}\n\nVERİLER:\n${isciAnalizMetni}` }] }],
+                    generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+                }),
+            }
+        );
+
+        if (!geminiRes.ok) {
+            const errBody = await geminiRes.json().catch(() => ({}));
+            const errMsg = errBody?.error?.message || geminiRes.status;
+            console.error('[Kâhin] Gemini hatası:', errMsg);
+            return NextResponse.json({ error: `Gemini API hatası: ${errMsg}` }, { status: 502 });
         }
 
-        const aiJson = await aiRes.json();
-        const aiCevap = aiJson?.choices?.[0]?.message?.content || 'AI yargıç sessiz kaldı.';
+        const geminiData = await geminiRes.json();
+        const aiCevap = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || 'AI yargıç sessiz kaldı.';
 
-        // 5. Log yaz (opsiyonel)
+        // 5. Log yaz
         try {
             await supabaseAdmin.from('b1_agent_loglari').insert([{
                 ajan_adi: 'Kahin Ajani',

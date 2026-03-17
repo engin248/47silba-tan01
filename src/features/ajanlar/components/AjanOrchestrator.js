@@ -73,7 +73,10 @@ function WorkerKart({ workerId, ikon, renk, gorevler, tamamlanan, durum, hata })
             {gorevler && gorevler.length > 0 && (
                 <div style={{ marginTop: 10, maxHeight: 120, overflowY: 'auto' }}>
                     {gorevler.slice(0, 6).map((g, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 0', borderBottom: '1px solid #1e2d3d', fontSize: '0.68rem', color: '#94a3b8' }}>
+                        <div key={i}
+                            onClick={() => navigator.clipboard?.writeText(g.baslik || '').catch(() => null)}
+                            title="Kopyalamak için tıkla"
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 0', borderBottom: '1px solid #1e2d3d', fontSize: '0.68rem', color: '#94a3b8', cursor: 'copy' }}>
                             <span style={{ color: g.oncelik === 'kritik' ? '#ef4444' : '#f59e0b' }}>
                                 {g.oncelik === 'kritik' ? '🔴' : '🟡'}
                             </span>

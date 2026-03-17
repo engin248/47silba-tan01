@@ -42,6 +42,7 @@ export default function MaliyetMainContainer() {
     const [csvText, setCsvText] = useState('');
     const [aramaMetni, setAramaMetni] = useState('');
     const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [maliyetSayfa, setMaliyetSayfa] = useState(50); // K-09 PAGINATION
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -449,7 +450,7 @@ export default function MaliyetMainContainer() {
                                 <p style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>Sağ üstteki "Maliyet Ekle" butonuna tıklayın.</p>
                             </div>
                         )}
-                        {filtreli.map(m => {
+                        {filtreli.slice(0, maliyetSayfa).map(m => {
                             const onaylandi = m.onay_durumu === 'onaylandi';
                             const siparis = orderler.find(o => o.id === m.order_id);
                             return (
@@ -473,6 +474,17 @@ export default function MaliyetMainContainer() {
                             );
                         })}
                     </div>
+                    {/* K-09 PAGINATION: Daha Fazla Göster */}
+                    {filtreli.length > maliyetSayfa && (
+                        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                            <button
+                                onClick={() => setMaliyetSayfa(p => p + 50)}
+                                style={{ padding: '9px 24px', background: 'linear-gradient(135deg,#047857,#065f46)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(4,120,87,0.3)' }}
+                            >
+                                ⬇ Daha Fazla Göster ({filtreli.length - maliyetSayfa} kaldı)
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
