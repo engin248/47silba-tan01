@@ -6,54 +6,104 @@
 
 ## 🚨 KRİTİK MİMARİ KARAR — BROWSER AGENT MİMARİSİ
 
-### Ne İsteniyor: BEYAZ SİSTEM (Tarayıcı Ajani)
-
+### Ajan Nasıl Çalışır
 ```
-❌ ESKİ (Yanlış) — Doğrudan API Scraper:
-   Python/Node → trendyol.com/api/products → JSON çek → DB'ye yaz
-   SORUN: Gri alan, API abuse, yasal risk
-
-✅ YENİ (Doğru) — Browser Agent:
-   Ajan (AI) → Gerçek Chrome/Firefox açar
-              → Sayfaya gider (trendyol.com)
-              → Sayfayı insan gibi OKUR (görsel + DOM)
-              → İlgili bilgiyi KAYIT eder
-              → Tarayıcıyı KAPATIR
-              → Çıkar
+Ajan başlar
+  → Trendyol'da hedef kategoriye gider
+  → Ürün listesini görür
+  → Her ürüne TEKER TEKER girer
+  → O ürün sayfasında BÜTÜN KRİTERLERİ okur (eksik bırakmaz)
+  → Okuduklarını hafızaya yazar
+  → Bir sonraki ürüne geçer
+  → Tüm ürünler bitti → Supabase'e toplu yazar → Tarayıcı kapanır
 ```
 
-### Teknik Karşılığı
-- **Playwright** (headless browser) + **AI Vision** (Gemini/GPT görüntü okuma)
-- veya **browser-use** Python kütüphanesi (LLM-driven browser automation)
-- Ajan insan gibi davranır: tıklar, kaydırır, okur, yazar
+### Trendyol'da Okunacak KRİTERLER (Tam Liste)
+Ajan bir ürün sayfasına girince bunların HEPSİNE bakar:
 
-### Neden "Beyaz"?
-- Gerçek tarayıcı → siteye normal HTTP request gibi görünür
-- Bot gibi API'ye saldırmıyor
-- Rate limit var (saatte N sayfa)
-- Public sayfaları okuyor, private API'yi bypass etmiyor
-
-### Uygulama Planı (Yarın Konuşulacak)
 ```
-1. VPS'e Playwright kurulu mu? → Kontrol et
-2. browser-use kütüphanesi araştır (Python, LLM destekli)
-3. Ajan: Trendyol kategori sayfasına git → ilk 20 ürünü oku → kaydet
-4. Okuma frekansı: Günde 1-2 kez (spam değil)
-5. Kaydet: b1_arge_products → (ajanın okuduğu ham veri)
-6. Batch AI analiz eder → b1_arge_strategy'e karar yazar
+1. Ürün Adı
+2. Fiyat (güncel)
+3. İndirim oranı (varsa)
+4. Satıcı / Marka
+5. Değerlendirme puanı (1-5 yıldız)
+6. Yorum sayısı
+7. Satış adedi ("X kez satıldı")
+8. Favori sayısı (beğeni)
+9. Kategori (kadın > elbise > midi vb.)
+10. Kumaş / Materyal içeriği (% pamuk vb.)
+11. Renk seçenekleri (kaç renk var)
+12. Beden seçenekleri (S/M/L stok durumu)
+13. Kargo süresi
+14. İade politikası
+15. Ürün görseli (screenshot veya URL)
+16. Ürün açıklaması (ilk 200 karakter)
+17. "Trendyol Bu Ürünü Seviyor" / Trend etiketi (varsa)
+18. Benzer ürün sayısı (alt kategorideki rekabet)
 ```
 
-### Ne Silinecek
-- `oluisci.js` (eski HTTP API scraper) → Silinecek veya rewrite edilecek
-- Raw HTTP fetch scraping → Browser agent ile değiştirilecek
+### Ajanın İhtiyaçları
 
-### Ne Kalacak
-- ✅ Tüm AI analiz katmanı (Gemini, DeepSeek, Perplexity)
-- ✅ Karar sistemi (ÜRET/TEST/İZLE/İPTAL)
-- ✅ AR-GE formu (ajanın kaydettiği + kullanıcının eklediği)
+| İhtiyaç | Araç | Not |
+|---------|------|-----|
+| Tarayıcı kontrolü | **Playwright** (Python) | Headless Chrome |
+| Sayfa okuma + anlama | **Gemini Vision** veya **GPT-4o** | Ekran görüntüsü → metin |
+| Oturum hafızası | **In-process dict** (kısa) | Bir çalışma içinde ürünleri hatırla |
+| Uzun vadeli hafıza | **Supabase** | Önceki çalışmaları hatırla |
+| Görev planlaması | **LangChain Agent** veya **browser-use** | Hangi sayfaya git, ne oku |
+| Rate limit koruması | Ajan ayarı | Sayfalar arası 3-5sn bekle |
 
-> **Ajan insan gibi bakar. Gördüğünü kaydeder. Çıkar.**
-> **Rakibin API'sine saldırmaz. Beyaz sistem. Temiz.**
+### Hafıza Gereksinimleri
+```
+Kısa hafıza (bir tur içinde):
+  → Zaten bakılan ürünler listesi (duplicate önleme)
+  → Kategori bağlamı (kadın elbise mi, erkek pantolon mu)
+
+Uzun hafıza (Supabase'de):
+  → b1_arge_products → Ajanın okuduğu ham veri
+  → created_at → Ne zaman bakıldı
+  → agent_session_id → Hangi turda görüldü
+  → Bu ürüne daha önce bakıldı mı? → Fiyat değişmiş mi?
+```
+
+### Mimari Akış (Tam)
+```
+[Görev]: "Kadın elbise kategorisinde ilk 30 ürünü analiz et"
+     ↓
+[Playwright] → trendyol.com/kadin-giyim-elbise aç
+     ↓
+[Sayfa Listesi] → 30 ürün URL'si topla
+     ↓
+Her ürün için:
+  [Playwright] → ürün sayfasına git
+  [Vision AI]  → 18 kriteri ekrandan oku
+  [Hafıza]     → dict'e yaz
+  [Bekle]      → 3-5sn
+     ↓
+[Tüm ürünler bitti]
+     ↓
+[Supabase] → b1_arge_products'a toplu INSERT
+     ↓
+[Batch AI] → Analiz → b1_arge_strategy'e karar yaz
+     ↓
+[Tarayıcı kapat] → Ajan durur
+```
+
+### Önümüzdeki Oturumda Yapılacaklar
+```
+□ browser-use kütüphanesini araştır/kur: pip install browser-use
+□ VPS'te Playwright + Chromium kurulumu doğrula
+□ 18 kriter için JSON çıktı şeması tasarla
+□ b1_arge_products tablosuna agent_session_id kolonu ekle
+□ İlk test: 5 ürün → tam okuma → Supabase kayıt
+□ Gemini Vision API'yi Playwright screenshot'ıyla test et
+```
+
+> **Ajan sayfayı kapatıp geçmez.**
+> **Kaç kritere bakmak gerekiyorsa o kadar bakar.**
+> **Hafıza gerekiyorsa hafıza var. Her şey planlanmış.**
+
+
 
 ---
 
