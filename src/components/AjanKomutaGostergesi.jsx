@@ -1,18 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Bot, Cpu, Search, Zap, Camera, Shield, Network, Loader2, CheckCircle2, Clock, XCircle, Play } from 'lucide-react';
+import { Bot, Cpu, Search, Zap, Camera, Shield, Network, Loader2, CheckCircle2, Clock, XCircle, Play, Server } from 'lucide-react';
 import { formatTarih } from '@/lib/utils';
 
 // Sabit Ajan Mimari Tanımları
 const AJAN_SISTEMLERI = [
-    { id: 'oluisci', ad: 'Ölü İşçi', ikon: Network, renk: '#eab308', bg: '#fef08a', rol: 'Veri Madencisi (Scraper)', aciklama: 'Trendyol, Zara veri akışını kazar.' },
-    { id: 'hermai', ad: 'HermAI Yargıç', ikon: Cpu, renk: '#c026d3', bg: '#fdf4ff', rol: 'Karar & Onay Mekanizması', aciklama: 'Trendleri stratejik süzer.' },
-    { id: 'kasif', ad: 'Trend Kâşifi', ikon: Search, renk: '#3b82f6', bg: '#eff6ff', rol: 'Pazar Araştırması', aciklama: 'Perplexity ile internet taraması.' },
-    { id: 'nizambot', ad: 'NİZAMBOT', ikon: Bot, renk: '#10b981', bg: '#ecfdf5', rol: 'Telegram Koordinatör', aciklama: 'Sistem - insan arası köprü.' },
-    { id: 'kopru', ad: 'Köprü Ajanı', ikon: Zap, renk: '#f97316', bg: '#fff7ed', rol: 'Veri Dönüştürücü', aciklama: 'Düz metni yapılandırır.' },
-    { id: 'vision', ad: 'Kamera Gözcüsü', ikon: Camera, renk: '#06b6d4', bg: '#ecfeff', rol: 'Görüntü İşleme (Vision)', aciklama: 'Kumaş defo ve üretim darboğazı.' },
-    { id: 'kalkan', ad: 'Zırh Kalkanı', ikon: Shield, renk: '#8b5cf6', bg: '#f5f3ff', rol: 'Güvenlik (Middleware)', aciklama: 'DDoS ve Spam engelleme.' },
+    { id: 'oluisci', ad: 'Ölü İşçi', ikon: Network, renk: '#eab308', bg: '#fef08a', rol: 'Veri Madencisi (Scraper)', aciklama: 'Trendyol, Zara veri akışını kazar.', konum: 'VPS Sunucu (Node.js)', yetenekler: ['Trendyol Kazıma', 'Zara Fiyat Takibi', 'Rakip Analizi'] },
+    { id: 'hermai', ad: 'HermAI Yargıç', ikon: Cpu, renk: '#c026d3', bg: '#fdf4ff', rol: 'Karar & Onay Mekanizması', aciklama: 'Trendleri stratejik süzer.', konum: 'Vercel Serverless', yetenekler: ['Koleksiyon Onayı', 'Risk Analizi', 'Üretim Emri Çıkarma'] },
+    { id: 'kasif', ad: 'Trend Kâşifi', ikon: Search, renk: '#3b82f6', bg: '#eff6ff', rol: 'Pazar Araştırması', aciklama: 'Perplexity ile internet taraması.', konum: 'Vercel Edge', yetenekler: ['Viral Ürün Tespiti', 'Kumaş Eğilimleri', 'Anahtar Kelime Taraması'] },
+    { id: 'nizambot', ad: 'NİZAMBOT', ikon: Bot, renk: '#10b981', bg: '#ecfdf5', rol: 'Telegram Koordinatör', aciklama: 'Sistem - insan arası köprü.', konum: 'Telegram API Pulu', yetenekler: ['Manuel Bildirim Atma', 'Acil Durum İhbarı', 'Personel Sorgusu'] },
+    { id: 'kopru', ad: 'Köprü Ajanı', ikon: Zap, renk: '#f97316', bg: '#fff7ed', rol: 'Veri Dönüştürücü', aciklama: 'Düz metni yapılandırır.', konum: 'Supabase Edge', yetenekler: ['JSON Formatlama', 'Veri Temizliği', 'Tablo Senkronizasyonu'] },
+    { id: 'vision', ad: 'Kamera Gözcüsü', ikon: Camera, renk: '#06b6d4', bg: '#ecfeff', rol: 'Görüntü İşleme (Vision)', aciklama: 'Kumaş defo ve üretim darboğazı.', konum: 'Lokal Kiosk / go2rtc', yetenekler: ['Defo Görme', 'Barkod Okuma', 'Darboğaz Tespiti'] },
+    { id: 'kalkan', ad: 'Zırh Kalkanı', ikon: Shield, renk: '#8b5cf6', bg: '#f5f3ff', rol: 'Güvenlik (Middleware)', aciklama: 'DDoS ve Spam engelleme.', konum: 'Vercel Middleware', yetenekler: ['Rate Limiting', 'IP Engelleme', 'Bot Savunması'] },
 ];
 
 export default function AjanKomutaGostergesi() {
@@ -129,9 +129,24 @@ export default function AjanKomutaGostergesi() {
                                 </div>
                             </div>
 
+                            {/* Yetenekler ve Konum */}
+                            <div className="mt-1 mb-3">
+                                <div className="text-[10px] text-emerald-100/60 mb-2 flex items-center gap-1.5 font-medium border-b border-[#1e4a43] pb-2">
+                                    <Server size={12} className="text-indigo-400" /> Konum: <span className="text-emerald-300 font-semibold">{ajan.konum}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                    {ajan.yetenekler.map((yt, i) => (
+                                        <span key={i} className="text-[9px] px-2 py-1 rounded-md bg-[#081513] text-emerald-100/80 border border-[#1e4a43]">
+                                            {yt}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* Emir Özeti */}
-                            <div className="bg-[#081513] border border-[#173a34] rounded-lg p-3 min-h-[60px] flex flex-col justify-between">
-                                <p className="text-[11px] text-emerald-100/90 leading-relaxed font-medium m-0 line-clamp-2">
+                            <div className="bg-[#081513] border border-[#173a34] rounded-lg p-3 flex flex-col justify-between mb-3 shadow-inner">
+                                <p className="text-[10px] text-emerald-100/90 leading-relaxed font-medium m-0 line-clamp-2">
+                                    <span className="text-emerald-500/50 uppercase tracking-wider text-[9px] mr-1 block mb-0.5">Son Log:</span>
                                     {durumObj.mesaj}
                                 </p>
                                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#173a34]">
@@ -143,6 +158,14 @@ export default function AjanKomutaGostergesi() {
                                     </span>
                                 </div>
                             </div>
+
+                            {/* Görev Verme Butonu */}
+                            <button
+                                onClick={() => alert(`${ajan.ad} (${ajan.konum}) için atanacak yeni otonom görev penceresi açılıyor...`)}
+                                className="w-full py-2.5 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 rounded-lg transition-all"
+                            >
+                                <Play size={11} className="fill-emerald-400" /> Görev Ver
+                            </button>
 
                         </div>
                     );
