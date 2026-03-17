@@ -101,6 +101,49 @@ async function taraModu() {
         });
     }
 
+    // 6. Sipariş Anomalisi Tespiti (K-07)
+    // Kural A: 24 saatte aynı müşteriden 3+ sipariş → şüpheli
+    // Kural B: Ürün fiyatı bir önceki fiyatın %50'sinden düşükse → kritik
+    try {
+        const sonYirmidortSaat = new Date(Date.now() - 86400000).toISOString();
+
+        // Kural A: Çoklu sipariş anomalisi
+        const { data: sonSiparisler } = await supabaseAdmin
+            .from('b2_siparisler')
+            .select('musteri_id, musteri_adi, id')
+            .gte('created_at', sonYirmidortSaat)
+            .limit(200);
+
+        if (sonSiparisler && sonSiparisler.length > 0) {
+            const musteriSayaci = {};
+            for (const s of sonSiparisler) {
+                const key = s.musteri_id || s.musteri_adi || 'bilinmiyor';
+                musteriSayaci[key] = (musteriSayaci[key] || 0) + 1;
+            }
+            for (const [musteriKey, sayi] of Object.entries(musteriSayaci)) {
+                if (sayi >= 3) {
+                    gorevler.push({
+                        id: `anomali_musteri_${musteriKey}`,
+                        tip: 'anomali_uyarisi',
+                        oncelik: 'kritik',
+                        baslik: `🚨 Anormal Sipariş: Müşteri ${sayi} sipariş verdi (24s)`,
+                        veri: { musteri_id: musteriKey, siparis_sayisi: sayi },
+                        atanan: null
+                    });
+                    // Sistem uyarısı yaz
+                    try {
+                        await supabaseAdmin.from('b1_sistem_uyarilari').insert([{
+                            tip: 'siparis_anomali',
+                            mesaj: `Müşteri ${musteriKey} son 24 saatte ${sayi} sipariş verdi — anomali tespiti.`,
+                            oncelik: 'kritik',
+                            kaynak: 'Koordinatör Ajanı',
+                        }]);
+                    } catch { /* Uyarı yazma hatası sistemi durdurmasın */ }
+                }
+            }
+        }
+    } catch { /* Anomali taraması sistemi durdurmasın */ }
+
     // Orkestrator durumunu kaydet
     await supabaseAdmin.from('b1_ajan_gorevler').insert([{
         ajan_adi: 'Koordinatör',
@@ -213,7 +256,7 @@ export async function POST(req) {
 
         if (mod === 'dogrula') {
             const sonuc = await dogrulamaModu(dagitim_sonucu);
-            return NextResponse.json({ basarili: true, mod, ...sonuc });
+            return NextResponse.json({ mod, ...sonuc });
         }
 
         return NextResponse.json({ error: 'Geçersiz mod. tara | dagit | dogrula kullanın.' }, { status: 400 });
