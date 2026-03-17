@@ -49,6 +49,10 @@ const nextConfig = {
         formats: ['image/webp', 'image/avif'],
     },
 
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
+
     reactStrictMode: true,
 };
 

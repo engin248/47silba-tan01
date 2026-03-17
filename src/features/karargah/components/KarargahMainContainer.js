@@ -82,7 +82,6 @@ export function KarargahMainContainer() {
     const [aiNedenModal, setAiNedenModal] = useState({ acik: false, metin: '', zarar: 0 });
     const [botLoglar, setBotLoglar] = useState(/** @type {any[]} */([]));
     const [botDurum, setBotDurum] = useState('kontrol');
-    const [hermAiLoglar, setHermAiLoglar] = useState(/** @type {any[]} */([]));
     const [sonMesajlar, setSonMesajlar] = useState(/** @type {any[]} */([]));
     const [mesajSayisi, setMesajSayisi] = useState(0);
     const [gizlenIzleri, setGizlenIzleri] = useState(/** @type {any[]} */([]));
@@ -91,24 +90,24 @@ export function KarargahMainContainer() {
     const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
 
     useEffect(() => {
-        // const kontrol = async () => {
-        //     if (document.hidden) return;
-        //     try {
-        //         const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
-        //         const d = await res.json();
-        //         setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
-        //     } catch { setKameraStreamDurum('kapali'); }
-        // };
-        // kontrol();
-        // const iv = setInterval(kontrol, 15000);
-        // const handleVisibility = () => { if (!document.hidden) kontrol(); };
-        // document.addEventListener('visibilitychange', handleVisibility);
-        // return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
-        setKameraStreamDurum('kapali'); // Otonom Gözlem Kapatıldı
+        const kontrol = async () => {
+            if (document.hidden) return;
+            try {
+                const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+                const d = await res.json();
+                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+            } catch { setKameraStreamDurum('kapali'); }
+        };
+        kontrol();
+        const iv = setInterval(kontrol, 15000);
+        const handleVisibility = () => { if (!document.hidden) kontrol(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
     }, []);
 
+    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
     const mesajlariGetir = useCallback(async () => {
-        const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
         try {
             const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
             setMesajSayisi(count || 0);
@@ -120,23 +119,15 @@ export function KarargahMainContainer() {
             const { data: model } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at').not('urun_id', 'is', null).order('created_at', { ascending: false }).limit(50);
             setModelArsiv(model || []);
         } catch { /* sessiz */ }
-    }, []);
+    }, [gun45Once]);
 
     useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
-
-    const [baglantiKoptu, setBaglantiKoptu] = useState(false);
 
     useEffect(() => {
         const kanal = supabase.channel('karargah-mesaj-optimize')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .subscribe((status) => {
-                if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                    setBaglantiKoptu(true);
-                } else if (status === 'SUBSCRIBED') {
-                    setBaglantiKoptu(false);
-                }
-            });
+            .subscribe();
         return () => { supabase.removeChannel(kanal); };
     }, [mesajlariGetir]);
 
@@ -149,33 +140,11 @@ export function KarargahMainContainer() {
                 setBotDurum('aktif');
             } catch { setBotDurum('hata'); }
         };
-
-        const hermAiLogCek = async () => {
-            if (document.hidden) return;
-            try {
-                const { data } = await supabase.from('b1_agent_loglari')
-                    .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
-                    .in('ajan_adi', ['HermAI', 'Trend Kâşifi', 'Gerçeklik Freni', 'Büyük Veri', 'Sistem Hafızası'])
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                setHermAiLoglar(data || []);
-            } catch { /* sessiz */ }
-        };
-
         botLogCek();
-        hermAiLogCek();
-
         const kanal = supabase.channel('nizambot-realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari', filter: 'ajan_adi=eq.NİZAMBOT' }, botLogCek).subscribe();
-        const kanalHermAi = supabase.channel('hermai-realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari' }, hermAiLogCek).subscribe();
-
-        const handleVisibility = () => {
-            if (!document.hidden) {
-                botLogCek();
-                hermAiLogCek();
-            }
-        };
+        const handleVisibility = () => { if (!document.hidden) botLogCek(); };
         document.addEventListener('visibilitychange', handleVisibility);
-        return () => { supabase.removeChannel(kanal); supabase.removeChannel(kanalHermAi); document.removeEventListener('visibilitychange', handleVisibility); };
+        return () => { supabase.removeChannel(kanal); document.removeEventListener('visibilitychange', handleVisibility); };
     }, []);
 
     const fm = (/** @type {any} */ num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
@@ -191,13 +160,6 @@ export function KarargahMainContainer() {
             {mesaj.text && (
                 <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 py-3 px-6 rounded-xl text-sm font-medium shadow-2xl border ${mesaj.type === 'error' ? 'bg-red-500/15 text-red-300 border-red-500/25' : 'bg-indigo-500/15 text-indigo-200 border-indigo-500/25'}`}>
                     {mesaj.text}
-                </div>
-            )}
-
-            {/* ONLINE/OFFLINE RADAR UYARISI */}
-            {baglantiKoptu && (
-                <div className="fixed top-20 right-5 z-50 py-3 px-6 rounded-xl text-sm font-medium shadow-2xl border bg-red-500/20 text-red-300 border-red-500/30 flex items-center gap-2" style={{ animation: 'fadeUp 0.3s ease-out' }}>
-                    <AlertCircle size={16} className="text-red-400" /> Radar Koptu! (Canlı akış yok)
                 </div>
             )}
 
@@ -428,39 +390,6 @@ export function KarargahMainContainer() {
                                         <span className="text-[9px] text-[#30363d] font-mono shrink-0">
                                             {new Date(log.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* HermAI Gerçeklik Freni (Günlükler) */}
-                        <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-5 relative overflow-hidden">
-                            {/* Işık sızması efkezi */}
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl z-0"></div>
-
-                            <h3 className="text-[11px] font-medium text-[#484f58] uppercase tracking-wider mb-3 flex items-center gap-2 relative z-10">
-                                <ShieldCheck size={12} className="text-indigo-400" /> HermAI Otonom Kararları
-                            </h3>
-                            <div className="text-[10px] text-[#8b949e] mb-3 relative z-10">
-                                Sistem kârlılığı ve veri tutarlılığını koruyan otomatik müdahaleler (Gerçeklik Freni).
-                            </div>
-
-                            <div className="space-y-2 max-h-40 overflow-y-auto styled-scroll relative z-10">
-                                {hermAiLoglar.length === 0 ? (
-                                    <div className="text-[10px] text-[#30363d] text-center py-4 bg-[#0d1117] rounded-lg border border-[#21262d]">Henüz otonom karar kaydedilmedi.</div>
-                                ) : hermAiLoglar.map((log, i) => (
-                                    <div key={i} className="bg-[#0d1117] border border-[#21262d] rounded-lg p-2.5 flex flex-col gap-1.5 hover:border-[#30363d] transition-colors">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded text-amber-300 bg-amber-500/10 border border-amber-500/20">
-                                                {log.islem_tipi || 'FİLTRE BAREMİ'}
-                                            </span>
-                                            <span className="text-[9px] text-[#484f58] font-mono">
-                                                {new Date(log.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px] text-[#8b949e] leading-snug">
-                                            {log.mesaj}
-                                        </p>
                                     </div>
                                 ))}
                             </div>
