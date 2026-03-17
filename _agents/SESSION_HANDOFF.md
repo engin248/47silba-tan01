@@ -1,8 +1,43 @@
 # 🧠 SESSION HANDOFF — 17 Mart 2026 (Gece)
 > Bir sonraki sohbette bu dosyayı `/baslat` ile aç veya AI'a göster.
-> **Son güncelleme: 17 Mart 2026 22:02**
+> **Son güncelleme: 17 Mart 2026 22:09**
 
 ---
+
+## 🚨 KRİTİK MİMARİ KARAR (Bu oturumun en önemli notu)
+
+**SCRAPER KULLANILMAYACAK. Kimsenin verisi çekilmeyecek.**
+
+### Yeni Felsefe: BEYAZ SİSTEM
+```
+Kullanıcı kendi gözüyle bakar (Trendyol, Instagram, vb.)
+      ↓
+Gördüğünü MANUEL olarak sisteme kaydeder
+      ↓
+AI → Kullanıcının girdiği bilgiyi analiz eder
+      ↓
+Karar: ÜRET / TEST / İZLE / İPTAL
+```
+
+### Ne Silinecek / Değiştirilecek
+- `oluisci.js` (Trendyol scraper) → Kullanılmayacak
+- `/api/worker-ajan` → Scraper worker → devre dışı
+- `b1_arge_products` → Bot değil, kullanıcı dolduracak
+- Batch AI kuyruğu → Scraper verisi yerine kullanıcı girişlerini analiz edecek
+
+### Ne Kalacak / Güçlendirilecek
+- ✅ AR-GE Manuel Form (kullanıcı ürün bilgisi girer)
+- ✅ Gemini / DeepSeek analizi (kullanıcı girdisini analiz eder)
+- ✅ Perplexity (kullanıcı ürünü hakkında piyasa yorumu)
+- ✅ SerpAPI (kullanıcının girdiği ürünü Google'da validate eder)
+- ✅ Tüm karar mekanizması (ÜRET/TEST/İZLE/İPTAL)
+
+> **Gri yok. Her şey beyaz. Sistem rakibin verisini araklamaz.**
+> **Kullanıcı araştırır → sisteme söyler → AI yardım eder.**
+
+---
+
+
 
 ## 📍 ŞU AN NEREDEYIZ?
 
