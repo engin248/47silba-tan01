@@ -7,7 +7,10 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.env.local') });
+const path = require('path');
+// İlk olarak yerel dosyadaki env'ye, yoksa .env.local'e bakar
+require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
 
 // ─── GÜVENLİK DÜZELTME: Anon key yerine Service Role Key kullanılıyor ───
 // ESKİ: NEXT_PUBLIC_SUPABASE_ANON_KEY (public, client-side'da açık)
@@ -25,8 +28,10 @@ async function rakipVerisiKazi(hedefUrl, markaAdi) {
     console.log(`[ÖLÜ İŞÇİ] Uyanıyor... Hedef: ${markaAdi}`);
 
     // IP ban yememek için donanım gizleme (Stealth) modunda Headless tarayıcı açılışı
+    // VPS (Linux) ortamında çökmeyi önlemek için headless: 'new' aktiftir.
+    const isVPS = process.env.VPS_MODE === 'true' || process.env.NODE_ENV === 'production';
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: isVPS ? 'new' : false,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--start-maximized']
     });
 
@@ -90,7 +95,24 @@ async function rakipVerisiKazi(hedefUrl, markaAdi) {
             if (error) {
                 console.error('[ÖLÜ İŞÇİ] Veritabanı Reddi! Sınır ihlali veya format hatası:', error.message);
             } else {
-                console.log(`[ÖLÜ İŞÇİ] Başarıyla NİZAM'ın midesine (${urunler.length} ürün) bırakıldı. VPS üzerinde Uyku moduna geçiliyor.`);
+                console.log(`[ÖLÜ İŞÇİ] Başarıyla NİZAM'ın midesine (${urunler.length} ürün) bırakıldı.`);
+
+                // ─── KARARGAH (VERCEL) BİLDİRİMİ (WEBHOOK) ───
+                // İşlem bittikten sonra Karargah'a (ve dolayısıyla Ajan Komuta merkezine) log bırak
+                const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+                try {
+                    if (typeof fetch === 'function') {
+                        await fetch(`${SITE_URL}/api/cron-ajanlar?gorev=log_oluisci_bitti`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ mesaj: 'Trendyol veri kazıma tamamlandı. ' + urunler.length + ' ürün eklendi.', sonuc: 'basarili' })
+                        }).catch(() => { });
+                    }
+                } catch (err) {
+                    console.log(`[ÖLÜ İŞÇİ] Webhook atılamadı (Önemli değil):`, err.message);
+                }
+
+                console.log(`[ÖLÜ İŞÇİ] VPS üzerinde Uyku moduna geçiliyor.`);
             }
         }
 

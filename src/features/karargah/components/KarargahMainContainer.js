@@ -92,7 +92,7 @@ export function KarargahMainContainer() {
     const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
 
     // M5 - Stres Testi State
-    const [stresTest, setStresTest] = useState({ aktif: false, url: '/api/cron-ajanlar', count: 100, concurrency: 10, sonuc: null, durum: 'bekliyor', hata: null });
+    const [stresTest, setStresTest] = useState(/** @type {{aktif: boolean, url: string, count: number, concurrency: number, sonuc: any, durum: string, hata: any}} */({ aktif: false, url: '/api/cron-ajanlar', count: 100, concurrency: 10, sonuc: null, durum: 'bekliyor', hata: null }));
 
     const baslatStresTesti = async () => {
         setStresTest(prv => ({ ...prv, durum: 'yukleniyor', sonuc: null, hata: null }));
