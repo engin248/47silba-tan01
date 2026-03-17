@@ -99,9 +99,8 @@ async function rakipVerisiKazi(hedefUrl, markaAdi) {
         if (urunler.length > 0) {
 
             const eklenecek_veriler = urunler.map(urun => ({
-                aranan_kelime: markaAdi,
                 veri_kaynagi: urun.veri_kaynagi,
-                ham_veri: JSON.parse(urun.ham_veri),
+                ham_veri: { ...JSON.parse(urun.ham_veri), markaAdi },
                 islenen_durum: 'bekliyor',
                 isleyen_ajan: 'bot_oluisci', // NİZAM Okyanus Ajanı 1
                 created_at: new Date().toISOString()
