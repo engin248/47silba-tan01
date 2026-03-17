@@ -124,11 +124,19 @@ export function KarargahMainContainer() {
 
     useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 
+    const [baglantiKoptu, setBaglantiKoptu] = useState(false);
+
     useEffect(() => {
         const kanal = supabase.channel('karargah-mesaj-optimize')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                    setBaglantiKoptu(true);
+                } else if (status === 'SUBSCRIBED') {
+                    setBaglantiKoptu(false);
+                }
+            });
         return () => { supabase.removeChannel(kanal); };
     }, [mesajlariGetir]);
 
@@ -183,6 +191,13 @@ export function KarargahMainContainer() {
             {mesaj.text && (
                 <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 py-3 px-6 rounded-xl text-sm font-medium shadow-2xl border ${mesaj.type === 'error' ? 'bg-red-500/15 text-red-300 border-red-500/25' : 'bg-indigo-500/15 text-indigo-200 border-indigo-500/25'}`}>
                     {mesaj.text}
+                </div>
+            )}
+
+            {/* ONLINE/OFFLINE RADAR UYARISI */}
+            {baglantiKoptu && (
+                <div className="fixed top-20 right-5 z-50 py-3 px-6 rounded-xl text-sm font-medium shadow-2xl border bg-red-500/20 text-red-300 border-red-500/30 flex items-center gap-2" style={{ animation: 'fadeUp 0.3s ease-out' }}>
+                    <AlertCircle size={16} className="text-red-400" /> Radar Koptu! (Canlı akış yok)
                 </div>
             )}
 

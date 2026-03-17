@@ -337,8 +337,11 @@ export default function GuvenlikMainContainer() {
                                 <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod (Tekrar)</label>
                                 <input type="password" maxLength={20} value={pinDegistir.yeniPin2} onChange={e => setPinDegistir({ ...pinDegistir, yeniPin2: e.target.value })} style={inp} />
                             </div>
+                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px', fontSize: '0.75rem', color: '#991b1b', fontWeight: 600 }}>
+                                ⚠️ <strong style={{ color: '#7f1d1d' }}>KRİTİK BİLGİ:</strong> Bu panelden yapılan şifre değişikliği yalnızca bu cihaz/tarayıcı için "Yerel Yönetici Yetkisi" tanımlar. Sistemin global şifresi (ENV) değişmez. Cihazınızı devretmeden önce çıkış yapın.
+                            </div>
                             <button disabled={islemdeId === 'pinDegistir'} onClick={handlePinDegistir}
-                                style={{ background: '#047857', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1 }}>
+                                style={{ background: '#047857', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1, marginTop: '4px' }}>
                                 {islemdeId === 'pinDegistir' ? 'Güncelleniyor...' : 'Kodu Güncelle'}
                             </button>
                         </div>

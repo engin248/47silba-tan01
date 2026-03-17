@@ -1,29 +1,29 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --primary: #10B981;
-  /* Canlı Zümrüt Yeşili (Marka Rengi) */
+  /* Canl─▒ Z├╝mr├╝t Ye┼şili (Marka Rengi) */
   --primary-light: #34D399;
-  /* Vurgu Yeşili */
+  /* Vurgu Ye┼şili */
   --secondary: #d4af37;
-  /* Metalik Altın vurgular */
+  /* Metalik Alt─▒n vurgular */
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
 
-  /* İSKANDİNAV (AÇIK/FERAH) TEMA SERİSİ */
+  /* ─░SKAND─░NAV (A├çIK/FERAH) TEMA SER─░S─░ */
   --bg-color: #FAFAFA;
-  /* Çok açık kırık beyaz / Kar beyazı */
+  /* ├çok a├ğ─▒k k─▒r─▒k beyaz / Kar beyaz─▒ */
   --card-bg: #FFFFFF;
-  /* Tam beyaz kartlar (Derinlik sağlamak için) */
+  /* Tam beyaz kartlar (Derinlik sa─şlamak i├ğin) */
   --text-main: #1E293B;
-  /* Kömür Grisi (Siyaha yakın, göz yormaz) */
+  /* K├Âm├╝r Grisi (Siyaha yak─▒n, g├Âz yormaz) */
   --text-muted: #64748B;
-  /* Yumuşak Gümüş (Alt metinler) */
+  /* Yumu┼şak G├╝m├╝┼ş (Alt metinler) */
   --border: #E2E8F0;
-  /* Çok hafif, zarif kenarlık */
+  /* ├çok hafif, zarif kenarl─▒k */
 }
 
 * {
@@ -49,8 +49,9 @@ body {
   width: 260px;
   /* Modern uygulamalarda biraz daha geniş */
   flex-shrink: 0;
-  background: #0A0A0A;
-  /* Saf, dipsiz ve mat siyah */
+  background: #0A2A22;
+  /* Orijinal koyu ama siyah olmayan Karargah Yeşili */
+  /* Saf siyah yerine okunabilir, derin bir yeşil siyahı */
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   /* Sadece hissettirilen bir ayırıcı çizgi */
   color: white;
@@ -63,12 +64,12 @@ body {
 
 .sidebar h1 {
   font-size: 1.15rem;
-  /* Biraz daha zarif, daha az bağıran */
+  /* Biraz daha zarif, daha az ba─ş─▒ran */
   font-weight: 700;
   margin-bottom: 2rem;
   color: #EDEDED;
   letter-spacing: -0.01em;
-  /* Mac/Vercel tarzı profesyonel sıkıştırma */
+  /* Mac/Vercel tarz─▒ profesyonel s─▒k─▒┼şt─▒rma */
 }
 
 .nav-item {
@@ -77,14 +78,14 @@ body {
   gap: 0.85rem;
   padding: 0.65rem 1rem;
   border-radius: 8px;
-  /* Linear stili biraz daha köşeli yumuşak radyus */
+  /* Linear stili biraz daha k├Â┼şeli yumu┼şak radyus */
   color: #888888;
-  /* Nötr, gri */
+  /* N├Âtr, gri */
   text-decoration: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
   border: 1px solid transparent;
-  /* Gelecekteki çerçeveler için hazırla */
+  /* Gelecekteki ├ğer├ğeveler i├ğin haz─▒rla */
 }
 
 .nav-item:hover {
@@ -94,12 +95,12 @@ body {
 
 .nav-item.active {
   background: rgba(255, 255, 255, 0.08);
-  /* Yumuşak beyaz zemin */
+  /* Yumu┼şak beyaz zemin */
   color: #FFFFFF;
-  /* Göz önünde duran parlak beyaz */
+  /* G├Âz ├Ân├╝nde duran parlak beyaz */
   font-weight: 600;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  /* Yukarıdan hafif ışık sızması */
+  /* Yukar─▒dan hafif ─▒┼ş─▒k s─▒zmas─▒ */
 }
 
 .main-content {
@@ -115,7 +116,7 @@ body {
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
   padding: 1rem 2rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-  /* Çok hafif siyah çizgi (sınır) */
+  /* ├çok hafif siyah ├ğizgi (s─▒n─▒r) */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -138,7 +139,7 @@ body {
   padding: 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  /* Açık zeminde çok büyük yumuşak silüet gölge */
+  /* A├ğ─▒k zeminde ├ğok b├╝y├╝k yumu┼şak sil├╝et g├Âlge */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -245,41 +246,43 @@ body {
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.875rem;
-  background-color: var(--card-bg);
-  /* Arka planda beyazlık */
-  color: var(--text-main);
+  background-color: #1A202C;
+  /* Siyah olmayan, koyu lacivert/gri okunabilir zemin */
+  /* Arka planda okunabilir koyuluk */
+  color: #FFFFFF;
+  /* Giren metin bembeyaz ve net */
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
   border-color: var(--primary);
-  /* Kutucuklara tıklanınca marka yeşilimiz yansır */
+  /* Kutucuklara t─▒klan─▒nca marka ye┼şilimiz yans─▒r */
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-  /* Göz yormayan zümrüt ışığı */
+  /* G├Âz yormayan z├╝mr├╝t ─▒┼ş─▒─ş─▒ */
 }
 
-/* ─── NOT: Tailwind utility class'ları (.grid, .flex vb.) burada tanımlanmaz ─── */
-/* Tailwind'in @tailwind utilities direktifi zaten bunları sağlar. */
+/* ÔöÇÔöÇÔöÇ NOT: Tailwind utility class'lar─▒ (.grid, .flex vb.) burada tan─▒mlanmaz ÔöÇÔöÇÔöÇ */
+/* Tailwind'in @tailwind utilities direktifi zaten bunlar─▒ sa─şlar. */
 
 .text-muted {
   color: var(--text-muted);
 }
 
-/* ═══════════════════════════════════════════════
-   💎 PREMIUM DESIGN LANGUAGE (UX/UI 2026 TRENDS)
-═══════════════════════════════════════════════ */
+/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+   ­şÆÄ PREMIUM DESIGN LANGUAGE (UX/UI 2026 TRENDS)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
-/* 1. Gölgeler (Soft Shadows) & Cam Efekti (Glassmorphism) */
+/* 1. G├Âlgeler (Soft Shadows) & Cam Efekti (Glassmorphism) */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
-  /* Beyaz, aydınlık blur */
+  /* Beyaz, ayd─▒nl─▒k blur */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 0, 0, 0.04);
-  /* Yok denecek kadar az gri çerçeve */
+  /* Yok denecek kadar az gri ├ğer├ğeve */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-  /* Çok hafif derinlik */
+  /* ├çok hafif derinlik */
 }
 
 .premium-card {
@@ -287,21 +290,21 @@ body {
   /* Tam beyaz kartlar */
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  /* Soft ayırıcı çizgi */
+  /* Soft ay─▒r─▒c─▒ ├ğizgi */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  /* Silüet gölge */
+  /* Sil├╝et g├Âlge */
   padding: 1.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  /* Hover durumunda ışıkta yükselme efekti */
+  /* Hover durumunda ─▒┼ş─▒kta y├╝kselme efekti */
   transform: translateY(-2px);
   border-color: rgba(0, 0, 0, 0.08);
 }
 
-/* 2. Micro-Animations (Hover Durumları) */
+/* 2. Micro-Animations (Hover Durumlar─▒) */
 .hover-elevate {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -311,7 +314,7 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* 3. Offcanvas Drawer (Çekmece UI) */
+/* 3. Offcanvas Drawer (├çekmece UI) */
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -336,11 +339,13 @@ body {
   width: 100%;
   max-width: 450px;
   height: 100vh;
-  background: #111111;
-  /* Obsidyen zemin */
+  background: #0D2825;
+  /* Çok hafif açılmış, siyah olmayan, orijinal Karargah tonu */
+  /* Obsidyen siyah iptal edildi */
   border-left: 1px solid rgba(255, 255, 255, 0.05);
   /* Yumuşak bir çerçeve çizgisi */
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+  /* Gölge yumuşatıldı */
   /* Siyah üzerine keskin gölge */
   z-index: 101;
   transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -352,7 +357,7 @@ body {
   right: 0;
 }
 
-/* RTL desteği için drawer panel'ı soldan açma */
+/* RTL deste─şi i├ğin drawer panel'─▒ soldan a├ğma */
 .layout-container[style*="row-reverse"] .drawer-panel {
   right: auto;
   left: -500px;
@@ -369,12 +374,12 @@ body {
 .drawer-header {
   padding: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  /* Yarı saydam ayırıcı */
+  /* Yar─▒ saydam ay─▒r─▒c─▒ */
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.02);
-  /* Çok hafif bir derinlik farkı */
+  /* ├çok hafif bir derinlik fark─▒ */
 }
 
 .drawer-content {
@@ -383,7 +388,7 @@ body {
   flex: 1;
 }
 
-/* 4. Kanban / Column Base UI (Görevler/Üretim İçin) */
+/* 4. Kanban / Column Base UI (G├Ârevler/├£retim ─░├ğin) */
 .kanban-board {
   display: flex;
   gap: 1.5rem;
@@ -403,7 +408,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  /* Yarı saydam çerçeve */
+  /* Yar─▒ saydam ├ğer├ğeve */
 }
 
 .kanban-col-header {
@@ -414,7 +419,7 @@ body {
   align-items: center;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  /* Çizgi yumuşatıldı */
+  /* ├çizgi yumu┼şat─▒ld─▒ */
 }
 
 .kanban-item {
@@ -438,7 +443,7 @@ body {
   cursor: grabbing;
 }
 
-/* 5. Gelişmiş Tablo Dili */
+/* 5. Geli┼şmi┼ş Tablo Dili */
 .premium-table {
   width: 100%;
   border-collapse: separate;
@@ -447,9 +452,9 @@ body {
 
 .premium-table th {
   background: rgba(255, 255, 255, 0.02);
-  /* Koyu gri tablo başlığı */
+  /* Koyu gri tablo ba┼şl─▒─ş─▒ */
   color: #888888;
-  /* Gri başlık metni */
+  /* Gri ba┼şl─▒k metni */
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -462,7 +467,7 @@ body {
 .premium-table td {
   padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  /* İç satır bölücüleri çok hafif */
+  /* ─░├ğ sat─▒r b├Âl├╝c├╝leri ├ğok hafif */
   color: #EDEDED;
   /* Beyaz veri metni */
   vertical-align: middle;
@@ -473,8 +478,8 @@ body {
 }
 
 .premium-table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-  /* Beyaz tabloda üzerine gelince çok hafif derinlik veren gri karartı */
+  background-color: rgba(255, 255, 255, 0.05);
+  /* Siyah tablo üzerinde sadece çok saydam ve aydınlık bir beyaz parlaması (okunmayı artırır) */
 }
 
 /* Fab (Floating Action Button) */
@@ -486,7 +491,7 @@ body {
   height: 64px;
   border-radius: 50%;
   background: var(--primary);
-  /* Lüks Zümrüt Yeşili */
+  /* L├╝ks Z├╝mr├╝t Ye┼şili */
   backdrop-filter: blur(8px);
   color: #FFFFFF;
   /* Parlak beyaz ikon */
@@ -494,7 +499,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-  /* Yeşil, enerjik gölge */
+  /* Ye┼şil, enerjik g├Âlge */
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 50;
@@ -511,11 +516,11 @@ body {
 }
 
 
-/* ═══════════════════════════════════════════════
-   MOBİL RESPONSIVE
-═══════════════════════════════════════════════ */
+/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+   MOB─░L RESPONSIVE
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
-/* Hamburger butonu — masaüstünde gizle */
+/* Hamburger butonu ÔÇö masa├╝st├╝nde gizle */
 .hamburger-btn {
   display: none;
   background: none;
@@ -525,7 +530,7 @@ body {
   color: #64748b;
 }
 
-/* Mobil overlay (sidebar açıkkenarka) */
+/* Mobil overlay (sidebar a├ğ─▒kkenarka) */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -537,14 +542,14 @@ body {
 
 @media (max-width: 768px) {
 
-  /* Hamburger görünür */
+  /* Hamburger g├Âr├╝n├╝r */
   .hamburger-btn {
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  /* Sidebar kapalı durumda gizli */
+  /* Sidebar kapal─▒ durumda gizli */
   .sidebar {
     position: fixed;
     top: 0;
@@ -558,17 +563,17 @@ body {
     padding: 1rem 0.75rem;
   }
 
-  /* Sidebar açık */
+  /* Sidebar a├ğ─▒k */
   .sidebar.mobile-open {
     transform: translateX(0);
   }
 
-  /* Overlay görünür */
+  /* Overlay g├Âr├╝n├╝r */
   .sidebar-overlay.mobile-open {
     display: block;
   }
 
-  /* RTL desteği */
+  /* RTL deste─şi */
   .layout-container[style*="row-reverse"] .sidebar {
     left: auto;
     right: 0;
@@ -579,12 +584,12 @@ body {
     transform: translateX(0);
   }
 
-  /* İçerik tam genişlik */
+  /* ─░├ğerik tam geni┼şlik */
   .main-content {
     width: 100%;
   }
 
-  /* Topbar küçük ekran */
+  /* Topbar k├╝├ğ├╝k ekran */
   .topbar {
     padding: 0.75rem 1rem;
     gap: 0.5rem;
@@ -598,13 +603,13 @@ body {
     display: none;
   }
 
-  /* Sayfa içeriği */
+  /* Sayfa i├ğeri─şi */
   .page-content {
     padding: 1rem;
   }
 
   /* -------------------------------------
-     B-03: UX MOBIL İYİLEŞTİRMELERİ 
+     B-03: UX MOBIL ─░Y─░LE┼ŞT─░RMELER─░ 
   -------------------------------------- */
 
   /* 1. Touch Targets (Minimum 44x44 dokunmatik alan) */
@@ -612,18 +617,18 @@ body {
     min-height: 44px;
   }
 
-  /* Form Input ve Select'leri parmağa uygun boşluklandır */
+  /* Form Input ve Select'leri parma─şa uygun bo┼şlukland─▒r */
   input[type="text"],
   input[type="number"],
   input[type="email"],
   select,
   textarea {
     font-size: 16px !important;
-    /* iOS oto zoom engellemek için */
+    /* iOS oto zoom engellemek i├ğin */
     padding: 12px !important;
   }
 
-  /* 2. Drawer (Sağdan açılan) -> Bottom Sheet (Alttan açılan form) dönüşümü */
+  /* 2. Drawer (Sa─şdan a├ğ─▒lan) -> Bottom Sheet (Alttan a├ğ─▒lan form) d├Ân├╝┼ş├╝m├╝ */
   .drawer-panel {
     top: auto;
     bottom: -100vh;
@@ -632,7 +637,7 @@ body {
     width: 100% !important;
     max-width: 100%;
     height: 85vh;
-    /* Tam ekran yapma, arkada sayfa kalsın */
+    /* Tam ekran yapma, arkada sayfa kals─▒n */
     border-radius: 20px 20px 0 0;
     transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
@@ -642,7 +647,7 @@ body {
     bottom: 0;
   }
 
-  /* RTL özel override iptal (Alttan açılacağı için sağ/sol farketmez) */
+  /* RTL ├Âzel override iptal (Alttan a├ğ─▒laca─ş─▒ i├ğin sa─ş/sol farketmez) */
   .layout-container[style*="row-reverse"] .drawer-panel {
     transform: none !important;
     left: 0 !important;
@@ -650,12 +655,12 @@ body {
 
 }
 
-/* ═══════════════════════════════════════════════
-   LINEAR + STRIPE TASARIM SİSTEMİ
-   Katmanlı Derinlik + Tek Cesur Aksan + Nefes Alan Boşluk
-═══════════════════════════════════════════════ */
+/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+   LINEAR + STRIPE TASARIM S─░STEM─░
+   Katmanl─▒ Derinlik + Tek Cesur Aksan + Nefes Alan Bo┼şluk
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
-/* Yumuşak giriş animasyonu */
+/* Yumu┼şak giri┼ş animasyonu */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -668,7 +673,7 @@ body {
   }
 }
 
-/* Hafif nefes — sadece önemli göstergeler için */
+/* Hafif nefes ÔÇö sadece ├Ânemli g├Âstergeler i├ğin */
 @keyframes subtle-pulse {
 
   0%,
@@ -681,7 +686,7 @@ body {
   }
 }
 
-/* Katman 1 — Ana kartlar (Linear tarzı beyaz şeffaflık) */
+/* Katman 1 ÔÇö Ana kartlar (Linear tarz─▒ beyaz ┼şeffafl─▒k) */
 .layer-1 {
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -694,7 +699,7 @@ body {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Katman 2 — İç kartlar / input alanları */
+/* Katman 2 ÔÇö ─░├ğ kartlar / input alanlar─▒ */
 .layer-2 {
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -706,7 +711,7 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* Navigasyon satırı — Linear tarzı list item */
+/* Navigasyon sat─▒r─▒ ÔÇö Linear tarz─▒ list item */
 .nav-row {
   display: flex;
   align-items: center;
@@ -755,7 +760,7 @@ body {
     padding: 0.75rem;
   }
 
-  /* 3. İstatistik Kartlarını Küçült (Ekranda yer kaplamasını önler) */
+  /* 3. ─░statistik Kartlar─▒n─▒ K├╝├ğ├╝lt (Ekranda yer kaplamas─▒n─▒ ├Ânler) */
   .premium-card.hover-elevate.glass-panel {
     padding: 0.75rem;
   }
@@ -764,10 +769,10 @@ body {
     font-size: 1.1rem !important;
   }
 
-  /* 4. Tablo Modüllerini (Maliyet, Üretim) Card View'a çevir */
+  /* 4. Tablo Mod├╝llerini (Maliyet, ├£retim) Card View'a ├ğevir */
   .premium-table thead {
     display: none;
-    /* Başlıkları gizle */
+    /* Ba┼şl─▒klar─▒ gizle */
   }
 
   .premium-table,

@@ -38,6 +38,7 @@ export default function DenetmenMainContainer() {
     const [mesaj, setMesaj] = useState('');
     const [aiAnaliz, setAiAnaliz] = useState(null);
     const [aiYukleniyor, setAiYukleniyor] = useState(false);
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM KORUMASI]
 
     // YENİ SEKMELER
     const [anaSekme, setAnaSekme] = useState('uyarilar'); // 'uyarilar' | 'buyuk_veri'
@@ -156,7 +157,7 @@ export default function DenetmenMainContainer() {
                 }
             }
 
-            setMesaj(`Tarama tamamlandı. ${yeniUyari} yeni uya rı oluşturuldu.`);
+            setMesaj(`Tarama tamamlandı. ${yeniUyari} yeni uyarı oluşturuldu.`);
             yukle();
         } catch (e) {
             setMesaj('Tarama hatası: ' + e.message);
@@ -191,20 +192,26 @@ export default function DenetmenMainContainer() {
     };
 
     const coz = async (id, baslik) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('b1_sistem_uyarilari').update({ durum: 'cozuldu', cozum_tarihi: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             setUyarilar(prev => prev.filter(u => u.id !== id));
             telegramBildirim(`✅ ALARM ÇÖZÜLDÜ\nMüfettiş: ${baslik}`);
         } catch (error) { setMesaj('Hata: ' + error.message); }
+        setIslemdeId(null);
     };
 
     const gozArd = async (id) => {
+        if (islemdeId === id) return;
+        setIslemdeId(id);
         try {
             const { error } = await supabase.from('b1_sistem_uyarilari').update({ durum: 'goz_ardi' }).eq('id', id);
             if (error) throw error;
             setUyarilar(prev => prev.filter(u => u.id !== id));
         } catch (error) { setMesaj('Hata: ' + error.message); }
+        setIslemdeId(null);
     };
 
     // formatTarih → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)

@@ -182,21 +182,22 @@ function LayoutInner({ children }) {
 
         // KÖKLÜ ÇÖZÜM: Tüm Eski Service Worker ve PWA Zombi Cache'lerini Yok Etme
         if (typeof window !== 'undefined') {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                    for (let registration of registrations) {
-                        registration.unregister();
-                        console.log('SW Unregistered (Köklü Çözüm)');
-                    }
-                }).catch(() => { });
-            }
-            if ('caches' in window) {
-                caches.keys().then((keyList) => {
-                    return Promise.all(keyList.map((key) => {
-                        console.log('Eski PWA Cache Silindi:', key);
-                        return caches.delete(key);
-                    }));
-                }).catch(() => { });
+            const currentVersion = 'v3.6'; // Değişiklik anında sürümü artırır
+            if (localStorage.getItem('sb47_app_version') !== currentVersion) {
+                localStorage.setItem('sb47_app_version', currentVersion);
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                        }
+                    }).catch(() => { });
+                }
+                if ('caches' in window) {
+                    caches.keys().then((keyList) => {
+                        return Promise.all(keyList.map((key) => caches.delete(key)));
+                    }).catch(() => { });
+                }
+                setTimeout(() => window.location.reload(), 1500); // 1.5 sn sonra Hard Refresh
             }
         }
 

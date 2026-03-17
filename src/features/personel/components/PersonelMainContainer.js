@@ -789,7 +789,7 @@ export default function PersonelMainContainer() {
                                             <div style={{ background: '#fef2f2', borderRadius: 8, padding: '6px 10px', border: '1px solid #fca5a5', gridColumn: '1/-1' }}>
                                                 <div style={{ color: '#ef4444', fontWeight: 800, marginBottom: 2 }}>KASADAN ALINAN AVANS KESİNTİSİ (-)</div>
                                                 <div style={{ fontWeight: 900, fontSize: '0.9rem', color: '#b91c1c' }}>
-                                                    -₺${avansToplam.toFixed(2)}
+                                                    -₺{avansToplam.toFixed(2)}
                                                 </div>
                                             </div>
                                         )}
