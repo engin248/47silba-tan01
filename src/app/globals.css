@@ -4,25 +4,26 @@
 
 :root {
   --primary: #10B981;
-  /* Orijinalden daha parlak ve canlı bir Zümrüt Yeşili */
+  /* Canlı Zümrüt Yeşili (Marka Rengi) */
   --primary-light: #34D399;
+  /* Vurgu Yeşili */
   --secondary: #d4af37;
   /* Metalik Altın vurgular */
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
 
-  /* YUMUŞAK OBSİDYEN (Linear App) TEMEL SERİSİ */
-  --bg-color: #111111;
-  /* Mat, tamamen siyah olmayan arka plan */
-  --card-bg: rgba(255, 255, 255, 0.03);
-  /* Cam efektine uygun son derece hafif arka plan */
-  --text-main: #EDEDED;
-  /* Kırık, göz yormayan ana metin beyazı */
-  --text-muted: #888888;
-  /* Nötr, dengeli gri ikincil metin */
-  --border: rgba(255, 255, 255, 0.08);
-  /* Kart ve input sınırları için yumuşak saydam kenarlık */
+  /* İSKANDİNAV (AÇIK/FERAH) TEMA SERİSİ */
+  --bg-color: #FAFAFA;
+  /* Çok açık kırık beyaz / Kar beyazı */
+  --card-bg: #FFFFFF;
+  /* Tam beyaz kartlar (Derinlik sağlamak için) */
+  --text-main: #1E293B;
+  /* Kömür Grisi (Siyaha yakın, göz yormaz) */
+  --text-muted: #64748B;
+  /* Yumuşak Gümüş (Alt metinler) */
+  --border: #E2E8F0;
+  /* Çok hafif, zarif kenarlık */
 }
 
 * {
@@ -108,13 +109,13 @@ body {
 }
 
 .topbar {
-  background: rgba(17, 17, 17, 0.7);
-  /* Obsidyen tabanlı Blur */
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  background: rgba(255, 255, 255, 0.85);
+  /* Beyaz buzlu cam */
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  /* Yumuşak alt çizgi */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  /* Çok hafif siyah çizgi (sınır) */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -133,15 +134,12 @@ body {
 .card {
   background: var(--card-bg);
   border-radius: 12px;
-  /* Daha modern radyus */
   border: 1px solid var(--border);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  /* Siyah üzerine hafif gölge derinliği */
-  backdrop-filter: blur(8px);
-  /* Glassmorphism hissi */
-  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  /* Açık zeminde çok büyük yumuşak silüet gölge */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-title {
@@ -247,13 +245,18 @@ body {
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.875rem;
+  background-color: var(--card-bg);
+  /* Arka planda beyazlık */
+  color: var(--text-main);
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: var(--secondary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  /* Kutucuklara tıklanınca marka yeşilimiz yansır */
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  /* Göz yormayan zümrüt ışığı */
 }
 
 /* ─── NOT: Tailwind utility class'ları (.grid, .flex vb.) burada tanımlanmaz ─── */
@@ -269,31 +272,33 @@ body {
 
 /* 1. Gölgeler (Soft Shadows) & Cam Efekti (Glassmorphism) */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  /* Obsidyen karanlığına saf blur */
+  background: rgba(255, 255, 255, 0.85);
+  /* Beyaz, aydınlık blur */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  /* Yumuşacık kenarlık */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  /* Derinliği arka plana gömülür */
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  /* Yok denecek kadar az gri çerçeve */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  /* Çok hafif derinlik */
 }
 
 .premium-card {
-  background: rgba(20, 20, 20, 0.6);
-  /* Linear tarzı card içi matlık */
+  background: #ffffff;
+  /* Tam beyaz kartlar */
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  /* Karanlık üzerine beyaz sır */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  /* Soft ayırıcı çizgi */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  /* Silüet gölge */
   padding: 1.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  /* Hover durumunda ışıkta yükselme efekti */
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 /* 2. Micro-Animations (Hover Durumları) */
@@ -468,8 +473,8 @@ body {
 }
 
 .premium-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.02);
-  /* Hover state zayıf beyaz ışık */
+  background-color: rgba(0, 0, 0, 0.02);
+  /* Beyaz tabloda üzerine gelince çok hafif derinlik veren gri karartı */
 }
 
 /* Fab (Floating Action Button) */
@@ -480,15 +485,16 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(212, 175, 55, 0.9);
-  /* Premium Altın, hafif Glassmorphism */
+  background: var(--primary);
+  /* Lüks Zümrüt Yeşili */
   backdrop-filter: blur(8px);
-  color: #111111;
-  /* Koyu iç ikon rengi */
+  color: #FFFFFF;
+  /* Parlak beyaz ikon */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+  /* Yeşil, enerjik gölge */
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 50;
