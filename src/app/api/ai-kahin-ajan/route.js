@@ -1,106 +1,114 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+
+// ═══════════════════════════════════════════════════════════
+//  /api/ai-kahin-ajan
+//  Kâhin AI Ajanı — Personel Kârlılık & Adalet Raporu
+//  Hata Düzeltme: @google/genai v0.7.0 uyumsuzluğu giderildi
+//  Artık tüm sistem ile aynı fetch() yöntemi kullanılıyor
+// ═══════════════════════════════════════════════════════════
 
 export async function POST(req) {
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !serviceKey) {
-            return NextResponse.json({ error: 'Sunucu yapılandırması eksik (env).' }, { status: 500 });
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        if (!GEMINI_API_KEY) {
+            return NextResponse.json({ error: 'GEMINI_API_KEY tanımlı değil.' }, { status: 500 });
         }
 
-        const supabaseAdmin = createClient(supabaseUrl, serviceKey);
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-        // 1. Personelleri çek (birim kolonu opsiyonel - select * yapıp manuel map)
+        // 1. Personel verisi çek
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
-            .select('id, ad_soyad, aylik_maliyet_tl')
+            .select('id, ad_soyad, birim, aylik_maliyet_tl')
+            .eq('aktif', true)
             .limit(50);
 
         if (pError) {
-            console.error('[Kâhin] Personel hatası:', pError);
-            return NextResponse.json({ error: `Personel sorgusu hata: ${pError.message}` }, { status: 500 });
-        }
-        if (!pData || pData.length === 0) {
-            return NextResponse.json({ error: 'Personel tablosu boş.' }, { status: 404 });
+            console.error('[Kâhin] Personel sorgu hatası:', pError.message);
+            return NextResponse.json({ error: `Personel verisi okunamadı: ${pError.message}` }, { status: 500 });
         }
 
-        // 2. Bu ayın üretim verilerini çek
-        const date = new Date();
-        const ilkGun = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
-        const { data: perfData, error: perfError } = await supabaseAdmin
+        if (!pData || pData.length === 0) {
+            return NextResponse.json({ error: 'Aktif personel bulunamadı.' }, { status: 404 });
+        }
+
+        // 2. Bu ayın performans verisi çek
+        const ayBasi = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const { data: perfData } = await supabaseAdmin
             .from('b1_personel_performans')
             .select('personel_id, isletmeye_katilan_deger, kazanilan_prim, uretilen_adet, kalite_puani')
-            .gte('created_at', ilkGun)
-            .limit(500);
+            .gte('created_at', ayBasi);
 
-        if (perfError) console.warn('[Kâhin] Performans uyarısı:', perfError.message);
+        // 3. Prompt için veri hazırla
+        let isciAnalizMetni = 'İşte fabrikanın bu ayki üretim verileri ve personel maliyetleri:\n\n';
 
-        // 3. Prompt verisi hazırla
-        let isciAnalizMetni = 'Fabrikanın bu ayki üretim verileri ve personel maliyetleri:\n\n';
-
-        pData.forEach(p => {
-            const logs = (perfData || []).filter(l => l.personel_id === p.id);
-            const adet = logs.reduce((a, c) => a + (Number(c.uretilen_adet) || 0), 0);
-            const deger = logs.reduce((a, c) => a + (Number(c.isletmeye_katilan_deger) || 0), 0);
-            const prim = logs.reduce((a, c) => a + (Number(c.kazanilan_prim) || 0), 0);
-            const kalite = logs.length
-                ? logs.reduce((a, c) => a + (Number(c.kalite_puani) || 10), 0) / logs.length
+        for (const p of pData) {
+            const raporlar = (perfData || []).filter(log => log.personel_id === p.id);
+            const adet = raporlar.reduce((s, r) => s + (Number(r.uretilen_adet) || 0), 0);
+            const kalite = raporlar.length
+                ? raporlar.reduce((s, r) => s + (Number(r.kalite_puani) || 10), 0) / raporlar.length
                 : 10;
+            const deger = raporlar.reduce((s, r) => s + (Number(r.isletmeye_katilan_deger) || 0), 0);
+            const prim = raporlar.reduce((s, r) => s + (Number(r.kazanilan_prim) || 0), 0);
             const maliyet = Number(p.aylik_maliyet_tl) || 0;
 
-            isciAnalizMetni += `Personel: ${p.ad_soyad}
+            isciAnalizMetni += `Personel: ${p.ad_soyad} (${p.birim || 'Bilinmiyor'})
   - Aylık Maliyet: ${maliyet} TL
-  - Üretilen Adet: ${adet}
-  - Katma Değer: ${deger} TL
-  - Kalite Puanı: ${kalite.toFixed(1)}/10
-  - Kazanılan Prim: ${prim} TL
-  - Amorti: %${maliyet > 0 ? ((deger / maliyet) * 100).toFixed(0) : 0}\n\n`;
-        });
-
-        const systemPrompt = `Sen acımasız ve net bir Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
-Fabrika patronuna Türkçe, kısa (max 5 paragraf) ve eyleme geçirilebilir bir "Kârlılık ve Adalet Raporu" sun.
-
-KURALLAR:
-1. Maliyetinden az değer üretene → "Zarar Yazdırıyor - Uyarı/Eğitim"
-2. Maliyetini aşıp prim kazanana → "Liyakat Yıldızı - Tebrik"
-3. Kalite puanı 5 altında olana → "Disiplin Uyarısı" (çok üretse bile)
-4. MD formatında, kurumsal ve agresif dil. Boş övgü yok.`;
-
-        // 4. Gemini API çağrısı
-        const geminiKey = process.env.GEMINI_API_KEY;
-        if (!geminiKey) {
-            return NextResponse.json({ error: 'GEMINI_API_KEY eksik.' }, { status: 500 });
+  - Ürettiği Parça/İşlem: ${adet} adet
+  - Kalite Puanı (1-10): ${kalite.toFixed(1)}
+  - Firmaya Katma Değer: ${deger} TL
+  - Kazandığı Prim: ${prim} TL\n\n`;
         }
 
-        const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `${systemPrompt}\n\nVERİLER:\n${isciAnalizMetni}` }]
-                    }],
-                    generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }
-                })
-            }
-        );
+        const systemPrompt = `Sen acımasız, net ve tam bir verimlilik makinesi olan Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
+Fabrikadaki patrona Türkçe olarak kısa, vurucu ve eyleme geçirilebilir bir "Kârlılık ve Adalet Raporu" sunmakla görevlisin.
+
+KURALLAR:
+1. Maliyet > Katma Değer → "Zarar Yazdırıyor" — eğitim/uyarı öner.
+2. Katma Değer > Maliyet → "Liyakat Yıldızı" — tebrik et.
+3. Kalite Puanı < 5 → Çok üretse bile disiplin uyarısı ver.
+4. Maksimum 5-6 paragraf. MD formatı. Kurumsal, net dil.`;
+
+        const fullPrompt = `${systemPrompt}\n\nVERİLER:\n${isciAnalizMetni}`;
+
+        // 4. Gemini API — düz fetch (tüm route'larla tutarlı yöntem)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        const geminiRes = await fetch(GEMINI_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullPrompt }] }],
+                generationConfig: { temperature: 0.3, maxOutputTokens: 1500 },
+            }),
+        });
+        clearTimeout(timeoutId);
 
         if (!geminiRes.ok) {
             const errText = await geminiRes.text();
-            console.error('[Kâhin] Gemini hatası:', geminiRes.status, errText);
-            return NextResponse.json({ error: `Gemini API hatası: ${geminiRes.status}` }, { status: 502 });
+            console.error('[Kâhin] Gemini HTTP hatası:', geminiRes.status, errText);
+            return NextResponse.json({ error: `Gemini API hatası: ${geminiRes.status}` }, { status: 500 });
         }
 
-        const geminiJson = await geminiRes.json();
-        const aiCevap = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text || 'AI yargıç sessiz kaldı.';
+        const geminiData = await geminiRes.json();
+        const aiCevap = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || 'AI yargıç sessiz kaldı.';
 
-        return NextResponse.json({ success: true, aiCevap, personelSayisi: pData.length });
+        // 5. Log yaz
+        await supabaseAdmin.from('b1_agent_loglari').insert([{
+            ajan_adi: 'Kâhin Ajanı',
+            islem_tipi: 'personel_analiz',
+            kaynak_tablo: 'b1_personel',
+            sonuc: 'basarili',
+            mesaj: `${pData.length} personel analiz edildi.`,
+        }]).catch(() => null);
+
+        return NextResponse.json({ success: true, aiCevap, personel_sayisi: pData.length });
 
     } catch (error) {
-        console.error('[Kâhin] Beklenmeyen hata:', error);
+        console.error('[Kâhin AI Hatası]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
