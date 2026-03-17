@@ -20,7 +20,7 @@ export async function POST(req) {
         // 1. Personel verisi çek
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
-            .select('id, ad_soyad, birim, aylik_maliyet_tl')
+            .select('id, ad_soyad, aylik_maliyet_tl')
             .eq('aktif', true)
             .limit(50);
 
@@ -53,7 +53,7 @@ export async function POST(req) {
             const prim = raporlar.reduce((s, r) => s + (Number(r.kazanilan_prim) || 0), 0);
             const maliyet = Number(p.aylik_maliyet_tl) || 0;
 
-            isciAnalizMetni += `Personel: ${p.ad_soyad} (${p.birim || 'Bilinmiyor'})
+            isciAnalizMetni += `Personel: ${p.ad_soyad}
   - Aylık Maliyet: ${maliyet} TL
   - Ürettiği Parça/İşlem: ${adet} adet
   - Kalite Puanı (1-10): ${kalite.toFixed(1)}
@@ -97,13 +97,15 @@ KURALLAR:
         const aiCevap = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || 'AI yargıç sessiz kaldı.';
 
         // 5. Log yaz
-        await supabaseAdmin.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Kâhin Ajanı',
-            islem_tipi: 'personel_analiz',
-            kaynak_tablo: 'b1_personel',
-            sonuc: 'basarili',
-            mesaj: `${pData.length} personel analiz edildi.`,
-        }]).catch(() => null);
+        try {
+            await supabaseAdmin.from('b1_agent_loglari').insert([{
+                ajan_adi: 'Kâhin Ajanı',
+                islem_tipi: 'personel_analiz',
+                kaynak_tablo: 'b1_personel',
+                sonuc: 'basarili',
+                mesaj: `${pData.length} personel analiz edildi.`,
+            }]);
+        } catch (_) { /* log hatası kritik değil */ }
 
         return NextResponse.json({ success: true, aiCevap, personel_sayisi: pData.length });
 
