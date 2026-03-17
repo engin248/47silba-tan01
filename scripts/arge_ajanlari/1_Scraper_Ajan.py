@@ -61,11 +61,11 @@ def arama_sonuclarini_getir(arama_kelimesi, limit=5):
         return []
 
 def urun_detaylarini_cek(urun_linki):
-    print(f"   🔍 Detaylara Giriliyor: {urun_linki}")
+    print(f"   - Detaylara Giriliyor: {urun_linki}")
     try:
         response = requests.get(urun_linki, headers=HEADERS, timeout=15)
         if response.status_code != 200:
-            print(f"   ⚠️ Sayfa Reddedildi (Kod: {response.status_code})")
+            print(f"   ! Sayfa Reddedildi (Kod: {response.status_code})")
             return None
             
         html_content = response.text
@@ -75,7 +75,7 @@ def urun_detaylarini_cek(urun_linki):
         state_match = re.search(r'window\.__PRODUCT_DETAIL_APP_INITIAL_STATE__\s*=\s*({.*?});\s*window\.', html_content)
         
         if not state_match:
-            print("   ⚠️ Ürün API durumu JSON bulunamadı, klasik DOM atlanıyor.")
+            print("   ! Ürün API durumu JSON bulunamadı, klasik DOM atlanıyor.")
             return None
             
         json_str = state_match.group(1)
@@ -100,14 +100,14 @@ def urun_detaylarini_cek(urun_linki):
         urun_puani = rating_info.get("averageRating", 0.0)
         
         # 6. Ürün Yorum Sayısı (veya Yorumlar)
-        urun_yorumlari = str(product.get("reviewCount", 0)) + " yorum yapılmış"
+        urun_yorumlari = str(product.get("reviewCount", 0)) + " yorum yapilmish"
         
         # 7. Ürün Özellikleri (Renk, Kumaş, vs.)
         ozellikler_listesi = product.get("attributes", [])
         urun_ozellikleri = {item.get('key', {}).get('name', 'Bilinmeyen'): item.get('value', {}).get('name', '') for item in ozellikler_listesi}
         
         # 8. Yorum Özeti (Şimdilik boş bırakıyoruz, ilerde AI ile doldurulabilir)
-        urun_yorum_ozeti = "Özet analiz edilmedi."
+        urun_yorum_ozeti = "Ozet analiz edilmedi."
         
         # Sosyal Kanıt verileri (Sepet ve Görüntüleme)
         sepete_ekleme = "Bilinmiyor"
@@ -130,7 +130,7 @@ def urun_detaylarini_cek(urun_linki):
         urun_yorum_tarihi = "Belirsiz"
         
         # 15. Ürün Değerlendirme (Total Rating Count)
-        urun_degerlendirme = str(rating_info.get("totalRatingCount", 0)) + " değerlendirme"
+        urun_degerlendirme = str(rating_info.get("totalRatingCount", 0)) + " degerlendirme"
         
         tarih = datetime.now()
         
@@ -156,13 +156,13 @@ def urun_detaylarini_cek(urun_linki):
             "hedef_platform": "Trendyol"
         }
     except Exception as e:
-        print(f"   ❌ HATA: {e}")
+        print(f"   ! HATA: {e}")
         return None
 
 def veriyi_dogrula(v):
     """
-    Supabase'e gitmeden önce verinin 15 kritere uygun olup olmadığını katı bir şekilde denetler.
-    Eksik veya hatalı veri varsa False döner ve loglar.
+    Supabase'e gitmeden once verinin 15 kritere uygun olup olmadigini kati bir sekilde denetler.
+    Eksik veya hatali veri varsa False doner ve loglar.
     """
     hatalar = []
     
@@ -170,24 +170,27 @@ def veriyi_dogrula(v):
     if not v.get("marka_ismi") or v.get("marka_ismi") == "Bilinmeyen Marka":
         hatalar.append("Marka ismi eksik")
     if not v.get("urun_ismi") or v.get("urun_ismi") == "Bilinimsiz Ürün":
-        hatalar.append("Ürün ismi eksik")
+        hatalar.append("Urun ismi eksik")
         
     # Kural 2: Fiyatlar 0'dan büyük olmalı (Gerçekçi bir ürün olmalı)
-    if float(v.get("orijinal_fiyat", 0)) <= 0 and float(v.get("indirimli_fiyat", 0)) <= 0:
-        hatalar.append("Geçerli bir fiyat bulunamadı")
+    try:
+        if float(v.get("orijinal_fiyat", 0)) <= 0 and float(v.get("indirimli_fiyat", 0)) <= 0:
+            hatalar.append(f"Gecerli bir fiyat bulunamadi (Orj: {v.get('orijinal_fiyat')} Ind: {v.get('indirimli_fiyat')})")
+    except ValueError:
+        hatalar.append("Fiyat formati hatali")
         
     # Kural 3: Ürün linki ve fotoğrafı kesinlikle olmalı (Boş string olmamalı)
     if not v.get("urun_linki"):
-        hatalar.append("Ürün linki eksik")
+        hatalar.append("Urun linki eksik")
     if not v.get("urun_fotografi"):
-        hatalar.append("Ürün fotoğrafı eksik")
+        hatalar.append("Urun fotografi eksik")
         
     # Kural 4: Özellikler (Kumaş/Renk) tamamen boş olmamalı (Trendyol'da en azından 1 özellik olur)
     if not v.get("urun_ozellikleri") or len(v.get("urun_ozellikleri")) == 0:
-        hatalar.append("Ürün özellikleri (Renk/Kumaş vs.) bulunamadı")
+        hatalar.append("Urun ozellikleri (Renk/Kumas vs.) bulunamadi")
 
     if hatalar:
-        print(f"   ⚠️ [RET] Eksik Veri Tespit Edildi ({v.get('hedef_platform')}): {', '.join(hatalar)}")
+        print(f"   - [RET] Eksik Veri Tespit Edildi ({v.get('hedef_platform')}): {', '.join(hatalar)}")
         return False
         
     return True
@@ -207,13 +210,13 @@ def veritabanina_firlat(veriler, db: Client):
             
         try:
             db.table("b1_trendyol_istihbarat_detayli").insert(v).execute()
-            print(f"   ✅ EKLENDİ (15 Kriter Onaylı): {v['marka_ismi']} - {v['urun_ismi']}")
+            print(f"   + EKLENDI (15 Kriter Onayli): {v['marka_ismi']}")
             basarili += 1
         except Exception as e:
             if "duplicate key value" in str(e) or "23505" in str(e):
                 kopya += 1
             else:
-                print(f"   ❌ DB YAZMA HATASI: {e}")
+                print(f"   ! DB YAZMA HATASI: {e}")
                 
     print(f"\n📊 ÖZET: {basarili} kaliteli ürün eklendi. {kopya} mükerrer. {hatali} eksik veri nedeniyle reddedildi.")
 

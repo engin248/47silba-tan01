@@ -51,6 +51,26 @@ export default function ScraperKarantinaContainer() {
         setIslemdeId(urun.id);
 
         try {
+            // [ZIRH]: Ana tabloda (b1_arge_products) eski kayıt var mı kontrolü?
+            const { data: mevcutKayit } = await supabase
+                .from('b1_arge_products')
+                .select('id')
+                .eq('ham_veri->>urunLink', urun.urun_linki)
+                .limit(1);
+
+            if (mevcutKayit && mevcutKayit.length > 0) {
+                // Eğer daha önce kaydedilmişse karantinadaki de çöpe çevirebiliriz ya da baştan uyarabiliriz.
+                const onay = confirm('⚠️ DİKKAT: Bu ürünün linki MizanNizam ana veritabanında (b1_arge_products) ZATEN VAR! Yine de aktaralım mı? (İptal derseniz karantinadan silinecek)');
+                if (!onay) {
+                    // Karantinadan sil
+                    await supabase.from('b1_arge_products_karantina').update({ karantina_durumu: 'reddedildi_mukerrer' }).eq('id', urun.id);
+                    setKarantinaListesi(prev => prev.filter(p => p.id !== urun.id));
+                    goster('Mükerrer kayıt engellendi ve karantinadan temizlendi.', 'success');
+                    setIslemdeId(null);
+                    return;
+                }
+            }
+
             // 1. Asıl Tabloya Yaz
             const { error: insertError } = await supabase.from('b1_arge_products').insert([{
                 veri_kaynagi: urun.veri_kaynagi || 'Karantina Onayı',
@@ -109,13 +129,27 @@ export default function ScraperKarantinaContainer() {
 
     const tumunuOnayla = async () => {
         if (karantinaListesi.length === 0) return;
-        if (!confirm(`Ekrandaki ${karantinaListesi.length} verinin tamamını güvenli kabul edip ONAYLAMAK istediğinize emin misiniz?`)) return;
+        if (!confirm(`Ekrandaki ${karantinaListesi.length} verinin tamamını (eski kayıtları atlayarak) ONAYLAMAK istediğinize emin misiniz?`)) return;
 
         setIslemdeId('toplu_onay');
         let basarili = 0;
+        let atlanan = 0;
 
         for (const urun of karantinaListesi) {
             try {
+                // Toplu işlemde de mükerrer kontrolü
+                const { data: mevcutKayit } = await supabase
+                    .from('b1_arge_products')
+                    .select('id')
+                    .eq('ham_veri->>urunLink', urun.urun_linki)
+                    .limit(1);
+
+                if (mevcutKayit && mevcutKayit.length > 0) {
+                    await supabase.from('b1_arge_products_karantina').update({ karantina_durumu: 'reddedildi_mukerrer' }).eq('id', urun.id);
+                    atlanan++;
+                    continue;
+                }
+
                 const { error: insErr } = await supabase.from('b1_arge_products').insert([{
                     veri_kaynagi: urun.veri_kaynagi || 'Karantina Onayı',
                     islenen_durum: 'bekliyor',
@@ -131,7 +165,7 @@ export default function ScraperKarantinaContainer() {
             } catch (err) { }
         }
 
-        goster(`✅ Toplu işlem tamamlandı. ${basarili} adet veri ana tabloya geçirildi.`);
+        goster(`✅ Toplu işlem bitti. ${basarili} eklendi, ${atlanan} eski/mükerrer kayıt çöpe atıldı.`);
         verileriCek();
         setIslemdeId(null);
     };
