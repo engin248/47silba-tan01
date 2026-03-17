@@ -104,26 +104,102 @@ async function yeniKararlariTara() {
     console.log(`[KÖPRÜ] ✅ ${gonderilen}/${yeniKararlar.length} bildirim gönderildi.`);
 }
 
-// ─── ÇÖP SÜPÜRGESİ (7 GÜNLÜK TEMİZLİK) ─────────────────────
+// ─── KORUNMASI ZORUNLU TABLOLAR (ASLA SİLİNMEZ) ───────────────
+// Model resimleri, kumaş/aksesuar örnekleri, üretim arşivleri,
+// personel maliyet kayıtları bu listede yer alan tablolara dokunulmaz.
+const KORUNAN_TABLOLAR = [
+    'b1_kumas',            // Kumaş & Materyal Arşivi
+    'b1_aksesuar',         // Aksesuar Örnekleri
+    'b1_model_taslaklari', // Model Resimleri & Tasarım Arşivi
+    'b1_maliyet_kayitlari',// Personel & İşletme Maliyet Kayıtları (5 yıl yasal zorunluluk)
+    'b1_muhasebe_raporlari',// Muhasebe / Finans Arşivi
+    'production_orders',   // Üretim Arşivi (Eski siparişler)
+    'b1_personel',         // Personel Kayıtları
+    'b1_personel_performans', // Performans Arşivi
+    'b0_arsiv',            // Ana Arşiv Katmanı — ASLA SİLİNMEZ
+    'b0_sistem_loglari',   // Sistem Denetim Logları
+];
+
+// ─── GÜVENLİ ARŞİV SONRASI SİL (ÖNEMLİ!) ─────────────────────
+// Silmeden ÖNCE b0_arsiv tablosuna yedek alır.
+// Arşivleme başarısız olursa silme işlemi de iptal edilir (Güvenli mod).
+async function arsivleSonraSil(tablo, kayitlar) {
+    if (KORUNAN_TABLOLAR.includes(tablo)) {
+        console.log(`[KÖPRÜ] 🛡️ KORUMA: '${tablo}' tablosu kalıcı korumalı listede. Silme işlemi engellendi.`);
+        return 0;
+    }
+
+    if (!kayitlar || kayitlar.length === 0) return 0;
+
+    let basariliSilme = 0;
+
+    for (const kayit of kayitlar) {
+        try {
+            // 1. ADIM: b0_arsiv tablosuna kopyala
+            const { error: arsivHata } = await supabase.from('b0_arsiv').insert([{
+                kaynak_tablo: tablo,
+                kaynak_id: kayit.id,
+                veri: kayit,
+                silen_kullanici: 'KOPRU_AJAN_OTOMASYONU',
+                silme_tarihi: new Date().toISOString(),
+                silme_sebebi: `Köprü Ajani otomatik temizlik (7 gun gecmis, islenen_durum: islendi)`,
+                geri_yuklenebilir: true,
+            }]);
+
+            if (arsivHata) {
+                // Arşivleme başarısız → silme iptal, güvenli kalma
+                console.warn(`[KÖPRÜ] ⚠️ ARŞİV HATASI (ID: ${kayit.id}): ${arsivHata.message} — Bu kayıt SİLİNMEDİ.`);
+                continue; // Bu kaydı atla, sonrakine geç
+            }
+
+            // 2. ADIM: Arşiv başarılıysa asıl tablodan sil
+            const { error: silHata } = await supabase.from(tablo).delete().eq('id', kayit.id);
+
+            if (silHata) {
+                console.warn(`[KÖPRÜ] ⚠️ SİLME HATASI (ID: ${kayit.id}): ${silHata.message}`);
+                continue;
+            }
+
+            basariliSilme++;
+        } catch (e) {
+            console.warn(`[KÖPRÜ] ⚠️ İşlem hatası (ID: ${kayit.id}): ${e.message}`);
+        }
+    }
+
+    return basariliSilme;
+}
+
+// ─── ÇÖP SÜPÜRGESİ (ARŞİVLEYEREK TEMİZLE) ───────────────────
 async function copSupurgesi() {
-    console.log('[KÖPRÜ] 🧹 7 günden eski işlenmiş kayıtlar temizleniyor...');
+    console.log('[KÖPRÜ] 🧹 7 günden eski işlenmiş kayıtlar ARŞİVLENEREK temizleniyor...');
+    console.log('[KÖPRÜ] 🛡️ KORUMA AKTIF: Model/Kumaş/Aksesuar/Maliyet/Üretim verileri hiçbir zaman silinmez.');
 
     const yediGunOnce = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data, error } = await supabase
+    // Önce kayıtları ÇEK (silmeden önce arşivleyeceğiz)
+    const { data: eskiKayitlar, error } = await supabase
         .from('b1_arge_products')
-        .delete()
+        .select('*')                    // Tüm alanları al (arşiv için)
         .eq('islenen_durum', 'islendi')
-        .lt('created_at', yediGunOnce)
-        .select('id');
+        .lt('created_at', yediGunOnce);
 
     if (error) {
-        console.log(`[KÖPRÜ] ⚠️ Temizlik hatası: ${error.message}`);
+        console.log(`[KÖPRÜ] ⚠️ Temizlik sorgu hatası: ${error.message}`);
         return;
     }
 
-    const silinen = data?.length || 0;
-    console.log(`[KÖPRÜ] 🧹 ${silinen} eski kayıt temizlendi.`);
+    if (!eskiKayitlar || eskiKayitlar.length === 0) {
+        console.log('[KÖPRÜ] 🧹 Temizlenecek eski kayıt bulunamadı.');
+        return;
+    }
+
+    console.log(`[KÖPRÜ] 📦 ${eskiKayitlar.length} kayıt arşivlenip silinecek...`);
+
+    const silinen = await arsivleSonraSil('b1_arge_products', eskiKayitlar);
+    console.log(`[KÖPRÜ] ✅ ${silinen}/${eskiKayitlar.length} kayıt güvenle arşivlendi ve temizlendi.`);
+    if (silinen < eskiKayitlar.length) {
+        console.warn(`[KÖPRÜ] ⚠️ ${eskiKayitlar.length - silinen} kayıt arşivlenemediği için SİLİNMEDİ ve korundu.`);
+    }
 }
 
 // ─── ANA ÇALIŞTIRICI ──────────────────────────────────────────

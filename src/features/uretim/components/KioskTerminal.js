@@ -11,8 +11,9 @@ export default function KioskTerminal() {
 
     const [barkod, setBarkod] = useState('');
     const [personel, setPersonel] = useState(null);
+    const [personelAylikPerformans, setPersonelAylikPerformans] = useState({ toplam_deger: 0, maliyet_hedefi: 0 });
     const [islemdekiIs, setIslemdekiIs] = useState(null);
-    const [mesaj, setMesaj] = useState({ text: '', tur: '' }); // tur: success, error, info
+    const [mesaj, setMesaj] = useState({ text: '', tur: '' });
     const [bekliyor, setBekliyor] = useState(false);
 
     // YENİ: Sipariş bulunduğunda reçete seçimi için
@@ -23,6 +24,10 @@ export default function KioskTerminal() {
     const [bitisPopup, setBitisPopup] = useState(false);
     const [fireAdet, setFireAdet] = useState(0);
     const [uretimAdet, setUretimAdet] = useState(0);
+
+    // Eğitim / SOP Modalı
+    const [egitimModalAcik, setEgitimModalAcik] = useState(false);
+    const [seciliEgitim, setSeciliEgitim] = useState(null);
 
     const inputRef = useRef(null);
 
@@ -80,6 +85,25 @@ export default function KioskTerminal() {
                     goster('Personel kartı bulunamadı (Bilinmeyen Kullanıcı). Tekrar okutun.', 'error');
                 } else {
                     setPersonel(pData);
+
+                    // Personelin aylık performans ve maliyet durumunu çek (Maliyet/Amorti Sistemi)
+                    // Önceki ayın 1'i (geçici basit hesap)
+                    const date = new Date();
+                    const ilkGun = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+
+                    const { data: perfData } = await supabase
+                        .from('b1_personel_performans')
+                        .select('isletmeye_katilan_deger')
+                        .eq('personel_id', pData.id)
+                        .gte('created_at', ilkGun);
+
+                    const t_deger = perfData ? perfData.reduce((acc, curr) => acc + (Number(curr.isletmeye_katilan_deger) || 0), 0) : 0;
+
+                    setPersonelAylikPerformans({
+                        toplam_deger: t_deger,
+                        maliyet_hedefi: Number(pData.aylik_maliyet_tl) || 0
+                    });
+
                     goster(`Hoşgeldin, ${pData.ad_soyad}. Şimdi ürün takım / sipariş barkodunu okutun.`, 'success');
                 }
                 setBekliyor(false);
@@ -121,7 +145,7 @@ export default function KioskTerminal() {
 
             if (ordErr || !ordData) {
                 // Alternatif (Belki operasyon barkodu okutmuştur diye)
-                let { data: dirOp } = await supabase.from('b1_uretim_operasyonlari').select('id, operasyon_adi').eq('id', kod).single();
+                let { data: dirOp } = await supabase.from('b1_operasyon_tanimlari').select('id, operasyon_adi').eq('id', kod).single();
                 if (dirOp) {
                     goster(`Ürün sepeti barkodu okutulmadan doğrudan ${dirOp.operasyon_adi} başlatılamaz! Lütfen sepeti okutun.`, 'error');
                 } else {
@@ -130,13 +154,14 @@ export default function KioskTerminal() {
             } else {
                 // Sipariş bulundu! Siparişe (Modele) ait reçeteleri bul ekrana yansıt:
                 if (ordData.model_id) {
-                    let { data: ops } = await supabase.from('b1_uretim_operasyonlari').select('*, b1_makineler(makine_adi)').eq('model_id', ordData.model_id).order('sira_no', { ascending: true });
+                    // YENİ: b1_operasyon_tanimlari kullanılarak reçete/SOP yüklenir
+                    let { data: ops } = await supabase.from('b1_operasyon_tanimlari').select('*').order('sira_no', { ascending: true });
                     if (!ops || ops.length === 0) {
-                        goster(`Bu modelin reçetesi (operasyonları) henüz yöneticiler tarafından 'Reçeteler' sekmesinden tanımlanmamış. İş başlatılamaz.`, 'error');
+                        goster(`Bu modelin reçetesi (operasyonları) henüz tanımlanmamış. Devam edemezsiniz.`, 'error');
                     } else {
                         setSeciliSiparis({ ...ordData, is_barkodu: kod });
                         setModelOperasyonlari(ops);
-                        goster('Sipariş Rotası (Reçetesi) Okundu! Lütfen yapmak istediğiniz parçayı (adımı) seçerek başlayın.', 'success');
+                        goster('Sipariş Rotası Okundu! Lütfen yapmak istediğiniz parçayı (adımı) seçerek başlayın.', 'success');
                     }
                 } else {
                     goster('Siparişe bağlı bir Model (Ürün) tanımlanmamış! Ar-Ge kaydı hatalı.', 'error');
@@ -152,19 +177,26 @@ export default function KioskTerminal() {
     // DOKUNMATİK EKRANDAN OPERASYON SEÇİMİ
     const isEmriBaslat = async (op_id, ord_id, is_barkodu, miktar) => {
         setBekliyor(true);
+        // İlgili operasyon bilgilerini modelOperasyonlari dizisinden bul (prim/maliyet hesaplaması için)
+        const opData = modelOperasyonlari.find(o => o.id === op_id);
+
         const { data, error } = await supabase
             .from('b1_personel_performans')
             .insert([{
                 personel_id: personel.id,
                 operasyon_id: op_id,
-                order_id: ord_id,
+                order_id: ord_id, // Geri uyumluluk için order_id
+                imalat_id: ord_id, // Yeni sistem b1_imalat_emirleri referansı için imalat_id
                 is_barkodu: is_barkodu,
                 hedef_adet: miktar,
                 uretilen_adet: 0,
                 fire_adet: 0,
-                baslangic_saati: new Date().toISOString()
+                baslangic_saati: new Date().toISOString(),
+                otonom_tespit: false,
+                kaynak_cihaz: 'M6-Tablet',
+                // Değerler iş bittiğinde doldurulacak, şimdilik null/0
             }])
-            .select('*, b1_uretim_operasyonlari(*)')
+            .select('*, b1_operasyon_tanimlari(*)')
             .single();
 
         if (error) {
@@ -183,26 +215,51 @@ export default function KioskTerminal() {
         try {
             const kalitePuani = handleKesintiHesapla(fireAdet, uretimAdet);
             const sureSaniye = (new Date() - new Date(islemdekiIs.baslangic_saati)) / 1000;
-            const primTL = (islemdekiIs.b1_uretim_operasyonlari?.parca_basi_deger_tl || 0) * uretimAdet;
-
-            // Zaman Aşımı (Idle) Kontrolü: 8 saati geçmişse (Örn. unutulmuş iş)
             const zamanAsimi = sureSaniye > (8 * 3600);
+
+            // MALIYET VE PRIM HESAPLAMASI (Akıllı MES Algoritması)
+            let kazanilanDeğer = 0;
+            let kazanilanPrimGuncel = 0;
+
+            if (islemdekiIs.b1_operasyon_tanimlari) {
+                const op = islemdekiIs.b1_operasyon_tanimlari;
+                kazanilanDeğer = uretimAdet * (Number(op.isletmeye_kattigi_deger_tl) || 0);
+
+                // Personel kotamızı aştıysa, prim dezenfekte moduna geçer.
+                // Eğer {önceki toplam değer + bu işlemin değeri} > aylık maliyet ise prim hak eder.
+                const yeniToplamDeger = personelAylikPerformans.toplam_deger + kazanilanDeğer;
+                if (yeniToplamDeger > personelAylikPerformans.maliyet_hedefi) {
+                    kazanilanPrimGuncel = uretimAdet * (Number(op.baz_prim_tl) || 0) * (Number(op.zorluk_derecesi) || 1.0);
+                }
+            } else {
+                // Eski geri uyumluluk fallback
+                kazanilanPrimGuncel = (islemdekiIs.b1_uretim_operasyonlari?.parca_basi_deger_tl || 0) * uretimAdet;
+            }
 
             const { error } = await supabase
                 .from('b1_personel_performans')
                 .update({
                     bitis_saati: new Date().toISOString(),
                     fire_adet: fireAdet,
-                    uretilen_adet: uretimAdet, // Puan alacağı Adet
+                    uretilen_adet: uretimAdet,
+                    adet: uretimAdet, // Yeni sisteme compat
                     kalite_puani: kalitePuani,
-                    hiza_gore_prim_tl: primTL,
-                    zaman_asimi_durus: zamanAsimi
+                    hiza_gore_prim_tl: kazanilanPrimGuncel, // Geri uyumluluk alanı
+                    kazanilan_prim: kazanilanPrimGuncel, // Yeni Akıllı MES alanı
+                    isletmeye_katilan_deger: kazanilanDeğer,
+                    zaman_asimi_durus: zamanAsimi,
+                    onay_durumu: 'onaylandi'
                 })
                 .eq('id', islemdekiIs.id);
 
             if (error) throw error;
 
-            goster('Makine İşi Başarıyla Tamamlandı! Prim cüzdana eklendi.', 'success');
+            if (kazanilanPrimGuncel > 0) {
+                goster(`İşlem Bitti! Hedefinizi aştınız. +${kazanilanPrimGuncel} TL PRİM kazandınız! 🔥`, 'success');
+            } else {
+                goster(`İşlem Bitti! İşletmeye +${kazanilanDeğer} TL değer kattınız. Prim kotasına yaklaşıyorsunuz!`, 'success');
+            }
+
             setBitisPopup(false);
             setFireAdet(0);
             setIslemdekiIs(null);
@@ -238,6 +295,23 @@ export default function KioskTerminal() {
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    {personel && personelAylikPerformans.maliyet_hedefi > 0 && (
+                        <div style={{ marginRight: 20, textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 800, marginBottom: 4, textTransform: 'uppercase' }}>{isAR ? 'الهدف الشهري وقسط' : 'AYLIK AMORTİ / KOTA DURUMU'}</div>
+                            <div style={{ width: 200, height: 12, background: '#1e293b', borderRadius: 6, overflow: 'hidden', position: 'relative', border: '1px solid #334155' }}>
+                                <div style={{
+                                    width: `${Math.min(100, (personelAylikPerformans.toplam_deger / personelAylikPerformans.maliyet_hedefi) * 100)}%`,
+                                    height: '100%',
+                                    background: personelAylikPerformans.toplam_deger > personelAylikPerformans.maliyet_hedefi ? 'linear-gradient(90deg, #f59e0b, #ef4444)' : 'linear-gradient(90deg, #10b981, #059669)',
+                                    boxShadow: personelAylikPerformans.toplam_deger > personelAylikPerformans.maliyet_hedefi ? '0 0 10px rgba(239,68,68,0.8)' : 'none',
+                                    transition: 'width 1s ease-in-out'
+                                }}></div>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', marginTop: 4, fontWeight: 900, color: personelAylikPerformans.toplam_deger > personelAylikPerformans.maliyet_hedefi ? '#fca5a5' : '#6ee7b7' }}>
+                                %{((personelAylikPerformans.toplam_deger / personelAylikPerformans.maliyet_hedefi) * 100).toFixed(1)} ({personelAylikPerformans.toplam_deger}₺ / {personelAylikPerformans.maliyet_hedefi}₺)
+                            </div>
+                        </div>
+                    )}
                     {mesaj.text && (
                         <div style={{ background: mesaj.tur === 'error' ? '#7f1d1d' : '#064e3b', color: mesaj.tur === 'error' ? '#fca5a5' : '#6ee7b7', padding: '10px 20px', borderRadius: 12, fontWeight: 700, fontSize: '0.9rem', animation: 'fadeIn 0.3s' }}>
                             {mesaj.text}
@@ -296,9 +370,20 @@ export default function KioskTerminal() {
 
                                         <Hammer size={50} color="#60a5fa" style={{ marginBottom: 15, position: 'relative', zIndex: 2 }} />
                                         <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 900, color: '#93c5fd', position: 'relative', zIndex: 2 }}>
-                                            {islemdekiIs.b1_uretim_operasyonlari?.operasyon_adi || 'Bilinmeyen İşlem'}
+                                            {islemdekiIs.b1_operasyon_tanimlari?.operasyon_adi || islemdekiIs.b1_uretim_operasyonlari?.operasyon_adi || 'Bilinmeyen İşlem'}
                                         </h2>
-                                        <p style={{ margin: '10px 0 0', color: '#94a3b8', fontSize: '1.1rem', position: 'relative', zIndex: 2 }}>Şu anda makinede performansınız kaydediliyor...</p>
+
+                                        {/* EĞİTİM / NASIL YAPILIR MİMARİSİ */}
+                                        {islemdekiIs.b1_operasyon_tanimlari && (
+                                            <button
+                                                onClick={() => { setSeciliEgitim(islemdekiIs.b1_operasyon_tanimlari); setEgitimModalAcik(true); }}
+                                                style={{ marginTop: 15, background: '#1e293b', color: '#60a5fa', border: '1px solid #3b82f6', padding: '8px 16px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', zIndex: 2, position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                                            >
+                                                ℹ️ {isAR ? 'كيفية التطبيق (فيديو وتعليمات)' : 'NASIL YAPILIR? (SOP EĞİTİM DOSYASI)'}
+                                            </button>
+                                        )}
+
+                                        <p style={{ margin: '15px 0 0', color: '#94a3b8', fontSize: '1.1rem', position: 'relative', zIndex: 2 }}>Şu anda makinede performansınız kaydediliyor...</p>
 
                                         <div style={{ marginTop: 30, display: 'inline-block', background: '#0f172a', padding: '15px 30px', borderRadius: 16, fontSize: '1.3rem', fontWeight: 900, border: '1px solid #1e293b', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', position: 'relative', zIndex: 2 }}>
                                             ⏱️ Başlama: {new Date(islemdekiIs.baslangic_saati).toLocaleTimeString('tr-TR')}
@@ -336,11 +421,16 @@ export default function KioskTerminal() {
                                                 </h3>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                                                     <span style={{ background: '#020617', color: '#94a3b8', fontSize: '0.8rem', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>
-                                                        ⚙️ {op.b1_makineler?.makine_adi || 'El İşi'}
+                                                        ⚙️ İş Sırası: {op.sira_no || '-'}
                                                     </span>
-                                                    {op.parca_basi_deger_tl > 0 && (
+                                                    {op.isletmeye_kattigi_deger_tl > 0 && (
                                                         <span style={{ background: '#166534', color: '#86efac', fontSize: '0.8rem', padding: '4px 10px', borderRadius: 8, fontWeight: 800 }}>
-                                                            💰 {op.parca_basi_deger_tl} TL/Puan
+                                                            📈 +{op.isletmeye_kattigi_deger_tl}₺ Kota
+                                                        </span>
+                                                    )}
+                                                    {op.zorluk_derecesi && (
+                                                        <span style={{ background: '#450a0a', color: '#fca5a5', fontSize: '0.8rem', padding: '4px 10px', borderRadius: 8, fontWeight: 800 }}>
+                                                            ⚔️ Zorluk: {op.zorluk_derecesi}
                                                         </span>
                                                     )}
                                                 </div>
@@ -413,6 +503,47 @@ export default function KioskTerminal() {
                                 {bekliyor ? 'KAYDEDİLİYOR...' : 'ONAYLA, VERİTABANINA YAZ!'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EĞİTİM MODALI (STANDART OPERASYON PROSEDÜRÜ) */}
+            {egitimModalAcik && seciliEgitim && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.95)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s', padding: 20 }}>
+                    <div style={{ background: '#0f172a', width: '100%', maxWidth: 800, maxHeight: '90vh', overflowY: 'auto', borderRadius: 32, padding: '40px', border: '2px solid #3b82f6', boxShadow: '0 25px 50px rgba(0,0,0,0.8)', position: 'relative' }}>
+
+                        <button onClick={() => setEgitimModalAcik(false)} style={{ position: 'absolute', top: 20, right: 20, background: '#1e293b', border: 'none', color: 'white', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <X size={24} />
+                        </button>
+
+                        <h2 style={{ margin: '0 0 5px', fontSize: '2rem', fontWeight: 900, color: 'white' }}>{seciliEgitim.operasyon_adi}</h2>
+                        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+                            <span style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.9rem', background: '#450a0a', padding: '4px 10px', borderRadius: 6 }}>Zorluk Çarpanı: {seciliEgitim.zorluk_derecesi}</span>
+                            <span style={{ color: '#10b981', fontWeight: 800, fontSize: '0.9rem', background: '#064e3b', padding: '4px 10px', borderRadius: 6 }}>Operasyon Kotası: {seciliEgitim.isletmeye_kattigi_deger_tl} ₺</span>
+                        </div>
+
+                        {seciliEgitim.egitim_videosu_url ? (
+                            <div style={{ width: '100%', height: 400, background: '#000', borderRadius: 16, marginBottom: 20, overflow: 'hidden', border: '2px solid #1e293b' }}>
+                                <video src={seciliEgitim.egitim_videosu_url} controls autoPlay loop style={{ width: '100%', height: '100%', objectFit: 'contain' }}></video>
+                            </div>
+                        ) : seciliEgitim.egitim_gorseli_url ? (
+                            <div style={{ width: '100%', height: 300, background: '#020617', borderRadius: 16, marginBottom: 20, border: '2px solid #1e293b', backgroundImage: `url(${seciliEgitim.egitim_gorseli_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                        ) : (
+                            <div style={{ width: '100%', height: 200, background: '#1e293b', borderRadius: 16, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 800, border: '2px dashed #475569' }}>
+                                GÖRSEL KURUMA YÜKLENMEMİŞ
+                            </div>
+                        )}
+
+                        <div style={{ background: '#1e293b', padding: 20, borderRadius: 16, border: '1px solid #334155' }}>
+                            <h3 style={{ margin: '0 0 10px', color: '#60a5fa', fontSize: '1.2rem', fontWeight: 900 }}>Yazılı Talimat:</h3>
+                            <p style={{ margin: 0, color: '#e2e8f0', lineHeight: 1.6, fontSize: '1.1rem', fontWeight: 500 }}>
+                                {seciliEgitim.egitim_metni || 'Bu operasyon için sistemde detaylı bir yazılı prosedür girilmemiş. Lütfen standart atölye/fabrika kurallarına uyarak işletimi tamamlayın.'}
+                            </p>
+                        </div>
+
+                        <button onClick={() => setEgitimModalAcik(false)} style={{ width: '100%', marginTop: 20, padding: 15, background: '#3b82f6', color: 'white', border: 'none', borderRadius: 16, fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer' }}>
+                            OKUDUM, ANLADIM VE KAPAT
+                        </button>
                     </div>
                 </div>
             )}

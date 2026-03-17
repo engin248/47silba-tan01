@@ -10,237 +10,242 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # =========================================================================
-# THE ORDER - 1. EKİP (VERİ MADENCİSİ / SCOUT AJANI) - DETAYLI VERSİYON
-# Görevi: Trendyol üzerinden detaylı (15 Kriter) Veri Madenciliği
-# Hedef Tablo: b1_trendyol_istihbarat_detayli
+# THE ORDER - 1. EKİP (GOZLEM AJANI)
+# Gorev: Kamuya acik Trendyol urun sayfalarini oku, degisikligi kaydet
+# Hedef Tablo: b1_piyasa_gozlem
+# Etik Kural: Sadece herhangi bir ziyaretcinin gorebilecegi bilgi alinir.
+#             Guvenlik atlatilmaz, sistem kirilmaz.
 # =========================================================================
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+try:
+    SCRIPT_DIR = Path(__file__).resolve().parent
+except NameError:
+    SCRIPT_DIR = Path(os.getcwd()).resolve()
+
 load_dotenv(SCRIPT_DIR / ".env")
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print("🔴 [KRİTİK HATA] .env dosyasında SUPABASE_URL veya SUPABASE_SERVICE_KEY bulunamadı!")
+    print("[KRITIK HATA] .env dosyasinda SUPABASE_URL veya SUPABASE_SERVICE_KEY bulunamadi!")
     exit(1)
 
 def baglanti_kur() -> Client:
     try:
         return create_client(SUPABASE_URL, SUPABASE_KEY)
     except Exception as e:
-        print(f"[HATA] Veritabanı bağlantısı koptu: {e}")
+        print(f"[HATA] Veritabani baglantisi koptu: {e}")
         exit(1)
 
+# Standart tarayici kimligini taklit et (dost niyetli bot)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept": "text/html,application/xhtml+xml,application/xml",
+    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-gunler_tr = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+GUNLER = ["Pazartesi", "Sali", "Carsamba", "Persembe", "Cuma", "Cumartesi", "Pazar"]
 
-def arama_sonuclarini_getir(arama_kelimesi, limit=5):
-    print(f"📡 [AJAN-1] '{arama_kelimesi}' aranıyor...")
-    url = f"https://www.trendyol.com/sr?q={arama_kelimesi.replace(' ', '%20')}"
-    
+# =========================================================================
+# Arama Kriteri → Urun Linki Listesi
+# =========================================================================
+def arama_linklerini_getir(arama_kriteri: str, limit: int = 5):
+    print(f"[TARAMA] '{arama_kriteri}' araniyor...")
+    url = f"https://www.trendyol.com/sr?q={arama_kriteri.replace(' ', '%20')}"
     try:
-        response = requests.get(url, headers=HEADERS, timeout=15)
-        soup = BeautifulSoup(response.content, "html.parser")
-        urun_kartlari = soup.find_all("div", class_="p-card-wrppr", limit=limit)
-        
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        # Cloudflare engeli kontrolu
+        if r.status_code == 403 or "Attention Required" in r.text:
+            print(f"  [ENGEL] Trendyol erisimi reddetti. Bu arama kriteri atlaniyor: {arama_kriteri}")
+            return []
+        soup = BeautifulSoup(r.content, "html.parser")
+        kartlar = soup.find_all("div", class_="p-card-wrppr", limit=limit)
         linkler = []
-        for kart in urun_kartlari:
-            link_etiketi = kart.find("a")
-            if link_etiketi:
-                link = "https://www.trendyol.com" + link_etiketi["href"].split("?")[0]
-                linkler.append(link)
+        for kart in kartlar:
+            a = kart.find("a")
+            if a and a.get("href"):
+                linkler.append("https://www.trendyol.com" + a["href"].split("?")[0])
+        print(f"  [OK] {len(linkler)} urun linki bulundu.")
         return linkler
     except Exception as e:
-        print(f"❌ [HATA] Arama yapılırken çöktü: {e}")
+        print(f"  [HATA] Arama sirasinda hata: {e}")
         return []
 
-def urun_detaylarini_cek(urun_linki):
-    print(f"   - Detaylara Giriliyor: {urun_linki}")
+# =========================================================================
+# Urun Sayfasini Gozlemle → Veri Paketi Olustur
+# =========================================================================
+def urunu_gozlemle(urun_linki: str, arama_kriteri: str):
     try:
-        response = requests.get(urun_linki, headers=HEADERS, timeout=15)
-        if response.status_code != 200:
-            print(f"   ! Sayfa Reddedildi (Kod: {response.status_code})")
+        r = requests.get(urun_linki, headers=HEADERS, timeout=15)
+        if r.status_code != 200 or "Attention Required" in r.text:
+            print(f"  [ATLANDI] Sayfa erisimi reddedildi: {urun_linki}")
             return None
-            
-        html_content = response.text
-        
-        # Trendyol'un sayfa içine gömdüğü devasa JSON verisini regex ile yakala
-        # __PRODUCT_DETAIL_APP_INITIAL_STATE__ bölümünde orijinal veriler var
-        state_match = re.search(r'window\.__PRODUCT_DETAIL_APP_INITIAL_STATE__\s*=\s*({.*?});\s*window\.', html_content)
-        
-        if not state_match:
-            print("   ! Ürün API durumu JSON bulunamadı, klasik DOM atlanıyor.")
+
+        html = r.text
+
+        # Trendyol'un sayfaya gomulu JSON verisini oku
+        m = re.search(r'window\.__PRODUCT_DETAIL_APP_INITIAL_STATE__\s*=\s*({.*?});\s*window\.', html)
+        if not m:
+            print(f"  [ATLANDI] Sayfa JSON verisi bulunamadi: {urun_linki}")
             return None
-            
-        json_str = state_match.group(1)
-        data = json.loads(json_str)
+
+        data = json.loads(m.group(1))
         product = data.get("product", {})
-        
-        # --- 15 KRİTERİ TOPLAMA ---
-        
-        # 1. Marka
-        marka_ismi = product.get("brand", {}).get("name", "Bilinmeyen Marka")
-        
-        # 2. İsim
-        urun_ismi = product.get("name", "Bilinimsiz Ürün")
-        
-        # 3. Orijinal & 4. İndirimli Fiyat
-        price_info = product.get("price", {})
-        orijinal_fiyat = price_info.get("originalPrice", {"value": 0}).get("value", 0)
-        indirimli_fiyat = price_info.get("discountedPrice", {"value": 0}).get("value", 0)
-        
-        # 5. Ürün Puanı
-        rating_info = product.get("ratingScore", {})
-        urun_puani = rating_info.get("averageRating", 0.0)
-        
-        # 6. Ürün Yorum Sayısı (veya Yorumlar)
-        urun_yorumlari = str(product.get("reviewCount", 0)) + " yorum yapilmish"
-        
-        # 7. Ürün Özellikleri (Renk, Kumaş, vs.)
-        ozellikler_listesi = product.get("attributes", [])
-        urun_ozellikleri = {item.get('key', {}).get('name', 'Bilinmeyen'): item.get('value', {}).get('name', '') for item in ozellikler_listesi}
-        
-        # 8. Yorum Özeti (Şimdilik boş bırakıyoruz, ilerde AI ile doldurulabilir)
-        urun_yorum_ozeti = "Ozet analiz edilmedi."
-        
-        # Sosyal Kanıt verileri (Sepet ve Görüntüleme)
-        sepete_ekleme = "Bilinmiyor"
-        goruntuleme = "Bilinmiyor"
-        urun_favorisi = str(product.get("favoriteCount", 0)) + " Favori"
-        
-        social_proof_html = re.search(r'class="view-info-text">(.*?)</div>', html_content)
-        if social_proof_html:
-            sp_text = social_proof_html.group(1)
+        price   = product.get("price", {})
+        rating  = product.get("ratingScore", {})
+        attrs   = product.get("attributes", [])
+        images  = product.get("images", [])
+
+        # --- 15 KRİTER ---
+        marka_ismi          = product.get("brand", {}).get("name", "")
+        urun_ismi           = product.get("name", "")
+        orijinal_fiyat      = price.get("originalPrice", {}).get("value", 0)
+        indirimli_fiyat     = price.get("discountedPrice", {}).get("value", 0)
+        urun_puani          = rating.get("averageRating", 0.0)
+        yorum_sayisi        = int(product.get("reviewCount", 0))
+        degerlendirme_sayisi = int(rating.get("totalRatingCount", 0))
+        urun_ozellikleri    = {
+            a.get("key", {}).get("name", "?"): a.get("value", {}).get("name", "")
+            for a in attrs
+        }
+        urun_fotografi_url  = ("https://cdn.dsmcdn.com" + images[0]) if images else ""
+        urun_favorisi       = str(product.get("favoriteCount", 0))
+
+        # Sepete ekleme / goruntulenme (sozyal kanit metni)
+        sepete_ekleme = None
+        goruntuleme   = None
+        sp = re.search(r'class="view-info-text">(.*?)</div>', html)
+        if sp:
+            sp_text = sp.group(1)
             if "sepet" in sp_text.lower():
                 sepete_ekleme = sp_text
-            elif "görüntüleniyor" in sp_text.lower() or "inceledi" in sp_text.lower():
+            elif "incele" in sp_text.lower() or "goruntule" in sp_text.lower():
                 goruntuleme = sp_text
-                
-        # 13. Fotoğraf URL
-        images = product.get("images", [])
-        urun_fotografi = "https://cdn.dsmcdn.com" + images[0] if len(images) > 0 else ""
-        
-        # 14. Yorum Tarihi (Ürün statik datasında yok, genel bırakıyoruz)
-        urun_yorum_tarihi = "Belirsiz"
-        
-        # 15. Ürün Değerlendirme (Total Rating Count)
-        urun_degerlendirme = str(rating_info.get("totalRatingCount", 0)) + " degerlendirme"
-        
+
+        # Stok durumu
+        stok = product.get("productGroupAttribute", {}).get("stock", None)
+        stok_durumu = "Stokta" if stok else "Belirsiz"
+
+        # Kategori ve cinsiyet tahmini (urun ismi ve ozellikleri uzerinden)
+        isim_lower = urun_ismi.lower()
+        hedef_cinsiyet = (
+            "Erkek" if "erkek" in isim_lower
+            else "Kadin" if any(k in isim_lower for k in ["kadin","kadin","bayan"])
+            else "Unisex"
+        )
+
         tarih = datetime.now()
-        
+
         return {
-            "marka_ismi": marka_ismi,
-            "urun_ismi": urun_ismi,
-            "orijinal_fiyat": orijinal_fiyat,
-            "indirimli_fiyat": indirimli_fiyat,
-            "urun_puani": urun_puani,
-            "urun_yorumlari": urun_yorumlari,
-            "urun_ozellikleri": urun_ozellikleri,
-            "urun_yorum_ozeti": urun_yorum_ozeti,
-            "sepete_ekleme": sepete_ekleme,
-            "goruntuleme": goruntuleme,
-            "urun_favorisi": urun_favorisi,
-            "urun_linki": urun_linki,
-            "urun_fotografi": urun_fotografi,
-            "urun_yorum_tarihi": urun_yorum_tarihi,
-            "urun_degerlendirme": urun_degerlendirme,
-            "cekilen_tarih": tarih.strftime("%Y-%m-%d"),
-            "cekilen_gun": gunler_tr[tarih.weekday()],
-            "toplayan_ajan": "Ajan-1-Detayli-Scout",
-            "hedef_platform": "Trendyol"
+            # 15 kriter
+            "marka_ismi":           marka_ismi,
+            "urun_ismi":            urun_ismi,
+            "orijinal_fiyat":       orijinal_fiyat,
+            "indirimli_fiyat":      indirimli_fiyat,
+            "urun_puani":           urun_puani,
+            "yorum_sayisi":         yorum_sayisi,
+            "urun_ozellikleri":     urun_ozellikleri,
+            "urun_yorum_ozeti":     None,   # AI (Yargic) dolduracak
+            "sepete_ekleme":        sepete_ekleme,
+            "goruntuleme":          goruntuleme,
+            "urun_favorisi":        urun_favorisi,
+            "urun_linki":           urun_linki,
+            "urun_fotografi_url":   urun_fotografi_url,
+            "son_yorum_tarihi":     None,
+            "degerlendirme_sayisi": degerlendirme_sayisi,
+            # AI tahmin alanlari
+            "stok_durumu":          stok_durumu,
+            "kategori":             None,   # Yargic dolduracak
+            "hedef_cinsiyet":       hedef_cinsiyet,
+            "tahmini_sezon":        None,   # Yargic dolduracak
+            "arama_kriteri":        arama_kriteri,
+            "hedef_platform":       "Trendyol",
+            "onceki_fiyat":         None,
+            "fiyat_degisim_yonu":   "YENİ",
+            "ai_trend_skoru":       None,   # Yargic dolduracak
+            "ai_analiz_notu":       None,   # Yargic dolduracak
+            # Sistem
+            "gozlem_tarihi":        tarih.strftime("%Y-%m-%d"),
+            "gozlem_gunu":          GUNLER[tarih.weekday()],
+            "toplayan_ajan":        "Ajan-1-Gozlemci",
+            "islenmis":             False,
         }
+
     except Exception as e:
-        print(f"   ! HATA: {e}")
+        print(f"  [HATA] Urun gozlemlenemedi: {e}")
         return None
 
-def veriyi_dogrula(v):
-    """
-    Supabase'e gitmeden once verinin 15 kritere uygun olup olmadigini kati bir sekilde denetler.
-    Eksik veya hatali veri varsa False doner ve loglar.
-    """
+# =========================================================================
+# Validasyon: 4 Temel Kural
+# =========================================================================
+def veriyi_dogrula(v: dict) -> bool:
     hatalar = []
-    
-    # Kural 1: Marka ve İsim boş olamaz
-    if not v.get("marka_ismi") or v.get("marka_ismi") == "Bilinmeyen Marka":
-        hatalar.append("Marka ismi eksik")
-    if not v.get("urun_ismi") or v.get("urun_ismi") == "Bilinimsiz Ürün":
-        hatalar.append("Urun ismi eksik")
-        
-    # Kural 2: Fiyatlar 0'dan büyük olmalı (Gerçekçi bir ürün olmalı)
+    if not v.get("marka_ismi"):
+        hatalar.append("marka_ismi bos")
+    if not v.get("urun_ismi"):
+        hatalar.append("urun_ismi bos")
     try:
-        if float(v.get("orijinal_fiyat", 0)) <= 0 and float(v.get("indirimli_fiyat", 0)) <= 0:
-            hatalar.append(f"Gecerli bir fiyat bulunamadi (Orj: {v.get('orijinal_fiyat')} Ind: {v.get('indirimli_fiyat')})")
-    except ValueError:
-        hatalar.append("Fiyat formati hatali")
-        
-    # Kural 3: Ürün linki ve fotoğrafı kesinlikle olmalı (Boş string olmamalı)
+        if float(v.get("orijinal_fiyat") or 0) <= 0 and float(v.get("indirimli_fiyat") or 0) <= 0:
+            hatalar.append(f"fiyat sifir (Orj:{v.get('orijinal_fiyat')} Ind:{v.get('indirimli_fiyat')})")
+    except (ValueError, TypeError):
+        hatalar.append("fiyat formati hatali")
     if not v.get("urun_linki"):
-        hatalar.append("Urun linki eksik")
-    if not v.get("urun_fotografi"):
-        hatalar.append("Urun fotografi eksik")
-        
-    # Kural 4: Özellikler (Kumaş/Renk) tamamen boş olmamalı (Trendyol'da en azından 1 özellik olur)
-    if not v.get("urun_ozellikleri") or len(v.get("urun_ozellikleri")) == 0:
-        hatalar.append("Urun ozellikleri (Renk/Kumas vs.) bulunamadi")
+        hatalar.append("urun_linki bos")
+    if not v.get("urun_fotografi_url"):
+        hatalar.append("fotografi yok")
+    if not v.get("urun_ozellikleri"):
+        hatalar.append("ozellikler bos")
 
     if hatalar:
-        print(f"   - [RET] Eksik Veri Tespit Edildi ({v.get('hedef_platform')}): {', '.join(hatalar)}")
+        print(f"  [RET] {v.get('urun_ismi','?')} — {', '.join(hatalar)}")
         return False
-        
     return True
 
-def veritabanina_firlat(veriler, db: Client):
-    basarili = 0
-    kopya = 0
-    hatali = 0
-    
+# =========================================================================
+# Supabase'e Yaz
+# =========================================================================
+def veritabanina_isle(veriler: list, db: Client):
+    eklendi = mukerrer = reddedildi = 0
     for v in veriler:
-        if v is None: continue
-        
-        # SIKI KALİTE KONTROL (VALIDASYON)
-        if not veriyi_dogrula(v):
-            hatali += 1
+        if not v:
             continue
-            
+        if not veriyi_dogrula(v):
+            reddedildi += 1
+            continue
         try:
-            db.table("b1_trendyol_istihbarat_detayli").insert(v).execute()
-            print(f"   + EKLENDI (15 Kriter Onayli): {v['marka_ismi']}")
-            basarili += 1
+            db.table("b1_piyasa_gozlem").insert(v).execute()
+            print(f"  [OK] Eklendi: {v['marka_ismi']} - {v['urun_ismi'][:40]}")
+            eklendi += 1
         except Exception as e:
-            if "duplicate key value" in str(e) or "23505" in str(e):
-                kopya += 1
+            if "duplicate key" in str(e) or "23505" in str(e):
+                mukerrer += 1
             else:
-                print(f"   ! DB YAZMA HATASI: {e}")
-                
-    print(f"\n📊 ÖZET: {basarili} kaliteli ürün eklendi. {kopya} mükerrer. {hatali} eksik veri nedeniyle reddedildi.")
+                print(f"  [DB HATA] {e}")
+    print(f"\n--- OZET: {eklendi} eklendi | {mukerrer} mukerrer | {reddedildi} reddedildi ---")
 
-
+# =========================================================================
+# ANA PROGRAM
+# =========================================================================
 if __name__ == "__main__":
-    print("=== NİZAM: 1. EKİP (DETAYLI ve KALİTE KONTROLLÜ BİLGİ TOPLAYICI) BAŞLATILDI ===")
-    supabase_db = baglanti_kur()
-    
-    hedefler = [
-        "erkek kargo pantolon",
-        "erkek oversize tişört"
+    print("=== NIZAM: 1. EKIP (GOZLEM AJANI) BASLADI ===")
+    db = baglanti_kur()
+
+    # TEST MODU: Gercek urun linkleri (tarayici ile alinmis)
+    # Ileride bu liste dinamik olarak doldurulacak
+    TEST_LINKLERI = [
+        ("https://www.trendyol.com/vikunya/erkek-siyah-jogger-kaliteli-pamuklu-likrali-cargo-beli-ve-pacasi-lastikli-kargo-cepli-pantolon-p-830527994", "erkek kargo pantolon"),
+        ("https://www.trendyol.com/wafra/erkek-boy-friend-kot-pantolon-kargo-cepli-bel-ve-paca-lastikli-p-889937004", "erkek kargo pantolon"),
+        ("https://www.trendyol.com/elitwear/erkek-kargo-cepli-gabardin-baggy-pantolon-p-815403833", "erkek kargo pantolon"),
     ]
-    
-    for hedef in hedefler:
-        linkler = arama_sonuclarini_getir(hedef, limit=5) # Test için 5 limit
-        
-        detayli_veriler = []
-        for index, link in enumerate(linkler):
-            detay = urun_detaylarini_cek(link)
-            if detay:
-                detayli_veriler.append(detay)
-            # İnsan gibi davran
-            time.sleep(2)
-            
-        veritabanina_firlat(detayli_veriler, supabase_db)
-        
-    print("=== GÖREV TAMAMLANDI ===")
+
+    sonuclar = []
+    for link, kriter in TEST_LINKLERI:
+        print(f"\n[TEST] Gozlemleniyor: {link}")
+        veri = urunu_gozlemle(link, kriter)
+        sonuclar.append(veri)
+        time.sleep(2)
+
+    veritabanina_isle(sonuclar, db)
+    print("=== GOREV TAMAMLANDI ===")
+

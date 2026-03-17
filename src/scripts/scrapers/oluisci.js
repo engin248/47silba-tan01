@@ -33,7 +33,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
 
     const isVPS = process.env.VPS_MODE === 'true' || process.env.NODE_ENV === 'production';
     const browser = await puppeteer.launch({
-        headless: isVPS ? 'new' : false,
+        headless: false, // WAF TEST ICIN ACIK
         args: [
             '--no-sandbox', '--disable-setuid-sandbox', '--start-maximized',
             '--disable-blink-features=AutomationControlled' // Ek zırh
@@ -43,40 +43,100 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
     try {
         const page = await browser.newPage();
 
-        // Anti-Ban User-Agent rotasyonu
+        // 🛡️ ANTI-BOT ZIRHI: Webdriver Bayrağını Yok Etme
+        await page.evaluateOnNewDocument(() => {
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.navigator.chrome = { runtime: {} };
+        });
+
+        // Anti-Ban User-Agent rotasyonu (Daha güncel ve çeşitli)
         const UA_POOL = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0'
         ];
         const secilenUA = UA_POOL[Math.floor(Math.random() * UA_POOL.length)];
 
-        await page.setViewport({ width: 1366, height: 768 });
+        // İnsani ekran çözünürlükleri
+        const viewportTypes = [
+            { width: 1366, height: 768 },
+            { width: 1920, height: 1080 },
+            { width: 1536, height: 864 }
+        ];
+        const secilenVP = viewportTypes[Math.floor(Math.random() * viewportTypes.length)];
+
+        await page.setViewport(secilenVP);
         await page.setUserAgent(secilenUA);
+
+        /* 
+        Gereksiz kaynakları engelleyerek hızı artır ve yakalanma riskini azalt
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+            if(['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())){
+                req.abort();
+            } else {
+                req.continue();
+            }
+        });
+        */
 
         // 1. ADIM: Kategori (Listeleme) sayfasına girip ürün LİNKLERİNİ toplama
         console.log(`[ÖLÜ İŞÇİ] Safha 1: Liste Tarama - ${kategoriUrl}`);
-        await page.goto(kategoriUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await bekleInsani(2000, 4000);
 
-        // Bir miktar scroll yap ki resimler ve linkler düşsün
-        await autoScroll(page, 500);
+        let urunLinkleri = [];
 
-        const urunLinkleri = await page.evaluate(() => {
-            const links = [];
-            // Trendyol urun linkleri
-            document.querySelectorAll('.product-card .prdct-desc-cntnr-wrppr > a, .prdct-desc-cntnr-wrppr > a, .product-down > a').forEach(el => {
-                if (el.href) links.push(el.href);
+        // ZIRH: Eğer URL /sr? ile başlıyorsa bu bir arama veya kategori json'udur. 
+        // WAF'ı delmek için en garantili yol: Arama linkine sahte bir fetch atmak
+        try {
+            const apiRes = await fetch(kategoriUrl, {
+                headers: {
+                    'User-Agent': secilenUA,
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+                    'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+                    'Sec-Ch-Ua-Mobile': '?0',
+                    'Sec-Ch-Ua-Platform': '"Windows"',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Sec-Fetch-User': '?1',
+                    'Upgrade-Insecure-Requests': '1'
+                }
             });
-            return [...new Set(links)].slice(0, 10); // LIMIT: Test için ilk 10 ürünü alıyoruz (Ban yememek için)
-        });
 
-        console.log(`[ÖLÜ İŞÇİ] Sızılacak toplam ${urunLinkleri.length} detay sayfası bulundu.`);
-        if (urunLinkleri.length === 0) throw new Error("Listeleme sayfasında link bulunamadı, blocklanmış olabilirsiniz.");
+            const htmlText = await apiRes.text();
+            // HTML içinden linkleri basitçe ayıklama (SSR Render edilmiş olanları)
+            const regex = /href="(\/[^"]+-p-\d+[^"]*)"/g;
+            let match;
+            while ((match = regex.exec(htmlText)) !== null) {
+                if (match[1] && !match[1].includes('?boutiqueId')) {
+                    urunLinkleri.push('https://www.trendyol.com' + match[1].split('?')[0]);
+                }
+            }
+            urunLinkleri = [...new Set(urunLinkleri)].slice(0, 5); // 5 ürün testi
+        } catch (e) {
+            console.warn('[ÖLÜ İŞÇİ] Fetch denemesi başarısız, Puppeteer fallback devrede.');
+        }
 
-        let islenenler = [];
+        if (urunLinkleri.length === 0) {
+            // Fetch işe yaramadıysa veya koruma aktifse DOM'dan al
+            await page.goto(kategoriUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+            await bekleInsani(2000, 4000);
+            await autoScroll(page, 500);
+
+            urunLinkleri = await page.evaluate(() => {
+                const links = [];
+                // Trendyol urun linkleri
+                document.querySelectorAll('.product-card .prdct-desc-cntnr-wrppr > a, .prdct-desc-cntnr-wrppr > a, .product-down > a').forEach(el => {
+                    if (el.href) links.push(el.href);
+                });
+                return [...new Set(links)].slice(0, 10); // LIMIT: Test için ilk 10 ürünü alıyoruz (Ban yememek için)
+            });
+        }
 
         // 2. ADIM: Her ürünün tek tek detay sayfasına (PDP) sızılması ve INITIAL_STATE'nin çalınması
+        let islenenler = [];
         for (let i = 0; i < urunLinkleri.length; i++) {
             const link = urunLinkleri[i].split('?')[0]; // URL parametrelerini temizle (Temiz url)
             console.log(`\n[ÖLÜ İŞÇİ] Sızılıyor (${i + 1}/${urunLinkleri.length}): ${link}`);
@@ -85,45 +145,60 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
             await bekleInsani(4000, 8000);
 
             try {
-                const pdpPage = await browser.newPage();
-                await pdpPage.setUserAgent(secilenUA);
-                // Resimleri vb. yüklemeyip bandwidth tasarrufu (isteğe bağlı eklenebilir)
+                // TRENDYOL ANTI-BOT (WAF) Püskürtme Taktik #3: Headless Tarayıcıdan Kaçış (FETCH API)
+                // Puppeteer'in görünür DOM açılışı Datadom waf'ına takıldığı için sunucu tabanlı HTTP isteğine geçiyoruz.
+                const headers = {
+                    "User-Agent": secilenUA,
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "none",
+                    "Sec-Fetch-User": "?1",
+                    "Upgrade-Insecure-Requests": "1"
+                };
 
-                await pdpPage.goto(link, { waitUntil: 'domcontentloaded', timeout: 45000 });
-                await bekleInsani(1500, 3000);
+                const pdpResponse = await fetch(link, { headers, method: 'GET' });
+                if (!pdpResponse.ok) {
+                    console.log(`    ⚠️ HTTP Hata: ${pdpResponse.status} - WAF Engeli Olabilir.`);
+                    continue;
+                }
 
-                // Trendyol'un gizli hazinesi: window.__INITIAL_STATE__ objesi
-                // CSS seçicilerle uğraşmak yerine direkt arka plandaki JSON datayı çalıyoruz.
-                const pdpData = await pdpPage.evaluate(() => {
-                    const state = window.__INITIAL_STATE__;
-                    if (!state || !state.product || !state.product.productDetail) return null;
+                const pdpHtml = await pdpResponse.text();
 
-                    const pd = state.product.productDetail;
+                // Gizli veri paketini Regex ile ham HTML içinden çalıyoruz (Browser kullanmadan)
+                const stateMatch = pdpHtml.match(/window\.__INITIAL_STATE__\s*=\s*({.+?});/);
 
-                    // Veriyi Haritası Çıkarılmış Formatta Al
-                    return {
-                        marka_ismi: pd.brand?.name || '',
-                        urun_ismi: pd.name || '',
-                        orjinal_fiyat: pd.price?.originalPrice?.value || 0,
-                        indirimli_fiyat: pd.price?.discountedPrice?.value || 0,
-                        urun_puani: pd.ratingScore?.averageRating || 0,
-                        urun_degerlendirme_sayisi: pd.ratingScore?.totalCount || 0,
-                        favori_sayisi: pd.favoriteCount || 0,
-                        resim_url: pd.images?.length > 0 ? ('https://cdn.dsmcdn.com/' + pd.images[0]) : '',
+                let pdpData = null;
 
-                        // Kumaş, renk gibi (Attributes dizisi) veriler
-                        urun_ozellikleri: pd.attributes ? pd.attributes.map(a => ({ key: a.key?.name, value: a.value?.name })) : [],
+                if (stateMatch && stateMatch[1]) {
+                    try {
+                        const state = JSON.parse(stateMatch[1]);
 
-                        // Yorum özeti var mıdır? (Genelde reviews API'si ayrıdır ama bazen burada gelir)
-                        urun_yorum_ozeti: pd.productReviews?.reviewSummary || '',
+                        if (state && state.product && state.product.productDetail) {
+                            const pd = state.product.productDetail;
 
-                        // Stok satısı, diğer notlar vs
-                        sepete_ekleme_notu: (pd.campaignInfo && pd.campaignInfo.length > 0) ? pd.campaignInfo[0].name : '',
-                        siparis_begenisi_notu: pd.promotions ? pd.promotions.map(p => p.text).join(' - ') : '',
-                    };
-                });
-
-                await pdpPage.close();
+                            pdpData = {
+                                marka_ismi: pd.brand?.name || '',
+                                urun_ismi: pd.name || '',
+                                orjinal_fiyat: pd.price?.originalPrice?.value || 0,
+                                indirimli_fiyat: pd.price?.discountedPrice?.value || 0,
+                                urun_puani: pd.ratingScore?.averageRating || 0,
+                                urun_degerlendirme_sayisi: pd.ratingScore?.totalCount || 0,
+                                favori_sayisi: pd.favoriteCount || 0,
+                                resim_url: pd.images?.length > 0 ? ('https://cdn.dsmcdn.com/' + pd.images[0]) : '',
+                                urun_ozellikleri: pd.attributes ? pd.attributes.map(a => ({ key: a.key?.name, value: a.value?.name })) : [],
+                                urun_yorum_ozeti: pd.productReviews?.reviewSummary || '',
+                                sepete_ekleme_notu: (pd.campaignInfo && pd.campaignInfo.length > 0) ? pd.campaignInfo[0].name : '',
+                                siparis_begenisi_notu: pd.promotions ? pd.promotions.map(p => p.text).join(' - ') : '',
+                            };
+                        }
+                    } catch (parseErr) {
+                        console.log("    ❌ Parse Hatası: INITIAL_STATE doğru formatta değil");
+                    }
+                }
 
                 if (pdpData) {
                     // Türkçe Gün Verisi (Örn: Salı, 15:40)
@@ -157,16 +232,15 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
                         created_at: bugunTarih.toISOString()
                     });
 
-                    console.log(`    ✅ Çalındı: ${pdpData.marka_ismi} - ${pdpData.urun_ismi} | ₺${pdpData.indirimli_fiyat}`);
+                    console.log(`    ✅ Çalındı (FETCH API): ${pdpData.marka_ismi} - ${pdpData.urun_ismi} | ₺${pdpData.indirimli_fiyat}`);
                 } else {
-                    console.log(`    ❌ Başarısız: Gizli veri damarına inilemedi (INITIAL_STATE bulunamadı)`);
+                    console.log(`    ❌ Başarısız: Gizli veri damarına inilemedi (INITIAL_STATE tespit edilemedi)`);
                 }
 
             } catch (e) {
-                console.log(`    ⚠️ Atlandı (Zaman aşımı veya bot yakalanması): ${e.message}`);
-                // Hata alırsak tarayıcı sekmesini açık unutup sistemi şişirmeyelim diye catch edildi
+                console.log(`    ⚠️ Atlandı (Ağ bağlantısı veya fetch sorunu): ${e.message}`);
             }
-        }
+        } // <- For döngüsü kapanışı
 
         // 3. ADIM: KARANTİNA HAVUZUNA YAZMA (b1_arge_products_karantina)
         if (islenenler.length > 0) {
@@ -200,26 +274,28 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
     } catch (error) {
         console.error(`[ÖLÜ İŞÇİ] 🚨 AĞIR DARBE (CRASH): ${error.message}`);
     } finally {
-        await browser.close();
+        if (browser) {
+            try { await browser.close(); } catch (e) { }
+        }
         console.log(`[ÖLÜ İŞÇİ] Uyku moduna dönüldü.`);
     }
 }
 
 // Güvenli AutoScroll (Listeleme sayfalarındaki lazy-load resimleri ve linkleri tetikler)
 async function autoScroll(page, msBekle = 250) {
-    await page.evaluate(async (msBekle) => {
+    await page.evaluate(async (ms) => {
         await new Promise((resolve) => {
-            var totalHeight = 0;
-            var distance = 400;
-            var timer = setInterval(() => {
-                var scrollHeight = document.body.scrollHeight;
+            let totalHeight = 0;
+            let distance = 400;
+            let timer = setInterval(() => {
+                let scrollHeight = document.body.scrollHeight;
                 window.scrollBy(0, distance);
                 totalHeight += distance;
                 if (totalHeight >= scrollHeight - window.innerHeight || totalHeight > 5000) {
                     clearInterval(timer);
                     resolve();
                 }
-            }, msBekle);
+            }, ms);
         });
     }, msBekle);
 }
@@ -228,5 +304,11 @@ module.exports = { rakipVerisiKazi, autoScroll };
 
 if (require.main === module) {
     // Sadece test amaçlı limitli çağrı
-    rakipVerisiKazi('https://www.trendyol.com/kadin-giyim-x-g1-c82', 'TRENDYOL_KADIN');
+    (async () => {
+        try {
+            await rakipVerisiKazi('https://www.trendyol.com/kadin-giyim-x-g1-c82', 'TRENDYOL_KADIN');
+        } catch (e) {
+            console.error('[ÖLÜ İŞÇİ] İşlem Fatal Error ile Durdu:', e);
+        }
+    })();
 }

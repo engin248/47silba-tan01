@@ -9,6 +9,9 @@ import { useLang } from '@/lib/langContext';
 import { Lock } from 'lucide-react';
 import NextLink from 'next/link';
 
+// Yeni Bileşen İçe Aktarma
+import KarlilikPrimEkrani from './KarlilikPrimEkrani';
+
 export default function ImalatMainContainer() {
     /** @type {any} */
     const { kullanici } = useAuth();
@@ -375,7 +378,7 @@ export default function ImalatMainContainer() {
             )}
 
             {/* ANA PENCERELER (DEPARTMAN GEÇİŞLERİ) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8 bg-slate-900 p-2 rounded-2xl shadow-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-8 bg-slate-900 p-2 rounded-2xl shadow-xl">
                 <button onClick={() => setMainTab('teknik_gorus')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'teknik_gorus' ? 'bg-blue-500 text-white scale-105 shadow-lg shadow-blue-500/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
                     <FileText size={28} className="mb-2" /> {isAR ? '1. الرؤية الفنية' : '1. TEKNİK GÖRÜŞ'} <span className="text-xs font-normal opacity-80">({isAR ? 'قبول الموديل' : 'Firma / Model Kabul'})</span>
                 </button>
@@ -386,7 +389,10 @@ export default function ImalatMainContainer() {
                     <Activity size={28} className="mb-2" /> {isAR ? '3. الإنتاج المتسلسل (الخط)' : '3. SERİ ÜRETİM (BANT)'} <span className="text-xs font-normal opacity-80">({isAR ? 'الموظفين والعمليات' : 'Personel ve Operasyon'})</span>
                 </button>
                 <button onClick={() => setMainTab('maliyet_muhasebe')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'maliyet_muhasebe' ? 'bg-purple-600 text-white scale-105 shadow-lg shadow-purple-600/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
-                    <BarChart3 size={28} className="mb-2" /> {isAR ? '4. التكلفة والمحاسبة' : '4. MALİYET & MUHASEBE'} <span className="text-xs font-normal opacity-80">({isAR ? 'نافذة التحليل النهائي' : 'Final Analiz Gişesi'})</span>
+                    <Receipt size={28} className="mb-2" /> {isAR ? '4. التكلفة والمحاسبة' : '4. MALİYET & MUHASEBE'} <span className="text-xs font-normal opacity-80">({isAR ? 'نافذة التحليل النهائي' : 'Final Analiz Gişesi'})</span>
+                </button>
+                <button onClick={() => setMainTab('karlilik_prim')} className={`flex flex-col items-center justify-center p-4 rounded-xl font-bold transition-all duration-300 ${mainTab === 'karlilik_prim' ? 'bg-indigo-600 text-white scale-105 shadow-lg shadow-indigo-600/50' : 'bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                    <BarChart3 size={28} className="mb-2" /> {isAR ? '5. الربحية (قسط)' : '5. KARLILIK VE PRİM'} <span className="text-xs font-normal opacity-80">({isAR ? 'لوحة القيادة' : 'Gerçek Zamanlı AI Dashboard'})</span>
                 </button>
             </div>
 
@@ -755,6 +761,13 @@ export default function ImalatMainContainer() {
                     </div>
                 </div>
             )}
+            {/* ========================================================================================= */}
+            {/* 5. PENCERE: ŞİRKET NET YATIRIM GETİRİSİ VE PERSONEL PRİM / KOTA PANOSU                    */}
+            {/* ========================================================================================= */}
+            {mainTab === 'karlilik_prim' && (
+                <KarlilikPrimEkrani />
+            )}
+
         </div>
     );
 }

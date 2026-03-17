@@ -7,10 +7,15 @@ import { supabase } from '@/lib/supabase';
 
 export async function denetimLoglariniGetir() {
     const [uyRes, agRes] = await Promise.allSettled([
-        supabase.from('b1_sistem_uyarilari').select('*').eq('durum', 'aktif')
-            .order('olusturma', { ascending: false }).limit(100),
-        supabase.from('b1_agent_loglari').select('*')
-            .order('created_at', { ascending: false }).limit(20),
+        supabase.from('b1_sistem_uyarilari')
+            .select('id, baslik, aciklama, tip, kritik, durum, olusturma')
+            .eq('durum', 'aktif')
+            .order('olusturma', { ascending: false })
+            .limit(25),
+        supabase.from('b1_agent_loglari')
+            .select('id, ajan_adi, islem_tipi, mesaj, sonuc, created_at')
+            .order('created_at', { ascending: false })
+            .limit(10),
     ]);
     return {
         denetimLoglari: uyRes.status === 'fulfilled' ? (uyRes.value.data || []) : [],
