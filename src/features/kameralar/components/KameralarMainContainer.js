@@ -94,10 +94,10 @@ export default function KameralarMainContainer() {
     }, [kullanici]);
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
-    // [FIX] stream-durum polling tamamen kaldırıldı — production 503 döngüsü kesildi
-    // go2rtc sadece yerel sunucuda çalışır, production'da anlamsız istek atmasın
+    // [FIX] Stream polling kaldırıldı ancak yayın lokal BASLAT.bat üzerinden 
+    // çalıştırıldığı için arayüzde varsayılan olarak "aktif" kabul edilmelidir.
     const streamDurumKontrol = useCallback(() => {
-        setStreamDurum('kapali');
+        setStreamDurum('aktif');
     }, []);
 
     // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────

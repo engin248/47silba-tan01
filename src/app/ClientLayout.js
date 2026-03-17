@@ -182,7 +182,7 @@ function LayoutInner({ children }) {
 
         // KÖKLÜ ÇÖZÜM: Tüm Eski Service Worker ve PWA Zombi Cache'lerini Yok Etme
         if (typeof window !== 'undefined') {
-            const currentVersion = 'v3.6'; // Değişiklik anında sürümü artırır
+            const currentVersion = 'v3.7'; // [GÜNCELLEME]: Canlıdaki zombi SW'leri dökmesi için versiyon artırıldı
             if (localStorage.getItem('sb47_app_version') !== currentVersion) {
                 localStorage.setItem('sb47_app_version', currentVersion);
                 if ('serviceWorker' in navigator) {

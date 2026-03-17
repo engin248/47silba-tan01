@@ -4,6 +4,7 @@
  * Bu hook, uretim/page.js'ten tüm logic'i taşır.
  */
 'use client';
+// @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim } from '@/lib/utils';
@@ -12,6 +13,7 @@ import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 
 export const DEPARTMANLAR = [
     { id: 'is_emri', ad: 'İş Emirleri' },
+    { id: 'receteler', ad: 'M6 Üretim Reçetesi (Rotalar)' },
     { id: 'kesim', ad: 'Bant & Montaj' },
     { id: 'kalite', ad: 'Kalite & Süre' },
     { id: 'maliyet', ad: 'Maliyet Girişi' },

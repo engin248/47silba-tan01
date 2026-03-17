@@ -254,13 +254,32 @@ export default function AjanlarMainContainer() {
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici]);
 
-    // [BUGFIX]: Polling devre dışı kalmıştı (dead code). Düzeltildi.
+    // [BUGFIX ve TİTREME DÜZELTMESİ]: Polling ekranı baştan çizmeyip sadece var olanı yeniler.
     useEffect(() => {
-        pollingRef.current = /** @type {any} */ (setInterval(() => {
-            if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
-        }, 5000));
-        return () => clearInterval(/** @type {any} */(pollingRef.current));
-    }, [gorevler]);
+        pollingRef.current = setInterval(() => {
+            // Sadece çalışıyor state'inde sessizce yükle (Loading spinner çıkartmadan)
+            setGorevler(prev => {
+                if (prev.some(g => g.durum === 'calisıyor')) yukleSessiz();
+                return prev;
+            });
+        }, 5000);
+        return () => clearInterval(pollingRef.current);
+    }, []);
+
+    const yukleSessiz = async () => {
+        try {
+            const { data, error } = await supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50);
+            if (error) return;
+            if (data) {
+                setGorevler(data);
+                setIstatistik({
+                    toplam: data.length, tamamlandi: data.filter(g => g.durum === 'tamamlandi').length,
+                    'calisıyor': data.filter(g => g.durum === 'calisıyor').length, hata: data.filter(g => g.durum === 'hata').length,
+                    bekliyor: data.filter(g => g.durum === 'bekliyor').length,
+                });
+            }
+        } catch (error) { }
+    };
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
@@ -598,8 +617,8 @@ export default function AjanlarMainContainer() {
                     {/* Görev Tablosu */}
                     <div style={{ background: '#122b27', borderRadius: 16, border: '1px solid #1e4a43', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         <div style={{ overflowX: 'auto' }}>
-                            <div style={{ minWidth: 680 }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 100px', gap: '0.5rem', padding: '10px 16px', background: '#0b1d1a', borderBottom: '2px solid #f1f5f9', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
+                            <div style={{ minWidth: 720 }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 140px', gap: '0.5rem', padding: '10px 16px', background: '#0b1d1a', borderBottom: '2px solid #f1f5f9', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
                                     <span>GÖREV</span><span>AJAN</span><span>TİP</span><span>ÖNCELİK</span><span>DURUM</span><span>SÜRE</span><span>İŞLEM</span>
                                 </div>
 
@@ -620,7 +639,7 @@ export default function AjanlarMainContainer() {
                                     const secili = secilenGorev?.id === gorev.id;
                                     return (
                                         <div key={gorev.id} style={{ borderBottom: '1px solid #f8fafc' }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 100px', gap: '0.5rem', padding: '12px 16px', alignItems: 'center', background: secili ? '#f5f3ff' : 'white', cursor: 'pointer' }}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 140px', gap: '0.5rem', padding: '12px 16px', alignItems: 'center', background: secili ? '#f5f3ff' : 'white', cursor: 'pointer' }}
                                                 onClick={() => setSecilenGorev(secili ? null : gorev)}>
                                                 <div>
                                                     <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'white', marginBottom: 2 }}>{gorev.gorev_adi}</div>
@@ -639,18 +658,34 @@ export default function AjanlarMainContainer() {
                                                     {dur.etiket}
                                                 </span>
                                                 <div style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>{sure(gorev.baslangic_tarihi, gorev.bitis_tarihi) || '—'}</div>
-                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
-                                                    {gorev.durum === 'bekliyor' && (
-                                                        <button onClick={() => gorevCalistir(gorev.id)} disabled={calisiyor}
-                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>
-                                                            {calisiyor ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} />} Başlat
+                                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+
+                                                    {/* B1 HİBRİT ONAY ZIRHI KALKANI */}
+                                                    {gorev.hibrit_onay_gerekli && gorev.yonetici_onayi === 'bekliyor' ? (
+                                                        <button onClick={async () => {
+                                                            if (!confirm('Bu Otonom Göreve YÖNETİCİ ONAYI verilsin mi?')) return;
+                                                            await supabase.from('b1_ajan_gorevler').update({ yonetici_onayi: 'onaylandi' }).eq('id', gorev.id);
+                                                            yukleSessiz();
+                                                            goster('Görev onaylandı. AI Ajan artık devreye girebilir.', 'success');
+                                                        }}
+                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 7, fontWeight: 900, cursor: 'pointer', fontSize: '0.68rem', boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)' }}>
+                                                            🛡️ ONAYLA
                                                         </button>
-                                                    )}
-                                                    {gorev.durum === 'tamamlandi' && (
-                                                        <button onClick={() => gorevCalistir(gorev.id)}
-                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#173a34', color: '#6366f1', border: '1px solid #6366f1', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>
-                                                            <RefreshCw size={11} /> Tekrar
-                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            {gorev.durum === 'bekliyor' && (
+                                                                <button onClick={() => gorevCalistir(gorev.id)} disabled={calisiyor}
+                                                                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>
+                                                                    {calisiyor ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} />} Başlat
+                                                                </button>
+                                                            )}
+                                                            {gorev.durum === 'tamamlandi' && (
+                                                                <button onClick={() => gorevCalistir(gorev.id)}
+                                                                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#173a34', color: '#6366f1', border: '1px solid #6366f1', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>
+                                                                    <RefreshCw size={11} /> Tekrar
+                                                                </button>
+                                                            )}
+                                                        </>
                                                     )}
                                                     <button disabled={islemdeId === 'sil_' + gorev.id} onClick={() => gorevSil(gorev.id)}
                                                         style={{ padding: '5px 8px', background: '#0b1d1a', color: '#94a3b8', border: '1px solid #1e4a43', borderRadius: 7, cursor: islemdeId === 'sil_' + gorev.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + gorev.id ? 0.3 : 1 }}>
@@ -663,6 +698,11 @@ export default function AjanlarMainContainer() {
                                                     <div>
                                                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>📋 Görev Emri</div>
                                                         <div style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.6, background: '#122b27', border: '1px solid #1e4a43', borderRadius: 8, padding: '10px 12px' }}>{gorev.gorev_emri}</div>
+                                                        {gorev.hibrit_onay_gerekli && (
+                                                            <div style={{ marginTop: 8, fontSize: '0.7rem', color: gorev.yonetici_onayi === 'onaylandi' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+                                                                {gorev.yonetici_onayi === 'onaylandi' ? '✅ Yönetici Tarafından Onaylandı' : '🛡️ İşlem İçin Yönetici Onayı Bekleniyor!'}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>✅ Görev Sonucu</div>
@@ -794,6 +834,24 @@ export default function AjanlarMainContainer() {
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: '#a7f3d0', marginBottom: 12 }}>Günlük tabloları sıkıştırır, eski logları (7+ gün) arşive kaldırır ve bakım yapar. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik</code>)</div>
                                 <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Gece Cron Job çalıştırıldı.'); goster('Gece cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik', { credentials: 'include' }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#e0e7ff', border: '1px solid #a5b4fc', color: '#4f46e5', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                            </div>
+
+                            {/* BATCH AI PROCESSOR */}
+                            <div style={{ background: '#122b27', border: '2px solid #ef4444', borderRadius: 10, padding: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                    <div style={{ fontWeight: 900, color: '#ef4444', fontSize: '0.8rem' }}>⚡ BATCH AI (Toplu Yapay Zeka İstekleri)</div>
+                                    <span style={{ fontSize: '0.65rem', background: '#450a0a', color: '#fca5a5', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>Manuel / 2 Saatte</span>
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#fca5a5', marginBottom: 12 }}>Gemini ve Perplexity'e giden bekleyen görevleri birleştirir (BATCH), tek paket yapar, API maliyetini %95 düşürür. <code style={{ color: '#ef4444' }}>/api/batch-ai</code></div>
+                                <button onClick={async () => {
+                                    goster('Toplu AI Görevi (Batch) başlatıldı...', 'success');
+                                    try {
+                                        const r = await fetch('/api/batch-ai', { method: 'POST' });
+                                        const d = await r.json();
+                                        goster(d.mesaj || 'Batch işlem bitti.', d.basarili ? 'success' : 'error');
+                                        yukle();
+                                    } catch (e) { goster('Batch hatası: ' + e.message, 'error'); }
+                                }} style={{ width: '100%', padding: '8px', background: '#fef2f2', border: '2px solid #f87171', color: '#dc2626', borderRadius: 6, fontWeight: 900, cursor: 'pointer', fontSize: '0.78rem' }}>🚀 Toplu AI Kuyruğunu (BATCH) Çalıştır</button>
                             </div>
                         </div>
                     </div>

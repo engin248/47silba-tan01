@@ -1,95 +1,158 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
-import { GoogleGenAI } from '@google/genai';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// THE ORDER / NIZAM V3
-// BATCH AI İŞLEYİCİ - Kör Nokta Analizi Güvenlik Yaması (AI Toplu Çağrı)
+// ─── BATCH GEMİNİ ANALİZ MOTORU ─────────────────────────────────────
+async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
+    if (!GEMINI_URL) return { error: 'Gemini API anahtarı yok', results: [] };
 
-const AI_MODEL_VERSION = 'gemini-2.5-flash';
-
-export async function GET(req) {
     try {
-        const { searchParams } = new URL(req.url);
+        const pazar_urunleri = is_data_array.map(i => ({ id: i.kuyruk_id, ad: i.urunAdi, fiyat: i.fiyatSayi, data: i.ham_veri }));
 
-        // Güvenlik (Cron job tokenı veya admin onayı ile çalışmalı)
-        if (searchParams.get('token') !== process.env.CRON_SECRET && process.env.NODE_ENV !== 'development') {
-            return NextResponse.json({ basarili: false, mesaj: 'Yetkisiz erişim' }, { status: 401 });
-        }
+        const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin. 
+Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) ürün verisidir.
+Görev: Bu ürünlerin HER BİRİNİ tekstil üretiminde kârlılık ve risk açısından analiz et. Sonuçları kesinlikle aşağıdaki formatta YALNIZCA BİR JSON LİSTESİ (Array) olarak dön. İçine ekstra açıklama ekleme.
+[{
+    "kuyruk_id": "Buraya Listedeki Ürün ID'sini Yaz",
+    "satis_buyumesi": 0-100 arası puan, "sosyal_medya_etkisi": 0-100 arası puan, "rakip_kullanim_hizi": 0-100 arası puan, "sezon_uyumu": 0-100 arası puan, "teorik_maliyet": TL cinsinden üretim maliyeti tahmini, "kumas_turu": "Kumaş türü", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arası (düşük iyi), "uretim_karma_puani": 10-60 arası (düşük iyi), "risk_ozeti": "Kısa risk uyarısı", "agent_notu": "Kısa üretilmeli mi analizi"
+}]
 
-        // 1. BEKLEYEN İŞLERİ GETİR (Batch)
-        const { data: bekleyenIsler, error: fetchErr } = await supabase
+HAM ÜRÜN LİSTESİ:
+${JSON.stringify(pazar_urunleri)}`;
+
+        const res = await fetch(GEMINI_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.1, maxOutputTokens: 2000, responseMimeType: 'application/json' },
+            }),
+        });
+
+        if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+
+        const data = await res.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+        const sonuclarListesi = JSON.parse(rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
+
+        const totalTokens = data?.usage?.total_tokens || 1000;
+        const resultTokenCost = Math.round(totalTokens / is_data_array.length);
+
+        return { error: null, results: sonuclarListesi, resultTokenCost };
+    } catch (err) {
+        return { error: err.message, results: [] };
+    }
+}
+
+// ─── API ENDPOINT ──────────────────────────────────────────────
+export async function POST(req) {
+    try {
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        const GEMINI_URL = GEMINI_API_KEY ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}` : null;
+
+        const { data: yargic_isleri, error: kuyrukErr } = await supabaseAdmin
             .from('b1_ai_is_kuyrugu')
             .select('*')
+            .eq('istek_tipi', 'yargic_analizi')
             .eq('durum', 'bekliyor')
-            .limit(100);
+            .limit(10);
 
-        if (fetchErr || !bekleyenIsler || bekleyenIsler.length === 0) {
-            return NextResponse.json({ basarili: true, mesaj: 'Kuyrukta bekleyen AI işlemi (Batch) yok.' });
+        if (kuyrukErr) throw kuyrukErr;
+
+        if (!yargic_isleri || yargic_isleri.length === 0) {
+            return NextResponse.json({ message: 'İşlenecek kuyruk verisi yok.', basarili: true });
         }
 
-        // 2. İŞLERİ TEK BİR MEGA-PROMPT ÜZERİNDE GRUPLA (%95 API Tasarrufu)
-        let topluPrompt = `Sen THE ORDER sisteminin ana yapay zekasısın. Aşağıda sistemdeki ajanlar tarafından kuyruğa (Queue) alınan bir dizi farklı analiz talebi (Batch) mevcuttur. 
-Her bir talebi ID numarasıyla değerlendir ve sonucunu tam olarak şu JSON formatında dön: 
-{ 
-  "sonuclar": [
-    { "id": "uuid", "analiz_sonucu": { /* talep türüne göre beklenen nesne */ }, "hata": false }
-  ]
-}
-\n\nBEKLEYEN İŞLER LİSTESİ:\n`;
+        const islerimIDleri = yargic_isleri.map(j => j.id);
+        await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'calisıyor', islenme_tarihi: new Date().toISOString() }).in('id', islerimIDleri);
 
-        bekleyenIsler.forEach(is => {
-            topluPrompt += `\n---İŞ ID: ${is.id}---\nTİP: ${is.istek_tipi}\nDATA: ${JSON.stringify(is.istek_datasi)}\n`;
-        });
+        const veriPaketi = yargic_isleri.map(j => ({
+            kuyruk_id: j.id,
+            urun_id: j.istek_datasi.urun_id,
+            urunAdi: j.istek_datasi.urunAdi,
+            fiyatSayi: j.istek_datasi.fiyatSayi,
+            kaynak: j.istek_datasi.kaynak,
+            ham_veri: j.istek_datasi.ham_veri
+        }));
 
-        // 3. GEMİNİ API'YE TEK ÇAĞRI
-        const apiKey = process.env.GEMINI_API_KEY?.trim();
-        if (!apiKey) throw new Error('GEMINI_API_KEY bulunamadı');
-        const genai = new GoogleGenAI({ apiKey });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const aiBatchRes = await bulkGeminiAnaliz(veriPaketi, GEMINI_URL, controller);
+        clearTimeout(timeoutId);
 
-        const startTime = Date.now();
-        const response = await genai.models.generateContent({
-            model: AI_MODEL_VERSION,
-            contents: topluPrompt,
-        });
-        const duration = Date.now() - startTime;
-
-        let rawText = response.text || '';
-        if (rawText.includes('\`\`\`json')) {
-            rawText = rawText.split('\`\`\`json')[1].split('\`\`\`')[0].trim();
+        if (aiBatchRes.error) {
+            await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'hata', sonuc_datasi: { hata: aiBatchRes.error } }).in('id', islerimIDleri);
+            throw new Error(`Toplu Gemini Analizi Çöktü: ${aiBatchRes.error}`);
         }
 
-        const parsedResponse = JSON.parse(rawText);
+        for (const ai of aiBatchRes.results) {
+            const isID = ai.kuyruk_id;
+            const orgData = veriPaketi.find(v => v.kuyruk_id === isID);
+            if (!orgData) continue;
 
-        if (!parsedResponse.sonuclar) {
-            throw new Error('AI sonuc formatı beklenen düzende değil.');
-        }
+            const trendSkoru = ((ai.satis_buyumesi || 50) * 0.35) + ((ai.sosyal_medya_etkisi || 50) * 0.30) + ((ai.rakip_kullanim_hizi || 50) * 0.20) + ((ai.sezon_uyumu || 50) * 0.15);
+            const ortalamaRisk = ((ai.tedarik_riski_puani || 25) + (ai.uretim_karma_puani || 30)) / 2;
+            const firsatSkoru = Math.max(0, Math.min(100, trendSkoru - (ortalamaRisk * 0.5)));
 
-        // 4. SONUÇLARI VERİTABANINA GERİ YAZ (Ve durumlarını 'tamamlandi' yap)
-        let basariliKayitlar = 0;
-        for (const aiSonuc of parsedResponse.sonuclar) {
-            if (!aiSonuc.id) continue;
+            let decision = '';
+            if (firsatSkoru >= 85) decision = 'ÜRETİM';
+            else if (firsatSkoru >= 70) decision = 'TEST ÜRETİMİ (Numune)';
+            else if (firsatSkoru >= 50) decision = 'İZLEME';
+            else decision = 'REDDET';
 
-            await supabase
-                .from('b1_ai_is_kuyrugu')
-                .update({
-                    durum: aiSonuc.hata ? 'hata' : 'tamamlandi',
-                    sonuc_datasi: aiSonuc.analiz_sonucu,
-                    islenme_tarihi: new Date().toISOString(),
-                    ai_maliyeti_token: Math.round(duration / 100) // Tahmini süre/puan ağırlığı
-                })
-                .eq('id', aiSonuc.id);
+            const riskLevel = ortalamaRisk > 30 ? 'Yüksek' : ortalamaRisk > 15 ? 'Orta' : 'Düşük';
+            let timeRiskStr = '3-5 gün';
+            if (ai.iscilik_zorlugu === 'Zor') timeRiskStr = '10-15 gün';
+            else if (ai.iscilik_zorlugu === 'Orta') timeRiskStr = '7-10 gün';
 
-            basariliKayitlar++;
+            const estimatedProfit = orgData.fiyatSayi ? Math.round(orgData.fiyatSayi * 0.45 * 100) : 0;
+
+            if (decision === 'REDDET') {
+                await supabaseAdmin.from('b1_arge_strategy').insert({
+                    product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak,
+                    opportunity_score: firsatSkoru, nizam_decision: decision, risk_level: riskLevel,
+                    supply_risk: ai.risk_ozeti || '', time_risk: timeRiskStr, estimated_profit: 0, outsource_cost: Number(ai.teorik_maliyet) || 0,
+                    agent_note: ai.agent_notu || '', boss_approved: false, reason: 'Risk oranları potansiyeli aştı.'
+                });
+            } else {
+                await supabaseAdmin.from('b1_arge_trend_data').insert({ product_id: orgData.urun_id, sales_growth: ai.satis_buyumesi, social_media_impact: ai.sosyal_medya_etkisi, competitor_usage: ai.rakip_kullanim_hizi, season_fit: ai.sezon_uyumu, trend_score: trendSkoru });
+                await supabaseAdmin.from('b1_arge_cost_analysis').insert({ product_id: orgData.urun_id, estimated_fabric_cost: Number(ai.teorik_maliyet) * 0.6, estimated_labor_cost: Number(ai.teorik_maliyet) * 0.4, fabric_type_prediction: ai.kumas_turu || '', labor_difficulty: ai.iscilik_zorlugu || 'Orta' });
+                await supabaseAdmin.from('b1_arge_risk_analysis').insert({ product_id: orgData.urun_id, supply_risk_score: ai.tedarik_riski_puani, production_risk_score: ai.uretim_karma_puani });
+
+                await supabaseAdmin.from('b1_arge_strategy').insert({
+                    product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak, opportunity_score: firsatSkoru, nizam_decision: decision,
+                    risk_level: riskLevel, supply_risk: ai.risk_ozeti || '', time_risk: timeRiskStr, estimated_profit: estimatedProfit, outsource_cost: Number(ai.teorik_maliyet) || 0,
+                    agent_note: ai.agent_notu || '', boss_approved: false, reason: `Trend: %${trendSkoru.toFixed(1)}`
+                });
+
+                if (firsatSkoru >= 70) {
+                    await supabaseAdmin.from('b1_arge_trendler').insert({
+                        baslik: orgData.urunAdi, platform: orgData.kaynak.toLowerCase().includes('zara') ? 'zara' : 'trendyol', kategori: 'diger',
+                        hedef_kitle: 'kadın', talep_skoru: Math.round(firsatSkoru / 10), zorluk_derecesi: ai.iscilik_zorlugu === 'Zor' ? 8 : 5,
+                        aciklama: ai.agent_notu || '', durum: firsatSkoru >= 85 ? 'inceleniyor' : 'inceleniyor', referans_linkler: null
+                    });
+                }
+            }
+
+            await supabaseAdmin.from('b1_arge_products').update({
+                islenen_durum: 'islendi',
+                isleyen_ajan: 'BATCH_GEMINI',
+                islendigi_tarih: new Date().toISOString()
+            }).eq('id', orgData.urun_id);
+
+            await supabaseAdmin.from('b1_ai_is_kuyrugu').update({
+                durum: 'tamamlandi',
+                sonuc_datasi: ai,
+                ai_maliyeti_token: aiBatchRes.resultTokenCost
+            }).eq('id', isID);
         }
 
         return NextResponse.json({
             basarili: true,
-            mesaj: `Batch Processing Tamamlandı. ${bekleyenIsler.length} istek değerlendirildi. Toplam süre: ${duration}ms.`,
-            islenenKayit: basariliKayitlar
+            mesaj: `${aiBatchRes.results.length} görev TEK BİR API BULK (BATCH) paketi ile hesaplandı ve dağıtıldı.`
         });
 
     } catch (e) {
-        console.error('Batch AI Error:', e);
-        return NextResponse.json({ basarili: false, mesaj: 'Kritik Batch Hatası: ' + e.message }, { status: 500 });
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

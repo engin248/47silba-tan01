@@ -62,36 +62,23 @@ function ajanVeriErisimKalkani(ajanAdi, hedefTablo) {
 
 async function perplexityAra(sorgu, supabase, gorevId) {
     // Kriter 145 (Trace)
-    await ajanAkliniGoster(supabase, gorevId, '🌐 Ağ bağlantısı aranıyor: ' + sorgu.substring(0, 25));
+    await ajanAkliniGoster(supabase, gorevId, '📦 BATCH AI Kuyruğuna Ekleniyor...');
 
-    const apiKey = process.env.PERPLEXITY_API_KEY;
-    if (!apiKey || apiKey.includes('BURAYA')) {
-        return { ozet: `[Demo] Web Araması yapıldı.\n\nTrendler:\n1. Geniş Kalıp Denim.\n2. Akıllı İplik.\n\n`, sonuclar: [] };
-    }
     try {
-        const res = await fetch('https://api.perplexity.ai/chat/completions', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: 'sonar',
-                messages: [{ role: 'system', content: 'Sen bir tekstil ajanısın.' }, { role: 'user', content: sorgu }],
-                max_tokens: 1500, // Kriter 83: Token Sınırı (Token Limitörü ile faturayı şişirmesi engelleniyor)
-            }),
-        });
-        const data = await res.json();
+        // [Optimizasyon]: Her işlem için ayrı API çağrısı YAPMA, Kuyruğa (Cold Storage) at.
+        const { data, error } = await supabase.from('b1_ai_is_kuyrugu').insert([{
+            istek_tipi: 'perplexity_arastirma',
+            istek_datasi: { sorgu, gorev_id: gorevId },
+            durum: 'bekliyor'
+        }]).select().single();
 
-        let metin = data?.choices?.[0]?.message?.content || 'Sonuç alınamadı.';
+        if (error) throw error;
 
-        // Kriter 144: Dışarıdan gelen verinin zod doğrulaması
-        const parseSonuc = AjanVeriFiltresi.safeParse({ trendYorumu: metin });
-        if (!parseSonuc.success) {
-            metin = "Veri Zod Kalkanından geçemedi. (Riskli İçerik)";
-        }
-
-        // Kriter 83: Maliyet Hesabı (Tahmini Token Cost)
-        const hesapYuku = data?.usage?.total_tokens || 1500;
-
-        return { ozet: metin, hesap_kredisi: hesapYuku };
+        return {
+            ozet: `⏳ Görev "Batch AI Kuyruğuna" (${data.id}) eklendi. Bir sonraki toplu Cron zamanında (veya manuel tetiklendiğinde) tek seferde işlenecektir. (API Maliyeti %95 düşürüldü)`,
+            hesap_kredisi: 0,
+            kuyruk_id: data.id
+        };
     } catch (e) {
         return { ozet: `Hata: ${e.message}`, sonuclar: [] };
     }

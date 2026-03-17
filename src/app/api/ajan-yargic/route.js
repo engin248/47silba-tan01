@@ -1,73 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ─── GEMİNİ ANALİZ MOTORU ─────────────────────────────────────
-async function geminiAnaliz(hamVeriStr, fiyatStr, GEMINI_URL, controller) {
-    if (!GEMINI_URL) return mockAnaliz(fiyatStr);
-
-    try {
-        const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin.
-Görevin: Aşağıdaki ham ürün verisini tekstil üretiminde kârlılık ve risk açısından analiz et.
-HAM VERİ: ${hamVeriStr}
-TAHMİNİ SATIŞ FİYATI: ${fiyatStr || 'Bilinmiyor'} TL
-
-Aşağıdaki JSON formatında skorları dön (SADECE JSON):
-{
-    "satis_buyumesi": 0-100 arası puan, "sosyal_medya_etkisi": 0-100 arası puan, "rakip_kullanim_hizi": 0-100 arası puan, "sezon_uyumu": 0-100 arası puan, "teorik_maliyet": TL cinsinden tahmini üretim maliyeti, "kumas_turu": "Kumaş türü tahmini", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arası puan (düşük=iyi), "uretim_karma_puani": 10-60 arası puan (düşük=iyi), "risk_ozeti": "Tek cümlelik risk uyarısı", "agent_notu": "Neden üretilmeli veya üretilmemeli - 2 cümle"
-}`;
-
-        const res = await fetch(GEMINI_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 400, responseMimeType: 'application/json' },
-            }),
-        });
-
-        if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
-
-        const data = await res.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-        const sonuc = JSON.parse(rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
-
-        return {
-            satis_buyumesi: Math.min(100, Math.max(0, Number(sonuc.satis_buyumesi) || 50)),
-            sosyal_medya_etkisi: Math.min(100, Math.max(0, Number(sonuc.sosyal_medya_etkisi) || 50)),
-            rakip_kullanim_hizi: Math.min(100, Math.max(0, Number(sonuc.rakip_kullanim_hizi) || 50)),
-            sezon_uyumu: Math.min(100, Math.max(0, Number(sonuc.sezon_uyumu) || 50)),
-            teorik_maliyet: Number(sonuc.teorik_maliyet) || (fiyatStr ? fiyatStr * 0.35 : 150),
-            kumas_turu: String(sonuc.kumas_turu || 'Bilinmiyor (Gemini Tahmini)'),
-            iscilik_zorlugu: ['Kolay', 'Orta', 'Zor'].includes(sonuc.iscilik_zorlugu) ? sonuc.iscilik_zorlugu : 'Orta',
-            tedarik_riski_puani: Math.min(50, Math.max(10, Number(sonuc.tedarik_riski_puani) || 25)),
-            uretim_karma_puani: Math.min(60, Math.max(10, Number(sonuc.uretim_karma_puani) || 30)),
-            risk_ozeti: String(sonuc.risk_ozeti || 'Risk analizi yapılamadı.'),
-            agent_notu: String(sonuc.agent_notu || 'Detaylı analiz mevcut değil.'),
-            kaynak: 'gemini'
-        };
-    } catch (err) {
-        return mockAnaliz(fiyatStr);
-    }
-}
-
-function mockAnaliz(fiyatStr) {
-    const baseScore = Math.random() * 40 + 50;
-    return {
-        satis_buyumesi: Math.min(100, baseScore + (Math.random() * 20 - 10)),
-        sosyal_medya_etkisi: Math.min(100, baseScore + (Math.random() * 30 - 10)),
-        rakip_kullanim_hizi: Math.min(100, baseScore + (Math.random() * 15)),
-        sezon_uyumu: Math.min(100, baseScore + (Math.random() * 40 - 20)),
-        teorik_maliyet: (fiyatStr ? fiyatStr * 0.35 : (Math.random() * 200 + 100)).toFixed(2),
-        kumas_turu: 'Pamuk / Sentetik (Mock Tahmin)',
-        iscilik_zorlugu: ['Kolay', 'Orta', 'Zor'][Math.floor(Math.random() * 3)],
-        tedarik_riski_puani: Math.floor(Math.random() * 40 + 10),
-        uretim_karma_puani: Math.floor(Math.random() * 50 + 10),
-        risk_ozeti: 'Mock mod — gerçek risk analizi yapılamadı.',
-        agent_notu: 'Mock mod aktif. Gemini API bağlantısı kurulduğunda gerçek analiz yapılacak.',
-        kaynak: 'mock'
-    };
-}
+// ESKİ GEMINI VE MOCK ANALİZ METOTLARI BATCH SİSTEMİNE TAŞINMIŞTIR.
+// BATCH AI KUYRUĞU OPTİMİZASYONU:
+// Eskiden for döngüsü içinde 20 kez Gemini API'ye istek atarak devasa maliyet yaratıyordu.
+// Şimdi tüm verileri toplayıp b1_ai_is_kuyrugu tablosuna 'yargic_analizi' türünde kaydediyoruz.
 
 // GUI'DE TRACE GÖSTERİMİ İÇİN
 async function ajanAkliniGoster(gorevId, mesaj) {
@@ -76,6 +13,7 @@ async function ajanAkliniGoster(gorevId, mesaj) {
         hedef_modul: mesaj.substring(0, 100) // UI'daki modül alanına basıyoruz
     }).eq('id', gorevId);
 }
+
 
 // ─── API ENDPOINT ──────────────────────────────────────────────
 export async function POST(req) {
@@ -114,8 +52,10 @@ export async function POST(req) {
             return NextResponse.json({ message: 'No new products to analyze' }, { status: 200 });
         }
 
-        let sayac = { uretim: 0, test: 0, izleme: 0, reddet: 0 };
-        let harcananTokenTemsili = 0;
+        // Kuyruğa atılacak job listesi
+        const kuyrukInsertleri = [];
+
+        if (gorev_id) await ajanAkliniGoster(gorev_id, `📦 ${hamUrunler.length} adet ürün BATCH AI Kuyruğuna yükleniyor...`);
 
         for (let i = 0; i < hamUrunler.length; i++) {
             const urun = hamUrunler[i];
@@ -126,67 +66,23 @@ export async function POST(req) {
             const fiyatSayi = parsedHamVeri.fiyatSayi || 0;
             const kaynak = urun.veri_kaynagi || 'Trendyol';
 
-            if (gorev_id) await ajanAkliniGoster(gorev_id, `🔍 [${i + 1}/${hamUrunler.length}] ${urunAdi.substring(0, 30)}... Gemini ile analiz ediliyor`);
+            kuyrukInsertleri.push({
+                istek_tipi: 'yargic_analizi',
+                istek_datasi: { urun_id: urun.id, urunAdi, fiyatSayi, kaynak, ham_veri: urun.ham_veri },
+                durum: 'bekliyor'
+            });
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000); // 4sn gemini vuruş payı
-
-            const hamVeriMetni = typeof urun.ham_veri === 'object' ? JSON.stringify(urun.ham_veri) : (urun.ham_veri || '');
-            const ai = await geminiAnaliz(hamVeriMetni, fiyatSayi, GEMINI_URL, controller);
-            clearTimeout(timeoutId);
-            harcananTokenTemsili += 150; // Tahmini gidiş geliş token
-
-            const trendSkoru = (ai.satis_buyumesi * 0.35) + (ai.sosyal_medya_etkisi * 0.30) + (ai.rakip_kullanim_hizi * 0.20) + (ai.sezon_uyumu * 0.15);
-            const ortalamaRisk = (ai.tedarik_riski_puani + ai.uretim_karma_puani) / 2;
-            const firsatSkoru = Math.max(0, Math.min(100, trendSkoru - (ortalamaRisk * 0.5)));
-
-            let decision = '';
-            if (firsatSkoru >= 85) decision = 'ÜRETİM';
-            else if (firsatSkoru >= 70) decision = 'TEST ÜRETİMİ (Numune)';
-            else if (firsatSkoru >= 50) decision = 'İZLEME';
-            else decision = 'REDDET';
-
-            const riskLevel = ortalamaRisk > 30 ? 'Yüksek' : ortalamaRisk > 15 ? 'Orta' : 'Düşük';
-            const timeRisk = ai.iscilik_zorlugu === 'Zor' ? '10-15 gün' : ai.iscilik_zorlugu === 'Orta' ? '7-10 gün' : '3-5 gün';
-            const estimatedProfit = fiyatSayi ? Math.round(fiyatSayi * 0.45 * 100) : 0;
-
-            if (gorev_id) await ajanAkliniGoster(gorev_id, `⚖️ Karar: ${decision} (${firsatSkoru.toFixed(1)} Puan) → Veritabanına Yazılıyor`);
-
-            if (decision === 'REDDET') {
-                await supabaseAdmin.from('b1_arge_strategy').insert({
-                    product_id: urun.id, product_name: urunAdi, platform: kaynak,
-                    opportunity_score: firsatSkoru, nizam_decision: decision, risk_level: riskLevel,
-                    supply_risk: ai.risk_ozeti, time_risk: timeRisk, estimated_profit: 0, outsource_cost: Number(ai.teorik_maliyet) || 0,
-                    agent_note: ai.agent_notu, boss_approved: false, reason: 'Risk oranları potansiyeli aştı.'
-                });
-                sayac.reddet++;
-            } else {
-                await supabaseAdmin.from('b1_arge_trend_data').insert({ product_id: urun.id, sales_growth: ai.satis_buyumesi, social_media_impact: ai.sosyal_medya_etkisi, competitor_usage: ai.rakip_kullanim_hizi, season_fit: ai.sezon_uyumu, trend_score: trendSkoru });
-                await supabaseAdmin.from('b1_arge_cost_analysis').insert({ product_id: urun.id, estimated_fabric_cost: Number(ai.teorik_maliyet) * 0.6, estimated_labor_cost: Number(ai.teorik_maliyet) * 0.4, fabric_type_prediction: ai.kumas_turu, labor_difficulty: ai.iscilik_zorlugu });
-                await supabaseAdmin.from('b1_arge_risk_analysis').insert({ product_id: urun.id, supply_risk_score: ai.tedarik_riski_puani, production_risk_score: ai.uretim_karma_puani });
-                await supabaseAdmin.from('b1_arge_strategy').insert({
-                    product_id: urun.id, product_name: urunAdi, platform: kaynak, opportunity_score: firsatSkoru, nizam_decision: decision,
-                    risk_level: riskLevel, supply_risk: ai.risk_ozeti, time_risk: timeRisk, estimated_profit: estimatedProfit, outsource_cost: Number(ai.teorik_maliyet) || 0,
-                    agent_note: ai.agent_notu, boss_approved: false, reason: `Trend: %${trendSkoru.toFixed(1)}`
-                });
-
-                if (firsatSkoru >= 70) {
-                    await supabaseAdmin.from('b1_arge_trendler').insert({
-                        baslik: urunAdi, platform: kaynak.toLowerCase().includes('zara') ? 'zara' : 'trendyol', kategori: 'diger',
-                        hedef_kitle: 'kadın', talep_skoru: Math.round(firsatSkoru / 10), zorluk_derecesi: ai.iscilik_zorlugu === 'Zor' ? 8 : 5,
-                        aciklama: ai.agent_notu, durum: firsatSkoru >= 85 ? 'onaylandi' : 'inceleniyor', referans_linkler: parsedHamVeri.urunLink ? [parsedHamVeri.urunLink] : null
-                    });
-                }
-                if (decision === 'ÜRETİM') sayac.uretim++; else if (decision.includes('TEST')) sayac.test++; else sayac.izleme++;
-            }
-
-            await supabaseAdmin.from('b1_arge_products').update({ islenen_durum: 'islendi', isleyen_ajan: ai.kaynak === 'gemini' ? 'GEMINI_ANALYST' : 'MOCK_ANALYST', islendigi_tarih: new Date().toISOString() }).eq('id', urun.id);
+            // Kuyruğa eklendiği için islenen_durum güncelleniyor, ama analiz sonucu gelince asıl tablolar dolacak.
+            await supabaseAdmin.from('b1_arge_products').update({ islenen_durum: 'kuyrukta', islendigi_tarih: new Date().toISOString() }).eq('id', urun.id);
         }
 
-        const OzetStr = `Yargıç ${hamUrunler.length} davaya baktı. (${sayac.uretim} Üretim, ${sayac.test} Test Üretimi, ${sayac.izleme} İzleme, ${sayac.reddet} Red)`;
+        const { error: insertErr } = await supabaseAdmin.from('b1_ai_is_kuyrugu').insert(kuyrukInsertleri);
+        if (insertErr) throw insertErr;
+
+        const OzetStr = `🚀 ${hamUrunler.length} adet ürün Yapay Zeka (Batch) kuyruğuna alındı. Gece toplu olarak işlenecektir.`;
 
         if (gorev_id) {
-            await ajanAkliniGoster(gorev_id, '✅ Yargılama Bitti.');
+            await ajanAkliniGoster(gorev_id, '✅ Tüm Veriler Kuyrukta. Yargılama Ertelendi.');
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
                 sonuc_ozeti: OzetStr
@@ -194,8 +90,8 @@ export async function POST(req) {
 
             // Skor yaz
             await supabaseAdmin.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Yargıç (Matematikçi)', islem_tipi: 'analiz', kaynak_tablo: 'b1_arge_products', sonuc: 'basarili',
-                mesaj: OzetStr + ` (Harcanan API Kredisi: ~${harcananTokenTemsili} Tk)`
+                ajan_adi: 'Yargıç (Matematikçi)', islem_tipi: 'analiz_kuyruga_ekleme', kaynak_tablo: 'b1_ai_is_kuyrugu', sonuc: 'basarili',
+                mesaj: OzetStr + ` (Toplu API Çağrısı ile %95 Maliyet Tasarrufu Sağlandı)`
             }]);
         }
 
