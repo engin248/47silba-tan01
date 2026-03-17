@@ -4,36 +4,56 @@
 
 ---
 
-## 🚨 KRİTİK MİMARİ KARAR (Bu oturumun en önemli notu)
+## 🚨 KRİTİK MİMARİ KARAR — BROWSER AGENT MİMARİSİ
 
-**SCRAPER KULLANILMAYACAK. Kimsenin verisi çekilmeyecek.**
+### Ne İsteniyor: BEYAZ SİSTEM (Tarayıcı Ajani)
 
-### Yeni Felsefe: BEYAZ SİSTEM
 ```
-Kullanıcı kendi gözüyle bakar (Trendyol, Instagram, vb.)
-      ↓
-Gördüğünü MANUEL olarak sisteme kaydeder
-      ↓
-AI → Kullanıcının girdiği bilgiyi analiz eder
-      ↓
-Karar: ÜRET / TEST / İZLE / İPTAL
+❌ ESKİ (Yanlış) — Doğrudan API Scraper:
+   Python/Node → trendyol.com/api/products → JSON çek → DB'ye yaz
+   SORUN: Gri alan, API abuse, yasal risk
+
+✅ YENİ (Doğru) — Browser Agent:
+   Ajan (AI) → Gerçek Chrome/Firefox açar
+              → Sayfaya gider (trendyol.com)
+              → Sayfayı insan gibi OKUR (görsel + DOM)
+              → İlgili bilgiyi KAYIT eder
+              → Tarayıcıyı KAPATIR
+              → Çıkar
 ```
 
-### Ne Silinecek / Değiştirilecek
-- `oluisci.js` (Trendyol scraper) → Kullanılmayacak
-- `/api/worker-ajan` → Scraper worker → devre dışı
-- `b1_arge_products` → Bot değil, kullanıcı dolduracak
-- Batch AI kuyruğu → Scraper verisi yerine kullanıcı girişlerini analiz edecek
+### Teknik Karşılığı
+- **Playwright** (headless browser) + **AI Vision** (Gemini/GPT görüntü okuma)
+- veya **browser-use** Python kütüphanesi (LLM-driven browser automation)
+- Ajan insan gibi davranır: tıklar, kaydırır, okur, yazar
 
-### Ne Kalacak / Güçlendirilecek
-- ✅ AR-GE Manuel Form (kullanıcı ürün bilgisi girer)
-- ✅ Gemini / DeepSeek analizi (kullanıcı girdisini analiz eder)
-- ✅ Perplexity (kullanıcı ürünü hakkında piyasa yorumu)
-- ✅ SerpAPI (kullanıcının girdiği ürünü Google'da validate eder)
-- ✅ Tüm karar mekanizması (ÜRET/TEST/İZLE/İPTAL)
+### Neden "Beyaz"?
+- Gerçek tarayıcı → siteye normal HTTP request gibi görünür
+- Bot gibi API'ye saldırmıyor
+- Rate limit var (saatte N sayfa)
+- Public sayfaları okuyor, private API'yi bypass etmiyor
 
-> **Gri yok. Her şey beyaz. Sistem rakibin verisini araklamaz.**
-> **Kullanıcı araştırır → sisteme söyler → AI yardım eder.**
+### Uygulama Planı (Yarın Konuşulacak)
+```
+1. VPS'e Playwright kurulu mu? → Kontrol et
+2. browser-use kütüphanesi araştır (Python, LLM destekli)
+3. Ajan: Trendyol kategori sayfasına git → ilk 20 ürünü oku → kaydet
+4. Okuma frekansı: Günde 1-2 kez (spam değil)
+5. Kaydet: b1_arge_products → (ajanın okuduğu ham veri)
+6. Batch AI analiz eder → b1_arge_strategy'e karar yazar
+```
+
+### Ne Silinecek
+- `oluisci.js` (eski HTTP API scraper) → Silinecek veya rewrite edilecek
+- Raw HTTP fetch scraping → Browser agent ile değiştirilecek
+
+### Ne Kalacak
+- ✅ Tüm AI analiz katmanı (Gemini, DeepSeek, Perplexity)
+- ✅ Karar sistemi (ÜRET/TEST/İZLE/İPTAL)
+- ✅ AR-GE formu (ajanın kaydettiği + kullanıcının eklediği)
+
+> **Ajan insan gibi bakar. Gördüğünü kaydeder. Çıkar.**
+> **Rakibin API'sine saldırmaz. Beyaz sistem. Temiz.**
 
 ---
 
