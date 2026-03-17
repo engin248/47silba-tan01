@@ -77,9 +77,19 @@ export default function MuhasebeMainContainer() {
             let currentRaporlar = [];
             if (rRes.status === 'fulfilled' && rRes.value.data) {
                 currentRaporlar = rRes.value.data;
-                setRaporlar(currentRaporlar);
             }
             if (mRes.status === 'fulfilled' && mRes.value.data) {
+                // b1_muhasebe_raporlari'ndaki (order_id) production_orders.id'sini temsil eder. 
+                // Ekleme ile map yapıyoruz ki isimler ve kodlar raporlarda görünsün.
+                currentRaporlar = currentRaporlar.map(r => {
+                    const eslesenEmir = mRes.value.data.find(o => o.id === r.order_id);
+                    return {
+                        ...r,
+                        model_kodu: eslesenEmir?.b1_model_taslaklari?.model_kodu || r.model_kodu || null,
+                        model_adi: eslesenEmir?.b1_model_taslaklari?.model_adi || r.model_adi || null
+                    };
+                });
+                setRaporlar(currentRaporlar);
                 const raporOrderIds = new Set(currentRaporlar.map(r => r.order_id));
                 // Model ID asimetrisi giderildiği için listeye doğrudan emir.id ve birleşik model verileri set edilecek:
                 const maplenmisEmirler = mRes.value.data.map(o => ({
