@@ -63,7 +63,7 @@ const PUBLIC_API_ROTALAR = [
     '/api/telegram-webhook',
     '/api/cron-ajanlar',
     '/api/kamera-sayac',      // Fabrika kameraları JWT olmadan veri gönderebilir
-    '/api/ai-kahin-ajan',     // Yönetici prim paneli AI sorgusu
+    // '/api/ai-kahin-ajan' — JWT GEREKLİ (public listesinden çıkarıldı, güvenlik)
     '/api/stream-durum',      // Kamera stream sağlık kontrolü
 ];
 

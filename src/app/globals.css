@@ -46,8 +46,8 @@ body {
 }
 
 .sidebar {
-  width: 260px;
-  /* Modern uygulamalarda biraz daha geniş */
+  width: 290px;
+  /* Menü etiketleri kırılmasın diye genişletildi */
   flex-shrink: 0;
   background: #0b1d1a;
   /* Orijinal koyu ama siyah olmayan Karargah Yeşili */
@@ -820,7 +820,9 @@ body {
 /* ====================================================
    B-04: ARAPÇA (RTL) KORUMA VE INPUT ZIRHI
 ==================================================== */
-input[dir="rtl"], textarea[dir="rtl"], div[dir="rtl"] {
+input[dir="rtl"],
+textarea[dir="rtl"],
+div[dir="rtl"] {
   direction: rtl;
   text-align: right;
   unicode-bidi: isolate;

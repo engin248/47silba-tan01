@@ -156,7 +156,7 @@ export default function AjanKomutaGostergesi() {
                                     {durumObj.mesaj}
                                 </p>
                                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#173a34]">
-                                    <span className="text-[9px] text-[#484f58] font-mono">
+                                    <span className="text-[9px] text-emerald-300/60 font-mono">
                                         {durumObj.sure ? formatTarih(durumObj.sure) : 'Görev yok'}
                                     </span>
                                     <span className="text-[9px] text-emerald-500/50 font-semibold group-hover:text-emerald-400 transition-colors cursor-pointer">
@@ -176,6 +176,66 @@ export default function AjanKomutaGostergesi() {
                         </div>
                     );
                 })}
+
+                {/* Müfettiş (AI) — Aktif Sistem Denetmeni */}
+                <a href="/denetmen" className="bg-[#122b27] border border-[#7c3aed]/40 rounded-xl p-4 relative overflow-hidden hover:border-[#7c3aed]/80 transition-all group cursor-pointer no-underline block">
+                    <div className="absolute -top-10 -right-10 w-20 h-20 bg-purple-500/10 blur-2xl rounded-full group-hover:bg-purple-500/20 transition-all"></div>
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#f5f3ff', border: '1px solid #7c3aed40' }}>
+                                <span className="text-lg">🛡️</span>
+                            </div>
+                            <div>
+                                <div className="font-bold text-sm text-white">Müfettiş (AI)</div>
+                                <div className="text-[10px] text-purple-300/60 font-medium">Sistem Denetmeni & Alarm Merkezi</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black tracking-wider uppercase border bg-purple-500/10 text-purple-400 border-purple-500/30">
+                            AKTİF
+                        </div>
+                    </div>
+                    <div className="mt-1 mb-3">
+                        <div className="text-[10px] text-emerald-100/60 mb-2 flex items-center gap-1.5 font-medium border-b border-[#1e4a43] pb-2">
+                            <Server size={12} className="text-purple-400" /> Konum: <span className="text-purple-300 font-semibold">Vercel Serverless</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                            {['Sistem Uyarıları', 'AI Analizi', 'Büyük Veri'].map((yt, i) => (
+                                <span key={i} className="text-[9px] px-2 py-1 rounded-md bg-[#081513] text-emerald-100/80 border border-[#1e4a43]">{yt}</span>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="bg-[#081513] border border-[#173a34] rounded-lg p-3 flex flex-col justify-between mb-3 shadow-inner">
+                        <p className="text-[10px] text-purple-300/80 leading-relaxed font-medium m-0">
+                            <span className="text-purple-500/50 uppercase tracking-wider text-[9px] mr-1 block mb-0.5">Durum:</span>
+                            Sistem dinleniyor. Kritik uyarılarda otomatik alarm verir.
+                        </p>
+                    </div>
+                    <div className="w-full py-2.5 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg transition-all">
+                        <Play size={11} className="fill-purple-400" /> Müfettiş Paneli →
+                    </div>
+                </a>
+
+                {/* Kalite Kontrol — Yakında */}
+                <div className="bg-[#0d2420] border border-dashed border-[#1e4a43]/60 rounded-xl p-4 relative overflow-hidden opacity-60">
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#081513] border border-[#1e4a43]">
+                                <span className="text-lg">🔧</span>
+                            </div>
+                            <div>
+                                <div className="font-bold text-sm text-white/60">Kalite Kontrol</div>
+                                <div className="text-[10px] text-emerald-200/30 font-medium">Otomatik Fire & Hata Tespit Sistemi</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black tracking-wider uppercase border bg-slate-500/10 text-slate-400 border-slate-500/20">
+                            YAKINDA
+                        </div>
+                    </div>
+                    <div className="bg-[#081513] border border-[#173a34] rounded-lg p-3 text-center">
+                        <p className="text-[10px] text-emerald-100/30 font-medium">Bu ajan modülü geliştirme aşamasında.</p>
+                    </div>
+                </div>
+
             </div>
 
         </div>

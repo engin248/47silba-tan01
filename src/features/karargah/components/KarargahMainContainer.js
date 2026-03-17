@@ -71,6 +71,10 @@ const MODUL_GRUPLARI = [
     }
 ];
 
+// ─── SABIT: Bileşen dışındaysa her render'da yeni string üretmez ──────────
+// İÇERİDE olsaydı: her render → yeni gun45Once → useCallback yenilenir → useEffect tetiklenir → sonsuz döngü!
+const GUN_45_ONCE = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
 export function KarargahMainContainer() {
     const { kullanici } = useAuth();
     const {
@@ -126,21 +130,19 @@ export function KarargahMainContainer() {
         return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
     }, []);
 
-    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
-
     const mesajlariGetir = useCallback(async () => {
         try {
             const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
             setMesajSayisi(count || 0);
             const { data: aktif } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, gonderen_adi, created_at, urun_id').order('created_at', { ascending: false }).limit(3);
             setSonMesajlar(aktif || []);
-            const { data: gizli } = await supabase.from('b1_mesaj_gizli').select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)').gte('gizlendi_at', gun45Once).order('gizlendi_at', { ascending: false }).limit(20);
+            const { data: gizli } = await supabase.from('b1_mesaj_gizli').select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)').gte('gizlendi_at', GUN_45_ONCE).order('gizlendi_at', { ascending: false }).limit(20);
             const izler = (gizli || []).filter(g => { const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar; return !(b1?.urun_id); });
             setGizlenIzleri(izler);
             const { data: model } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at').not('urun_id', 'is', null).order('created_at', { ascending: false }).limit(50);
             setModelArsiv(model || []);
         } catch { /* sessiz */ }
-    }, [gun45Once]);
+    }, []); // gun45Once artık dışarıda SABIT — deps boş, döngü yok
 
     useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 

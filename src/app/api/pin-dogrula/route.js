@@ -162,11 +162,16 @@ export async function POST(request) {
                 (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
             );
             if (process.env.NEXT_PUBLIC_SUPABASE_URL && sb) {
-                await sb.from('b0_sistem_loglari').insert([{
-                    olay: 'PIN_HATALI_GIRIS',
-                    detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
-                    seviye: 'uyari',
-                }]);
+                // Fire-and-forget — await kaldırıldı, bekleme yok
+                void (async () => {
+                    try {
+                        await sb.from('b0_sistem_loglari').insert([{
+                            olay: 'PIN_HATALI_GIRIS',
+                            detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
+                            seviye: 'uyari',
+                        }]);
+                    } catch { }
+                })();
             }
         } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
@@ -186,11 +191,16 @@ export async function POST(request) {
             (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
             (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
         );
-        await sb.from('b0_sistem_loglari').insert([{
-            olay: 'PIN_BASARILI_GIRIS',
-            detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
-            seviye: 'bilgi',
-        }]);
+        // Fire-and-forget — await kaldırıldı
+        void (async () => {
+            try {
+                await sb.from('b0_sistem_loglari').insert([{
+                    olay: 'PIN_BASARILI_GIRIS',
+                    detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
+                    seviye: 'bilgi',
+                }]);
+            } catch { }
+        })();
     } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
     // ─── GÜVENLİK YAMASI: Server-side Set-Cookie (HttpOnly + Secure + SameSite) ───
