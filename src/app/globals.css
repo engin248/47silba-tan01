@@ -310,8 +310,9 @@ body {
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.6);
+  /* Daha keskin karartma */
+  backdrop-filter: blur(8px);
   z-index: 100;
   opacity: 0;
   visibility: hidden;
@@ -330,8 +331,12 @@ body {
   width: 100%;
   max-width: 450px;
   height: 100vh;
-  background: #ffffff;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+  background: #111111;
+  /* Obsidyen zemin */
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  /* Yumuşak bir çerçeve çizgisi */
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+  /* Siyah üzerine keskin gölge */
   z-index: 101;
   transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -346,7 +351,9 @@ body {
 .layout-container[style*="row-reverse"] .drawer-panel {
   right: auto;
   left: -500px;
-  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.1);
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -356,11 +363,13 @@ body {
 
 .drawer-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  /* Yarı saydam ayırıcı */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.02);
+  /* Çok hafif bir derinlik farkı */
 }
 
 .drawer-content {
@@ -379,7 +388,8 @@ body {
 }
 
 .kanban-column {
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.02);
+  /* Koyu zemin */
   border-radius: 12px;
   min-width: 320px;
   max-width: 320px;
@@ -387,32 +397,36 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  /* Yarı saydam çerçeve */
 }
 
 .kanban-col-header {
   font-weight: 700;
-  color: #334155;
+  color: #EDEDED;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* Çizgi yumuşatıldı */
 }
 
 .kanban-item {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.03);
   cursor: grab;
+  color: #EDEDED;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .kanban-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .kanban-item:active {
@@ -427,21 +441,25 @@ body {
 }
 
 .premium-table th {
-  background: #f8fafc;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.02);
+  /* Koyu gri tablo başlığı */
+  color: #888888;
+  /* Gri başlık metni */
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
 }
 
 .premium-table td {
   padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  /* İç satır bölücüleri çok hafif */
+  color: #EDEDED;
+  /* Beyaz veri metni */
   vertical-align: middle;
 }
 
@@ -450,7 +468,8 @@ body {
 }
 
 .premium-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.02);
+  /* Hover state zayıf beyaz ışık */
 }
 
 /* Fab (Floating Action Button) */
@@ -461,12 +480,15 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--secondary);
-  color: white;
+  background: rgba(212, 175, 55, 0.9);
+  /* Premium Altın, hafif Glassmorphism */
+  backdrop-filter: blur(8px);
+  color: #111111;
+  /* Koyu iç ikon rengi */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 50;
