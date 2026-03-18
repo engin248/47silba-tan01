@@ -162,6 +162,15 @@ async function tiktokTrendAnalizi(hedefUrlVeyaKelime) {
             "GENEL SKOR": analizSonucu.Cikti.Genel_Skor
         });
 
+        // SHARDING: Ham veriyi Supabase'i yormadan yerel JSON loglarına (Cold Storage) at
+        try {
+            const { HamVeriYaz } = require('../src/lib/shard_logger');
+            await HamVeriYaz('tiktok_bot', analizSonucu);
+            console.log(`[TİKTOK AJANI] Ham veri Shard Logger'a başarıyla yazıldı.`);
+        } catch (shardErr) {
+            console.error(`[SHARD HATA] Ham veri yazılamadı:`, shardErr.message);
+        }
+
         await browser.close();
         return analizSonucu;
 

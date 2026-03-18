@@ -1,5 +1,5 @@
-require('dotenv').config({ path: '../.env.local' });
 const { KuyruktanAl } = require('../src/lib/redis_kuyruk');
+require('dotenv').config({ path: '.env.local' });
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { createClient } = require('@supabase/supabase-js');
 
