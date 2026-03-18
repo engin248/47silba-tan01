@@ -62,8 +62,9 @@ export default function ArgeIstihbaratPanel() {
     const [deepYukleniyor, setDeepYukleniyor] = useState(false);
     const [deepSonuc, setDeepSonuc] = useState(/** @type {any} */(null));
     const [orstKosuYukleniyor, setOrstKosuYukleniyor] = useState(false);
-    const [manuelHedef, setManuelHedef] = useState(''); // EKLENDİ: Patronun özel hedefi
-    const [aktifTab, setAktifTab] = useState('vitrin'); // vitrin | karar | erken | log | google | deepseek
+    const [manuelHedef, setManuelHedef] = useState('');
+    const [kuyrukUyari, setKuyrukUyari] = useState(''); // YENİ: Kuyruk Mesajı
+    const [aktifTab, setAktifTab] = useState('vitrin');
 
     const verileriCek = useCallback(async () => {
         setLoading(true);
@@ -93,6 +94,8 @@ export default function ArgeIstihbaratPanel() {
             if (logRes.status === 'fulfilled' && logRes.value.data) {
                 setAjanLog(logRes.value.data);
             }
+            // Veri geldiğinde "Ajanlar yolda" uyarısını söndür
+            setKuyrukUyari('');
         } catch (e) {
             console.error('[ArgeIstihbarat] Veri çekme hatası:', e.message);
         }
@@ -109,7 +112,7 @@ export default function ArgeIstihbaratPanel() {
         return () => { supabase.removeChannel(kanal); };
     }, [verileriCek]);
 
-    // ─── SerpAPI çağrısı ──────────────────────────────────────
+    // ... SerpApi ve Deepseek kodları [Aynı]
     const serpAra = async () => {
         if (!serpSorgu.trim() || serpYukleniyor) return;
         setSerpYukleniyor(true);
@@ -129,7 +132,6 @@ export default function ArgeIstihbaratPanel() {
         setSerpYukleniyor(false);
     };
 
-    // ─── DeepSeek çağrısı ─────────────────────────────────────
     const deepAnaliz = async () => {
         if (!deepSorgu.trim() || deepYukleniyor) return;
         setDeepYukleniyor(true);
@@ -149,13 +151,11 @@ export default function ArgeIstihbaratPanel() {
         setDeepYukleniyor(false);
     };
 
-    // ─── Erken Giriş Tespiti ──────────────────────────────────
-    // Düşük zorluk + yüksek talep = ERKEN GİR sinyali
+    // Erken Giriş Tespiti
     const erkenGirler = trendler.filter(t =>
         t.talep_skoru >= 7 && t.zorluk_derecesi <= 4
     );
 
-    // ─── Toplam Skorlar ───────────────────────────────────────
     const uretimKarari = strateji.filter(s => s.ai_satis_karari === 'ÇOK_SATAR').length;
     const testKarari = strateji.filter(s => s.ai_satis_karari === 'İZLE').length;
     const izleKarari = 0;
@@ -167,7 +167,7 @@ export default function ArgeIstihbaratPanel() {
     const ajanlariSahayaSur = async () => {
         setOrstKosuYukleniyor(true);
         try {
-            await fetch('/api/beyaz-saha', {
+            const res = await fetch('/api/beyaz-saha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -175,8 +175,12 @@ export default function ArgeIstihbaratPanel() {
                     hedefParametre: manuelHedef.trim() || 'GENEL SAHA TARAMASI'
                 })
             });
-            setTimeout(verileriCek, 2000); // Verileri güncelle
-            setManuelHedef(''); // Hedefi temizle
+            const data = await res.json();
+            if (data.success) {
+                setKuyrukUyari(data.mesaj || 'Ajanlar Yolda...'); // Kuyruk uyarısını ateşle
+            }
+            setTimeout(verileriCek, 2000);
+            setManuelHedef('');
         } catch (e) {
             console.error(e);
         }
@@ -205,7 +209,6 @@ export default function ArgeIstihbaratPanel() {
             boxShadow: '0 20px 60px -15px rgba(0,0,0,0.6)',
             position: 'relative',
         }}>
-            {/* Ambient glow */}
             <div style={{
                 position: 'absolute', top: -50, right: -50,
                 width: 200, height: 200,
@@ -213,9 +216,9 @@ export default function ArgeIstihbaratPanel() {
                 filter: 'blur(40px)', pointerEvents: 'none',
             }} />
 
-            {/* BAŞLIK + Sayaçlar */}
             <div style={{ padding: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                    {/* ... Sol Header ... */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{
                             width: 40, height: 40, background: 'linear-gradient(135deg,#047857,#065f46)',
@@ -233,7 +236,19 @@ export default function ArgeIstihbaratPanel() {
                             </p>
                         </div>
                     </div>
+
+                    {/* Sağ Taraf - Kontroller */}
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        {kuyrukUyari && (
+                            <span style={{
+                                color: '#38bdf8', fontSize: '0.75rem', fontWeight: 800,
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                            }}>
+                                <Zap size={14} color="#38bdf8" />
+                                {kuyrukUyari}
+                            </span>
+                        )}
                         <input
                             type="text"
                             placeholder="Ajanlara Özel Komut Ver (Örn: Ayrobin İkili Takım)"
@@ -256,7 +271,7 @@ export default function ArgeIstihbaratPanel() {
                             }}
                         >
                             <Target size={14} />
-                            {orstKosuYukleniyor ? 'SAHADA...' : 'BEYAZ AJANLARI UYANDIR'}
+                            {orstKosuYukleniyor ? 'İLETİLİYOR...' : 'BEYAZ AJANLARI UYANDIR'}
                         </button>
 
                         <button
