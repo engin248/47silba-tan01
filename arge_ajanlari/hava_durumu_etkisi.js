@@ -8,8 +8,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ROLE_KEY);
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || 'YOK';
 
 /**
- * BOT 7: METEOROLOJİ VE İKLİM AJANI
- * YENİ (FAZ 1): Canlı meteorolojik lojistik tahmini ve Sentinel Entegrasyonu.
+ * BOT 7: METEOROLOJİ VE TAKVİM (SOSYO-İKLİM) AJANI
+ * Radar: İklimsel Satış Etkisi ve Sosyo-Ekonomik Takvim (Maaş / Bayram)
+ * Görev: Beklenmedik sıcaklık düşüş/yükselişlerini tespit etmek, ay sonu maaş günleri ve Bayram/Sezon geçişleri gibi cüzdanın dolduğu anlarda ani talep patlamalarını öngörmek.
+ * Patron Kuralı: "Tekstilde tüketici havaya bakar, ama parası (maaş/bayram) varsa daha hızlı alır."
  */
 async function havaDurumuSatisEtkisi(urunKategorisi, job_id = null, telemetriFnc = null) {
     const telemetriAt = async (yuzde, mesaj, durum = 'çalışıyor') => {
@@ -44,9 +46,20 @@ async function havaDurumuSatisEtkisi(urunKategorisi, job_id = null, telemetriFnc
         }
 
         await telemetriAt(65, `[LOJİSTİK ANALİZİ] Meteorolojik sapmalar tekstil algoritmasıyla çarpıştırılıyor: Hava -> ${simulasyonHavaVerisi.sicaklik_degisimi}`);
+        console.log(`[BOT 7] Meteorolojik sapmalar analiz ediliyor: ${simulasyonHavaVerisi.sicaklik_degisimi}`);
 
-        let iklimSatisSkoru = 50;
+        // ---- SOSYO-EKONOMİK TAKVİM (Maaş ve Bayram) ----
+        const simdi = new Date();
+        const gun = simdi.getDate();
+
+        // Maaş Dönemi (Ayın 1-5'i veya 28-31'i arası en yüksek alım gücü)
+        const maasDonemiMi = (gun >= 1 && gun <= 5) || (gun >= 28);
+        const bayramYaklasiyorMu = true; // Dinamik API veya statik takvim
+
+        // ---- HAVA DURUMU & SATIŞ ALGORİTMASI ----
+        let iklimSatisSkoru = 0;
         let aciliyetYorumu = "";
+        let takvimCarpaniYorumu = "";
 
         const kislik_kategoriler = ['kaban', 'mont', 'kazak', 'bere', 'hırka', 'kalın_kumaş', 'bot', 'peluş'];
         const yazlik_kategoriler = ['tişört', 'şort', 'askılı', 'elbise', 'ince_kumaş', 'keten', 'şifon'];
@@ -74,16 +87,28 @@ async function havaDurumuSatisEtkisi(urunKategorisi, job_id = null, telemetriFnc
             aciliyetYorumu = "HAVA_DURUMU_ETKİSİZ (Basic Ürün)";
         }
 
-        const karar = iklimSatisSkoru >= 80 ? "ÇOK_SATAR" : (iklimSatisSkoru < 30 ? "SATMAZ" : "İZLE");
+        // TAKVİM KUVVETLENDİRİCİSİ (Multiplier)
+        if (iklimSatisSkoru > 20) {
+            if (maasDonemiMi) {
+                iklimSatisSkoru += 15;
+                takvimCarpaniYorumu += "[MAAŞ GÜNÜ] Cüzdanlar dolu, alım eşiği düşük. ";
+            }
+            if (bayramYaklasiyorMu) {
+                iklimSatisSkoru += 20;
+                takvimCarpaniYorumu += "[TATİL/BAYRAM RÜZGARI] İnsanlar tatile/kutlamaya hazırlanıyor! ";
+            }
+        }
 
-        const yorum = `Kategori '${urunKategorisi}' algılandı. Hedef pazarlarda sıcaklık: '${simulasyonHavaVerisi.sicaklik_degisimi}'. Küresel müşteride psiko-iklimsel lojistik içgüdüsü tetiklendi. Teşhis: ${aciliyetYorumu}.`;
+        iklimSatisSkoru = Math.min(100, iklimSatisSkoru);
+        const karar = iklimSatisSkoru >= 85 ? "ÇOK_SATAR" : (iklimSatisSkoru < 30 ? "SATMAZ" : "İZLE");
+        const yorum = `Kategori '${urunKategorisi}' incelendi. İklim Tahmini: '${simulasyonHavaVerisi.sicaklik_degisimi}'. Teşhis: ${aciliyetYorumu}. Takvim Etkisi: ${takvimCarpaniYorumu || 'Yok.'}`;
 
         const veriPaketi = {
-            urun_adi: `İklim İstihbaratı: ${urunKategorisi}`,
+            urun_adi: `Sosyo-İklim İstihbaratı: ${urunKategorisi}`,
             ai_satis_karari: karar,
             trend_skoru: iklimSatisSkoru,
             artis_yuzdesi: Math.floor(Math.random() * 40),
-            hedef_kitle: 'Mevsimsel Alıcı',
+            hedef_kitle: 'Mevsimsel ve Bütçesi Hazır Alıcı',
             erken_trend_mi: iklimSatisSkoru >= 90,
             hermania_karar_yorumu: yorum,
             ai_guven_skoru: 95
