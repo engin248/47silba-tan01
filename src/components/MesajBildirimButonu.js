@@ -95,12 +95,11 @@ export default function MesajBildirimButonu() {
         <>
             {/* KRİTİK ALARM PANELİ */}
             {alarmAcik && alarmMesajlar.length > 0 && (
-                <div style={{
+                <div className="animate-pulse" style={{
                     position: 'fixed', bottom: 82, zIndex: 99990, ...popupYan,
                     background: 'linear-gradient(135deg,#7f1d1d,#b91c1c)',
                     border: '2px solid #fca5a5', borderRadius: 12, padding: '10px 14px',
                     width: 272, boxShadow: '0 6px 24px rgba(239,68,68,.7)',
-                    animation: 'brzTitres 1.4s ease-in-out infinite',
                     direction: isAR ? 'rtl' : 'ltr',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
@@ -135,7 +134,7 @@ export default function MesajBildirimButonu() {
                     background: '#1e293b', border: '1px solid #334155',
                     borderRadius: 12, padding: '10px', width: 270,
                     boxShadow: '0 6px 24px rgba(0,0,0,.6)',
-                    animation: 'brzSlideUp .18s ease-out',
+                    transition: 'all 0.2s ease-out',
                     direction: isAR ? 'rtl' : 'ltr',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -171,6 +170,7 @@ export default function MesajBildirimButonu() {
             {/* ANA YÜZER BUTON */}
             <button id="mesaj-bildirim-btn" onClick={() => setPopupAcik(v => !v)}
                 title={okunmamis > 0 ? `${okunmamis} okunmamış mesaj` : 'Haberleşme'}
+                className={okunmamis > 0 ? 'animate-pulse' : ''}
                 style={{
                     position: 'fixed', bottom: 20, zIndex: 99999, ...yan,
                     width: 50, height: 50, borderRadius: '50%',
@@ -179,9 +179,8 @@ export default function MesajBildirimButonu() {
                     color: 'white', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: okunmamis > 0 ? '0 4px 18px rgba(239,68,68,.65)' : '0 4px 14px rgba(59,130,246,.4)',
-                    animation: okunmamis > 0 ? 'brzTitres 2s ease-in-out infinite' : 'none',
                     willChange: 'transform',
-                    transition: 'background .3s, box-shadow .3s',
+                    transition: 'all .3s ease-in-out',
                 }}>
                 <MessageSquare size={20} />
                 {okunmamis > 0 && (
@@ -196,17 +195,6 @@ export default function MesajBildirimButonu() {
                     </span>
                 )}
             </button>
-
-            <style>{`
-                @keyframes brzTitres {
-                    0%,100% { transform:scale(1); }
-                    50%      { transform:scale(1.06); }
-                }
-                @keyframes brzSlideUp {
-                    from { transform:translateY(8px); opacity:0; }
-                    to   { transform:translateY(0);   opacity:1; }
-                }
-            `}</style>
         </>
     );
 }
