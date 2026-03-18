@@ -63,16 +63,48 @@ async function bot8BasTasarimci(job_id = null, telemetriFnc = null) {
         const analiz = JSON.parse(g_res.response.text().replace(/```json/g, '').replace(/```/g, '').trim());
         tasarimRaporu = analiz;
 
-        await telemetriAt(80, `[PROMPT ÜRETİLDİ] Yepyeni Tasarım: "${tasarimRaporu.tasarim_adi}". M3 Kalıphanesine görsel komut atılıyor...`);
+        await telemetriAt(80, `[PROMPT ÜRETİLDİ] Yepyeni Tasarım: "${tasarimRaporu.tasarim_adi}". DALL-E 3 Otonom Çizimi (Sanal Manken) başlatılıyor...`);
 
-        // GELECEKTE DALL-E/MIDJOURNEY API EKLENDİĞİNDE BURADA image_url ALINACAK. Şimdilik Mock URL.
-        const mockImageUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
+        // GERÇEK DALL-E 3 API ENTEGRASYONU (FAZ 5.1)
+        // Kural 21 (Maliyet Şeffaflığı): Bu API çağrısı DALL-E 3 (HD) modelini kullanır, her tetiklemede OpenAI bakiyesinden ~0.04$ düşer.
+        let uretilenGorselUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"; // Fallback
+
+        try {
+            await telemetriAt(85, `[DALL-E 3 ZİNCİRİ] Çizim Ağına bağlanılıyor (Bu işlem 12-18 saniye sürebilir, API tüketimi gerçekleşiyor)...`);
+
+            const dalleCevap = await fetch("https://api.openai.com/v1/images/generations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "dall-e-3",
+                    prompt: tasarimRaporu.midjourney_prompt,
+                    n: 1,
+                    size: "1024x1024",
+                    quality: "standard"
+                })
+            });
+
+            const dalleVeri = await dalleCevap.json();
+            if (dalleCevap.ok && dalleVeri.data && dalleVeri.data.length > 0) {
+                uretilenGorselUrl = dalleVeri.data[0].url;
+                await telemetriAt(95, `[GÖRSEL TAMAM] Orijinal (Tümüyle Telifsiz) Manken Fotoğrafı başarıyla çizildi.`);
+            } else {
+                console.error("[DALL-E 3 FATAL ERROR]:", dalleVeri);
+                await telemetriAt(95, `[GÖRSEL HATA] DALL-E bağlantısı reddedildi (Limit/Key hatası). Yedek (Mock) resim kullanılıyor.`);
+            }
+        } catch (imgErr) {
+            console.error("[DALL-E ŞEBEKE KOPUŞU]:", imgErr);
+            await telemetriAt(95, `[GÖRSEL HATA] DALL-E 3 Server yanıt vermedi. Yedek resim ile kalıphaneye iniliyor.`);
+        }
 
         const tasarimKayit = {
             tasarim_adi: tasarimRaporu.tasarim_adi,
             kumas_dokusu: tasarimRaporu.kumas_kalip_kombinasyonu,
             ai_prompt: tasarimRaporu.midjourney_prompt,
-            yapay_zeka_gorseli: mockImageUrl, // Image Generation API bağlandığında gerçek görsel URL'si
+            yapay_zeka_gorseli: uretilenGorselUrl, // Artık doğrudan OpenAI URL'sini gömer
             onay_durumu: 'BEKLIYOR', // Patron onayı
             patrona_not: tasarimRaporu.satis_avantaji,
             created_at: new Date().toISOString()
