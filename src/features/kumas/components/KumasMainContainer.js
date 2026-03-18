@@ -233,12 +233,13 @@ export default function KumasMainContainer() {
                                             </div>
                                         ))}
                                     </div>
+                                )}
                             </div>
+
                         </div>
-
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     );
