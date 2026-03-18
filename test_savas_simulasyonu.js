@@ -19,9 +19,11 @@ async function savasOyunuBaslat() {
         test_modu: 'crash'
     });
 
-    console.log(`\n🎯 Savaş Simülasyonu Mermileri Kuyruğa Sürüldü!`);
-    console.log(`Terminalden 'node worker.js' çalıştırılarak Sentinel'in infaz yeteneği test edilecektir.`);
-    process.exit(0);
+    console.log(`\n🎯 Savaş Simülasyonu Mermileri Redis Kuyruğuna Sürüldü!`);
+    console.log(`Testi izlemek için Terminalden 'node worker.js' çalıştırılarak Sentinel'in infaz yeteneği ve Karargah yansımaları izlenecektir.`);
+
+    // Upstash Redis REST asenkron tamamlanması için ufak bir bekleme
+    setTimeout(() => { process.exit(0); }, 3000);
 }
 
 savasOyunuBaslat();
