@@ -70,14 +70,25 @@ export default function MesajBildirimButonu() {
     }, [kullaniciId, sayiGetir]);
 
     // Realtime — WebSocket, HTTP quota tüketmez
+    // Not: Çok hızlı ardı ardına gelen güncellemelere (Throttle/Debounce) karşı koruma eklendi.
     useEffect(() => {
         if (!kullaniciId) return;
+
+        let bekleme;
         const kanal = supabase.channel(`mbtn-${kGrup}`)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_ic_mesajlar' },
-                () => sayiGetir())
+                () => {
+                    // Aşırı http isteğini engellemek için gecikme (throttle) 
+                    clearTimeout(bekleme);
+                    bekleme = setTimeout(() => sayiGetir().catch(() => { }), 2000);
+                })
             .subscribe();
         kanalRef.current = kanal;
-        return () => supabase.removeChannel(kanal);
+
+        return () => {
+            clearTimeout(bekleme);
+            supabase.removeChannel(kanal);
+        };
     }, [kullaniciId, kGrup, sayiGetir]);
 
     // Popup açılınca detay getir
