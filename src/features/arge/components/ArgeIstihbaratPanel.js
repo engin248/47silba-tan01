@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import {
     TrendingUp, AlertTriangle, CheckCircle2, Clock, Zap,
     Target, BarChart3, Search, Brain, ArrowUpRight, Flame,
-    ShoppingBag, RefreshCw, ChevronRight, Star
+    ShoppingBag, RefreshCw, ChevronRight, Star, Activity
 } from 'lucide-react';
 
 // ─── SATAR / SATMAZ Skor Renk ─────────────────────────────────
@@ -54,6 +54,7 @@ export default function ArgeIstihbaratPanel() {
     const [strateji, setStrateji] = useState(/** @type {any[]} */([]));   // ESKİ: b1_arge_strategy, YENİ: b1_arge_products
     const [trendler, setTrendler] = useState(/** @type {any[]} */([]));
     const [ajanLog, setAjanLog] = useState(/** @type {any[]} */([]));
+    const [canliGorevler, setCanliGorevler] = useState(/** @type {any[]} */([])); // SENTINEL / M1 İZLEME
     const [loading, setLoading] = useState(true);
     const [serpSorgu, setSerpSorgu] = useState('');
     const [serpYukleniyor, setSerpYukleniyor] = useState(false);
@@ -69,7 +70,7 @@ export default function ArgeIstihbaratPanel() {
     const verileriCek = useCallback(async () => {
         setLoading(true);
         try {
-            const [stratejiRes, trendRes, logRes] = await Promise.allSettled([
+            const [stratejiRes, trendRes, logRes, canliRes] = await Promise.allSettled([
                 supabase.from('b1_arge_products')
                     .select('id, urun_adi, trend_skoru, artis_yuzdesi, ai_satis_karari, rekabet_durumu, erken_trend_mi, hermania_karar_yorumu, ai_guven_skoru, created_at')
                     .order('trend_skoru', { ascending: false })
@@ -83,6 +84,10 @@ export default function ArgeIstihbaratPanel() {
                     .in('ajan_adi', ['Trend Kâşifi', 'Yargıç (Matematikçi)', 'BATCH_GEMINI', 'Darboğaz Teşhiscisi'])
                     .order('created_at', { ascending: false })
                     .limit(15),
+                supabase.from('bot_tracking_logs')
+                    .select('*')
+                    .order('son_guncelleme', { ascending: false })
+                    .limit(6)
             ]);
 
             if (stratejiRes.status === 'fulfilled' && stratejiRes.value.data) {
@@ -93,6 +98,9 @@ export default function ArgeIstihbaratPanel() {
             }
             if (logRes.status === 'fulfilled' && logRes.value.data) {
                 setAjanLog(logRes.value.data);
+            }
+            if (canliRes.status === 'fulfilled' && canliRes.value.data) {
+                setCanliGorevler(canliRes.value.data);
             }
             // Veri geldiğinde "Ajanlar yolda" uyarısını söndür
             setKuyrukUyari('');
@@ -108,6 +116,19 @@ export default function ArgeIstihbaratPanel() {
         const kanal = supabase.channel('arge-istihbarat-panel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_products' }, verileriCek)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, verileriCek)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_tracking_logs' }, (payload) => {
+                if (payload.eventType === 'DELETE') {
+                    setCanliGorevler(prev => prev.filter(x => x.id !== payload.old.id));
+                } else {
+                    setCanliGorevler(prev => {
+                        const arr = [...prev];
+                        const idx = arr.findIndex(x => x.id === payload.new.id);
+                        if (idx > -1) arr[idx] = payload.new;
+                        else arr.unshift(payload.new);
+                        return arr.sort((a, b) => new Date(b.son_guncelleme) - new Date(a.son_guncelleme)).slice(0, 6);
+                    });
+                }
+            })
             .subscribe();
         return () => { supabase.removeChannel(kanal); };
     }, [verileriCek]);
@@ -288,6 +309,46 @@ export default function ArgeIstihbaratPanel() {
                         </button>
                     </div>
                 </div>
+
+                {/* ⚡ CANLI AJAN İZLEME PANELİ (SENTINEL TELEMETRİSİ) ⚡ */}
+                {canliGorevler.length > 0 && (
+                    <div style={{ marginTop: '1.5rem', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '1rem', border: '1px solid rgba(56,189,248,0.2)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
+                            <Activity size={16} color="#38bdf8" />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>M1 Operasyon Ağı (Canlı İzleme)</h3>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
+                            {canliGorevler.map((gorev) => {
+                                const yuzde = gorev.ilerleme_yuzdesi || 0;
+                                const isKuyu = gorev.durum === 'kuyrukta';
+                                const isHata = gorev.durum === 'INFAZ_EDILDI';
+                                const isBiten = gorev.durum === 'basarili';
+
+                                let barRenk = '#38bdf8'; // Çalışıyor - Mavi
+                                if (isHata) barRenk = '#ef4444'; // İnfaz - Kırmızı
+                                else if (isBiten) barRenk = '#10b981'; // Başarılı - Yeşil
+                                else if (isKuyu) barRenk = '#f59e0b'; // Kuyruk - Turuncu
+                                else if (yuzde > 70) barRenk = '#a855f7'; // Karar Aşamasında - Mor
+
+                                return (
+                                    <div key={gorev.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', borderLeft: `3px solid ${barRenk}` }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#e2e8f0', marginBottom: '4px', fontWeight: 600 }}>
+                                            <span>{gorev.ajan_adi} <span style={{ color: '#64748b' }}>| {gorev.hedef_kavram}</span></span>
+                                            <span style={{ color: barRenk }}>{Math.max(0, Math.min(100, yuzde))}% {isHata ? '(İMHA EDİLDİ)' : isBiten ? '(ONAYLANDI)' : isKuyu ? '(SIRADA)' : '(ÇALIŞIYOR)'}</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden', marginBottom: '6px' }}>
+                                            <div style={{ width: `${yuzde}%`, height: '100%', background: barRenk, transition: 'width 0.5s ease-out' }} />
+                                        </div>
+                                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>↳ {gorev.son_mesaj || 'Bekleniyor...'}</span>
+                                            <span style={{ opacity: 0.6 }}>{new Date(gorev.son_guncelleme).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Kart sayaçları */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginTop: '1rem' }}>

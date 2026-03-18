@@ -2,7 +2,6 @@
 System: THE ORDER / NIZAM
 Environment: Antigravity AI Agent
 Version: 1.0
-Domain: mizanet.com
 
 ---
 
@@ -158,7 +157,7 @@ Her yeni sohbet başladığında aşağıdaki sistem bağlamı otomatik kabul ed
 
 System Name: THE ORDER / NIZAM  
 Project Directory: C:\Users\Esisya\Desktop\47_SilBaştan  
-Primary Website: mizanet.com (ve demirtekstiltheonder.com)
+Primary Website: mizanet.com  
 Database: Supabase  
 System Founder: Engin
 

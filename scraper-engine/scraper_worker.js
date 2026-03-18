@@ -3,61 +3,82 @@ const { KuyruktanAl } = require('../src/lib/redis_kuyruk');
 const { bot3GoogleTalepAjani } = require('../arge_ajanlari/talep_google');
 const { bot4MetaReklamAjani } = require('../arge_ajanlari/reklam_meta');
 const { bot5MerkeziSorguHakemi } = require('../arge_ajanlari/filtre_suzgec');
-const { createClient } = require('@supabase/supabase-js');
+const { Sentinel } = require('../src/lib/sentinel');
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+// Kurallar Gereği Sunucu Boğulmaması İçin Maksimum Sekme/Ajan Kuralı
+const GOREV_LIMITI = 2;
+let aktifGorevler = 0;
 
-const QUEUE_NAME = 'scraper_jobs';
-const DELAY_MS = 2000;
-
-async function baslatKuyrukMotoru() {
-    console.log(`[SCRAPER WORKER] Kazıyıcı İşçi Ayaklandı. Kuyruk Dinleniyor: ${QUEUE_NAME}...`);
-
-    while (true) {
-        try {
-            const job = await KuyruktanAl(QUEUE_NAME);
-
-            if (job) {
-                const hedef = job.data.hedef;
-                console.log(`\n[SCRAPER WORKER] Vercel'den Emir Geldi! Hedef: ${hedef}`);
-
-                // Adım 1: Perplexity ve Google Trends Makro Taraması
-                await supabase.from('b1_agent_loglari').insert([{
-                    ajan_adi: 'BOT 3: GOOGLE',
-                    islem_tipi: 'TETIKLENDI',
-                    mesaj: `Hedef aranıyor: ${hedef}`,
-                    sonuc: 'bekliyor'
-                }]);
-                await bot3GoogleTalepAjani(hedef);
-
-                // Adım 2: Meta Reklam Sıçraması (Organiklik) Taraması
-                await supabase.from('b1_agent_loglari').insert([{
-                    ajan_adi: 'BOT 4: META',
-                    islem_tipi: 'TETIKLENDI',
-                    mesaj: `Reklam kütüphanesine dalındı: ${hedef}`,
-                    sonuc: 'bekliyor'
-                }]);
-                await bot4MetaReklamAjani(hedef);
-
-                // Adım 3: Merkezi Yargıç (Hermania) Karar Versin
-                await supabase.from('b1_agent_loglari').insert([{
-                    ajan_adi: 'BOT 5: HERMANIA',
-                    islem_tipi: 'TETIKLENDI',
-                    mesaj: `Ajanların topladığı veriler ${hedef} için yargılanıyor...`,
-                    sonuc: 'bekliyor'
-                }]);
-                await bot5MerkeziSorguHakemi(hedef);
-
-                console.log(`[SCRAPER WORKER] İş ${job.id} Zinciri Başarıyla Tamamlandı.`);
-            } else {
-                await new Promise(res => setTimeout(res, 2000));
-            }
-        } catch (error) {
-            console.error(`[SCRAPER WORKER ERROR] Zincir Çöktü:`, error.message);
+/**
+ * Siber İşçi Motoru: 
+ * Upstash Redis Kuyruğunu dinler, görevi devralır ve Supabase'e durum raporlar.
+ */
+async function isciMotoru() {
+    try {
+        if (aktifGorevler >= GOREV_LIMITI) {
+            return; // Sınır dolu, sıradakini bekle
         }
 
-        await new Promise(res => setTimeout(res, DELAY_MS));
+        const job = await KuyruktanAl('scraper_jobs');
+        if (!job) return; // Kuyruk boşsa motor dinlenir
+
+        aktifGorevler++;
+        const hedef = job.data.hedef;
+        const jobId = job.id;
+        console.log(`\n[İŞÇİ] 🎯 Yeni Görev Alındı: ${hedef} | Job ID: ${jobId}`);
+
+        // İşlemi paralel başlat (Event Loop'u kitlememek için asenkron IFFE kullanıyoruz)
+        (async () => {
+            try {
+                // ─── Adım 1: Sentinel Korumalı Google Bot Taraması ───
+                const sGoogle = new Sentinel(jobId, 'BOT 3: GOOGLE', hedef);
+                await sGoogle.baslat(45000);
+                try {
+                    await sGoogle.guncelle(25, 'Google Trends verisi kazılıyor...', 'google.com/trends');
+                    await bot3GoogleTalepAjani(hedef);
+                    await sGoogle.bitir('Makro Talep verisi başarıyla alındı.');
+                } catch (e) {
+                    await sGoogle.infaz(e.message);
+                    throw new Error(`Google Bot Çöktü: ${e.message}`);
+                }
+
+                // ─── Adım 2: Sentinel Korumalı Meta Reklam Taraması ───
+                const sMeta = new Sentinel(jobId, 'BOT 4: META', hedef);
+                await sMeta.baslat(45000);
+                try {
+                    await sMeta.guncelle(50, 'Facebook/Instagram reklam havuzu taranıyor...', 'facebook.com/ads');
+                    await bot4MetaReklamAjani(hedef);
+                    await sMeta.bitir('Meta sıcak satış sinyalleri yakalandı.');
+                } catch (e) {
+                    await sMeta.infaz(e.message);
+                    throw new Error(`Meta Bot Çöktü: ${e.message}`);
+                }
+
+                // ─── Adım 3: Sentinel Korumalı Merkezi Süzgeç (Hermania) ───
+                const sHermania = new Sentinel(jobId, 'BOT 5: HERMANIA', hedef);
+                await sHermania.baslat(60000);
+                try {
+                    await sHermania.guncelle(75, 'Ajanların ham verisi 138 Altın Kritere vuruluyor...', 'karar_motoru');
+                    await bot5MerkeziSorguHakemi(hedef);
+                    await sHermania.bitir('Tüm Süzgeç Testleri Bitti. KARAR VERİLDİ.');
+                } catch (e) {
+                    await sHermania.infaz(e.message);
+                    throw e;
+                }
+
+                console.log(`[İŞÇİ] ✅ ${hedef} görevi %100 onaylandı.`);
+            } catch (err) {
+                console.error("[İŞÇİ ZİNCİR KIRILMASI] Görev Zinciri Koptu:", err.message);
+            } finally {
+                aktifGorevler--; // Kontenjan serbest bırakılır
+            }
+        })();
+
+    } catch (err) {
+        console.error("[İŞÇİ HATA İNFAZI] Kuyruk İşleme Hatası:", err.message);
     }
 }
 
-baslatKuyrukMotoru();
+// Kalp atışı: İşçi her 1 saniyede bir kuyruk ağını dinler
+setInterval(isciMotoru, 1000);
+console.log("\n🛡️ SİBER İŞÇİ (Otonom Worker) BAŞLATILDI. Yüzde 100 Sentinel Zırhı ile Kuyruk Dinleniyor...\n");
