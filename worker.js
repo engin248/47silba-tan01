@@ -45,6 +45,22 @@ async function isciMotoru() {
             // Şimdilik varsayılan Tiktok ajanı atıyoruz, ilerde hedefe göre dinamik olacak
             let aktifAjanFnc = bot1TiktokTrendAjani;
 
+            // --- SİMÜLASYON TEST ZIRHLARI (SAVAŞ OYUNU İÇİN) ---
+            if (job.data.test_modu === 'timeout') {
+                aktifAjanFnc = async (hedef, j_id, telemetri) => {
+                    if (telemetri) await telemetri(j_id, 20, "[ZEHİRLİ AJAN] Kasıtlı sonsuz döngüye girildi...", "çalışıyor");
+                    await new Promise(resolve => setTimeout(resolve, 65000));
+                    return { karar: 'ZAMAN_ASIMI_HİLESİ_FARK_EDİLEMEDİ' };
+                };
+            }
+            if (job.data.test_modu === 'crash') {
+                aktifAjanFnc = async (hedef, j_id, telemetri) => {
+                    if (telemetri) await telemetri(j_id, 10, "[PATLAYICI AJAN] Hedefe yaklaşıldı. Bomba pimi çekildi...", "çalışıyor");
+                    throw new Error("Yapay Zeka Mantık Çökmesi (Test Simülasyonu Kasıtlı Patlaması)");
+                };
+            }
+            // ---------------------------------------------------
+
             // Eğer reenkarnasyon ise ajana ekstra kuralları yedirecek şekilde sargı (wrapper) yapılabilir
             const sonuc = await SentinelZirhi(job.id, job.data.hedef, aktifAjanFnc, 60);
 
