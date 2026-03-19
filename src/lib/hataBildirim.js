@@ -59,8 +59,9 @@ export async function hataBildir(modul, hata, ekBilgi = '') {
             signal: AbortSignal.timeout(5000) // 5sn'den uzun bekleme
         });
 
-    } catch (_) {
-        // Bildirim gönderilemese bile sistemin çalışmasını engelleme
+    } catch (bildirimHata) {
+        // H3 FIX: Bildirim gönderilemese bile sistemi engelleme — ama hata logla
+        console.error('[H3 HATA BİLDİRİM HATASI] Telegram\'a gönderilemedi:', bildirimHata?.message);
     }
 }
 

@@ -97,7 +97,8 @@ export function YetkiProvider({ children }) {
             } else {
                 setYetkiMap({});
             }
-        } catch {
+        } catch (yetkiHata) {
+            console.error('[H1 YETKİ HATASI] Supabase yetki tablosu okunamadı:', yetkiHata?.message);
             setTumYetkiler(VARSAYILAN_YETKILER);
         }
         setYukleniyor(false);

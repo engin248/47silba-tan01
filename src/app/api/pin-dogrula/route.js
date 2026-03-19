@@ -145,7 +145,8 @@ export async function POST(request) {
     // En yüksek yetki önce — aynı PIN birden fazla gruba denk gelirse tam > uretim > genel
     const YETKI_SIRASI = [
         { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },
-        { pin: temizle(process.env.TEST_COORDINATOR_PIN), grup: 'tam' }, // geçici test
+        // G2 FIX (Müfettiş 19.03.2026): TEST_COORDINATOR_PIN production'dan kaldırıldı.
+        // Test pini production'da aktif olursa güvenlik açığı oluşturur.
         { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
         { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
     ];

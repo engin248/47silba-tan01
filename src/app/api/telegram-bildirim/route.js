@@ -37,6 +37,14 @@ export async function OPTIONS() {
 
 export async function POST(request) {
     try {
+        // G3 FIX (Müfettiş 19.03.2026): Internal API Key Auth Zırhı eklendi.
+        // Bu endpoint'e sadece kendi sistemimiz erişebilir, dışarıdan spam engellendi.
+        const authHeader = request.headers.get('authorization') || '';
+        const internalKey = process.env.INTERNAL_API_KEY || process.env.CRON_SECRET || '';
+        if (internalKey && authHeader !== `Bearer ${internalKey}`) {
+            return NextResponse.json({ success: false, error: 'YETKİSİZ ERİŞİM!' }, { status: 403 });
+        }
+
         const ipFallback = 'Anonim-' + Math.random().toString(36).substring(2, 9);
         const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ipFallback;
 
@@ -80,7 +88,7 @@ export async function POST(request) {
                     .eq('son_mesaj_ozeti', mesajOnizleme)
                     .single();
                 dupCheck = data;
-            } catch { /* duplicate check fail */ }
+            } catch (dupErr) { console.error('[TELEGRAM DUP-CHECK HATASI]', dupErr?.message); /* Duplicate check fail - yine de gonder */ }
 
             if (dupCheck) {
                 const gecenSn = (new Date().getTime() - new Date(dupCheck.son_vurus_saati).getTime()) / 1000;

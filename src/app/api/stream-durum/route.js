@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
+import { spamKontrol } from '@/lib/ApiZirhi';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 5;
 
-export async function GET() {
+export async function GET(request) {
+    // R2 FIX (Müfettiş 19.03.2026): Rate limit zirhi eklendi
+    const ip = request.headers.get('x-forwarded-for') || 'sistem';
+    const { izinVerildi } = spamKontrol(ip);
+    if (!izinVerildi) return NextResponse.json({ durum: 'kapali', mesaj: 'Rate limit' }, { status: 429 });
+
     try {
         const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL || process.env.GO2RTC_URL || 'http://localhost:1984';
 
