@@ -133,11 +133,17 @@ async function isciMotoru() {
         }
 
         aktifGorevler--;
+
+        // 🚨 KÖR NOKTA 3: API YANIKLARI (RATE LIMIT SOĞUTMA) 🚨
+        // Ekip 3 (DALL-E, Gemini) peş peşe tetiklendiğinde API ban yemesin diye 6 sn Termal Soğutma süresi
+        console.log(`[TERMAL ZIRH] API limitine takılmamak için 6 saniye termal soğutma (Rate Limit Cooldown) başlatıldı...`);
+        await new Promise(resolve => setTimeout(resolve, 6000));
+
     } catch (err) {
         console.error("[İŞÇİ MOTOR ÇÖKMESİ]:", err.message);
         aktifGorevler--;
     }
 }
 
-setInterval(isciMotoru, 2500);
+setInterval(isciMotoru, 5000); // Havuz sorgulamasını da yavaşlattık
 console.log("\n🛡️ OTONOM BEYİN ZİNCİRLEME (PIPELINE) KOMUTASI VE SENTINEL ZIRHI BAŞLATILDI...\n");

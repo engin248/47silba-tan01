@@ -232,4 +232,15 @@ Her cevap şu kalite filtresinden geçirilir.
 
 ---
 
+## 22. MILITARY ARCHIVE & RANKING PROTOCOL (ASKERİ SİCİL VE YAZILI ARŞİV KANUNU)
+
+**Yürürlük Tarihi/Saati:** 19 Mart 2026, 04:02:01 (TRT)
+**Veren Makam:** Başkomutan / Patron
+
+1. **Yazılı Emir ve Kayıt Zorunluluğu:** Bundan sonra verilen tüm komutlar, mimari kararlar ve ajanların gerçekleştirdiği tüm operasyonlar kesinlikle yazılı bir arşivde "Sisteme yük bindirmeyecek (Lightweight/Txt log veya izole DB tablosu)" formatta tutulacaktır. Emirler ve itaat asenkron olarak mühürlenecek, sözlü veya kayıt dışı hiçbir işlem yapılmayacaktır.
+2. **Liyakat ve Rütbe (Rank) Sistemi:** Ajanlar ve Ekipler (Ekip 1, Bot 8, Otonom İşçiler vb.) başardıkları sıfır hatalı işlere ve operasyonel maliyet tasarruflarına göre değerlendirilir. Başarılı hizmet sunan ajan/ekip "Rütbe ve Sistem Yetkisi" kazanır; işini aksatan, kör nokta bırakan, veya patlayan ajan/ekip doğrudan "Siciline" işlenir ve lüzumu halinde infaz edilir/rütbesi sökülür.
+3. **Kök Neden Raporlaması:** Sisteme yük bindiren her hatanın kök nedeni bulunup "Fail" (Suçlu Ajan/Geliştirici) siciline işlenmeden ve patrona raporlanmadan tamir işlemine geçilmez.
+
+---
+
 END OF FILE

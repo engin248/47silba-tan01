@@ -26,6 +26,7 @@ export default function M3TasarimPaneli() {
             }
         } catch (err) {
             console.error(err);
+            alert("SİSTEM BAĞLANTISI KOPUK (M3): Veritabanına ulaşılamıyor.");
         } finally {
             setLoading(false);
         }
@@ -45,7 +46,19 @@ export default function M3TasarimPaneli() {
 
             if (!error) {
                 setOnaylanmis(prev => ({ ...prev, [id]: true }));
-                alert("Üretim Kalıphanesine Aktarıldı!");
+
+                // Faz 6 (B2B/Shopify Webhook) Ajan Tetiği Lehimlendi
+                try {
+                    fetch('/api/b2b-webhook-tetikle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tasarim_id: id })
+                    }).catch(err => console.error("Webhook trigger arkaplan hatasi:", err));
+                } catch (e) {
+                    // Sessiz kal, frontend cokmesin
+                }
+
+                alert("Üretim Kalıphanesine Aktarıldı ve B2B Ajanları Uyandırıldı!");
             } else {
                 console.error("Yetki (RLS) hatası veya bağlantı kopuk:", error);
             }

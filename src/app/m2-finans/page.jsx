@@ -30,6 +30,7 @@ export default function M2FinansPaneli() {
             }
         } catch (err) {
             console.error(err);
+            alert("SİSTEM BAĞLANTISI KOPUK (M2): Veritabanına ulaşılamıyor.");
         } finally {
             setLoading(false);
         }

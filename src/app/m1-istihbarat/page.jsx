@@ -37,6 +37,7 @@ export default function M1IstihbaratPaneli() {
             if (!logErr && logData) setLogs(logData);
         } catch (err) {
             console.error("Veri çekme hatası:", err);
+            alert("SİSTEM BAĞLANTISI KOPUK (M1): Veritabanına veya API'ye ulaşılamıyor.");
         } finally {
             setLoading(false);
         }

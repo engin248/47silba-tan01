@@ -1,22 +1,45 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function M4LojistikPaneli() {
     const [lojistikKayitlari, setLojistikKayitlari] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // Burada ileride Supabase'den veya Shopify Webhook'tan gelen gerçek veriler okunacak.
-        // Şimdilik arayüzün (Skeleton) görsel çatısını çiziyoruz.
-        const mockData = [
-            { id: 1, urun: "T-001 Özel Kesim Kaşe", kumaş: "350 Metre B2B Siparişi Geçildi", shopify: "SEO Eklendi (Yayında)", status: "BEKLİYOR" },
-            { id: 2, urun: "Vintage Yaka Gömlek", kumaş: "Stok Yetersiz (B2B Red)", shopify: "Beklemede", status: "HATA" }
-        ];
-        setTimeout(() => {
-            setLojistikKayitlari(mockData);
+    const fetchLojistik = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('b3_uretilen_tasarimlar')
+                .select('id, tasarim_adi, kumas_dokusu, onay_durumu')
+                .in('onay_durumu', ['KALIPHANEDE', 'URETIMDE', 'SHOPIFYDA'])
+                .order('created_at', { ascending: false });
+
+            if (data && !error) {
+                const mappedData = data.map(item => ({
+                    id: item.id,
+                    urun: item.tasarim_adi,
+                    kumaş: item.kumas_dokusu || "Bekleniyor",
+                    shopify: item.onay_durumu === 'SHOPIFYDA' ? "Yayında" : "Beklemede",
+                    status: item.onay_durumu === 'KALIPHANEDE' ? 'BEKLİYOR' : 'YOLDA'
+                }));
+                setLojistikKayitlari(mappedData);
+            }
+        } catch (err) {
+            console.error("M4 Fetch Hatasi:", err);
+            alert("SİSTEM BAĞLANTISI KOPUK (M4): Lojistik veritabanına ulaşılamıyor.");
+        } finally {
             setLoading(false);
-        }, 1500);
+        }
+    };
+
+    useEffect(() => {
+        fetchLojistik();
     }, []);
 
     return (
@@ -51,9 +74,9 @@ export default function M4LojistikPaneli() {
                                 </div>
                                 <div>
                                     {kayit.status === 'BEKLİYOR' ? (
-                                        <span className="badge bg-yellow-900/40 text-yellow-300 border border-yellow-500/40 px-3 py-1 text-xs">Yolda (İzleniyor)</span>
+                                        <span className="badge bg-yellow-900/40 text-yellow-300 border border-yellow-500/40 px-3 py-1 text-xs">{kayit.status} (Kaliphanede)</span>
                                     ) : (
-                                        <span className="badge bg-red-900/40 text-red-300 border border-red-500/40 px-3 py-1 text-xs">Ajan Müdahalesi Şart</span>
+                                        <span className="badge bg-green-900/40 text-green-300 border border-green-500/40 px-3 py-1 text-xs">Sorunsuz (Üretimde/Sevk)</span>
                                     )}
                                 </div>
                             </div>
