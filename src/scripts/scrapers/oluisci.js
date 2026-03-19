@@ -113,9 +113,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
                 }
             }
             urunLinkleri = [...new Set(urunLinkleri)].slice(0, 5); // 5 ürün testi
-        } catch (e) {
-
-        }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: oluisci.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
         if (urunLinkleri.length === 0) {
             // Fetch işe yaramadıysa veya koruma aktifse DOM'dan al
@@ -192,9 +190,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
                                 siparis_begenisi_notu: pd.promotions ? pd.promotions.map(p => p.text).join(' - ') : '',
                             };
                         }
-                    } catch (parseErr) {
-
-                    }
+                    } catch (parseErr) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: oluisci.js | Hata:', parseErr ? parseErr.message || parseErr : 'Bilinmiyor'); }
                 }
 
                 if (pdpData) {
@@ -278,7 +274,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mesaj: `Trendyol PDP (15 Madde) analizi tamamlandı. ${islenenler.length} ürün M1 Motoru kararına sunuldu.`, sonuc: 'basarili' })
                 }).catch(() => { });
-            } catch (err) { }
+            } catch (err) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: oluisci.js | Hata:', err ? err.message || err : 'Bilinmiyor'); }
 
         } else {
             console.log("Kaydedilecek ürün bulunamadı.");
@@ -288,7 +284,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
         console.error(`[ÖLÜ İŞÇİ] 🚨 AĞIR DARBE (CRASH): ${error.message}`);
     } finally {
         if (browser) {
-            try { await browser.close(); } catch (e) { }
+            try { await browser.close(); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: oluisci.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         }
 
     }

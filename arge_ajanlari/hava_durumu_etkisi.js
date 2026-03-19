@@ -42,7 +42,7 @@ async function havaDurumuSatisEtkisi(urunKategorisi, job_id = null, telemetriFnc
                 const p_res = await fetch('https://api.perplexity.ai/chat/completions', options);
                 const p_data = await p_res.json();
                 if (p_data.choices) simulasyonHavaVerisi = JSON.parse(p_data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
-            } catch (err) { }
+            } catch (err) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: hava_durumu_etkisi.js | Hata:', err ? err.message || err : 'Bilinmiyor'); }
         }
 
         await telemetriAt(65, `[LOJİSTİK ANALİZİ] Meteorolojik sapmalar tekstil algoritmasıyla çarpıştırılıyor: Hava -> ${simulasyonHavaVerisi.sicaklik_degisimi}`);

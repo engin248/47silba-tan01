@@ -170,7 +170,7 @@ export default function AjanlarMainContainer() {
                     bekliyor: data.filter(g => g.durum === 'bekliyor').length,
                 });
             }
-        } catch (error) { }
+        } catch (error) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: AjanlarMainContainer.js | Hata:', error ? error.message || error : 'Bilinmiyor'); }
     };
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
@@ -280,7 +280,7 @@ export default function AjanlarMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: AjanlarMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
             if (error) throw error;

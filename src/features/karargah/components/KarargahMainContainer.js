@@ -16,7 +16,7 @@ export function KarargahMainContainer() {
 
     useEffect(() => {
         let uretimPin = false;
-        try { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); } catch (e) { }
+        try { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KarargahMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         const erisebilir = kullanici?.grup === 'tam' || uretimPin;
         setYetkiliMi(erisebilir);
     }, [kullanici]);

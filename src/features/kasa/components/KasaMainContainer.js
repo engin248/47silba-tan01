@@ -204,7 +204,7 @@ export default function KasaMainContainer() {
                 kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Kasa Yetkilisi',
                 eski_veri: { mesaj: `Kasa hareketi silindi. ID: ${id}` }
             }]);
-        } catch (e) { }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KasaMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
         try {
             const { error } = await supabase.from('b2_kasa_hareketleri').delete().eq('id', id);

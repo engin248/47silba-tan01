@@ -265,7 +265,7 @@ export default function KesimMainContainer() {
                     tablo_adi: 'b1_kesim_operasyonlari', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi M5',
                     eski_veri: { durum: 'Soft Delete / Arşive alındı.', model_kodu: m_kodu, id: id }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KesimMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
             await supabase.from('b1_kesim_operasyonlari').update({ durum: 'iptal' }).eq('id', id);
             yukle(); goster('Kayıt arşive (iptal durumuna) alındı.');
             telegramBildirim(`🗑️ KESİM İPTAL EDİLDİ\n${m_kodu} modeline ait kesim kaydı yönetici onayıyla arşive kaldırıldı.`);
@@ -450,13 +450,13 @@ export default function KesimMainContainer() {
                                 <div className="grid grid-cols-7 gap-2">
                                     {BEDENLER.map(b => {
                                         let bData = {};
-                                        try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { }
+                                        try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KesimMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
                                         return (
                                             <div key={b} className="flex flex-col gap-1 bg-[#0b121a] p-2 rounded-lg border border-[#21262d]">
                                                 <span className="font-bold text-[10px] text-emerald-400 text-center">{b}</span>
                                                 <input type="number" placeholder="0" min="0" value={bData[b] || ''}
                                                     onChange={e => {
-                                                        try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { }
+                                                        try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KesimMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
                                                         if (e.target.value) bData[b] = parseInt(e.target.value);
                                                         else delete bData[b];
                                                         setForm({ ...form, beden_dagilimi: JSON.stringify(bData) });

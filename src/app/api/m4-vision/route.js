@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+import { spamKontrol } from '@/lib/ApiZirhi';
 
 // Edge Node (İşletmedeki PC/Raspberry) cihazlarının buluta (Buraya) veri atacağı güvenli uç.
 export async function POST(req) {
     try {
+        // 🚨 KÖR NOKTA ZIRHI: DDoS Koruması (Makine Tüfeği) 🚨
+        const ip = req.headers.get('x-forwarded-for') || 'edge_ip';
+        const { izinVerildi } = spamKontrol(ip);
+        if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPİT EDİLDİ - BAĞLANTI REDDEDİLDİ!' }, { status: 429 });
+
         const authHeader = req.headers.get('Authorization');
         // 'Bearer ' prefixi ile güvenlik
         const expectedSecret = process.env.CRON_SECRET || 'dev_secret';

@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { spamKontrol } from '@/lib/ApiZirhi';
 
 export const revalidate = 3600; // Karargah Ana Verileri 1 SAAT boyunca statik kalır (Bedava & Çok Hızlı)
 
 export async function GET(request) {
     try {
+        // 🚨 KÖR NOKTA ZIRHI: DDoS ve Spam Koruması 🚨
+        const ip = request.headers.get('x-forwarded-for') || 'bilinmeyen_ip';
+        const { izinVerildi } = spamKontrol(ip);
+        if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPİT EDİLDİ - ATEŞ KES!' }, { status: 429 });
+
+        // 🚨 KÖR NOKTA ZIRHI: Yetkisiz Dışarı (Service Role) Okuma Engellendi 🚨
+        const authHeader = request.headers.get('authorization');
+        if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`) {
+            return NextResponse.json({ error: 'YETKİSİZ ERİŞİM! (KASA KAPALI)' }, { status: 403 });
+        }
+
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
         const supabase = createClient(url, key);

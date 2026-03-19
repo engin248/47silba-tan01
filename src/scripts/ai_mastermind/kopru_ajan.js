@@ -157,9 +157,7 @@ async function arsivleSonraSil(tablo, kayitlar) {
             }
 
             basariliSilme++;
-        } catch (e) {
-
-        }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: kopru_ajan.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
     }
 
     return basariliSilme;

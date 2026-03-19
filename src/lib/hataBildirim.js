@@ -91,5 +91,5 @@ export async function uyariBildir(modul, mesaj) {
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: metin, parse_mode: 'HTML' }),
             signal: AbortSignal.timeout(5000)
         });
-    } catch (_) { }
+    } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: hataBildirim.js'); }
 }

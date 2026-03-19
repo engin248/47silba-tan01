@@ -77,7 +77,7 @@ export async function POST(request) {
                 kullanici_adi: 'Server API (Güvenli Sipariş)',
                 eski_veri: { siparis_no: siparisDog.data.siparis_no, kalem_sayisi: kalemler.length }
             }]);
-        } catch (e) { }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
         // [M9 - ZIRH #2]: Müşteri Cari Bakiyesi ve M7 Kasa Entegrasyonu (Finans Zırhı)
         if (siparisDog.data.musteri_id) {

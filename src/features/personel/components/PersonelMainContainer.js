@@ -215,7 +215,7 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: PersonelMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_personel').delete().eq('id', id);
             if (error) throw error;
@@ -293,7 +293,7 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: PersonelMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
             if (error) throw error;

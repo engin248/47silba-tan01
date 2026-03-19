@@ -162,7 +162,7 @@ export default function ScraperKarantinaContainer() {
                     await supabase.from('b1_arge_products_karantina').update({ karantina_durumu: 'onaylandi' }).eq('id', urun.id);
                     basarili++;
                 }
-            } catch (err) { }
+            } catch (err) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: ScraperKarantinaContainer.js | Hata:', err ? err.message || err : 'Bilinmiyor'); }
         }
 
         goster(`✅ Toplu işlem bitti. ${basarili} eklendi, ${atlanan} eski/mükerrer kayıt çöpe atıldı.`);

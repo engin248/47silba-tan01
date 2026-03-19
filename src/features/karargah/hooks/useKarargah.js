@@ -118,7 +118,7 @@ export function useKarargah() {
                     ciro = data.ciro || ciro;
                     maliyet = data.maliyet || maliyet;
                 }
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: useKarargah.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             setPing(Math.round(performance.now() - t0));
 

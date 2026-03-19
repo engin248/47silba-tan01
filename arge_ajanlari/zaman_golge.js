@@ -64,7 +64,7 @@ async function bot6GolgeZamanMakinesi(hedefKavramiBozuk = null, job_id = null, t
                     const p_res = await fetch('https://api.perplexity.ai/chat/completions', options);
                     const p_data = await p_res.json();
                     if (p_data.choices) perplexityRaporu = p_data.choices[0].message.content;
-                } catch (perr) { }
+                } catch (perr) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: zaman_golge.js | Hata:', perr ? perr.message || perr : 'Bilinmiyor'); }
             }
 
             await telemetriAt(65, `[ANALİZ] "${urun.urun_adi}" verileri çekildi. Yargıç kararı bekleniyor...`);
@@ -96,7 +96,7 @@ async function bot6GolgeZamanMakinesi(hedefKavramiBozuk = null, job_id = null, t
                         await supabase.from('b1_arge_products').update({ ai_satis_karari: 'ÇOK_SATAR', hermania_karar_yorumu: yorum }).eq('id', urun.id);
                         await telemetriAt(85, `[DİRİLİŞ] 🔥 "${urun.urun_adi}" dikey patlama yaptı ve diriltildi!`);
                     }
-                } catch (e) { }
+                } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: zaman_golge.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
             }
         }
 

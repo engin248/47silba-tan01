@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
             }
         } catch (err) {
             console.error('Auth yükleme hatası:', err);
-            try { localStorage.removeItem('sb47_auth'); } catch (e) { }
+            try { localStorage.removeItem('sb47_auth'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: auth.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         } finally {
             setYukleniyor(false);
         }

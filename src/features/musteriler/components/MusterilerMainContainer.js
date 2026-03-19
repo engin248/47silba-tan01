@@ -230,7 +230,7 @@ export default function MusterilerSayfasi() {
                 kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Saha Yetkilisi',
                 eski_veri: { musteri_kodu: kod, mesaj: 'Müşteri kaydı kalıcı olarak silindi.' }
             }]);
-        } catch (e) { }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: MusterilerMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
         try {
             const { error } = await supabase.from('b2_musteriler').delete().eq('id', id);

@@ -218,7 +218,7 @@ export default function KatalogSayfasi() {
                 data.forEach(v => map[`${v.beden}-${v.renk}`] = v.stok_adeti);
                 setVaryantStoklar(map);
             }
-        } catch (e) { } // tablo yoksa SQL henüz çalışmamıştır sessiz geç
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KatalogMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); } // tablo yoksa SQL henüz çalışmamıştır sessiz geç
     };
 
     const varyantStokKaydet = async () => {

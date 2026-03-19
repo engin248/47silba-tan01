@@ -95,7 +95,7 @@ KURALLAR:
                 kaynak_tablo: 'b1_personel', sonuc: 'basarili',
                 mesaj: `${pData.length} personel analiz edildi.`,
             }]);
-        } catch (_) { }
+        } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: route.js'); }
 
         return NextResponse.json({ success: true, aiCevap, personel_sayisi: pData.length });
 

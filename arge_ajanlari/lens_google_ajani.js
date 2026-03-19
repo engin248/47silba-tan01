@@ -37,7 +37,7 @@ async function bot7GoogleLensAjani(base64Fotograf, aramaTerimi = "Bilinmeyen Ür
             try {
                 const res = await visionModel.generateContent([v_prompt, imagePart]);
                 geminiSonuc = JSON.parse(res.response.text().replace(/```json/g, '').replace(/```/g, '').trim());
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: lens_google_ajani.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         } else {
             await telemetriAt(40, `[UYARI] Görsel Base64 bulunamadı. Sadece metin ağırlıklı kontrol edilecek.`);
         }
@@ -77,7 +77,7 @@ async function bot7GoogleLensAjani(base64Fotograf, aramaTerimi = "Bilinmeyen Ür
                 const p_res = await fetch('https://api.perplexity.ai/chat/completions', options);
                 const p_data = await p_res.json();
                 if (p_data.choices) perplexitySonuc = JSON.parse(p_data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
-            } catch (err) { }
+            } catch (err) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: lens_google_ajani.js | Hata:', err ? err.message || err : 'Bilinmiyor'); }
         }
 
         // === AŞAMA 3: GEMINI İNFAZ ===
@@ -102,7 +102,7 @@ async function bot7GoogleLensAjani(base64Fotograf, aramaTerimi = "Bilinmeyen Ür
             const finalModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const f_res = await finalModel.generateContent(g_prompt);
             infazSonuc = JSON.parse(f_res.response.text().replace(/```json/g, '').replace(/```/g, '').trim());
-        } catch (e) { }
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: lens_google_ajani.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         // BİLDİRİM VE KARARGAH MÜHRÜ
         const hermaiSebebi = `
         [Lens Kumaş DNA]: ${geminiSonuc.kumas_analizi}. Marka İzi: ${geminiSonuc.muhtemel_markalar}.
