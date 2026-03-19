@@ -6,6 +6,12 @@ Domain: mizanet.com
 
 ---
 
+## 0. MİZANET ANA DOKTRİNİ: SIFIR İNİSİYATİF
+**"Ticaret dünyasında hissiyatlara ve inisiyatife bırakılan her karar, potansiyel bir faciadır."**
+- **Mutlak Matematik:** Sistemde hiçbir ajan, bot veya personel "bence" diyerek karar veremez. Kumaş fire maliyetleri, beklenen iade oranları ve trend skorları matematiksel bir süzgeçten geçer.
+- **Sıfır İnsiyatif Hedefi:** İnisiyatif insana veya duygusal zekaya değil, hesaplanmış veri limitlerine ve acımasız Kalkan kurallarına bırakılır. Sistemin görevi "Yanlışlıklara dur diyebilmektir".
+
+---
 ## 1. CORE RESPONSE DISCIPLINE
 
 1. Cevaplar kısa, net ve doğrudan olmalıdır.

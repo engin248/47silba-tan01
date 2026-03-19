@@ -48,6 +48,8 @@ async function bot8BasTasarimci(job_id = null, telemetriFnc = null) {
         Sana M1 Karargahındaki 3 ayrı "ÇOK_SATAR" onaylı istihbaratı veriyorum. Senin görevin bu 3 parçanın en güçlü yanlarını (birinin kumaşı, birinin rengi, diğerinin modeli) alıp, TÜRKİYE'DE DAHA ÖNCE ÜRETİLMEMİŞ, YEP YENİ ve 'Kusursuz Arbitraj' fırsatı sunan BİRLEŞTİRİLMİŞ bir moda ürünü yaratmak. 
         M3 Kalıphane ekibine direkte bu ürünü dikebilmeleri için tarif edeceksin.
         
+        [DİKKAT KURAL 22 - ETİK VE TELİF ZIRHI]: Asla ve asla sana verilen referans ürünleri 1'e 1 kopyalama veya taklit etme (No Plagiarism / No Copyright Infringement). Diğer markaların logolarını, patentli kesimlerini veya doğrudan tasarımlarını kullanma. Sen bir 'Fotokopi Makinesi' değil, 'Sentezci (Alchemist) Baş Mimar'sın. Pazardaki trend ilhamlarını (Renk, Kumaş) alıp tamamen ÖZGÜN, MİZANET markasına ait yepyeni bir şaheser yaratmalısın.
+        
         [ONAYLI İSTİHBARATLAR]:
         ${sentezHammadde}
 
