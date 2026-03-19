@@ -1,221 +1,605 @@
 ﻿'use client';
 import {
-    Activity, ShieldCheck, Zap, Bot, ArrowRight, AlertTriangle, Cpu, Network,
-    ChevronRight, Search, BarChart3, Scissors, Factory, ShoppingBag, Package,
-    Users, Wallet, PieChart, TrendingUp, AlertCircle, Shirt, Ruler, Layers, CheckCircle2, Lock
+    Activity, ShieldCheck, Zap, Bot, Camera, ArrowRight, PlayCircle,
+    AlertCircle, ServerCrash, Send, CheckCircle, MessageSquare,
+    Database, Cpu, Network, AlertTriangle, Radio, Eye, Target, Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { useState, useEffect } from 'react';
-import { useKarargah } from '@/features/karargah/hooks/useKarargah';
+import { useKarargah } from '../hooks/useKarargah';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+
+// ████████████████████████████████████████████████████████████████████████
+// MİZANET SİBER KARARGAH — ASKERİ OPERASYON MERKEZİ
+// Renk Protokolü: Askeri Yeşil (#00ff41) / Kırmızı Alarm (#ff0033) / Koyu Zemin (#0a0a0a)
+// ████████████████████████████████████████████████████████████████████████
+
+const MODUL_GRUPLARI = [
+    {
+        baslik: '[ İSTİHBARAT AĞLARI ]',
+        renk: 'text-green-400',
+        sinif: 'border-green-900/40 hover:border-green-500/60 hover:bg-green-950/30 text-green-300',
+        moduller: [
+            { name: 'AJANLAR', link: '/ajanlar' },
+            { name: 'AR-GE', link: '/arge' },
+            { name: 'DENETMEN', link: '/denetmen' },
+            { name: 'KAMERALAR', link: '/kameralar' },
+            { name: 'HABERLEŞME', link: '/haberlesme' }
+        ]
+    },
+    {
+        baslik: '[ ÜRETİM MOTORU ]',
+        renk: 'text-yellow-500',
+        sinif: 'border-yellow-900/40 hover:border-yellow-500/50 hover:bg-yellow-950/20 text-yellow-300',
+        moduller: [
+            { name: 'MODELHANE', link: '/modelhane' },
+            { name: 'KALIP', link: '/kalip' },
+            { name: 'KUMAŞ', link: '/kumas' },
+            { name: 'KESİM', link: '/kesim' },
+            { name: 'İMALAT', link: '/imalat' },
+            { name: 'ÜRETİM', link: '/uretim' }
+        ]
+    },
+    {
+        baslik: '[ HAZİNE & E-TİCARET ]',
+        renk: 'text-emerald-400',
+        sinif: 'border-emerald-900/40 hover:border-emerald-500/50 hover:bg-emerald-950/20 text-emerald-300',
+        moduller: [
+            { name: 'KATALOG', link: '/katalog' },
+            { name: 'SİPARİŞLER', link: '/siparisler' },
+            { name: 'MÜŞTERİLER', link: '/musteriler' },
+            { name: 'KASA', link: '/kasa' },
+            { name: 'MALİYET', link: '/maliyet' },
+            { name: 'MUHASEBE', link: '/muhasebe' },
+            { name: 'STOK', link: '/stok' }
+        ]
+    },
+    {
+        baslik: '[ İNSAN KAYNAKLARI ]',
+        renk: 'text-sky-400',
+        sinif: 'border-sky-900/40 hover:border-sky-500/50 hover:bg-sky-950/20 text-sky-300',
+        moduller: [
+            { name: 'PERSONEL', link: '/personel' },
+            { name: 'GÖREVLER', link: '/gorevler' }
+        ]
+    },
+    {
+        baslik: '[ SİSTEM KOMUTANLıĞI ]',
+        renk: 'text-red-400',
+        sinif: 'border-red-900/40 hover:border-red-500/50 hover:bg-red-950/20 text-red-300',
+        moduller: [
+            { name: 'RAPORLAR', link: '/raporlar' },
+            { name: 'TASARIM', link: '/tasarim' },
+            { name: 'GÜVENLİK', link: '/guvenlik' },
+            { name: 'AYARLAR', link: '/ayarlar' },
+            { name: 'GİRİŞ', link: '/giris' }
+        ]
+    }
+];
 
 export function KarargahMainContainer() {
     const { kullanici } = useAuth();
-    const { kpiData, aiOutputs, uretimDurumu, hazineDurumu } = useKarargah();
-    const [yetkiliMi, setYetkiliMi] = useState(false);
+    const _hook = /** @type {any} */ (useKarargah());
+    const stats = _hook.stats;
+    const alarms = /** @type {any[]} */ (_hook.alarms ?? []);
+    const ping = _hook.ping;
+    const commandText = _hook.commandText;
+    const setCommandText = _hook.setCommandText;
+    const hizliGorevAtama = _hook.hizliGorevAtama;
+    const aiSorgu = _hook.aiSorgu;
+    const setAiSorgu = _hook.setAiSorgu;
+    const isAiLoading = _hook.isAiLoading;
+    const aiAnalizBaslat = _hook.aiAnalizBaslat;
+    const aiSonuc = _hook.aiSonuc;
+    const simulasyon = _hook.simulasyon;
+    const setSimulasyon = _hook.setSimulasyon;
+    const mesaj = /** @type {any} */ (_hook.mesaj ?? {});
+
+    const [botLoglar, setBotLoglar] = useState(/** @type {any[]} */([]));
+    const [botDurum, setBotDurum] = useState('kontrol');
+    const [sonMesajlar, setSonMesajlar] = useState(/** @type {any[]} */([]));
+    const [mesajSayisi, setMesajSayisi] = useState(0);
+    const [gizlenIzleri, setGizlenIzleri] = useState(/** @type {any[]} */([]));
+    const [modelArsiv, setModelArsiv] = useState(/** @type {any[]} */([]));
+    const _kul = /** @type {any} */ (kullanici);
+    const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
+    const [saat, setSaat] = useState('');
+    const [aiNedenModal, setAiNedenModal] = useState({ acik: false, metin: '', zarar: 0 });
+    const [izPanelAcik, setIzPanelAcik] = useState(false);
+    const [mesajYukleniyor, setMesajYukleniyor] = useState(false);
+    const [botYukleniyor, setBotYukleniyor] = useState(false);
+
+    // Saat
+    useEffect(() => {
+        const guncelle = () => setSaat(new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        guncelle();
+        const iv = setInterval(guncelle, 1000);
+        return () => clearInterval(iv);
+    }, []);
+
+    // Kamera stream
+    useEffect(() => {
+        const kontrol = async () => {
+            if (document.hidden) return;
+            try {
+                const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+                const d = await res.json();
+                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+            } catch {
+                setKameraStreamDurum('kapali');
+            }
+        };
+        kontrol();
+        const iv = setInterval(kontrol, 15000);
+        const handleVisibility = () => { if (!document.hidden) kontrol(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
+    }, []);
+
+    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
+    const mesajlariGetir = useCallback(async () => {
+        try {
+            const { count } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id', { count: 'exact', head: true })
+                .is('okundu_at', null);
+            setMesajSayisi(count || 0);
+
+            const { data: aktif } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
+                .order('created_at', { ascending: false })
+                .limit(3);
+            setSonMesajlar(aktif || []);
+
+            const { data: gizli } = await supabase
+                .from('b1_mesaj_gizli')
+                .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
+                .gte('gizlendi_at', gun45Once)
+                .order('gizlendi_at', { ascending: false })
+                .limit(20);
+
+            const izler = (gizli || []).filter(g => {
+                const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
+                return !(b1?.urun_id);
+            });
+            setGizlenIzleri(izler);
+
+            const { data: model } = await supabase
+                .from('b1_ic_mesajlar')
+                .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
+                .not('urun_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(50);
+            setModelArsiv(model || []);
+
+        } catch { /* sessiz */ }
+    }, [gun45Once]);
+
+    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 
     useEffect(() => {
-        let uretimPin = false;
-        try { uretimPin = !!sessionStorage.getItem('sb47_uretim_pin'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KarargahMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
-        const erisebilir = kullanici?.grup === 'tam' || uretimPin;
-        setYetkiliMi(erisebilir);
-    }, [kullanici]);
+        const kanal = supabase.channel('karargah-mesaj-optimize')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
+            .subscribe();
+        return () => { supabase.removeChannel(kanal); };
+    }, [mesajlariGetir]);
 
-    if (!yetkiliMi) {
-        return (
-            <div className="p-12 text-center bg-red-950/20 shadow-2xl rounded-2xl m-8 border border-red-900/50">
-                <Lock size={64} className="mx-auto mb-4 text-red-500" />
-                <h2 className="text-2xl font-black text-red-500 uppercase">KARARGAHA GİRİŞ YASAKTIR (KORUMA)</h2>
-            </div>
-        );
-    }
+    useEffect(() => {
+        const botLogCek = async () => {
+            if (document.hidden) return;
+            try {
+                await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
+                const { data } = await supabase
+                    .from('b1_agent_loglari')
+                    .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
+                    .eq('ajan_adi', 'NİZAMBOT')
+                    .order('created_at', { ascending: false })
+                    .limit(8);
+                setBotLoglar(data || []);
+                setBotDurum('aktif');
+            } catch { setBotDurum('hata'); }
+        };
+        botLogCek();
+        const kanal = supabase.channel('nizambot-realtime')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari', filter: 'ajan_adi=eq.NİZAMBOT' }, botLogCek)
+            .subscribe();
+        const handleVisibility = () => { if (!document.hidden) botLogCek(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            supabase.removeChannel(kanal);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, []);
+
+    const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
+    const isAdmin = _kul?.grup === 'tam' || _kul?.rol === 'admin';
 
     return (
-        <div className="min-h-screen font-sans bg-[#0d1117] text-white">
-            <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-6" style={{ animation: 'fadeUp 0.4s ease-out' }}>
+        <div className="bg-[#080a08] min-h-screen text-green-300 font-mono pb-20 relative overflow-hidden"
+            style={{ backgroundImage: 'radial-gradient(ellipse at 20% 50%, rgba(0,40,0,0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,20,0,0.4) 0%, transparent 60%)' }}>
 
-                <div className="mb-6 flex flex-col border-b border-[#21262d] pb-4">
-                    <h1 className="text-2xl font-black text-white tracking-tight uppercase flex items-center gap-3">
-                        <ShieldCheck className="text-indigo-400" size={28} /> MERKEZİ KARARGAH (NİZAM BEYNİ)
-                    </h1>
-                    <span className="text-xs font-mono text-[#8b949e] mt-1 tracking-widest uppercase">
-                        Tam Kontrol ve Komuta Ağı Devrede. Sistem Sağlığı: 🟡 DİKKAT (API İYİLEŞTİRMELERİ GEREKİYOR)
+            {/* Tarama çizgileri efekti */}
+            <div className="pointer-events-none fixed inset-0 z-0"
+                style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.015) 2px, rgba(0,255,65,0.015) 4px)' }} />
+
+            {/* Bildirim */}
+            {mesaj.text && (
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 py-2 px-6 font-mono text-xs font-bold uppercase tracking-widest border ${mesaj.type === 'error' ? 'bg-red-950/90 text-red-300 border-red-500/60' : 'bg-green-950/90 text-green-300 border-green-500/60'}`}>
+                    {mesaj.type === 'error' ? '⚠ HATA: ' : '✓ '}{mesaj.text}
+                </div>
+            )}
+
+            {/* AI Modal */}
+            {aiNedenModal.acik && (
+                <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-[#0a0f0a] border border-green-500/40 w-full max-w-md p-6 relative">
+                        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500/60 to-transparent" />
+                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="absolute top-4 right-4 text-green-600 hover:text-green-300 text-xs">[ KAPAT ]</button>
+                        <h2 className="text-xs font-bold text-green-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <Bot size={12} /> YAPAY ZEKA ANALİZİ
+                        </h2>
+                        <div className="bg-black/60 border border-green-900/50 p-4 mb-4">
+                            <p className="text-xs text-green-300 leading-relaxed mb-3">{aiNedenModal.metin}</p>
+                            <p className="border-t border-green-900/50 pt-3 text-xs text-red-400">
+                                POTANSİYEL ZARAR: <span className="text-red-300 font-bold">₺ {fm(aiNedenModal.zarar)}</span>
+                            </p>
+                        </div>
+                        <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="w-full border border-green-800/60 hover:border-green-500 text-green-400 text-xs py-2 uppercase tracking-widest transition-colors">
+                            ONAYLANDI — KAPAT
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ── ÜST BAR ── */}
+            <div className="relative z-10 border-b border-green-900/60 bg-black/40 px-6 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-green-400">MİZANET SİBER KARARGAH</span>
+                    </div>
+                    <span className="text-green-900/60">|</span>
+                    <span className="text-[9px] text-green-700 uppercase tracking-widest">OPERATIONAL</span>
+                </div>
+                <div className="flex items-center gap-6 text-[9px] text-green-700 uppercase tracking-widest">
+                    <span>KULLANICI: <span className="text-green-400">{_kul?.ad || 'KOMUTAN'}</span></span>
+                    <span className="text-green-400 font-bold tabular-nums">{saat}</span>
+                    <span className={`flex items-center gap-1 ${ping !== null && ping < 200 ? 'text-green-400' : 'text-yellow-600'}`}>
+                        <Radio size={8} /> PING: {ping === null ? '---' : `${ping}ms`}
                     </span>
                 </div>
+            </div>
 
-                {/* 1. ÜST PANEL: GERÇEK KPI'LAR (% ARTIŞ, HEDEF VS GERÇEKLEŞEN) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {/* CİRO */}
-                    <div className="bg-[#161b22] border-t-2 border-emerald-500 rounded-b-xl p-5 shadow-lg flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-[#8b949e] uppercase tracking-widest">Aylık/Günlük Ciro</span>
-                            <span className="bg-emerald-500/20 text-emerald-400 text-[9px] font-black px-2 py-0.5 rounded border border-emerald-500/30">DURUM: İYİ</span>
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 lg:p-6">
+                {/* ── SOL / ORTA KOLON ── */}
+                <div className="lg:col-span-3 flex flex-col gap-4">
+
+                    {/* METRİK PANELLER */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                            { baslik: 'GÜNLÜK CİRO', deger: isAdmin ? `₺ ${fm(stats.ciro)}` : '▓▓▓▓▓▓', renk: 'green', link: '/raporlar', ikon: <Target size={12} /> },
+                            { baslik: 'TOPLAM MALİYET', deger: isAdmin ? `₺ ${fm(stats.maliyet)}` : '▓▓▓▓▓▓', renk: 'red', link: '/maliyet', ikon: <Database size={12} /> },
+                            { baslik: 'PERSONEL GİDER', deger: isAdmin ? `₺ ${fm(stats.personel)}` : '▓▓▓▓▓▓', renk: 'yellow', link: '/personel', ikon: <Shield size={12} /> },
+                            { baslik: 'FIRE/ZAYİAT', deger: `%${stats.fire}`, renk: 'orange', link: '/maliyet', ikon: <AlertTriangle size={12} /> },
+                        ].map((m, i) => (
+                            <Link key={i} href={m.link} className="group block">
+                                <div className={`border bg-black/60 p-4 relative overflow-hidden transition-all duration-300
+                                    ${m.renk === 'green' ? 'border-green-900/60 group-hover:border-green-500/80' :
+                                        m.renk === 'red' ? 'border-red-900/60 group-hover:border-red-500/60' :
+                                            m.renk === 'yellow' ? 'border-yellow-900/40 group-hover:border-yellow-500/50' :
+                                                'border-orange-900/40 group-hover:border-orange-500/40'}`}>
+                                    {/* Köşe süsü */}
+                                    <div className={`absolute top-0 right-0 w-0 h-0 border-t-[16px] border-r-[16px] border-l-transparent
+                                        ${m.renk === 'green' ? 'border-t-green-900/40 border-r-green-900/40' :
+                                            m.renk === 'red' ? 'border-t-red-900/30 border-r-red-900/30' :
+                                                m.renk === 'yellow' ? 'border-t-yellow-900/30 border-r-yellow-900/30' :
+                                                    'border-t-orange-900/30 border-r-orange-900/30'}`} />
+                                    <div className={`flex items-center gap-1 mb-2 text-[9px] uppercase tracking-widest font-bold
+                                        ${m.renk === 'green' ? 'text-green-700' :
+                                            m.renk === 'red' ? 'text-red-700' :
+                                                m.renk === 'yellow' ? 'text-yellow-700' :
+                                                    'text-orange-700'}`}>
+                                        {m.ikon} {m.baslik}
+                                    </div>
+                                    <div className={`text-xl font-bold tabular-nums
+                                        ${m.renk === 'green' ? 'text-green-300' :
+                                            m.renk === 'red' ? 'text-red-300' :
+                                                m.renk === 'yellow' ? 'text-yellow-300' :
+                                                    'text-orange-300'}`}>
+                                        {stats.yukleniyor ? <span className="animate-pulse">---</span> : m.deger}
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* GÖREV & AI PANEL */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {/* GÖREV MERKEZİ */}
+                        <div className="border border-green-900/50 bg-black/50 p-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-1 h-4 bg-green-500" />
+                                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-green-600">GÖREV MERKEZİ / CMD</span>
+                            </div>
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    value={commandText}
+                                    onChange={(e) => setCommandText(e.target.value)}
+                                    placeholder="komut gir..."
+                                    className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono"
+                                />
+                                <button onClick={hizliGorevAtama} className="bg-green-900/30 hover:bg-green-800/40 text-green-300 text-xs px-4 py-2 border border-green-800/50 hover:border-green-500/60 font-bold uppercase tracking-wider transition-colors">
+                                    GÖNDER
+                                </button>
+                            </div>
+                            <div className="border-t border-green-900/40 pt-4">
+                                <div className="flex items-center justify-between mb-2 text-[9px] uppercase tracking-widest">
+                                    <span className="text-green-700">PROJEKSIYON SİMÜLATÖRÜ</span>
+                                    <span className="text-green-400 font-bold">{simulasyon > 0 ? '+' : ''}{simulasyon}%</span>
+                                </div>
+                                <input
+                                    type="range" min="-20" max="20" step="1"
+                                    value={simulasyon}
+                                    onChange={(e) => setSimulasyon(parseInt(e.target.value))}
+                                    className="w-full h-1 bg-green-900/40 accent-green-500 cursor-pointer"
+                                />
+                            </div>
                         </div>
-                        <span className="text-3xl font-black text-white">₺{kpiData.ciro.anlik.toLocaleString()}</span>
-                        <div className="flex justify-between items-end mt-2">
-                            <span className="text-[11px] font-bold text-emerald-400">▲ +%{kpiData.ciro.artisYuzde} Büyüme</span>
-                            <span className="text-[10px] font-mono text-gray-500">Hedef: ₺{kpiData.ciro.hedef.toLocaleString()}</span>
+
+                        {/* YAPAY ZEKA */}
+                        <div className="border border-green-900/50 bg-black/50 p-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-1 h-4 bg-yellow-500" />
+                                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-yellow-600">DİJİTAL DANIŞMAN / AI</span>
+                            </div>
+                            <div className="flex gap-2 mb-3">
+                                <input
+                                    value={aiSorgu}
+                                    onChange={(e) => setAiSorgu(e.target.value)}
+                                    placeholder="analiz isteği..."
+                                    className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono"
+                                />
+                                <button
+                                    onClick={aiAnalizBaslat}
+                                    disabled={isAiLoading}
+                                    className="bg-yellow-900/20 hover:bg-yellow-800/30 text-yellow-300 text-xs px-4 py-2 border border-yellow-900/40 hover:border-yellow-500/50 font-bold uppercase tracking-wider transition-colors disabled:opacity-40"
+                                >
+                                    {isAiLoading ? '...' : 'ANALİZ'}
+                                </button>
+                            </div>
+                            {aiSonuc && (
+                                <div className="bg-black/60 border border-green-900/40 p-3 max-h-20 overflow-y-auto">
+                                    <p className="text-[10px] text-green-300 leading-relaxed font-mono whitespace-pre-wrap">{aiSonuc}</p>
+                                </div>
+                            )}
+                            <div className="mt-3 border-t border-green-900/40 pt-3 flex items-center gap-2">
+                                <span className="text-[9px] text-green-800 uppercase tracking-widest">BANT AKIŞI</span>
+                                <div className="flex-1 h-px bg-green-900/40 relative overflow-hidden">
+                                    <div className="absolute inset-y-0 left-0 w-1/3 bg-green-600/40 animate-pulse" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* MALİYET */}
-                    <div className="bg-[#161b22] border-t-2 border-amber-500 rounded-b-xl p-5 shadow-lg flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-[#8b949e] uppercase tracking-widest">Kümülatif Maliyet & Fire</span>
-                            <span className="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-0.5 rounded border border-amber-500/30">DURUM: RİSKLİ</span>
-                        </div>
-                        <span className="text-3xl font-black text-white">₺{kpiData.maliyet.anlik.toLocaleString()}</span>
-                        <div className="flex justify-between items-end mt-2">
-                            <span className="text-[11px] font-bold text-emerald-400">▼ %{Math.abs(kpiData.maliyet.artisYuzde)} Düşüş (Olumlu)</span>
-                            <span className="text-[10px] font-mono text-amber-500">Fire Dikkat</span>
-                        </div>
-                    </div>
-
-                    {/* ÜRETİM & PERSONEL */}
-                    <div className="bg-[#161b22] border-t-2 border-blue-500 rounded-b-xl p-5 shadow-lg flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-[#8b949e] uppercase tracking-widest">Personel Üretim Verimi</span>
-                            <span className="bg-blue-500/20 text-blue-400 text-[9px] font-black px-2 py-0.5 rounded border border-blue-500/30">STANDART</span>
-                        </div>
-                        <span className="text-3xl font-black text-white">{kpiData.personel.uretimSkoru} <span className="text-sm text-gray-500">Puan</span></span>
-                        <div className="flex justify-between items-end mt-2">
-                            <span className="text-[11px] font-bold text-blue-400">Kişi Başı Üretim: {kpiData.personel.verimlilik}</span>
-                            <span className="text-[10px] font-mono text-gray-500">M14 Personel</span>
-                        </div>
-                    </div>
-
-                    {/* SİSTEM SAĞLIĞI & ALARM */}
-                    <div className="bg-[#161b22] border-t-2 border-rose-500 rounded-b-xl p-5 shadow-lg flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-[#8b949e] uppercase tracking-widest">Ağır Sistem Olayları</span>
-                            <span className="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-0.5 rounded border border-rose-500/30 animate-pulse">2 KRİTİK</span>
-                        </div>
-                        <span className="text-3xl font-black text-rose-500">{kpiData.sistem.hata} <span className="text-sm text-rose-400">Hata</span></span>
-                        <div className="flex justify-between items-end mt-2">
-                            <span className="text-[11px] font-bold text-rose-400">API: {kpiData.sistem.api} | {kpiData.sistem.uyarilar} Uyarı</span>
-                            <Link href="/guvenlik" className="text-[10px] font-bold text-indigo-400 hover:underline">Loglar ↗</Link>
-                        </div>
+                    {/* MODÜL IZGARASI */}
+                    <div className="flex flex-col gap-3">
+                        {MODUL_GRUPLARI.map((grup, gIdx) => (
+                            <div key={gIdx} className="border border-green-950/60 bg-black/30 p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="h-px flex-1 bg-green-950/60" />
+                                    <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${grup.renk}`}>{grup.baslik}</span>
+                                    <div className="h-px flex-1 bg-green-950/60" />
+                                </div>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {grup.moduller.map((mod, i) => (
+                                        <Link href={mod.link} key={i}>
+                                            <div className={`border text-[10px] font-bold text-center py-2 px-1 uppercase tracking-wider transition-all duration-200 cursor-pointer ${grup.sinif}`}>
+                                                {mod.name}
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* 2. ORTA PANEL: AI ÇIKTILARI (GÖSTERGE DEĞİL, KARAR MERCİİ) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* YAPAY ZEKA CANLI PANOSU (ÖNERİ YERİNE KARAR/BİLDİRİM) */}
-                    <div className="bg-[#122b27] border border-[#1e4a43] rounded-xl flex flex-col overflow-hidden h-[350px]">
-                        <div className="p-4 border-b border-[#1e4a43] flex justify-between items-center bg-[#0d211e]">
-                            <h2 className="text-xs font-black text-emerald-400 tracking-widest uppercase flex items-center gap-2">
-                                <Bot size={16} /> EVRENSEL AI KOMUTA İSTİHBARATI
-                            </h2>
-                            <Link href="/ajanlar" className="text-[#8b949e] hover:text-white text-[10px] font-bold uppercase tracking-wider">Tüm Ajanlar ↗</Link>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 styled-scroll">
-                            {aiOutputs.map((out, i) => (
-                                <div key={i} className={`p-4 border rounded-lg flex items-start justify-between gap-4 
-                                    ${out.tur === 'trend' ? 'bg-[#0d1117] border-emerald-500/30' :
-                                        out.tur === 'dikkat' ? 'bg-[#0d1117] border-amber-500/30' : 'bg-[#0d1117] border-rose-500/30'}`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${out.tur === 'trend' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                out.tur === 'dikkat' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'
-                                                }`}>{out.ajan}</span>
-                                        </div>
-                                        <p className="text-white text-xs font-medium leading-relaxed">{out.mesaj}</p>
-                                    </div>
-                                    <div>
-                                        <button className={`whitespace-nowrap px-3 py-1.5 rounded text-[9px] font-black uppercase tracking-wider transition-all
-                                            ${out.tur === 'trend' ? 'bg-emerald-600 hover:bg-emerald-500 text-white' :
-                                                'bg-[#21262d] hover:bg-[#30363d] text-white border border-[#30363d]'}`}>
-                                            Kararı Uygula
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                {/* ── SAĞ KOLON — RADAR PANELİ ── */}
+                <div className="flex flex-col gap-4">
 
-                    {/* OPERASYON: ÜRETİM VE FİNANS */}
-                    <div className="space-y-6 flex flex-col h-[350px]">
-                        {/* ÜRETİM BLOĞU */}
-                        <div className="flex-1 bg-[#161b22] border border-[#21262d] rounded-xl flex flex-col">
-                            <div className="p-3 border-b border-[#21262d]">
-                                <h2 className="text-[10px] font-black text-[#8b949e] tracking-widest uppercase flex items-center gap-2">
-                                    <Cpu size={14} className="text-blue-500" /> ÜRETİM MOTORU & DARBOĞAZ
-                                </h2>
+                    {/* DURUM RADARI */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-1 h-4 bg-red-500 animate-pulse" />
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-red-500">DURUM RADARI</span>
+                        </div>
+                        {alarms.length === 0 ? (
+                            <div className="border border-green-900/40 bg-green-950/20 p-3 text-center">
+                                <CheckCircle size={14} className="text-green-500 mx-auto mb-1" />
+                                <span className="text-[9px] text-green-600 uppercase tracking-widest">SİSTEM NORMAL</span>
                             </div>
-                            <div className="p-3 space-y-2 overflow-y-auto styled-scroll">
-                                {uretimDurumu.map((u, i) => (
-                                    <div key={i} className="flex justify-between items-center bg-[#0d1117] border border-[#30363d] p-3 rounded-lg">
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-white">{u.hat}</span>
-                                            <span className="text-[10px] text-[#8b949e]">{u.islem}</span>
+                        ) : (
+                            <div className="space-y-2">
+                                {alarms.map(al => (
+                                    <div key={al.id} className="border border-red-900/60 bg-red-950/20 p-3">
+                                        <div className="flex items-start gap-2 mb-2">
+                                            <AlertTriangle size={10} className="text-red-400 mt-0.5 flex-shrink-0" />
+                                            <p className="text-[10px] text-red-300 leading-relaxed">{al.text}</p>
                                         </div>
-                                        <div className="flex flex-col items-end">
-                                            <span className={`text-[10px] font-black uppercase tracking-wider ${u.durum === 'Darbogaz' ? 'text-rose-500' : 'text-emerald-400'}`}>
-                                                {u.durum}
-                                            </span>
-                                            {u.durum === 'Darbogaz' && <span className="text-[10px] font-mono text-rose-400">Gecikme: {u.gecikme}</span>}
-                                        </div>
+                                        <button
+                                            onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })}
+                                            className="text-[8px] text-red-600 hover:text-red-400 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors"
+                                        >
+                                            <span>ETKİ ANALİZİ</span>
+                                            <ArrowRight size={8} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        )}
+                    </div>
 
-                        {/* HAZİNE VE E-TİCARET BLOĞU */}
-                        <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 grid grid-cols-2 gap-4">
-                            {hazineDurumu.map((h, i) => (
-                                <div key={i} className="flex justify-between items-center">
-                                    <div className="flex flex-col border-l-2 border-indigo-500 pl-3">
-                                        <span className="text-[10px] font-black text-[#8b949e] tracking-widest uppercase mb-1">{h.baslik}</span>
-                                        <span className="text-sm font-bold text-indigo-400">{h.deger}</span>
+                    {/* KAMERA */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <Link href="/kameralar" className="block">
+                            <div className={`border p-3 flex items-center gap-3 transition-colors ${kameraStreamDurum === 'aktif' ? 'border-green-700/50 bg-green-950/20' : 'border-green-950/50'}`}>
+                                <div className={`w-8 h-8 flex items-center justify-center border relative ${kameraStreamDurum === 'aktif' ? 'border-green-600/60 text-green-400' : 'border-green-950 text-green-900'}`}>
+                                    <Camera size={14} className="relative z-10" />
+                                    {kameraStreamDurum === 'aktif' && <div className="absolute inset-0 bg-green-500/10 animate-pulse" />}
+                                </div>
+                                <div>
+                                    <div className={`text-[9px] font-bold uppercase tracking-widest ${kameraStreamDurum === 'aktif' ? 'text-green-400' : 'text-green-800'}`}>
+                                        {kameraStreamDurum === 'aktif' ? '◉ GÖRÜŞ AKTİF' : '◎ GÖRÜŞ KAPALI'}
                                     </div>
+                                    <div className="text-[8px] text-green-900 mt-0.5">
+                                        {kameraStreamDurum === 'aktif' ? 'AI tarama modunda' : 'go2rtc devreye girmeli'}
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* AJAN EKOSİSTEMİ */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1 h-4 bg-green-500" />
+                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-600">AJAN EKOSİSTEMİ</span>
+                            </div>
+                            <span className="text-[8px] text-green-500 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
+                                OTONOM
+                            </span>
+                        </div>
+                        <div className="space-y-2">
+                            {[
+                                { isim: 'VERİ MADENCİLERİ', detay: 'Derin web taranıyor...', stat: '24/s' },
+                                { isim: 'ANALİSTLER', detay: 'Modeller güncel', stat: '18ms' },
+                            ].map((a, i) => (
+                                <div key={i} className="border border-green-950/60 p-2 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-[9px] font-bold text-green-400 uppercase">{a.isim}</div>
+                                        <div className="text-[8px] text-green-800 mt-0.5">{a.detay}</div>
+                                    </div>
+                                    <span className="text-[8px] text-green-700 font-bold">{a.stat}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <Link href="/arge" className="block mt-3 text-center text-[8px] text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
+                            DETAY PANELE GEÇ →
+                        </Link>
+                    </div>
+
+                    {/* SON MESAJLAR */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1 h-4 bg-yellow-500" />
+                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-yellow-600">İLETİŞİM</span>
+                            </div>
+                            {mesajSayisi > 0 && (
+                                <span className="text-[8px] text-red-400 border border-red-800/50 px-1.5 py-0.5">{mesajSayisi} OKUNMADI</span>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            {mesajYukleniyor ? (
+                                <div className="text-[9px] text-green-800 text-center py-3 uppercase tracking-widest animate-pulse">VERİ ÇEKILIYOR...</div>
+                            ) : sonMesajlar.length === 0 ? (
+                                <div className="text-[9px] text-green-900 text-center py-3 uppercase tracking-widest">— SESSİZLİK —</div>
+                            ) : sonMesajlar.map(m => (
+                                <Link key={m.id} href="/haberlesme" className="block border border-green-950/50 hover:border-green-800/50 p-2 transition-colors">
+                                    <div className="text-[9px] font-bold text-green-300 truncate mb-0.5">
+                                        {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🟢'} {m.konu}
+                                    </div>
+                                    <div className="text-[8px] text-green-800">{m.gonderen_adi}</div>
+                                </Link>
+                            ))}
+                        </div>
+                        <Link href="/haberlesme" className="block mt-3 text-center text-[8px] text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
+                            TÜMÜNÜ GÖR →
+                        </Link>
+                    </div>
+
+                    {/* NİZAMBOT */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-1 h-4 bg-green-500" />
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-600">SİSTEM NÖBETÇİSİ</span>
+                        </div>
+                        <div className="flex items-center gap-3 border border-green-950/50 p-2 mb-3">
+                            <Bot size={14} className={botDurum === 'aktif' ? 'text-green-400' : 'text-green-900'} />
+                            <div>
+                                <div className="text-[9px] font-bold text-green-300">@Lumora_47bot</div>
+                                <div className="text-[8px] text-green-800">
+                                    {botDurum === 'aktif' ? '◉ AKTİF DİNLİYOR' : '◎ KAPASİTE KONTROLÜ'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {botYukleniyor ? (
+                                <div className="text-[8px] text-green-800 text-center py-2 uppercase tracking-widest animate-pulse">NIZAMBOT SORGULANYOR...</div>
+                            ) : botLoglar.length === 0 ? (
+                                <div className="text-[8px] text-green-900 text-center py-2 uppercase tracking-widest">HAREKET YOK</div>
+                            ) : botLoglar.map((log, i) => (
+                                <div key={i} className="border-b border-green-950/40 pb-1 mb-1 last:border-0 last:pb-0 last:mb-0">
+                                    <div className="flex items-center justify-between">
+                                        <span className={`text-[8px] font-bold ${log.sonuc === 'basarili' ? 'text-green-600' : 'text-red-600'}`}>
+                                            {log.sonuc === 'basarili' ? '✓ İLETİLDİ' : '✗ HATA'}
+                                        </span>
+                                        <span className="text-[7px] text-green-900">
+                                            {new Date(log.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                    <p className="text-[8px] text-green-800 truncate mt-0.5">{log.mesaj || log.islem_tipi}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
-                </div>
 
-                {/* 3. ALT BÖLÜM: 22 MODÜLE GİRİŞ */}
-                <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-6 shadow-md">
-                    <h2 className="text-sm font-bold text-[#8b949e] uppercase tracking-widest mb-4 flex items-center justify-between border-b border-[#30363d] pb-4">
-                        <span className="flex items-center gap-2"><Network size={18} className="text-indigo-400" /> Merkezi Üretim Modülleri</span>
-                    </h2>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                        <Link href="/arge" className="group bg-[#0d1117] border border-[#30363d] hover:border-emerald-500/50 hover:bg-[#122b27] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Search size={22} className="text-[#8b949e] group-hover:text-emerald-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-emerald-400 uppercase tracking-widest text-center">M1<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Ar-Ge</span></span>
-                        </Link>
-                        <Link href="/kumas" className="group bg-[#0d1117] border border-[#30363d] hover:border-blue-500/50 hover:bg-[#112a46] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Layers size={22} className="text-[#8b949e] group-hover:text-blue-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-blue-400 uppercase tracking-widest text-center">M2<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Kumaş</span></span>
-                        </Link>
-                        <Link href="/kalip" className="group bg-[#0d1117] border border-[#30363d] hover:border-purple-500/50 hover:bg-[#201538] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Ruler size={22} className="text-[#8b949e] group-hover:text-purple-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-purple-400 uppercase tracking-widest text-center">M3<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Kalıp</span></span>
-                        </Link>
-                        <Link href="/modelhane" className="group bg-[#0d1117] border border-[#30363d] hover:border-pink-500/50 hover:bg-[#341624] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Shirt size={22} className="text-[#8b949e] group-hover:text-pink-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-pink-400 uppercase tracking-widest text-center">M4<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Modelhane</span></span>
-                        </Link>
-                        <Link href="/kesim" className="group bg-[#0d1117] border border-[#30363d] hover:border-amber-500/50 hover:bg-[#3b2813] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Scissors size={22} className="text-[#8b949e] group-hover:text-amber-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-amber-400 uppercase tracking-widest text-center">M5<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Kesim</span></span>
-                        </Link>
-                        <Link href="/uretim" className="group bg-[#0d1117] border border-[#30363d] hover:border-orange-500/50 hover:bg-[#381b11] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <Factory size={22} className="text-[#8b949e] group-hover:text-orange-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-orange-400 uppercase tracking-widest text-center">M6<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Üretim/Bant</span></span>
-                        </Link>
-                        <Link href="/maliyet" className="group bg-[#0d1117] border border-[#30363d] hover:border-emerald-500/50 hover:bg-[#122b27] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <PieChart size={22} className="text-[#8b949e] group-hover:text-emerald-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-emerald-400 uppercase tracking-widest text-center">M7<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Maliyet</span></span>
-                        </Link>
-                        <Link href="/katalog" className="group bg-[#0d1117] border border-[#30363d] hover:border-indigo-500/50 hover:bg-[#171638] rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all shadow-sm">
-                            <ShoppingBag size={22} className="text-[#8b949e] group-hover:text-indigo-400 transition-colors" />
-                            <span className="text-[11px] font-bold text-[#8b949e] group-hover:text-indigo-400 uppercase tracking-widest text-center">M9<br /><span className="text-white/80 group-hover:text-white capitalize tracking-normal font-semibold">Katalog</span></span>
-                        </Link>
+                    {/* GİZLENEN MESAJLAR */}
+                    <div className="border border-green-900/50 bg-black/50 p-4">
+                        <button
+                            onClick={() => setIzPanelAcik(v => !v)}
+                            className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.15em] text-green-700 mb-1"
+                        >
+                            <span>MESAJ İZLERİ [{gizlenIzleri.length}]</span>
+                            <span className="text-[7px] text-green-900">45 GÜN KURALI</span>
+                        </button>
+                        {izPanelAcik && (
+                            <div className="space-y-1 mt-3 max-h-32 overflow-y-auto">
+                                {gizlenIzleri.length === 0 ? (
+                                    <div className="text-[8px] text-green-900 text-center py-2">GİZLENEN İZ YOK</div>
+                                ) : gizlenIzleri.map((g, i) => {
+                                    const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
+                                    return (
+                                        <div key={i} className="border border-green-950/40 p-2">
+                                            <div className="text-[8px] font-bold text-green-400 truncate">{b1?.konu || '—'}</div>
+                                            <div className="text-[7px] text-green-800">GİZLEYEN: {g.kullanici_adi}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                </div>
 
+                </div>
+            </div>
+
+            {/* Alt durum çubuğu */}
+            <div className="fixed bottom-0 left-0 right-0 border-t border-green-900/40 bg-black/80 px-6 py-2 flex items-center justify-between z-20">
+                <div className="flex items-center gap-4 text-[8px] uppercase tracking-widest">
+                    <span className="text-green-700">SİSTEM: <span className="text-green-400">AKTİF</span></span>
+                    <span className="text-green-900">|</span>
+                    <span className="text-green-700">VERİTABANI: <span className="text-green-400">BAĞLI</span></span>
+                    <span className="text-green-900">|</span>
+                    <span className="text-green-700">AJAN: <span className={botDurum === 'aktif' ? 'text-green-400' : 'text-yellow-500'}>{botDurum.toUpperCase()}</span></span>
+                </div>
+                <div className="text-[8px] text-green-900 uppercase tracking-widest">mizanet.com — THE ORDER / NİZAM</div>
             </div>
         </div>
     );
