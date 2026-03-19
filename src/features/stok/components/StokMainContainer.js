@@ -172,7 +172,9 @@ export default function StokDepoKarargahi() {
                     tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M11 Sorumlusu',
                     eski_veri: { durum: `Silinen ürün kodu: ${urun_kodu}, Stok hareketi ID: ${id}` }
                 }]);
-            } catch (e) { }
+            } catch (e) {
+                console.error("[KARA KUTU HATASI] B0 Stok Loglaması başarısız:", e);
+            }
 
             const { error } = await supabase.from('b2_stok_hareketleri').delete().eq('id', id);
             if (error) throw error;

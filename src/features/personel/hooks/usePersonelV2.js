@@ -50,7 +50,9 @@ export function usePersonelV2(kullanici) {
                 const parsed = JSON.parse(data.deger);
                 setSistemAyarlari({ dakika_basi_ucret: parsed.dakika_basi_ucret ?? 2.50, prim_orani: parsed.prim_orani ?? 0.15, yillik_izin_hakki: parsed.yillik_izin_hakki ?? 15 });
             }
-        } catch (e) { }
+        } catch (e) {
+            console.error("[SİSTEM HATASI] Ayarlar yüklenemedi:", e);
+        }
     }, []);
 
     const yukle = useCallback(async () => {

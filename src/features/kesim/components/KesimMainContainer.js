@@ -233,7 +233,9 @@ export default function KesimMainContainer() {
                     tablo_adi: 'b1_kesim_operasyonlari', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi M3',
                     eski_veri: { durum: 'Soft Delete / Arşive alındı.', model_kodu: m_kodu, id: id }
                 }]);
-            } catch (e) { }
+            } catch (e) {
+                console.error("[KARA KUTU HATASI] B0 Kesim Loglaması (Arşivleme) başarısız:", e);
+            }
             await supabase.from('b1_kesim_operasyonlari').update({ durum: 'iptal' }).eq('id', id);
             yukle(); goster('Kayıt arşive (iptal durumuna) alındı.');
             telegramBildirim(`🗑️ KESİM İPTAL EDİLDİ\n${m_kodu} modeline ait kesim kaydı yönetici onayıyla arşive kaldırıldı.`);
@@ -429,13 +431,13 @@ export default function KesimMainContainer() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '0.4rem', marginBottom: 8 }}>
                                 {BEDENLER.map(b => {
                                     let bData = {};
-                                    try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { }
+                                    try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { console.warn("JSON Parse Hatası (Beden):", e); }
                                     return (
                                         <div key={b} style={{ display: 'flex', flexDirection: 'column', gap: 4, background: '#f8fafc', padding: '6px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                                             <span style={{ fontWeight: 800, fontSize: '0.75rem', color: '#047857', textAlign: 'center' }}>{b}</span>
                                             <input type="number" placeholder="0" min="0" value={bData[b] || ''}
                                                 onChange={e => {
-                                                    try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { }
+                                                    try { bData = JSON.parse(form.beden_dagilimi || '{}'); } catch (e) { console.warn("JSON Parse Hatası (Beden Input):", e); }
                                                     if (e.target.value) bData[b] = parseInt(e.target.value);
                                                     else delete bData[b];
                                                     setForm({ ...form, beden_dagilimi: JSON.stringify(bData) });

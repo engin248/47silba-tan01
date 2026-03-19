@@ -89,7 +89,10 @@ export default function PersonelMainContainer() {
                         prim_orani: parsed.prim_orani ?? 0.15,
                         yillik_izin_hakki: parsed.yillik_izin_hakki ?? 15,
                     });
-                } catch { }
+                } catch (e) {
+                    console.error("[SİSTEM HATASI] Ayarlar ayrıştırılamadı:", e);
+                    goster('Sistem ayarları bozuk veya okunamadı: ' + e.message, 'error');
+                }
             }
         } catch (error) { goster('Ayarlar Oku Hatası: ' + error.message, 'error'); }
     };
@@ -215,7 +218,9 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) {
+                console.error("[KARA KUTU HATASI] B0 Loglaması başarısız:", e);
+            }
 
             const { error } = await supabase.from('b1_personel').delete().eq('id', id);
             if (error) throw error;
@@ -293,7 +298,9 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) {
+                console.error("[KARA KUTU HATASI] B0 Loglaması (Devam Silme) başarısız:", e);
+            }
 
             const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
             if (error) throw error;
