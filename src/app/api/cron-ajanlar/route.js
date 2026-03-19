@@ -67,8 +67,8 @@ export async function GET(req) {
                             event_type: 'offline_alarm',
                             video_url: null
                         }]);
-                    } catch (e) {
-                        // ignore error
+                    } catch (kameraLogHata) {
+                        console.error('[CRON] camera_events offline_alarm yazılamadı:', kameraLogHata.message);
                     }
 
                     // 2- Telegram Uyarisi At (Hayati!)
@@ -90,8 +90,8 @@ export async function GET(req) {
                             event_type: 'offline_sleep',
                             video_url: null
                         }]);
-                    } catch (e) {
-                        // ignore error
+                    } catch (uyku_logHata) {
+                        console.warn('[CRON] camera_events offline_sleep yazılamadı:', uyku_logHata.message);
                     }
                 }
             }

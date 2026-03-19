@@ -109,6 +109,8 @@ export function KarargahMainContainer() {
     const [izPanelAcik, setIzPanelAcik] = useState(false);
     const [mesajYukleniyor, setMesajYukleniyor] = useState(false);
     const [botYukleniyor, setBotYukleniyor] = useState(false);
+    const [sistemHatalari, setSistemHatalari] = useState(/** @type {any[]} */([]));
+    const [hataAlarmAcik, setHataAlarmAcik] = useState(false);
 
     // Saat
     useEffect(() => {
@@ -215,6 +217,34 @@ export function KarargahMainContainer() {
         };
     }, []);
 
+    // ――― CANLI HATA MONİTÖRÜ (b0_sistem_loglari) ―――
+    useEffect(() => {
+        const hatalariGetir = async () => {
+            try {
+                const { data } = await supabase
+                    .from('b0_sistem_loglari')
+                    .select('id, modul, mesaj, detay, created_at')
+                    .eq('log_tipi', 'hata')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                const yeniHatalar = data || [];
+                setSistemHatalari(yeniHatalar);
+                if (yeniHatalar.length > 0) setHataAlarmAcik(true);
+            } catch (e) {
+                console.error('[KARARGAH] Hata monitoru yuklenemedi:', e.message);
+            }
+        };
+        hatalariGetir();
+        const hataKanal = supabase.channel('karargah-hata-monitoru')
+            .on('postgres_changes', {
+                event: 'INSERT', schema: 'public',
+                table: 'b0_sistem_loglari',
+                filter: 'log_tipi=eq.hata'
+            }, () => { if (!document.hidden) hatalariGetir(); })
+            .subscribe();
+        return () => { supabase.removeChannel(hataKanal); };
+    }, []);
+
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
     const isAdmin = _kul?.grup === 'tam' || _kul?.rol === 'admin';
 
@@ -250,6 +280,32 @@ export function KarargahMainContainer() {
                         </div>
                         <button onClick={() => setAiNedenModal({ acik: false, metin: '', zarar: 0 })} className="w-full border border-green-800/60 hover:border-green-500 text-green-400 text-xs py-2 uppercase tracking-widest transition-colors">
                             ONAYLANDI — KAPAT
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ── CANLI HATA ALARM PANELİ ── */}
+            {hataAlarmAcik && sistemHatalari.length > 0 && (
+                <div className="fixed top-0 left-0 right-0 z-[90] border-b-2 border-red-500"
+                    style={{ background: 'linear-gradient(90deg, #1a0000 0%, #2d0000 50%, #1a0000 100%)', animation: 'pulse 1s infinite' }}>
+                    <div className="flex items-center justify-between px-4 py-2">
+                        <div className="flex items-center gap-3">
+                            <span className="text-red-400 text-sm font-bold animate-pulse">🔴 SİSTEM HATASI</span>
+                            <span className="text-red-300 text-xs font-mono">{sistemHatalari.length} AKTIF HATA</span>
+                        </div>
+                        <div className="flex gap-4 overflow-hidden max-w-xl">
+                            {sistemHatalari.slice(0, 3).map((h, i) => (
+                                <span key={i} className="text-red-200 text-xs font-mono truncate">
+                                    ⚠ [{h.modul || '?'}] {h.mesaj?.slice(0, 60)}
+                                </span>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setHataAlarmAcik(false)}
+                            className="text-red-400 hover:text-red-200 text-xs border border-red-800 px-3 py-1 ml-4 font-mono"
+                        >
+                            [ TAMAM ]
                         </button>
                     </div>
                 </div>
