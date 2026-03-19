@@ -3,7 +3,7 @@ import './globals.css';
 import {
     LayoutDashboard, Scissors, Activity, FileSearch, Settings, Users, Bot,
     Layers, Cpu, BookOpen, TrendingUp, ShoppingBag, ShoppingCart, Package,
-    Wallet, UserCheck, BarChart3, Shield, ClipboardList, PieChart, LogOut, Zap, Camera
+    Wallet, UserCheck, BarChart3, Shield, ClipboardList, PieChart, LogOut, Zap, Camera, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -21,6 +21,7 @@ import MesajBildirimButonu from '@/components/MesajBildirimButonu';
 // ─── NAV YAPISI ───────────────────────────────────────────────
 const NAV_ITEMS = [
     { href: '/', icon: LayoutDashboard, labelTR: 'Karargâh', labelAR: 'المقر الرئيسي', group: 'ana' },
+    { href: '/haberlesme', icon: MessageSquare, labelTR: '🔐 Haberleşme', labelAR: 'المراسلة', badge: 'GZLİ', group: 'ana' },
     // 1. BİRİM
     { href: '/arge', icon: TrendingUp, labelTR: 'Ar-Ge & Trend', labelAR: 'بحث وتطوير', badge: 'M1', group: 'birim1' },
     { href: '/kumas', icon: Layers, labelTR: 'Kumaş & Arşiv', labelAR: 'أرشيف الأقمشة', badge: 'M2', group: 'birim1' },
