@@ -31,12 +31,34 @@ export function useKarargah() {
     };
 
     const hizliGorevAtama = async () => {
+        if (!commandText.trim()) return goster('Komut boş olamaz.', 'error');
         try {
             komutSchema.parse({ komut: commandText });
-            goster(`Görev alındı: ${commandText}`);
+            // DÜZELTME 3: Gerçekten b1_ajan_gorevler tablosuna yaz
+            const { error } = await supabase.from('b1_ajan_gorevler').insert([{
+                gorev_adi: commandText.trim(),
+                gorev_tipi: 'kontrol',
+                oncelik: 'normal',
+                gorev_emri: `Karargah CMD+K komutu: ${commandText.trim()}`,
+                ajan_adi: 'Trend Kâşifi',
+                hedef_modul: 'genel',
+                hedef_tablo: 'b1_ajan_gorevler',
+                durum: 'bekliyor',
+                yetki_internet: false,
+                yetki_supabase_oku: true,
+                yetki_supabase_yaz: false,
+                yetki_ai_kullan: false,
+                yetki_dosya_olustur: false,
+            }]);
+            if (error) throw error;
+            goster(`✅ Görev kuyruğa alındı: ${commandText}`);
             setCommandText('');
-        } catch (error) {
-            goster(error.errors[0].message, 'error');
+        } catch (/** @type {any} */ error) {
+            if (error?.errors) {
+                goster(error.errors[0].message, 'error');
+            } else {
+                goster('Görev gönderilemedi: ' + (error?.message || 'Bilinmeyen hata'), 'error');
+            }
         }
     };
 
@@ -109,16 +131,43 @@ export function useKarargah() {
                 enYuksekTrend = [...argeData].sort((a, b) => (b.artis_yuzdesi || 0) - (a.artis_yuzdesi || 0))[0];
             }
 
-            // MOCK YERİNE GERÇEK CİRO/MALİYET API'sine istek (Eskiden kalan)
-            let ciro = 458000, maliyet = 280000;
+            // DÜZELTME 2: Mock fallback kaldırıldı — gerçek API, başarısız olursa 0 göster
+            let ciro = 0, maliyet = 0;
             try {
-                const response = await fetch('/api/kasa-ozet');
+                const response = await fetch('/api/kasa-ozet', { signal: AbortSignal.timeout(5000) });
                 if (response.ok) {
                     const data = await response.json();
-                    ciro = data.ciro || ciro;
-                    maliyet = data.maliyet || maliyet;
+                    ciro = data.ciro || 0;
+                    maliyet = data.maliyet || 0;
+                } else {
+                    console.warn('[Karargah] /api/kasa-ozet yanıt vermedi:', response.status);
                 }
-            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: useKarargah.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+            } catch (e) {
+                console.error('[Karargah] Kasa API hatası:', e?.message || e);
+            }
+
+            // DÜZELTME 1: b1_sistem_uyarilari tablosundan gerçek alarmları çek
+            try {
+                const { data: uyarilar } = await supabase
+                    .from('b1_sistem_uyarilari')
+                    .select('id, mesaj, tip, onem, created_at, neden, potansiyel_zarar')
+                    .eq('okundu', false)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                if (uyarilar && uyarilar.length > 0) {
+                    setAlarms(uyarilar.map(u => ({
+                        id: u.id,
+                        text: u.mesaj || 'Sistem uyarısı',
+                        neden: u.neden || 'Detay mevcut değil.',
+                        zarar: u.potansiyel_zarar || 0,
+                        tip: u.tip || 'uyari',
+                    })));
+                } else {
+                    setAlarms([]);
+                }
+            } catch (e) {
+                console.error('[Karargah] Alarm çekme hatası:', e?.message || e);
+            }
 
             setPing(Math.round(performance.now() - t0));
 
