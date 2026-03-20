@@ -23,7 +23,7 @@ export async function POST(req) {
             .insert([{
                 gonderen_rutbe,
                 hedef_oda,
-                sifreli_mesaj: sifreliPaket.sifreliMetin,
+                sifreli_mesaj: sifreliPaket.encrypted,
                 iv_vektoru: sifreliPaket.iv,
                 auth_tag: sifreliPaket.authTag,
                 okundu_mu: false

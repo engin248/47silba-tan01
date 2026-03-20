@@ -400,7 +400,7 @@ export default function GuvenlikMainContainer() {
                                             <span style={{ fontWeight: 900, fontSize: '0.8rem', color: sayi >= 5 ? '#dc2626' : sayi > 0 ? '#d97706' : '#10b981' }}>
                                                 {sayi}/5 deneme
                                             </span>
-                                            {sayi > 0 && <button onClick={() => (() => { const pin = prompt('Sıfırlamak için Admin PIN girin:'); const dogruPin = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_ADMIN_PIN) || '9999'; if (pin !== dogruPin) { goster('Yetkisiz! PIN hatalı.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sıfırlandı.'); })()} style={{ fontSize: '0.65rem', background: '#173a34', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#a7f3d0' }}>sıfırla</button>}
+                                             {sayi > 0 && <button onClick={async () => { const pin = prompt('Sifirlamak icin Admin PIN girin:'); if (!pin) return; try { const res = await fetch('/api/pin-dogrula', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin, grup: 'tam' }) }); const d = await res.json(); if (!d.token) { goster('Yetkisiz! PIN hatali.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sifirlandi.'); } catch { goster('Sunucu hatasi.', 'error'); } }} style={{ fontSize: '0.65rem', background: '#173a34', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#a7f3d0' }}>sifirla</button>}
                                         </div>
                                     </div>
                                 );
@@ -448,7 +448,8 @@ export default function GuvenlikMainContainer() {
                         )}
                     </div>
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
