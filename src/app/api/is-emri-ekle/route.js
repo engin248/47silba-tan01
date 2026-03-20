@@ -6,9 +6,9 @@ import { isEmriSchema, veriDogrula } from '@/lib/zodSchemas';
 // ─── POST /api/is-emri-ekle ────────────────────────────────────
 export async function POST(request) {
     const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-);
+        (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co').trim(),
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key').trim()
+    );
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
@@ -33,12 +33,12 @@ export async function POST(request) {
 
         const temizVeri = dogrulama.data;
 
-        // 4. MÜKERRER İŞ EMRİ KONTROLÜ
+        // 4. MÜKERRER İŞ EMRİ KONTROLÜ (b1_imalat_emirleri — canonical tablo)
         const { data: mevcut } = await supabaseAdmin
-            .from('production_orders')
+            .from('b1_imalat_emirleri')
             .select('id')
             .eq('model_id', temizVeri.model_id)
-            .in('status', ['pending', 'in_progress']);
+            .in('durum', ['bekliyor', 'uretimde']);
 
         if (mevcut && mevcut.length > 0) {
             return NextResponse.json(
@@ -47,17 +47,17 @@ export async function POST(request) {
             );
         }
 
-        // 5. INSERT
+        // 5. INSERT (b1_imalat_emirleri — canonical tablo, C3 düzeltmesi)
         const { data, error } = await supabaseAdmin
-            .from('production_orders')
-            .insert([{ ...temizVeri, status: 'pending' }])
+            .from('b1_imalat_emirleri')
+            .insert([{ ...temizVeri, durum: 'bekliyor' }])
             .select();
 
         if (error) throw error;
 
         // 6. KARA KUTU LOG
         await supabaseAdmin.from('b0_sistem_loglari').insert([{
-            tablo_adi: 'production_orders',
+            tablo_adi: 'b1_imalat_emirleri',
             islem_tipi: 'EKLEME',
             kullanici_adi: 'Server API (Güvenli İş Emri)',
             eski_veri: { model_id: temizVeri.model_id, quantity: temizVeri.quantity }

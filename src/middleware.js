@@ -56,10 +56,22 @@ async function jwtDogrula(token, sirri) {
 const PUBLIC_API_ROTALAR = [
     '/api/pin-dogrula',
     '/api/telegram-bildirim',
-    '/api/cron-ajanlar',
+    // [GÜVENLİK A4]: /api/cron-ajanlar PUBLIC listesinden çıkarıldı
+    // Artık x-internal-api-key header'ı zorunlu (aşağıdaki korunanApiRotalar'a eklendi)
 ];
 
 export async function middleware(request) {
+    // ─── [S1] JWT_SIRRI ENV ALARM GUARD ─────────────────────────
+    // SPF: Bu iki değişken yoksa auth sistemi tamamen çöker → 503 ver
+    const sirriKontrol = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
+    if (!sirriKontrol) {
+        console.error('[NIZAM KRİTİK] JWT_SIRRI ve INTERNAL_API_KEY ENV eksik — sistem kilitlendi!');
+        return new NextResponse(
+            JSON.stringify({ hata: 'Sistem yapılandırma hatası. Yöneticiye başvurun.' }),
+            { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
     const url = request.nextUrl.pathname;
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
@@ -87,6 +99,7 @@ export async function middleware(request) {
         '/api/kumas-ekle',
         '/api/personel-ekle',
         '/api/stok-alarm',
+        '/api/cron-ajanlar', // [A4]: Cron artık x-internal-api-key zorunlu
     ];
     const apiKorumalı = korunanApiRotalar.some(r => url.startsWith(r));
 
@@ -150,17 +163,9 @@ export async function middleware(request) {
             if (payload?.grup) yetkiliMi = true;
         }
 
-        // Fallback: Eski session cookie (geriye dönük uyumluluk)
-        if (!yetkiliMi) {
-            try {
-                if (authCookie?.value) {
-                    const kul = JSON.parse(decodeURIComponent(authCookie.value));
-                    if (kul.grup && (kul.grup === 'tam' || kul.grup === 'uretim' || kul.grup === 'genel')) {
-                        yetkiliMi = true;
-                    }
-                }
-            } catch { }
-        }
+        // [C2]: Legacy cookie fallback KAPATILDI — güvenlik gerilemesi önlendi
+        // Eski sb47_auth_session JSON cookie artık yetki vermiyor
+        // Tüm kullanıcılar JWT (sb47_jwt_token) kullanmalı
 
         // Ek pin çerezleri (JWT veya geçerli session yoksa bunlar TÜR BELİRTİSİ olarak kullanılır, TEK BAŞINA YETKİ VERMEZ!)
         // KÖR NOKTA ÇÖZÜMÜ: Daha önce herhangi bir 'sb47_genel_pin=1' çerezi yetkiyi by-pass ediyordu. 

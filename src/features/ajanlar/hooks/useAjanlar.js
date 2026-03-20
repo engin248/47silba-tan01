@@ -23,7 +23,7 @@ export const VARSAYILAN_KONFIGUR = null; // Konteyner kendi config'ini sağlar
 
 export function useAjanlar(kullanici) {
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [gorevler, setGorevler] = useState([]);
+    const [gorevler, setGorevler] = useState(/** @type {any[]} */([]));
     const [loading, setLoading] = useState(true);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [form, setForm] = useState(BOS_FORM);
@@ -34,7 +34,9 @@ export function useAjanlar(kullanici) {
     const [sekme, setSekme] = useState('gorevler');
     const [istatistik, setIstatistik] = useState({ toplam: 0, tamamlandi: 0, calisıyor: 0, hata: 0, bekliyor: 0 });
     const [konfig, setKonfig] = useState(() => konfigurasyonOku() || VARSAYILAN_KONFIGUR);
-    const pollingRef = useRef(null);
+    const pollingRef = useRef(/** @type {any} */(null));
+    const realtimeBagliRef = useRef(false);
+
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -56,20 +58,27 @@ export function useAjanlar(kullanici) {
         const ok = kullanici?.grup === 'tam' || pin;
         setYetkiliMi(ok);
         if (!ok) return;
+        // [DÜZELTME]: Realtime bağlandığında realtimeBagliRef = true → polling devreye girmez
         const kanal = supabase.channel('ajanlar-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public' }, yukle)
-            .subscribe();
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ajan_gorevler' }, yukle)
+            .subscribe((status) => {
+                realtimeBagliRef.current = (status === 'SUBSCRIBED');
+            });
         yukle();
-        return () => { supabase.removeChannel(kanal); };
+        return () => {
+            realtimeBagliRef.current = false;
+            supabase.removeChannel(kanal);
+        };
     }, [kullanici, yukle]);
 
-    // Polling: çalışan görevleri 5sn'de bir güncelle
+    // [DÜZELTME]: Polling → sadece realtime koptuğunda fallback (double-fire engellendi)
     useEffect(() => {
         pollingRef.current = setInterval(() => {
-            if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
+            if (!realtimeBagliRef.current && gorevler.some(g => g.durum === 'calisıyor')) yukle();
         }, 5000);
         return () => clearInterval(pollingRef.current);
     }, [gorevler, yukle]);
+
 
     const gorevGonderAction = async () => {
         if (!form.gorev_adi.trim()) return goster('Görev adı zorunlu!', 'error');
@@ -110,8 +119,9 @@ export function useAjanlar(kullanici) {
         if (!confirm('Görevi sil?')) return;
         try {
             await apiSil(id, kullanici?.label);
-            setGorevler(p => p.filter(g => g.id !== id));
-            if (secilenGorev?.id === id) setSecilenGorev(null);
+            setGorevler(p => p.filter(g => /** @type {any} */(g).id !== id));
+            if (/** @type {any} */(secilenGorev)?.id === id) setSecilenGorev(null);
+
             goster('Görev silindi!');
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
     };

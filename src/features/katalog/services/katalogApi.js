@@ -83,14 +83,14 @@ export async function urunKaydet(payload, duzenleId = null) {
 
     // Çevrimdışı kontrol
     if (!navigator.onLine) {
-        await cevrimeKuyrugaAl(TABLO, data);
+        await cevrimeKuyrugaAl(TABLO, 'INSERT', data);
         return { ok: true, mesaj: '✅ Çevrimdışı: Ürün kuyruğa eklendi.' };
     }
 
     // Çifte kayıt engeli (yeni kayıt ise)
     if (!duzenleId) {
         const { data: mevcut } = await supabase.from(TABLO).select('id').eq('urun_kodu', data.urun_kodu);
-        if (mevcut?.length > 0) return { ok: false, mesaj: '⚠️ Bu Ürün Kodu zaten katalogda mevcut!' };
+        if ((mevcut?.length ?? 0) > 0) return { ok: false, mesaj: '⚠️ Bu Ürün Kodu zaten katalogda mevcut!' };
     }
 
     const { error } = duzenleId
@@ -131,6 +131,7 @@ export async function urunSil(id, urunKodu, kullaniciLabel = 'M9 Yetkilisi') {
  * @returns {object} kanal (cleanup için)
  */
 export function katalogKanaliKur(onChange) {
+    // @ts-ignore — supabase-js tip tanımı 'postgres_changes' eventini destekliyor ama TS tipi hatalı
     return supabase.channel('m9-katalog-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: TABLO }, onChange)
         .subscribe();

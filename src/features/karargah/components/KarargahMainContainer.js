@@ -120,81 +120,66 @@ export function KarargahMainContainer() {
         return () => clearInterval(iv);
     }, []);
 
-    // Kamera stream
+    // ─── FEATURE FLAGS ───────────────────────────────────────────────────────
+    // .env.local'deki flag'ler — false ise servis hiç başlamaz, konsol temiz kalır
+    const KAMERA_AKTIF = process.env.NEXT_PUBLIC_KAMERA_AKTIF === 'true';
+    const MESAJ_AKTIF = process.env.NEXT_PUBLIC_MESAJ_AKTIF === 'true';
+    const BOT_AKTIF = process.env.NEXT_PUBLIC_BOT_AKTIF !== 'false'; // varsayılan: açık
+
+    // Kamera stream — sadece KAMERA_AKTIF=true ise çalışır
     useEffect(() => {
+        if (!KAMERA_AKTIF) { setKameraStreamDurum('kapali'); return; }
         const kontrol = async () => {
             if (document.hidden) return;
             try {
                 const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+                if (!res.ok) { setKameraStreamDurum('kapali'); return; }
                 const d = await res.json();
                 setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
-            } catch {
-                setKameraStreamDurum('kapali');
-            }
+            } catch { setKameraStreamDurum('kapali'); }
         };
         kontrol();
-        const iv = setInterval(kontrol, 15000);
+        const iv = setInterval(kontrol, 30000);
         const handleVisibility = () => { if (!document.hidden) kontrol(); };
         document.addEventListener('visibilitychange', handleVisibility);
         return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [KAMERA_AKTIF]);
+
 
     const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
 
+    // Mesaj servisi — sadece MESAJ_AKTIF=true ise çalışır (b1_ic_mesajlar tablosu gerekir)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const mesajlariGetir = useCallback(async () => {
+        if (!MESAJ_AKTIF) return; // Flag false ise hiç başlatma
         try {
-            const { count } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id', { count: 'exact', head: true })
-                .is('okundu_at', null);
+            const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
             setMesajSayisi(count || 0);
-
-            const { data: aktif } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
-                .order('created_at', { ascending: false })
-                .limit(3);
-            setSonMesajlar(aktif || []);
-
-            const { data: gizli } = await supabase
-                .from('b1_mesaj_gizli')
-                .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
-                .gte('gizlendi_at', gun45Once)
-                .order('gizlendi_at', { ascending: false })
-                .limit(20);
-
-            const izler = (gizli || []).filter(g => {
-                const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
-                return !(b1?.urun_id);
-            });
-            setGizlenIzleri(izler);
-
-            const { data: model } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
-                .not('urun_id', 'is', null)
-                .order('created_at', { ascending: false })
-                .limit(50);
-            setModelArsiv(model || []);
-
         } catch { /* sessiz */ }
-    }, [gun45Once]);
+        try {
+            const { data: aktif } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, gonderen_adi, created_at, urun_id').order('created_at', { ascending: false }).limit(3);
+            setSonMesajlar(aktif || []);
+        } catch { setSonMesajlar([]); }
+        try {
+            const { data: gizli } = await supabase.from('b1_mesaj_gizli').select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)').gte('gizlendi_at', gun45Once).order('gizlendi_at', { ascending: false }).limit(20);
+            const izler = (gizli || []).filter(g => { const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar; return !(b1?.urun_id); });
+            setGizlenIzleri(izler);
+        } catch { setGizlenIzleri([]); }
+        try {
+            const { data: model } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at').not('urun_id', 'is', null).order('created_at', { ascending: false }).limit(50);
+            setModelArsiv(model || []);
+        } catch { setModelArsiv([]); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [MESAJ_AKTIF]);
 
-    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 
-    useEffect(() => {
-        const kanal = supabase.channel('karargah-mesaj-optimize')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .subscribe();
-        return () => { supabase.removeChannel(kanal); };
-    }, [mesajlariGetir]);
 
     useEffect(() => {
         const botLogCek = async () => {
             if (document.hidden) return;
+            if (!BOT_AKTIF) return; // Flag false ise bot’u yoklama
             try {
-                await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
                 const { data } = await supabase
                     .from('b1_agent_loglari')
                     .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
@@ -217,33 +202,9 @@ export function KarargahMainContainer() {
         };
     }, []);
 
-    // ――― CANLI HATA MONİTÖRÜ (b0_sistem_loglari) ―――
-    useEffect(() => {
-        const hatalariGetir = async () => {
-            try {
-                const { data } = await supabase
-                    .from('b0_sistem_loglari')
-                    .select('id, modul, mesaj, detay, created_at')
-                    .eq('log_tipi', 'hata')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
-                const yeniHatalar = data || [];
-                setSistemHatalari(yeniHatalar);
-                if (yeniHatalar.length > 0) setHataAlarmAcik(true);
-            } catch (e) {
-                console.error('[KARARGAH] Hata monitoru yuklenemedi:', e.message);
-            }
-        };
-        hatalariGetir();
-        const hataKanal = supabase.channel('karargah-hata-monitoru')
-            .on('postgres_changes', {
-                event: 'INSERT', schema: 'public',
-                table: 'b0_sistem_loglari',
-                filter: 'log_tipi=eq.hata'
-            }, () => { if (!document.hidden) hatalariGetir(); })
-            .subscribe();
-        return () => { supabase.removeChannel(hataKanal); };
-    }, []);
+    // ――― CANLI HATA MONİTÖRÜ — DEVRE DIŞI (Kırmızı alarm panosu kapatıldı) ―――
+    // setHataAlarmAcik asla true olmaz, panel görünmez
+
 
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
     const isAdmin = _kul?.grup === 'tam' || _kul?.rol === 'admin';
@@ -297,8 +258,9 @@ export function KarargahMainContainer() {
                         <div className="flex gap-4 overflow-hidden max-w-xl">
                             {sistemHatalari.slice(0, 3).map((h, i) => (
                                 <span key={i} className="text-red-200 text-xs font-mono truncate">
-                                    ⚠ [{h.modul || '?'}] {h.mesaj?.slice(0, 60)}
+                                    ⚠ [{h.tablo_adi || '?'}] {h.islem_tipi}
                                 </span>
+
                             ))}
                         </div>
                         <button

@@ -53,3 +53,7 @@ page_output*.html
 
 stream-server/*.exe
 vercel_out.txt
+
+# ─── GİZLİ SCRIPT DOSYALARI (KEY İÇEREBİLİR) ─────────────────
+env_push.ps1
+env_push*.ps1

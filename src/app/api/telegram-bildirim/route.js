@@ -44,14 +44,17 @@ export async function POST(request) {
         const body_raw = await request.clone().json().catch(() => ({}));
         const mesajOnizleme = (body_raw?.mesaj || '').substring(0, 80);
         if (mesajOnizleme) {
-            const { data: dupCheck } = await supabase
-                .from('b0_api_spam_kalkani')
-                .select('son_vurus_saati, son_mesaj_ozeti')
-                .eq('son_mesaj_ozeti', mesajOnizleme)
-                .single()
-                .catch(() => ({ data: null }));
+            let dupCheck = null;
+            try {
+                const { data } = await supabase
+                    .from('b0_api_spam_kalkani')
+                    .select('son_vurus_saati, son_mesaj_ozeti')
+                    .eq('son_mesaj_ozeti', mesajOnizleme)
+                    .single();
+                dupCheck = data;
+            } catch { /* duplicate kaydı yoksa sessiz geç */ }
             if (dupCheck) {
-                const gecenSn = (new Date() - new Date(dupCheck.son_vurus_saati)) / 1000;
+                const gecenSn = (new Date(Date.now()) - new Date(dupCheck.son_vurus_saati)) / 1000;
                 if (gecenSn < DUPLICATE_BEKLEME_SN) {
                     return NextResponse.json({ success: false, engellendi: true, sebep: `Duplicate koruma: Bu alarm ${Math.round((DUPLICATE_BEKLEME_SN - gecenSn) / 60)} dakika sonra tekrar gönderilebilir.` });
                 }

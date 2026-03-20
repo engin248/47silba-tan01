@@ -156,30 +156,23 @@ export default function AjanlarMainContainer() {
         return VARSAYILAN_KONFIGUR;
     });
     const pollingRef = useRef(null);
+    const realtimeBagliRef = useRef(false);
 
     useEffect(() => {
         let ajanPin = false;
         try { ajanPin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { ajanPin = !!sessionStorage.getItem('sb47_uretim_pin'); }
         const erisebilir = /** @type {any} */ (kullanici)?.grup === 'tam' || ajanPin;
         setYetkiliMi(erisebilir);
-
-        let kanal;
-        if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
-                .subscribe();
-        }
-
+        // [DÜZELTME]: Realtime bloğu kaldırıldı — useAjanlar.js 'ajanlar-realtime' kanalını zaten açıyor.
+        // Çift kanal = çift tetiklenme. Burada sadece ilk yükleme yapılır.
         yukle();
-
-        return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici]);
 
-    // [BUGFIX]: Polling devre dışı kalmıştı (dead code). Düzeltildi.
+    // [DÜZELTME]: Polling → sadece realtime bağlantısı koptuğunda fallback olarak çalışır.
+    // Realtime aktifken bu interval hiçbir şey yapmaz (gereksiz DB sorgusu engellendi).
     useEffect(() => {
         pollingRef.current = /** @type {any} */ (setInterval(() => {
-            if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
+            if (!realtimeBagliRef.current && gorevler.some(g => g.durum === 'calisıyor')) yukle();
         }, 5000));
         return () => clearInterval(/** @type {any} */(pollingRef.current));
     }, [gorevler]);
@@ -288,7 +281,7 @@ export default function AjanlarMainContainer() {
             const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
             if (error) throw error;
             setGorevler(p => p.filter(g => /** @type {any} */(g).id !== id));
-            if (secilenGorev?.id === id) setSecilenGorev(null);
+            if (/** @type {any} */(secilenGorev)?.id === id) setSecilenGorev(null);
             goster('Görev silindi!');
         } catch (error) { goster('Silinemedi: ' + error.message, 'error'); }
         setIslemdeId(null);
@@ -526,7 +519,7 @@ export default function AjanlarMainContainer() {
                                     const ajan = ajanBilgisi(gorev.ajan_adi);
                                     const onc = oncelikBilgisi(gorev.oncelik);
                                     const calisiyor = calistiriliyor[gorev.id];
-                                    const secili = secilenGorev?.id === gorev.id;
+                                    const secili = /** @type {any} */(secilenGorev)?.id === gorev.id;
                                     return (
                                         <div key={gorev.id} style={{ borderBottom: '1px solid #f8fafc' }}>
                                             <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 100px', gap: '0.5rem', padding: '12px 16px', alignItems: 'center', background: secili ? '#f5f3ff' : 'white', cursor: 'pointer' }}
