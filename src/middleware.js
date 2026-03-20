@@ -76,6 +76,22 @@ export async function middleware(request) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
 
+    // ─── 0. SALDIRI YOL ENGELİ (WordPress/CMS Tarama Botu) ────
+    const ENGELLENEN_YOLLAR = [
+        '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
+        '/wordpress', '/wp-json', '/xmlrpc.php', '/wp-cron.php',
+        '/phpmyadmin', '/pma', '/admin/config', '/setup-config.php',
+        '/.env', '/.git', '/.htaccess', '/config.php',
+        '/backup', '/old', '/new', '/blog', '/tmp',
+    ];
+    const saldiriYolu = ENGELLENEN_YOLLAR.some(yol =>
+        url === yol || url.startsWith(yol + '/') || url.startsWith(yol + '.')
+    );
+    if (saldiriYolu) {
+        console.warn(`[GÜVENLİK] Engellenen yol: ${url} | IP: ${ip}`);
+        return new NextResponse(null, { status: 403 });
+    }
+
     // ─── 1. BOT/CRAWLER TESPİTİ ───────────────────────────────
     if (url.startsWith('/api/')) {
         const botTespitEdildi = BOT_IMZALARI.some(imza => userAgent.includes(imza));
