@@ -1,4 +1,5 @@
-﻿export const maxDuration = 60; // Vercel Timeout (522/504) Engelleyici
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60; // Vercel Timeout (522/504) Engelleyici
 import { NextResponse } from 'next/server';
 // Build Hatasını Önlemek İçin Upstash Geçici Olarak Devre Dışı
 // import { Ratelimit } from '@upstash/ratelimit';

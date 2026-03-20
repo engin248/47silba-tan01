@@ -1,16 +1,17 @@
+export const dynamic = 'force-dynamic'
 // /api/2fa-dogrula/route.js
-// TOTP kodu doğrulama — PIN doğrulandıktan sonra çağrılır
+// TOTP kodu doÄŸrulama â€” PIN doÄŸrulandÄ±ktan sonra Ã§aÄŸrÄ±lÄ±r
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { totpDogrula } from '@/lib/totp';
 
-// In-memory brute-force koruması (2FA)
+// In-memory brute-force korumasÄ± (2FA)
 const FA2_KILIT = new Map();
 
 export async function POST(request) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'bilinmeyen';
 
-    // ── 2FA brute-force koruması: 3 yanlış → 5 dakika kilit
+    // â”€â”€ 2FA brute-force korumasÄ±: 3 yanlÄ±ÅŸ â†’ 5 dakika kilit
     const kilit = FA2_KILIT.get(ip);
     if (kilit && Date.now() < kilit.bitis) {
         const kalan = Math.ceil((kilit.bitis - Date.now()) / 1000);
@@ -25,12 +26,12 @@ export async function POST(request) {
             return NextResponse.json({ hata: '6 haneli numerik kod gerekli.' }, { status: 400 });
         }
 
-        // temp_token doğrula (pin-dogrula'dan dönen geçici token)
+        // temp_token doÄŸrula (pin-dogrula'dan dÃ¶nen geÃ§ici token)
         if (!temp_token) {
-            return NextResponse.json({ hata: 'Geçersiz istek — önce PIN doğrulama gerekli.' }, { status: 400 });
+            return NextResponse.json({ hata: 'GeÃ§ersiz istek â€” Ã¶nce PIN doÄŸrulama gerekli.' }, { status: 400 });
         }
 
-        // Secret'ı Supabase'den al
+        // Secret'Ä± Supabase'den al
         const supabase = createClient(
             (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
             (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
@@ -44,15 +45,15 @@ export async function POST(request) {
             .maybeSingle();
 
         if (!config?.eski_veri?.secret) {
-            // 2FA kurulmamış — geç (ilk kurulum)
-            return NextResponse.json({ basarili: true, kurulmamis: true, mesaj: '2FA henüz kurulmamış, geç.' });
+            // 2FA kurulmamÄ±ÅŸ â€” geÃ§ (ilk kurulum)
+            return NextResponse.json({ basarili: true, kurulmamis: true, mesaj: '2FA henÃ¼z kurulmamÄ±ÅŸ, geÃ§.' });
         }
 
         const secret = config.eski_veri.secret;
         const gecerli = await totpDogrula(secret, kod);
 
         if (!gecerli) {
-            // Hatalı deneme sayacı
+            // HatalÄ± deneme sayacÄ±
             const mevcut = FA2_KILIT.get(ip) || { sayi: 0 };
             mevcut.sayi++;
             if (mevcut.sayi >= 3) {
@@ -69,10 +70,10 @@ export async function POST(request) {
                 eski_veri: { saat: new Date().toISOString() }
             }]);
 
-            return NextResponse.json({ basarili: false, hata: 'Yanlış 2FA kodu.' }, { status: 401 });
+            return NextResponse.json({ basarili: false, hata: 'YanlÄ±ÅŸ 2FA kodu.' }, { status: 401 });
         }
 
-        // Başarılı — kilidi sıfırla
+        // BaÅŸarÄ±lÄ± â€” kilidi sÄ±fÄ±rla
         FA2_KILIT.delete(ip);
 
         // Log
@@ -83,7 +84,7 @@ export async function POST(request) {
             eski_veri: { saat: new Date().toISOString() }
         }]);
 
-        return NextResponse.json({ basarili: true, mesaj: '2FA doğrulandı.' });
+        return NextResponse.json({ basarili: true, mesaj: '2FA doÄŸrulandÄ±.' });
     } catch (err) {
         return NextResponse.json({ hata: err.message }, { status: 500 });
     }

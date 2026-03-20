@@ -1,20 +1,21 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { spamKontrol } from '@/lib/ApiZirhi';
 
-export const revalidate = 3600; // Karargah Ana Verileri 1 SAAT boyunca statik kalır (Bedava & Çok Hızlı)
+export const revalidate = 3600; // Karargah Ana Verileri 1 SAAT boyunca statik kalÄ±r (Bedava & Ã‡ok HÄ±zlÄ±)
 
 export async function GET(request) {
     try {
-        // 🚨 KÖR NOKTA ZIRHI: DDoS ve Spam Koruması 🚨
+        // ğŸš¨ KÃ–R NOKTA ZIRHI: DDoS ve Spam KorumasÄ± ğŸš¨
         const ip = request.headers.get('x-forwarded-for') || 'bilinmeyen_ip';
         const { izinVerildi } = spamKontrol(ip);
-        if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPİT EDİLDİ - ATEŞ KES!' }, { status: 429 });
+        if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPÄ°T EDÄ°LDÄ° - ATEÅ KES!' }, { status: 429 });
 
-        // 🚨 KÖR NOKTA ZIRHI: Yetkisiz Dışarı (Service Role) Okuma Engellendi 🚨
+        // ğŸš¨ KÃ–R NOKTA ZIRHI: Yetkisiz DÄ±ÅŸarÄ± (Service Role) Okuma Engellendi ğŸš¨
         const authHeader = request.headers.get('authorization');
         if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`) {
-            return NextResponse.json({ error: 'YETKİSİZ ERİŞİM! (KASA KAPALI)' }, { status: 403 });
+            return NextResponse.json({ error: 'YETKÄ°SÄ°Z ERÄ°ÅÄ°M! (KASA KAPALI)' }, { status: 403 });
         }
 
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -25,7 +26,7 @@ export async function GET(request) {
         bugun.setHours(0, 0, 0, 0);
         const bugunISO = bugun.toISOString();
 
-        // 1. Kasa Gelirleri (Bugünkü Tahsilatlar vb.)
+        // 1. Kasa Gelirleri (BugÃ¼nkÃ¼ Tahsilatlar vb.)
         const { data: kasaData, error: kasaErr } = await supabase
             .from('b2_kasa_hareketleri')
             .select('tutar_tl')
@@ -47,7 +48,7 @@ export async function GET(request) {
         const maliyet = maliyetData?.reduce((t, m) => t + parseFloat(m.tutar_tl || 0), 0) || 0;
         const personel = maliyetData?.filter(m => m.maliyet_tipi === 'personel_iscilik').reduce((t, m) => t + parseFloat(m.tutar_tl || 0), 0) || 0;
 
-        // 3. Sistem Alarmları (Aktif limit 10)
+        // 3. Sistem AlarmlarÄ± (Aktif limit 10)
         const { data: alarmData, error: alarmErr } = await supabase
             .from('b1_sistem_uyarilari')
             .select('id, uyari_tipi, seviye, baslik, mesaj, olusturma')

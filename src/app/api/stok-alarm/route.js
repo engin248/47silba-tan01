@@ -1,4 +1,5 @@
-﻿// src/app/api/stok-alarm/route.js
+export const dynamic = 'force-dynamic'
+// src/app/api/stok-alarm/route.js
 // [A-06] Stok Kritik Uyarı Sistemi + Telegram Entegrasyonu
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';

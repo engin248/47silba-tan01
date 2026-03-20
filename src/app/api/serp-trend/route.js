@@ -1,27 +1,28 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 
 /**
  * /api/serp-trend
- * SerpAPI — Google Trend Doğrulama Servisi
+ * SerpAPI â€” Google Trend DoÄŸrulama Servisi
  *
- * Görev: Verilen ürün/trend için Google arama sonuçlarından
- *        gerçek piyasa sinyali çeker. Perplexity'nin göremediği
- *        Google Shopping, Google Trends datası gelir.
+ * GÃ¶rev: Verilen Ã¼rÃ¼n/trend iÃ§in Google arama sonuÃ§larÄ±ndan
+ *        gerÃ§ek piyasa sinyali Ã§eker. Perplexity'nin gÃ¶remediÄŸi
+ *        Google Shopping, Google Trends datasÄ± gelir.
  *
  * Input:  POST { sorgu: string, kategori?: string }
- * Output: { sonuclar, alışverisSonuclari, ilgiliAramalar, googleTrendsSkoru }
+ * Output: { sonuclar, alÄ±ÅŸverisSonuclari, ilgiliAramalar, googleTrendsSkoru }
  */
 
-// Rate limit: basit in-memory (production için Upstash Redis önerilir)
+// Rate limit: basit in-memory (production iÃ§in Upstash Redis Ã¶nerilir)
 const sonAramaMap = new Map();
-const BEKLEME_MS = 5000; // 5 saniye bekleme arası aramalar
+const BEKLEME_MS = 5000; // 5 saniye bekleme arasÄ± aramalar
 
 export async function POST(req) {
     try {
         const SERPAPI_KEY = process.env.SERPAPI_API_KEY?.replace(/[\r\n]+/g, '').trim();
 
         if (!SERPAPI_KEY) {
-            return NextResponse.json({ error: 'SERPAPI_API_KEY tanımlı değil.' }, { status: 500 });
+            return NextResponse.json({ error: 'SERPAPI_API_KEY tanÄ±mlÄ± deÄŸil.' }, { status: 500 });
         }
 
         const body = await req.json();
@@ -31,20 +32,20 @@ export async function POST(req) {
             return NextResponse.json({ error: 'sorgu parametresi zorunlu.' }, { status: 400 });
         }
 
-        // Basit rate limit (IP başına)
+        // Basit rate limit (IP baÅŸÄ±na)
         const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
         const sonArama = sonAramaMap.get(ip) || 0;
         if (Date.now() - sonArama < BEKLEME_MS) {
             return NextResponse.json({
-                error: `Lütfen ${Math.ceil((BEKLEME_MS - (Date.now() - sonArama)) / 1000)} saniye bekleyin.`
+                error: `LÃ¼tfen ${Math.ceil((BEKLEME_MS - (Date.now() - sonArama)) / 1000)} saniye bekleyin.`
             }, { status: 429 });
         }
         sonAramaMap.set(ip, Date.now());
 
-        // Türkiye pazarı için arama sorgusu
-        const arama = `${sorgu.trim()} ${kategori ? kategori : ''} Türkiye`.trim();
+        // TÃ¼rkiye pazarÄ± iÃ§in arama sorgusu
+        const arama = `${sorgu.trim()} ${kategori ? kategori : ''} TÃ¼rkiye`.trim();
 
-        // ─── AŞAMA 1: Google Organic Arama ───────────────────────
+        // â”€â”€â”€ AÅAMA 1: Google Organic Arama â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const organikUrl = new URL('https://serpapi.com/search.json');
         organikUrl.searchParams.set('q', arama);
         organikUrl.searchParams.set('location', 'Turkey');
@@ -53,7 +54,7 @@ export async function POST(req) {
         organikUrl.searchParams.set('api_key', SERPAPI_KEY);
         organikUrl.searchParams.set('num', '5');
 
-        // ─── AŞAMA 2: Google Shopping ────────────────────────────
+        // â”€â”€â”€ AÅAMA 2: Google Shopping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const shoppingUrl = new URL('https://serpapi.com/search.json');
         shoppingUrl.searchParams.set('engine', 'google_shopping');
         shoppingUrl.searchParams.set('q', arama);
@@ -73,7 +74,7 @@ export async function POST(req) {
 
         clearTimeout(timeout);
 
-        // Organik sonuçlar
+        // Organik sonuÃ§lar
         let sonuclar = [];
         let ilgiliAramalar = [];
         if (organikRes.status === 'fulfilled' && organikRes.value.ok) {
@@ -87,7 +88,7 @@ export async function POST(req) {
             ilgiliAramalar = (data.related_searches || []).slice(0, 6).map(r => r.query);
         }
 
-        // Shopping sonuçları
+        // Shopping sonuÃ§larÄ±
         let alisverisler = [];
         if (shoppingRes.status === 'fulfilled' && shoppingRes.value.ok) {
             const data = await shoppingRes.value.json();
@@ -101,13 +102,13 @@ export async function POST(req) {
             }));
         }
 
-        // ─── Basit Google Trend Skoru Hesabı ─────────────────────
-        // Shopping sonucu sayısı + organik sonuç kalitesine göre 0-100 skor
+        // â”€â”€â”€ Basit Google Trend Skoru HesabÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Shopping sonucu sayÄ±sÄ± + organik sonuÃ§ kalitesine gÃ¶re 0-100 skor
         const shoppingSkor = Math.min(alisverisler.length * 15, 60);
         const organikSkor = Math.min(sonuclar.length * 8, 40);
         const googleTrendsSkoru = shoppingSkor + organikSkor;
 
-        // Fiyat aralığı analizi (shopping'den)
+        // Fiyat aralÄ±ÄŸÄ± analizi (shopping'den)
         let fiyatAraligi = null;
         if (alisverisler.length > 0) {
             const fiyatlar = alisverisler
@@ -130,16 +131,16 @@ export async function POST(req) {
             ilgiliAramalar,
             fiyatAraligi,
             piyasaYorumu: googleTrendsSkoru >= 70
-                ? 'Güçlü pazar talebi — Google\'da yoğun alışveriş trafiği'
+                ? 'GÃ¼Ã§lÃ¼ pazar talebi â€” Google\'da yoÄŸun alÄ±ÅŸveriÅŸ trafiÄŸi'
                 : googleTrendsSkoru >= 40
-                    ? 'Orta düzey talep — pazar var ama rekabet izlenebilir'
-                    : 'Düşük Google sinyali — niş ürün veya yeterli veri yok',
+                    ? 'Orta dÃ¼zey talep â€” pazar var ama rekabet izlenebilir'
+                    : 'DÃ¼ÅŸÃ¼k Google sinyali â€” niÅŸ Ã¼rÃ¼n veya yeterli veri yok',
             timestamp: new Date().toISOString(),
         });
 
     } catch (err) {
         if (err.name === 'AbortError') {
-            return NextResponse.json({ error: 'SerpAPI zaman aşımı (12sn).' }, { status: 504 });
+            return NextResponse.json({ error: 'SerpAPI zaman aÅŸÄ±mÄ± (12sn).' }, { status: 504 });
         }
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

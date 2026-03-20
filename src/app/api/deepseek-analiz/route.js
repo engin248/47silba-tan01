@@ -1,12 +1,13 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 
 /**
  * /api/deepseek-analiz
- * DeepSeek V3 — Düşük Maliyetli Ürün Analiz Servisi
+ * DeepSeek V3 â€” DÃ¼ÅŸÃ¼k Maliyetli ÃœrÃ¼n Analiz Servisi
  *
- * Görev: Gemini'ye alternatif, daha ucuz ürün analizi.
- *        Tekstil/moda sektörü için üretim kararı, maliyet tahmini,
- *        rekabet analizi ve pazar yorum üretir.
+ * GÃ¶rev: Gemini'ye alternatif, daha ucuz Ã¼rÃ¼n analizi.
+ *        Tekstil/moda sektÃ¶rÃ¼ iÃ§in Ã¼retim kararÄ±, maliyet tahmini,
+ *        rekabet analizi ve pazar yorum Ã¼retir.
  *
  * Input:  POST { urunAdi, kategori?, fiyat?, notlar? }
  * Output: { karar, skor, maliyet, riskler, oneriler, analiz }
@@ -17,7 +18,7 @@ export async function POST(req) {
         const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY?.replace(/[\r\n]+/g, '').trim();
 
         if (!DEEPSEEK_KEY) {
-            return NextResponse.json({ error: 'DEEPSEEK_API_KEY tanımlı değil.' }, { status: 500 });
+            return NextResponse.json({ error: 'DEEPSEEK_API_KEY tanÄ±mlÄ± deÄŸil.' }, { status: 500 });
         }
 
         const body = await req.json();
@@ -27,31 +28,31 @@ export async function POST(req) {
             return NextResponse.json({ error: 'urunAdi parametresi zorunlu.' }, { status: 400 });
         }
 
-        const prompt = `Sen THE ORDER / NİZAM sisteminin tekstil fabrikası analisti'sin.
-Görevin: Verilen ürün için üretim kararı ve maliyet analizi yap.
+        const prompt = `Sen THE ORDER / NÄ°ZAM sisteminin tekstil fabrikasÄ± analisti'sin.
+GÃ¶revin: Verilen Ã¼rÃ¼n iÃ§in Ã¼retim kararÄ± ve maliyet analizi yap.
 
-DİL KURALI: Tamamen soğukkanlı, metrik odaklı Türkçe yaz. Abartılı ifade kullanma.
+DÄ°L KURALI: Tamamen soÄŸukkanlÄ±, metrik odaklÄ± TÃ¼rkÃ§e yaz. AbartÄ±lÄ± ifade kullanma.
 
-ÜRÜN BİLGİSİ:
-- Ürün Adı: ${urunAdi.trim()}
-- Kategori: ${kategori || 'belirtilmemiş'}
-- Hedef Fiyat: ${fiyat ? fiyat + ' TL' : 'belirtilmemiş'}
+ÃœRÃœN BÄ°LGÄ°SÄ°:
+- ÃœrÃ¼n AdÄ±: ${urunAdi.trim()}
+- Kategori: ${kategori || 'belirtilmemiÅŸ'}
+- Hedef Fiyat: ${fiyat ? fiyat + ' TL' : 'belirtilmemiÅŸ'}
 - Notlar: ${notlar || 'yok'}
 
-GÖREV:
-Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
+GÃ–REV:
+AÅŸaÄŸÄ±daki JSON formatÄ±nda yanÄ±t ver (baÅŸka hiÃ§bir ÅŸey yazma):
 
 {
-  "karar": "ÜRET | TEST_URETIM | IZLE | REDDET",
+  "karar": "ÃœRET | TEST_URETIM | IZLE | REDDET",
   "karar_skoru": 0-100,
-  "tahmini_maliyet_tl": sayı,
-  "tahmini_kar_marji": "yüzde olarak",
+  "tahmini_maliyet_tl": sayÄ±,
+  "tahmini_kar_marji": "yÃ¼zde olarak",
   "uretim_zorlugu": "Kolay | Orta | Zor",
-  "tahmini_iscilik_gun": sayı,
+  "tahmini_iscilik_gun": sayÄ±,
   "riskler": ["Risk 1", "Risk 2"],
-  "guclu_yonler": ["Güçlü yön 1", "Güçlü yön 2"],
-  "pazar_yorumu": "2 cümle, metrik bazlı",
-  "oneri": "Fabrika yöneticisine 1 cümle net tavsiye"
+  "guclu_yonler": ["GÃ¼Ã§lÃ¼ yÃ¶n 1", "GÃ¼Ã§lÃ¼ yÃ¶n 2"],
+  "pazar_yorumu": "2 cÃ¼mle, metrik bazlÄ±",
+  "oneri": "Fabrika yÃ¶neticisine 1 cÃ¼mle net tavsiye"
 }`;
 
         const controller = new AbortController();
@@ -69,7 +70,7 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
                 messages: [
                     {
                         role: 'system',
-                        content: 'Sen bir tekstil fabrikası yapay zeka analistsin. Türkçe konuş. Yalnızca geçerli JSON dön.',
+                        content: 'Sen bir tekstil fabrikasÄ± yapay zeka analistsin. TÃ¼rkÃ§e konuÅŸ. YalnÄ±zca geÃ§erli JSON dÃ¶n.',
                     },
                     { role: 'user', content: prompt },
                 ],
@@ -84,7 +85,7 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
         if (!res.ok) {
             const errText = await res.text();
             return NextResponse.json({
-                error: `DeepSeek API hatası (${res.status})`,
+                error: `DeepSeek API hatasÄ± (${res.status})`,
                 detay: errText,
             }, { status: 502 });
         }
@@ -113,7 +114,7 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
 
     } catch (err) {
         if (err.name === 'AbortError') {
-            return NextResponse.json({ error: 'DeepSeek zaman aşımı (15sn).' }, { status: 504 });
+            return NextResponse.json({ error: 'DeepSeek zaman aÅŸÄ±mÄ± (15sn).' }, { status: 504 });
         }
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

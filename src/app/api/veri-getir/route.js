@@ -1,4 +1,5 @@
-﻿import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic'
+import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // ─── GÜVENLİK YAMASI: Parametre Doğrulama ───────────────────────────

@@ -1,12 +1,13 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 
 /**
  * /api/agent/kasif
- * THE ORDER / NİZAM — KAŞİF AJAN (Dış Gözlemci)
+ * THE ORDER / NÄ°ZAM â€” KAÅÄ°F AJAN (DÄ±ÅŸ GÃ¶zlemci)
  *
- * Görev: Verilen ürün için internet araştırması yapar (Perplexity Sonar),
- * ardından Gemini ile "Bu ürün neden satar / satmaz?" karar desteği üretir.
- * Hermes V2 mimarisi üzerine karar kalibrasyonu katmanı olarak çalışır.
+ * GÃ¶rev: Verilen Ã¼rÃ¼n iÃ§in internet araÅŸtÄ±rmasÄ± yapar (Perplexity Sonar),
+ * ardÄ±ndan Gemini ile "Bu Ã¼rÃ¼n neden satar / satmaz?" karar desteÄŸi Ã¼retir.
+ * Hermes V2 mimarisi Ã¼zerine karar kalibrasyonu katmanÄ± olarak Ã§alÄ±ÅŸÄ±r.
  *
  * Input:  { urunAdi, kumasCinsi, hedefKitle, sezon, hermesSkoru }
  * Output: { piyasaOzeti, satarMi, gucluYonler, zayifYonler, tavsiye, kaynaklar }
@@ -20,30 +21,30 @@ export async function POST(req) {
         const { urunAdi, kumasCinsi, hedefKitle, sezon, hermesSkoru } = body;
 
         const geminiKey = process.env.GEMINI_API_KEY?.trim();
-        if (!geminiKey) return NextResponse.json({ error: 'GEMINI API Anahtarı (.env) bulunamadı!' }, { status: 500 });
+        if (!geminiKey) return NextResponse.json({ error: 'GEMINI API AnahtarÄ± (.env) bulunamadÄ±!' }, { status: 500 });
         const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
 
         if (!urunAdi) {
             return NextResponse.json({ error: 'urunAdi zorunlu' }, { status: 400 });
         }
 
-        // ── AŞAMA 1: PERPLEXITY SONAR — Piyasa Araştırması ──────────
+        // â”€â”€ AÅAMA 1: PERPLEXITY SONAR â€” Piyasa AraÅŸtÄ±rmasÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const perplexityPrompt = `
-Tekstil ve hazır giyim sektörü için piyasa araştırması yap.
+Tekstil ve hazÄ±r giyim sektÃ¶rÃ¼ iÃ§in piyasa araÅŸtÄ±rmasÄ± yap.
 
-Ürün: ${urunAdi}
-Kumaş: ${kumasCinsi || 'belirtilmemiş'}
+ÃœrÃ¼n: ${urunAdi}
+KumaÅŸ: ${kumasCinsi || 'belirtilmemiÅŸ'}
 Hedef Kitle: ${hedefKitle || 'genel'}
 Sezon: ${sezon || 'genel'}
 
-Şu soruları yanıtla (Türkçe):
-1. Bu ürün şu an Türkiye ve Avrupa pazarında trend mi? (Evet/Hayır + kısa açıklama)
-2. Amazon, Zara, Trendyol gibi platformlarda bu ürünün talebi nasıl? (Yüksek/Orta/Düşük)
-3. Rakip fiyat aralığı nedir? (TL ve EUR olarak tahmini)
-4. Bu ürün için en büyük 2 risk nedir?
-5. Bu ürün için en büyük 2 fırsat nedir?
+Åu sorularÄ± yanÄ±tla (TÃ¼rkÃ§e):
+1. Bu Ã¼rÃ¼n ÅŸu an TÃ¼rkiye ve Avrupa pazarÄ±nda trend mi? (Evet/HayÄ±r + kÄ±sa aÃ§Ä±klama)
+2. Amazon, Zara, Trendyol gibi platformlarda bu Ã¼rÃ¼nÃ¼n talebi nasÄ±l? (YÃ¼ksek/Orta/DÃ¼ÅŸÃ¼k)
+3. Rakip fiyat aralÄ±ÄŸÄ± nedir? (TL ve EUR olarak tahmini)
+4. Bu Ã¼rÃ¼n iÃ§in en bÃ¼yÃ¼k 2 risk nedir?
+5. Bu Ã¼rÃ¼n iÃ§in en bÃ¼yÃ¼k 2 fÄ±rsat nedir?
 
-Kısa ve veri odaklı yanıt ver. Kaynak belirt.
+KÄ±sa ve veri odaklÄ± yanÄ±t ver. Kaynak belirt.
 `.trim();
 
         let piyasaVeri = null;
@@ -61,7 +62,7 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
                     messages: [
                         {
                             role: 'system',
-                            content: 'Sen tekstil sektörü için piyasa araştırması yapan bir uzman analistin. Türkçe yanıt ver. Kısa, net ve veri odaklı ol.'
+                            content: 'Sen tekstil sektÃ¶rÃ¼ iÃ§in piyasa araÅŸtÄ±rmasÄ± yapan bir uzman analistin. TÃ¼rkÃ§e yanÄ±t ver. KÄ±sa, net ve veri odaklÄ± ol.'
                         },
                         { role: 'user', content: perplexityPrompt }
                     ],
@@ -78,39 +79,39 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
                 kaynaklar = perplexityData.citations || [];
             }
         } catch (perplexityErr) {
-            // Perplexity başarısız → Gemini tek başına çalışır
+            // Perplexity baÅŸarÄ±sÄ±z â†’ Gemini tek baÅŸÄ±na Ã§alÄ±ÅŸÄ±r
             piyasaVeri = null;
         }
 
-        // ── AŞAMA 2: GEMİNİ — "Satar mı?" Karar Desteği ───────────
+        // â”€â”€ AÅAMA 2: GEMÄ°NÄ° â€” "Satar mÄ±?" Karar DesteÄŸi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const geminiPrompt = `
-Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İç Üretim kapasitesine sahip) için ürün kârlılık kararı veriyorsun.
+Sen THE ORDER / NÄ°ZAM sisteminin KAÅÄ°F ajanÄ±sÄ±n. Tekstil fabrikasÄ± (Fason ve Ä°Ã§ Ãœretim kapasitesine sahip) iÃ§in Ã¼rÃ¼n kÃ¢rlÄ±lÄ±k kararÄ± veriyorsun.
 
-DİL VE ÜSLUP KURALI (KESİN TALİMAT):
-Asla sübjektif, coşkulu, abartılı veya satıcı ağzıyla ("müthiş satıyor", "uçuyor", "hemen üretmeliyiz", "harika fırsat") YAZMAYACAKSIN. Tamamen soğukkanlı, net, metrik (sayısal) ve analitik bir dil kullan. Raporlamalarını yüzdelik değişimler, TL cinsinden fiyat bantları ve ölçülebilir istatistikler üzerine kur. Ölçülemeyen hiçbir yorum yapma.
+DÄ°L VE ÃœSLUP KURALI (KESÄ°N TALÄ°MAT):
+Asla sÃ¼bjektif, coÅŸkulu, abartÄ±lÄ± veya satÄ±cÄ± aÄŸzÄ±yla ("mÃ¼thiÅŸ satÄ±yor", "uÃ§uyor", "hemen Ã¼retmeliyiz", "harika fÄ±rsat") YAZMAYACAKSIN. Tamamen soÄŸukkanlÄ±, net, metrik (sayÄ±sal) ve analitik bir dil kullan. RaporlamalarÄ±nÄ± yÃ¼zdelik deÄŸiÅŸimler, TL cinsinden fiyat bantlarÄ± ve Ã¶lÃ§Ã¼lebilir istatistikler Ã¼zerine kur. Ã–lÃ§Ã¼lemeyen hiÃ§bir yorum yapma.
 
-== ÜRÜN BİLGİSİ ==
-Ürün Adı: ${urunAdi}
-Kumaş: ${kumasCinsi || 'belirtilmemiş'}
+== ÃœRÃœN BÄ°LGÄ°SÄ° ==
+ÃœrÃ¼n AdÄ±: ${urunAdi}
+KumaÅŸ: ${kumasCinsi || 'belirtilmemiÅŸ'}
 Hedef Kitle: ${hedefKitle || 'genel'}
 Sezon: ${sezon || 'genel'}
 Hermes AI Trend Skoru: ${hermesSkoru || 'bilinmiyor'}/100
 
-== PIYASA ARAŞTIRMASI (Perplexity Sonar / Hermes Verisi) ==
-${piyasaVeri || 'Piyasa verisi alınamadı — kendi analitik veri havuzunla değerlendirme yap.'}
+== PIYASA ARAÅTIRMASI (Perplexity Sonar / Hermes Verisi) ==
+${piyasaVeri || 'Piyasa verisi alÄ±namadÄ± â€” kendi analitik veri havuzunla deÄŸerlendirme yap.'}
 
-== GÖREV ==
-Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize dayanarak SADECE şu JSON formatında yanıt ver (başka hiçbir şey yazma):
+== GÃ–REV ==
+YukarÄ±daki pazar verilerine ve 119 Kriterlik Ã¼retim/kÃ¢rlÄ±lÄ±k filtrelerimize dayanarak SADECE ÅŸu JSON formatÄ±nda yanÄ±t ver (baÅŸka hiÃ§bir ÅŸey yazma):
 
 {
   "satarMi": true/false,
-  "kararGuven": "1-10 arası tam sayı (Veri kalitesine göre)",
-  "piyasaOzeti": "Tamamen metrik olan, 2 cümlelik veri özeti (Örn: Pazar doygunluğa ulaşmış, rekabet yüksek, kar marjı tahmini %12)",
-  "gucluYonler": ["Operasyonel güçlü yön 1 (Örn: Fason imalata uygun)", "Metrik güçlü yön 2"],
-  "zayifYonler": ["Operasyonel zayıf yön 1 (Örn: Yüksek metraj firesi)", "Risk 2"],
-  "tavsiye": "Yöneticiye tamamen finansal/operasyonel tavsiye (Örn: Üretim marjı %20'nin altında kalacağı için reddedildi)",
+  "kararGuven": "1-10 arasÄ± tam sayÄ± (Veri kalitesine gÃ¶re)",
+  "piyasaOzeti": "Tamamen metrik olan, 2 cÃ¼mlelik veri Ã¶zeti (Ã–rn: Pazar doygunluÄŸa ulaÅŸmÄ±ÅŸ, rekabet yÃ¼ksek, kar marjÄ± tahmini %12)",
+  "gucluYonler": ["Operasyonel gÃ¼Ã§lÃ¼ yÃ¶n 1 (Ã–rn: Fason imalata uygun)", "Metrik gÃ¼Ã§lÃ¼ yÃ¶n 2"],
+  "zayifYonler": ["Operasyonel zayÄ±f yÃ¶n 1 (Ã–rn: YÃ¼ksek metraj firesi)", "Risk 2"],
+  "tavsiye": "YÃ¶neticiye tamamen finansal/operasyonel tavsiye (Ã–rn: Ãœretim marjÄ± %20'nin altÄ±nda kalacaÄŸÄ± iÃ§in reddedildi)",
   "fiyatAraligi": { "min": "Rakam", "max": "Rakam" },
-  "benzerUrunler": ["Aynı segment ürün 1", "Aynı segment ürün 2"]
+  "benzerUrunler": ["AynÄ± segment Ã¼rÃ¼n 1", "AynÄ± segment Ã¼rÃ¼n 2"]
 }
 `.trim();
 
@@ -130,7 +131,7 @@ Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize
 
         if (!geminiRes.ok) {
             const errText = await geminiRes.text();
-            return NextResponse.json({ error: 'Gemini API bağlantı hatası (' + geminiRes.status + ')', mesaj: errText }, { status: 502 });
+            return NextResponse.json({ error: 'Gemini API baÄŸlantÄ± hatasÄ± (' + geminiRes.status + ')', mesaj: errText }, { status: 502 });
         }
 
         const geminiData = await geminiRes.json();
@@ -142,10 +143,10 @@ Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize
             const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             kararJSON = JSON.parse(cleaned);
         } catch {
-            kararJSON = { satarMi: null, tavsiye: rawText, piyasaOzeti: 'JSON parse hatası' };
+            kararJSON = { satarMi: null, tavsiye: rawText, piyasaOzeti: 'JSON parse hatasÄ±' };
         }
 
-        // ── SONUÇ ──────────────────────────────────────────────────
+        // â”€â”€ SONUÃ‡ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         return NextResponse.json({
             ajan: 'kasif',
             urun: urunAdi,
@@ -157,7 +158,7 @@ Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize
 
     } catch (err) {
         return NextResponse.json({
-            error: 'Kaşif Ajan hatası',
+            error: 'KaÅŸif Ajan hatasÄ±',
             mesaj: err.message,
         }, { status: 500 });
     }

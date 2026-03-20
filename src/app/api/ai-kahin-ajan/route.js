@@ -1,19 +1,20 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ═══════════════════════════════════════════════════════════
-//  /api/ai-kahin-ajan — Kâhin AI Ajanı
-//  Perplexity API (sonar model) — Vercel'de PERPLEXITY_API_KEY gerekli
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  /api/ai-kahin-ajan â€” KÃ¢hin AI AjanÄ±
+//  Perplexity API (sonar model) â€” Vercel'de PERPLEXITY_API_KEY gerekli
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 export async function POST(req) {
     try {
         const PERPLEXITY_KEY = process.env.PERPLEXITY_API_KEY;
         if (!PERPLEXITY_KEY) {
-            return NextResponse.json({ error: 'PERPLEXITY_API_KEY tanımlı değil.' }, { status: 500 });
+            return NextResponse.json({ error: 'PERPLEXITY_API_KEY tanÄ±mlÄ± deÄŸil.' }, { status: 500 });
         }
 
-        // 1. Personel verisi çek
+        // 1. Personel verisi Ã§ek
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
             .select('id, ad_soyad, aylik_maliyet_tl')
@@ -23,18 +24,18 @@ export async function POST(req) {
             return NextResponse.json({ error: `Personel sorgusu hata: ${pError.message}` }, { status: 500 });
         }
         if (!pData || pData.length === 0) {
-            return NextResponse.json({ error: 'Personel tablosu boş.' }, { status: 404 });
+            return NextResponse.json({ error: 'Personel tablosu boÅŸ.' }, { status: 404 });
         }
 
-        // 2. Bu ayın performans verisi çek
+        // 2. Bu ayÄ±n performans verisi Ã§ek
         const ayBasi = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
         const { data: perfData } = await supabaseAdmin
             .from('b1_personel_performans')
             .select('personel_id, isletmeye_katilan_deger, kazanilan_prim, uretilen_adet, kalite_puani')
             .gte('created_at', ayBasi);
 
-        // 3. Analiz metni oluştur
-        let isciAnalizMetni = 'Fabrikanın bu ayki üretim verileri:\n\n';
+        // 3. Analiz metni oluÅŸtur
+        let isciAnalizMetni = 'FabrikanÄ±n bu ayki Ã¼retim verileri:\n\n';
         for (const p of pData) {
             const raporlar = (perfData || []).filter(l => l.personel_id === p.id);
             const adet = raporlar.reduce((s, r) => s + (Number(r.uretilen_adet) || 0), 0);
@@ -45,11 +46,11 @@ export async function POST(req) {
                 : 10;
             const maliyet = Number(p.aylik_maliyet_tl) || 0;
             isciAnalizMetni += `Personel: ${p.ad_soyad}
-  - Aylık Maliyet: ${maliyet} TL
-  - Üretilen Adet: ${adet}
-  - Katma Değer: ${deger} TL
-  - Kalite Puanı: ${kalite.toFixed(1)}/10
-  - Kazanılan Prim: ${prim} TL
+  - AylÄ±k Maliyet: ${maliyet} TL
+  - Ãœretilen Adet: ${adet}
+  - Katma DeÄŸer: ${deger} TL
+  - Kalite PuanÄ±: ${kalite.toFixed(1)}/10
+  - KazanÄ±lan Prim: ${prim} TL
   - Amorti: %${maliyet > 0 ? ((deger / maliyet) * 100).toFixed(0) : 0}\n\n`;
         }
 
@@ -65,15 +66,15 @@ export async function POST(req) {
                 messages: [
                     {
                         role: 'system',
-                        content: `Sen acımasız ve net bir Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
-Fabrika patronuna Türkçe, kısa (max 5 paragraf), eyleme geçirilebilir "Kârlılık ve Adalet Raporu" sun.
+                        content: `Sen acÄ±masÄ±z ve net bir YalÄ±n Ãœretim Yapay Zeka BaÅŸdenetÃ§isi (KÃ¢hin Agent) sin.
+Fabrika patronuna TÃ¼rkÃ§e, kÄ±sa (max 5 paragraf), eyleme geÃ§irilebilir "KÃ¢rlÄ±lÄ±k ve Adalet Raporu" sun.
 KURALLAR:
-1. Maliyet > Katma Değer → "Zarar Yazdırıyor" — eğitim/uyarı öner.
-2. Katma Değer > Maliyet → "Liyakat Yıldızı" — tebrik et.
-3. Kalite Puanı < 5 → Çok üretse bile disiplin uyarısı ver.
-4. Maksimum 5-6 paragraf. MD formatı. Agresif kurumsal dil.`,
+1. Maliyet > Katma DeÄŸer â†’ "Zarar YazdÄ±rÄ±yor" â€” eÄŸitim/uyarÄ± Ã¶ner.
+2. Katma DeÄŸer > Maliyet â†’ "Liyakat YÄ±ldÄ±zÄ±" â€” tebrik et.
+3. Kalite PuanÄ± < 5 â†’ Ã‡ok Ã¼retse bile disiplin uyarÄ±sÄ± ver.
+4. Maksimum 5-6 paragraf. MD formatÄ±. Agresif kurumsal dil.`,
                     },
-                    { role: 'user', content: `VERİLER:\n${isciAnalizMetni}` },
+                    { role: 'user', content: `VERÄ°LER:\n${isciAnalizMetni}` },
                 ],
                 max_tokens: 1024,
                 temperature: 0.3,
@@ -82,11 +83,11 @@ KURALLAR:
 
         if (!aiRes.ok) {
             const errText = await aiRes.text();
-            return NextResponse.json({ error: `Perplexity API hatası: ${aiRes.status}` }, { status: 502 });
+            return NextResponse.json({ error: `Perplexity API hatasÄ±: ${aiRes.status}` }, { status: 502 });
         }
 
         const aiJson = await aiRes.json();
-        const aiCevap = aiJson?.choices?.[0]?.message?.content || 'AI yargıç sessiz kaldı.';
+        const aiCevap = aiJson?.choices?.[0]?.message?.content || 'AI yargÄ±Ã§ sessiz kaldÄ±.';
 
         // 5. Log yaz
         try {
@@ -95,12 +96,12 @@ KURALLAR:
                 kaynak_tablo: 'b1_personel', sonuc: 'basarili',
                 mesaj: `${pData.length} personel analiz edildi.`,
             }]);
-        } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: route.js'); }
+        } catch (_) { console.error('[KÃ–R NOKTA ZIRHI - YUTULAN HATA] Dosya: route.js'); }
 
         return NextResponse.json({ success: true, aiCevap, personel_sayisi: pData.length });
 
     } catch (error) {
-        console.error('[Kâhin AI Hatası]', error);
+        console.error('[KÃ¢hin AI HatasÄ±]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

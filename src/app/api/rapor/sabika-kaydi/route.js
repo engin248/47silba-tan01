@@ -1,12 +1,13 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// TEDARİKÇİ / FASON SABIKA KAYDI — THE ORDER / NIZAM
+// TEDARÄ°KÃ‡Ä° / FASON SABIKA KAYDI â€” THE ORDER / NIZAM
 // /api/rapor/sabika-kaydi
 //
-// GET  → Fason/tedarikçi gecikme + defo/iade skorları
-// POST → Manuel iade/defo kaydı ekle
+// GET  â†’ Fason/tedarikÃ§i gecikme + defo/iade skorlarÄ±
+// POST â†’ Manuel iade/defo kaydÄ± ekle
 // ============================================================
 
 export async function GET(req) {
@@ -15,21 +16,21 @@ export async function GET(req) {
         const gunSayisi = parseInt(url.searchParams.get('gun') || '90');
         const baslangic = new Date(Date.now() - gunSayisi * 86400000).toISOString();
 
-        // ─ Üretim emirlerinden fason gecikme analizi ─────────
+        // â”€ Ãœretim emirlerinden fason gecikme analizi â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const { data: uretimler } = await sb
             .from('production_orders')
             .select('id, model_id, status, planned_end_date, completed_at, quantity, created_at, notes')
             .gte('created_at', baslangic)
             .limit(200);
 
-        // ─ Manuel sabıka kayıtlarını çek ─────────────────────
+        // â”€ Manuel sabÄ±ka kayÄ±tlarÄ±nÄ± Ã§ek â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const { data: sabikaKayitlari } = await sb
             .from('b1_tedarikci_sabika')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(100);
 
-        // ─ Model bazında gecikme hesabı ───────────────────────
+        // â”€ Model bazÄ±nda gecikme hesabÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const modelSabika = {};
         for (const u of (uretimler || [])) {
             const key = u.model_id || 'bilinmiyor';
@@ -57,12 +58,12 @@ export async function GET(req) {
             }
         }
 
-        // ─ Güven Skoru hesabı ────────────────────────────────
-        const guvenSkorları = Object.values(modelSabika).map(m => {
+        // â”€ GÃ¼ven Skoru hesabÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const guvenSkorlarÄ± = Object.values(modelSabika).map(m => {
             const gec_oran = m.toplam_siparis > 0 ? (m.gec_teslim / m.toplam_siparis) * 100 : 0;
             const ort_gecikme = m.gec_teslim > 0 ? m.gecikme_gun_toplam / m.gec_teslim : 0;
 
-            // 100 üzerinden güven skoru: gecikme ve defo düştükçe skor düşer
+            // 100 Ã¼zerinden gÃ¼ven skoru: gecikme ve defo dÃ¼ÅŸtÃ¼kÃ§e skor dÃ¼ÅŸer
             const guven_skoru = Math.max(0, Math.round(100 - (gec_oran * 0.7) - (ort_gecikme * 2)));
 
             return {
@@ -70,33 +71,33 @@ export async function GET(req) {
                 gec_teslim_oran_yuzde: parseFloat(gec_oran.toFixed(1)),
                 ortalama_gecikme_gun: parseFloat(ort_gecikme.toFixed(1)),
                 guven_skoru,
-                karar: guven_skoru >= 80 ? '✅ Güvenilir' : guven_skoru >= 60 ? '⚠️ Dikkatli Ol' : '🚨 Riskli',
+                karar: guven_skoru >= 80 ? 'âœ… GÃ¼venilir' : guven_skoru >= 60 ? 'âš ï¸ Dikkatli Ol' : 'ğŸš¨ Riskli',
             };
         }).sort((a, b) => a.guven_skoru - b.guven_skoru);
 
-        // ─ Manuel kayıtları da dahil et ───────────────────────
-        const kombine = sabikaKayitlari ? [...sabikaKayitlari, ...guvenSkorları] : guvenSkorları;
+        // â”€ Manuel kayÄ±tlarÄ± da dahil et â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const kombine = sabikaKayitlari ? [...sabikaKayitlari, ...guvenSkorlarÄ±] : guvenSkorlarÄ±;
 
-        // ─ Kritik tedarikçi alarmı ────────────────────────────
-        const riskli = guvenSkorları.filter(g => g.guven_skoru < 60);
+        // â”€ Kritik tedarikÃ§i alarmÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const riskli = guvenSkorlarÄ±.filter(g => g.guven_skoru < 60);
         if (riskli.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Tedarikçi/Fason Sabıka Kaydı',
+                ajan_adi: 'TedarikÃ§i/Fason SabÄ±ka KaydÄ±',
                 islem_tipi: 'sabika_analiz',
                 kaynak_tablo: 'production_orders',
                 sonuc: 'uyari',
-                mesaj: `🚨 ${riskli.length} riskli tedarikçi/model: ${riskli.map(r => `${r.model_id}(%${r.gec_teslim_oran_yuzde} gecikme)`).join(', ')}`,
+                mesaj: `ğŸš¨ ${riskli.length} riskli tedarikÃ§i/model: ${riskli.map(r => `${r.model_id}(%${r.gec_teslim_oran_yuzde} gecikme)`).join(', ')}`,
             }]);
         }
 
         return NextResponse.json({
             basarili: true,
             ozet: {
-                toplam_analiz: guvenSkorları.length,
+                toplam_analiz: guvenSkorlarÄ±.length,
                 riskli_sayi: riskli.length,
-                en_dusuk_guven: guvenSkorları[0] || null,
+                en_dusuk_guven: guvenSkorlarÄ±[0] || null,
             },
-            guven_skorlari: guvenSkorları,
+            guven_skorlari: guvenSkorlarÄ±,
             manuel_sabika_kayitlari: sabikaKayitlari || [],
             tarih: new Date().toISOString(),
         });
@@ -106,7 +107,7 @@ export async function GET(req) {
     }
 }
 
-// ─── POST: Manuel iade/defo kaydı ────────────────────────────
+// â”€â”€â”€ POST: Manuel iade/defo kaydÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export async function POST(req) {
     try {
         const body = await req.json();

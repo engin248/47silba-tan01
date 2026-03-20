@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { mesajSifrele } from '@/lib/kripto';
@@ -10,14 +11,14 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Eksik parametre' }, { status: 400 });
         }
 
-        // Düz metin mesajı sunucuda AES-256 ile şifreliyoruz
+        // DÃ¼z metin mesajÄ± sunucuda AES-256 ile ÅŸifreliyoruz
         const sifreliPaket = mesajSifrele(mesaj_metni);
         if (!sifreliPaket) {
-            return NextResponse.json({ error: 'Şifreleme başarısız' }, { status: 500 });
+            return NextResponse.json({ error: 'Åifreleme baÅŸarÄ±sÄ±z' }, { status: 500 });
         }
 
-        // Supabase tarafında tablo yoksa bile oluşturulması (Migration mantığı) gerekecek.
-        // Veritabanına DÜZ METİN GİTMEZ. Sadece şifreli vektörler(Hex) gider.
+        // Supabase tarafÄ±nda tablo yoksa bile oluÅŸturulmasÄ± (Migration mantÄ±ÄŸÄ±) gerekecek.
+        // VeritabanÄ±na DÃœZ METÄ°N GÄ°TMEZ. Sadece ÅŸifreli vektÃ¶rler(Hex) gider.
         const { data, error } = await supabaseAdmin
             .from('b1_askeri_haberlesme')
             .insert([{
@@ -30,15 +31,15 @@ export async function POST(req) {
             }]);
 
         if (error) {
-            console.error("[HABERLEŞME API HATA]:", error.message);
-            // Tablo yoksa sahte başarı dönelim şimdilik (UI çökmesin)
+            console.error("[HABERLEÅME API HATA]:", error.message);
+            // Tablo yoksa sahte baÅŸarÄ± dÃ¶nelim ÅŸimdilik (UI Ã§Ã¶kmesin)
             if (error.code === '42P01') {
-                return NextResponse.json({ success: true, fake: true, message: 'Tablo yok ama şifrelendi.' });
+                return NextResponse.json({ success: true, fake: true, message: 'Tablo yok ama ÅŸifrelendi.' });
             }
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, message: 'Emir uçtan uca şifrelendi ve hedefe mühürlendi.' });
+        return NextResponse.json({ success: true, message: 'Emir uÃ§tan uca ÅŸifrelendi ve hedefe mÃ¼hÃ¼rlendi.' });
     } catch (e) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

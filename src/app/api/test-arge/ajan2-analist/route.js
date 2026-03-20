@@ -1,46 +1,47 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 
 /**
- * NİZAM KUM HAVUZU (SANDBOX) - AJAN 2: ANALİST (KANTAR & TERZİ BİRLEŞİMİ)
- * Görev: Ajan 1'den (İstihbarat) gelen ham veriyi alır, THE ORDER kurallarına (D2C, Fason Maliyeti, Kalite Açığı)
- * göre değerlendirir ve 1-100 arası matematiksel bir "Risk/Kâr Puanı" çıkarır.
+ * NÄ°ZAM KUM HAVUZU (SANDBOX) - AJAN 2: ANALÄ°ST (KANTAR & TERZÄ° BÄ°RLEÅÄ°MÄ°)
+ * GÃ¶rev: Ajan 1'den (Ä°stihbarat) gelen ham veriyi alÄ±r, THE ORDER kurallarÄ±na (D2C, Fason Maliyeti, Kalite AÃ§Ä±ÄŸÄ±)
+ * gÃ¶re deÄŸerlendirir ve 1-100 arasÄ± matematiksel bir "Risk/KÃ¢r PuanÄ±" Ã§Ä±karÄ±r.
  */
 
 export async function POST(req) {
     try {
         const geminiKey = process.env.GEMINI_API_KEY?.trim();
-        if (!geminiKey) return NextResponse.json({ error: 'GEMINI API Anahtarı bulunamadı!' }, { status: 500 });
+        if (!geminiKey) return NextResponse.json({ error: 'GEMINI API AnahtarÄ± bulunamadÄ±!' }, { status: 500 });
 
         const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
 
-        // İstihbarat (Ajan 1) tarafından sağlanan ham veriler
+        // Ä°stihbarat (Ajan 1) tarafÄ±ndan saÄŸlanan ham veriler
         const { urunAdi, pazarTabanFiyati, guncelSatisHizi, rakipSikayetleri, tahminiMaliyet } = await req.json();
 
         if (!urunAdi) {
-            return NextResponse.json({ error: 'Ürün verisi (urunAdi) zorunludur.' }, { status: 400 });
+            return NextResponse.json({ error: 'ÃœrÃ¼n verisi (urunAdi) zorunludur.' }, { status: 400 });
         }
 
         const prompt = `
-            Sen (NİZAM Ajan 2: Analist), "THE ORDER" tekstil imalat şirketinin acımasız ve tavizsiz üretim analistisin.
-            Amacımız: Aracıları çıkarıp D2C (Doğrudan Tüketiciye) yüksek kaliteyi uygun fiyata sunmak.
+            Sen (NÄ°ZAM Ajan 2: Analist), "THE ORDER" tekstil imalat ÅŸirketinin acÄ±masÄ±z ve tavizsiz Ã¼retim analistisin.
+            AmacÄ±mÄ±z: AracÄ±larÄ± Ã§Ä±karÄ±p D2C (DoÄŸrudan TÃ¼keticiye) yÃ¼ksek kaliteyi uygun fiyata sunmak.
             
-            GELEN İSTİHBARAT VERİSİ:
-            Ürün: ${urunAdi}
-            Pazar Taban Fiyatı (Rakiplerin En Düşük Satış Fiyatı): ${pazarTabanFiyati} TL
-            Satış İvmesi: ${guncelSatisHizi}
-            Rakip Şikayetleri (Tüketici Sorunu): ${rakipSikayetleri}
-            İç Sistem Tahmini Üretim Maliyetimiz (M5): ${tahminiMaliyet} TL
+            GELEN Ä°STÄ°HBARAT VERÄ°SÄ°:
+            ÃœrÃ¼n: ${urunAdi}
+            Pazar Taban FiyatÄ± (Rakiplerin En DÃ¼ÅŸÃ¼k SatÄ±ÅŸ FiyatÄ±): ${pazarTabanFiyati} TL
+            SatÄ±ÅŸ Ä°vmesi: ${guncelSatisHizi}
+            Rakip Åikayetleri (TÃ¼ketici Sorunu): ${rakipSikayetleri}
+            Ä°Ã§ Sistem Tahmini Ãœretim Maliyetimiz (M5): ${tahminiMaliyet} TL
             
-            GÖREV (KÖR NOKTA ANALİZİ):
-            Veriyi maliyet ve kalite zafiyeti açısından analiz et. "Satar" demek yetmez, "Ne kadar kazandırır?" ve "Ne kadar risksizdir?" sorusunu cevapla.
-            Rakiplerin yaptığı (ve müşterilerin şikayet ettiği) hatayı nasıl çözeriz ve bizim maliyetimizle piyasa tavan fiyatı arasındaki marj kârlı mı?
+            GÃ–REV (KÃ–R NOKTA ANALÄ°ZÄ°):
+            Veriyi maliyet ve kalite zafiyeti aÃ§Ä±sÄ±ndan analiz et. "Satar" demek yetmez, "Ne kadar kazandÄ±rÄ±r?" ve "Ne kadar risksizdir?" sorusunu cevapla.
+            Rakiplerin yaptÄ±ÄŸÄ± (ve mÃ¼ÅŸterilerin ÅŸikayet ettiÄŸi) hatayÄ± nasÄ±l Ã§Ã¶zeriz ve bizim maliyetimizle piyasa tavan fiyatÄ± arasÄ±ndaki marj kÃ¢rlÄ± mÄ±?
             
-            Aşağıdaki JSON formatında (sadece JSON dönecek şekilde) sonuç ver:
+            AÅŸaÄŸÄ±daki JSON formatÄ±nda (sadece JSON dÃ¶necek ÅŸekilde) sonuÃ§ ver:
             {
-                "analiz_skoru": "1 ile 100 arası puan. (85 altı üretim reddedilir)",
-                "kar_marji_durumu": "Maliyet ve satış fiyatı makası kurtarıyor mu? (Olumlu/Olumsuz/Riskli)",
-                "uretim_firsati": "Rakibin şikayetini nasıl fırsata çevirip daha iyisini dikebiliriz? (Reçete)",
-                "risk_raporu": "Bu üretim fasona verilirse çıkabilecek tek cümlelik risk uyarısı."
+                "analiz_skoru": "1 ile 100 arasÄ± puan. (85 altÄ± Ã¼retim reddedilir)",
+                "kar_marji_durumu": "Maliyet ve satÄ±ÅŸ fiyatÄ± makasÄ± kurtarÄ±yor mu? (Olumlu/Olumsuz/Riskli)",
+                "uretim_firsati": "Rakibin ÅŸikayetini nasÄ±l fÄ±rsata Ã§evirip daha iyisini dikebiliriz? (ReÃ§ete)",
+                "risk_raporu": "Bu Ã¼retim fasona verilirse Ã§Ä±kabilecek tek cÃ¼mlelik risk uyarÄ±sÄ±."
             }
         `.trim();
 
@@ -50,7 +51,7 @@ export async function POST(req) {
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
-                    temperature: 0.1, // Analitik ve tavizsiz karar vermesi için düşük sıcaklık
+                    temperature: 0.1, // Analitik ve tavizsiz karar vermesi iÃ§in dÃ¼ÅŸÃ¼k sÄ±caklÄ±k
                     maxOutputTokens: 500,
                     responseMimeType: 'application/json',
                 },
@@ -58,7 +59,7 @@ export async function POST(req) {
         });
 
         if (!res.ok) {
-            return NextResponse.json({ error: 'Gemini Analist motoru yanıt vermedi.' }, { status: res.status });
+            return NextResponse.json({ error: 'Gemini Analist motoru yanÄ±t vermedi.' }, { status: res.status });
         }
 
         const data = await res.json();
@@ -68,7 +69,7 @@ export async function POST(req) {
         try {
             jsonSonuc = JSON.parse(rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
         } catch {
-            return NextResponse.json({ error: 'Analist Ajan JSON parse hatası', hamVeri: rawText }, { status: 500 });
+            return NextResponse.json({ error: 'Analist Ajan JSON parse hatasÄ±', hamVeri: rawText }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -79,6 +80,6 @@ export async function POST(req) {
         });
 
     } catch (err) {
-        return NextResponse.json({ error: 'Analist Ajan çökmesi', detay: err.message }, { status: 500 });
+        return NextResponse.json({ error: 'Analist Ajan Ã§Ã¶kmesi', detay: err.message }, { status: 500 });
     }
 }

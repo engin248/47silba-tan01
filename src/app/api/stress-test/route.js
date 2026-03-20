@@ -1,22 +1,23 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Sunucu Yük/Stres Testi Endpoint'i
+ * Sunucu YÃ¼k/Stres Testi Endpoint'i
  * Sadece admin yetkisi olanlar tetikleyebilir.
  * Parametreler: url, count, concurrency
  */
 export async function POST(req) {
     try {
-        // Güvenlik ve yetki kontrolü
+        // GÃ¼venlik ve yetki kontrolÃ¼
         const sessionCookie = req.cookies.get('sb47_auth_session')?.value;
         if (!sessionCookie) {
-            return NextResponse.json({ error: 'Yetkisiz erişim. Oturum bulunamadı.' }, { status: 401 });
+            return NextResponse.json({ error: 'Yetkisiz eriÅŸim. Oturum bulunamadÄ±.' }, { status: 401 });
         }
 
         const session = JSON.parse(sessionCookie);
         if (session.grup !== 'tam') {
-            return NextResponse.json({ error: 'Yetkisiz erişim. Bu testi sadece Sistem Yöneticileri başlatabilir.' }, { status: 403 });
+            return NextResponse.json({ error: 'Yetkisiz eriÅŸim. Bu testi sadece Sistem YÃ¶neticileri baÅŸlatabilir.' }, { status: 403 });
         }
 
         const body = await req.json();
@@ -24,14 +25,14 @@ export async function POST(req) {
         const countReq = Number(body.count) || 100;
         const conReq = Number(body.concurrency) || 10;
 
-        // URL doğrulaması
+        // URL doÄŸrulamasÄ±
         if (!urlReq || typeof urlReq !== 'string') {
-            return NextResponse.json({ error: 'Geçerli bir hedef URL belirtilmelidir.' }, { status: 400 });
+            return NextResponse.json({ error: 'GeÃ§erli bir hedef URL belirtilmelidir.' }, { status: 400 });
         }
 
-        // Test Parametreleri Limitleri (Vercel'i kilitlememek için koruyucu sınırlar)
+        // Test Parametreleri Limitleri (Vercel'i kilitlememek iÃ§in koruyucu sÄ±nÄ±rlar)
         const vCount = Math.min(Math.max(1, countReq), 1000); // Maks 1000 istek
-        const vConcurrency = Math.min(Math.max(1, conReq), 100); // Maks 100 eşzamanlı istek
+        const vConcurrency = Math.min(Math.max(1, conReq), 100); // Maks 100 eÅŸzamanlÄ± istek
 
         const startTime = Date.now();
         const results = {
@@ -47,13 +48,13 @@ export async function POST(req) {
             avgLatencyMs: 0
         };
 
-        // İstek yığınlarını işleme (Batch processing)
+        // Ä°stek yÄ±ÄŸÄ±nlarÄ±nÄ± iÅŸleme (Batch processing)
         const fetchUrl = urlReq.startsWith('http') ? urlReq : `http://localhost:${process.env.PORT || 3000}${urlReq.startsWith('/') ? '' : '/'}${urlReq}`;
 
         let completed = 0;
         const requestPromises = [];
 
-        // Concurrency kontrolü için basit bir asenkron kuyruk yapısı
+        // Concurrency kontrolÃ¼ iÃ§in basit bir asenkron kuyruk yapÄ±sÄ±
         async function worker() {
             while (completed < vCount) {
                 // Fetch context
@@ -92,25 +93,25 @@ export async function POST(req) {
             }
         }
 
-        // Çalışanları (workers) başlat
+        // Ã‡alÄ±ÅŸanlarÄ± (workers) baÅŸlat
         for (let i = 0; i < vConcurrency; i++) {
             requestPromises.push(worker());
         }
 
         await Promise.allSettled(requestPromises);
 
-        // İstatistikleri hesapla
+        // Ä°statistikleri hesapla
         results.totalTimeMs = Date.now() - startTime;
         if (results.latencies.length > 0) {
             results.avgLatencyMs = Math.round(results.latencies.reduce((a, b) => a + b, 0) / results.latencies.length);
         }
 
-        // Test sonucunu ajan loglarına yazalım
+        // Test sonucunu ajan loglarÄ±na yazalÄ±m
         try {
             await supabase.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Sistem Hafızası',
+                ajan_adi: 'Sistem HafÄ±zasÄ±',
                 islem_tipi: 'Stres Testi',
-                mesaj: `Yük Testi: ${urlReq} hedefine ${vCount} istek atıldı. Başarılı: ${results.success}, Ort. Gecikme: ${results.avgLatencyMs}ms`,
+                mesaj: `YÃ¼k Testi: ${urlReq} hedefine ${vCount} istek atÄ±ldÄ±. BaÅŸarÄ±lÄ±: ${results.success}, Ort. Gecikme: ${results.avgLatencyMs}ms`,
                 seviye: 'uyari',
                 sonuc: results.failed === 0 ? 'basarili' : 'basarisiz'
             }]);
@@ -122,6 +123,6 @@ export async function POST(req) {
 
     } catch (error) {
         console.error('Stres test error:', error);
-        return NextResponse.json({ error: error.message || 'Test yürütülürken dahili hata oluştu.' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Test yÃ¼rÃ¼tÃ¼lÃ¼rken dahili hata oluÅŸtu.' }, { status: 500 });
     }
 }
