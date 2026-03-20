@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co').trim();
+const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key').trim();
 const MAX_ISTEK = 5;              // [C2-THROTTLE] Dakikada maksimum 5 mesaj
 const ZAMAN_ARALIGI_SN = 60;
 const DUPLICATE_BEKLEME_SN = 7200; // [C2-DUPLICATE] 2 saat içinde aynı alarm tekrar gitmesin
@@ -18,6 +18,18 @@ function kategoriyiBelirle(mesaj) {
 }
 
 export async function POST(request) {
+    // ── [C5] AUTH KATMANI ──────────────────────────────────────────────
+    // Sunucu-sunucu çağrılar x-internal-key header'ı ile doğrulanır.
+    // Browser çağrıları (ErrorBoundary, UI) header göndermez → spam shield devam eder.
+    const gelenKey = request.headers.get('x-internal-key');
+    if (gelenKey !== null && gelenKey !== undefined) {
+        const sunucuKey = (process.env.INTERNAL_API_KEY || '').replace(/[\r\n'"]/g, '').trim();
+        if (!sunucuKey || gelenKey !== sunucuKey) {
+            return NextResponse.json({ error: 'Yetkisiz: geçersiz internal key.' }, { status: 401 });
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     const supabase = createClient(supabaseUrl, supabaseKey);
     try {
         const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Bilinmeyen-IP';
@@ -26,7 +38,7 @@ export async function POST(request) {
         const { data: dbKayit } = await supabase.from('b0_api_spam_kalkani').select('*').eq('ip_adresi', ip).single();
         let engellendi = false;
         if (dbKayit) {
-            const farkSaniye = (new Date() - new Date(dbKayit.son_vurus_saati)) / 1000;
+            const farkSaniye = (new Date().getTime() - new Date(dbKayit.son_vurus_saati).getTime()) / 1000;
             if (farkSaniye < ZAMAN_ARALIGI_SN) {
                 if (dbKayit.spam_sayaci >= MAX_ISTEK) engellendi = true;
                 else await supabase.from('b0_api_spam_kalkani').update({ spam_sayaci: dbKayit.spam_sayaci + 1 }).eq('ip_adresi', ip);
@@ -54,7 +66,7 @@ export async function POST(request) {
                 dupCheck = data;
             } catch { /* duplicate kaydı yoksa sessiz geç */ }
             if (dupCheck) {
-                const gecenSn = (new Date(Date.now()) - new Date(dupCheck.son_vurus_saati)) / 1000;
+                const gecenSn = (Date.now() - new Date(dupCheck.son_vurus_saati).getTime()) / 1000;
                 if (gecenSn < DUPLICATE_BEKLEME_SN) {
                     return NextResponse.json({ success: false, engellendi: true, sebep: `Duplicate koruma: Bu alarm ${Math.round((DUPLICATE_BEKLEME_SN - gecenSn) / 60)} dakika sonra tekrar gönderilebilir.` });
                 }
