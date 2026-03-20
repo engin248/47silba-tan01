@@ -1,5 +1,5 @@
 @echo off
-cd /d "C:\Users\Admin\Desktop\47_SIL_BASTAN_01"
+cd /d "C:\Users\Esisya\Desktop\47_sil"
 echo.
 echo ========================================
 echo   NIZAM SISTEMI - GIT PUSH

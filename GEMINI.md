@@ -208,4 +208,35 @@ Her cevap şu kalite filtresinden geçirilir.
 
 ---
 
+## 16. GIT COMMIT KURALLARI
+
+1. `&&` ile birleşik komut KULLANILMAZ.
+2. Her git komutu ayrı satırda çalıştırılır.
+3. Push için: `git add`, `git commit`, `git push origin main` ayrı ayrı.
+4. Veya: `cmd /c PUSH_ET.bat` çalıştırılır (proje kökünde).
+5. Push öncesi `git pull --rebase origin main` yapılır (çakışma önleme).
+
+---
+
+## 17. GEÇİŞ KAPISI PROTOKOLÜ (5 EKSEN DOĞRULAMA + İZİN)
+
+Her görev tamamlandığında, bir sonraki adıma geçmeden ÖNCE aşağıdaki kontroller ZORUNLUDUR.
+
+### Kontrol Adımları (Sırayla)
+
+1. **Tert (Gözden Geçirme):** Yapılan tüm değişiklikler dosya bazında incelenir.
+2. **Tarayıcı Kontrolü:** Deploy edilmişse canlı URL test edilir; UI/API doğrulanır.
+3. **5 Eksen Analizi:**
+   - Teknik: Kod doğru çalışıyor mu?
+   - Güvenlik: Açık veya risk var mı?
+   - Performans: Gereksiz yük var mı?
+   - Operasyonel: Süreç bozulmadı mı?
+   - Kullanıcı: UX/veri bütünlüğü sağlandı mı?
+4. **Doğrulama Kararı:** Tüm eksenler geçilirse → ✅ ONAYLANDI.
+5. **İzin İsteme:** Sadece ONAYLANDI durumunda bir sonraki görev için kullanıcıdan izin istenir.
+
+> **KURAL:** Kontroller yapılmadan izin istenemez. Kontroller başarısız olursa önce düzeltme yapılır, izin istenmez.
+
+---
+
 END OF FILE
