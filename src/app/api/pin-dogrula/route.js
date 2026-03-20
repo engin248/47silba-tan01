@@ -137,11 +137,13 @@ export async function POST(request) {
     const temizle = (v) => v?.replace(/['"\r\n]/g, '').trim();
 
     const YETKI_SIRASI = [
-        { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },
+        { pin: temizle(process.env.ADMIN_PIN), grup: 'tam' },        // Sistem sahibi — 474747
+        { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },  // Koordinatör — 4747
         // TEST_COORDINATOR_PIN production'dan kaldırıldı (Müfettiş G2 FIX 19.03.2026)
         { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
         { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
     ];
+
 
     const eslesen = YETKI_SIRASI.find(({ pin: p }) => p && p !== 'undefined' && p === pin);
     const grup = eslesen ? eslesen.grup : null;
