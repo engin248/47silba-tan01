@@ -2,13 +2,10 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // ─── MIMARI DÜZELTME: CSP ortam bazlı ─────────────────────────────────────
-    // ESKİ: 'unsafe-eval' her ortamda açıktı (XSS saldırısında eval() ile kod çalıştırılabilirdi)
-    // YENİ: 'unsafe-eval' sadece dev'de açık (Turbopack büylüe gerçtekiyor), production'da kapalı
     async headers() {
         const isDev = process.env.NODE_ENV === 'development';
-<<<<<<< HEAD
-        // CORS Eklendi
+
+        // CORS başlıkları
         const corsHeaders = [
             { key: 'Access-Control-Allow-Credentials', value: 'true' },
             { key: 'Access-Control-Allow-Origin', value: '*' },
@@ -26,14 +23,6 @@ const nextConfig = {
                 headers: [
                     { key: 'X-XSS-Protection', value: '1; mode=block' },
                     { key: 'X-Frame-Options', value: 'DENY' },
-=======
-        return [
-            {
-                source: '/(.*)',
-                headers: [
-                    { key: 'X-XSS-Protection', value: '1; mode=block' },
-                    { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     { key: 'X-Content-Type-Options', value: 'nosniff' },
                     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
                     { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -41,26 +30,16 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-<<<<<<< HEAD
-=======
                             // 'unsafe-eval' sadece dev'de (Turbopack zorunlu kılıyor)
-                            // Production'da kaldırıldı — XSS kalkını güçlendirildi
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             isDev
                                 ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io"
                                 : "script-src 'self' 'unsafe-inline' https://*.sentry.io",
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
                             "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
                             "img-src 'self' data: blob: https://api.qrserver.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co",
-<<<<<<< HEAD
-                            "connect-src 'self' http://localhost:1984 ws://localhost:1984 https://kamera.demirtekstiltheonder.com wss://kamera.demirtekstiltheonder.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co wss://*.supabase.co https://api.perplexity.ai https://api.telegram.org https://api1.telegram.org https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://o4511011107700736.ingest.de.sentry.io",
-                            "media-src 'self' blob: http://localhost:1984 https://kamera.demirtekstiltheonder.com https://cauptlsnqieegdrgotob.supabase.co",
-                            "frame-src 'self' http://localhost:1984 https://kamera.demirtekstiltheonder.com",
-=======
                             "connect-src 'self' http://localhost:1984 ws://localhost:1984 https://kamera.demirtekstiltheonder.com wss://kamera.demirtekstiltheonder.com https://kamera.demirtekstiltheondercom.com wss://kamera.demirtekstiltheondercom.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co wss://*.supabase.co https://api.perplexity.ai https://api.telegram.org https://api1.telegram.org https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://o4511011107700736.ingest.de.sentry.io",
                             "media-src 'self' blob: http://localhost:1984 https://kamera.demirtekstiltheonder.com https://kamera.demirtekstiltheondercom.com https://cauptlsnqieegdrgotob.supabase.co",
                             "frame-src 'self' http://localhost:1984 https://kamera.demirtekstiltheonder.com https://kamera.demirtekstiltheondercom.com",
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             "frame-ancestors 'none'",
                         ].join('; '),
                     },
@@ -79,23 +58,33 @@ const nextConfig = {
         formats: ['image/webp', 'image/avif'],
     },
 
-<<<<<<< HEAD
     eslint: {
         ignoreDuringBuilds: true,
+    },
+
+    // ─── SCRAPER BAĞIMLILIKLAR — Webpack Bundle'dan Dışla ─────────────────
+    // puppeteer, puppeteer-extra ve cheerio Next.js bundle'ına girmez.
+    // Bu paketler sadece VPS/Node.js ortamında çalışır.
+    webpack: (config, { isServer }) => {
+        if (isServer) {
+            config.externals = [
+                ...(config.externals || []),
+                'puppeteer',
+                'puppeteer-extra',
+                'puppeteer-extra-plugin-stealth',
+                'cheerio',
+            ];
+        }
+        return config;
     },
 
     reactStrictMode: true,
 };
 
-// Sentry wrapper sorunlu olduğu için (özellikle App Router chunk 500 hataları ve _document hatası) tamamen devre dışı bırakıldı.
-export default nextConfig;
-=======
-    reactStrictMode: true,
-};
-
+// Sentry wrapper — App Router ile aktif
 export default withSentryConfig(nextConfig, {
-    org: process.env.SENTRY_ORG, // Vercel environment variable
-    project: process.env.SENTRY_PROJECT, // Vercel environment variable
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
     silent: true,
     widenClientFileUpload: true,
     hideSourceMaps: true,
@@ -103,4 +92,3 @@ export default withSentryConfig(nextConfig, {
     automaticVercelMonitors: true,
     tunnelRoute: '/monitoring',
 });
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552

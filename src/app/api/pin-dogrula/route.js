@@ -1,18 +1,13 @@
 // /api/pin-dogrula — Kurumsal 3 Katmanlı PIN Güvenlik Sistemi
 // Katman 1: Sunucu tarafı PIN doğrulama (client hiçbir zaman PIN göremez)
 // Katman 2: Upstash Redis rate limiting (5 hatalı deneme → 15 dk ban)
-// Katman 3: JWT session token (8 saat süre, imzalı)
+// Katman 3: JWT session token (8 saat süre, imzalı, HttpOnly cookie)
 
 import { NextResponse } from 'next/server';
 
 // ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
 // Upstash env varları yoksa in-memory fallback (geliştirme ortamı)
 let ratelimit = null;
-<<<<<<< HEAD
-// Upstash paketleri yüklü olmadığı için geçici olarak devre dışı bırakıldı (Build Hatasını Önlemek İçin)
-/*
-=======
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 try {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         const { Ratelimit } = await import('@upstash/ratelimit');
@@ -27,13 +22,10 @@ try {
             analytics: false,
             prefix: 'pin_giris',
         });
+    } else {
+        console.warn('[PIN][GÜVENLİK] UPSTASH_REDIS_REST_URL veya TOKEN eksik. In-memory rate limit aktif — serverless ortamda bruteforce koruması zayıf!');
     }
-<<<<<<< HEAD
-} catch { } // Upstash yoksa devam 
-*/
-=======
 } catch (upstashHata) { console.warn('[PIN] Upstash import edilemedi, in-memory fallback aktif:', upstashHata.message); }
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
 // In-memory fallback (Upstash olmadığında)
 const BELLEK_KILIT = new Map();
@@ -66,11 +58,7 @@ function bellekHataliDeneme(ip) {
 
 // ── JWT YARDIMCILARI ────────────────────────────────────────────────
 async function jwtOlustur(grup) {
-    // ─── MİMARİ DÜZELTME: Hardcoded fallback kaldırıldı ────────────
-    // ESKİ: || 'sb47-gizli-anahtar-degistir'
-    // Bu plain-text fallback: oluşturulan token farklı sırla imzalanıyor,
-    // middleware farklı (boş) sırla doğrulama yapıyor → TOKEN HİÇBİR ZAMAN GEÇEMEZ.
-    // DOĞRU: JWT_SIRRI ve INTERNAL_API_KEY Vercel ENV'e girilmeli.
+    // JWT_SIRRI Vercel ENV'e girilmeli. Yoksa giriş sistemi devre dışıdır.
     const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
     if (!sirri) {
         console.error('[MİMARİ ALARM] JWT_SIRRI ENV değişkeni eksik! Giriş sistemi devre dışı.');
@@ -78,12 +66,12 @@ async function jwtOlustur(grup) {
     }
     const baslik = { alg: 'HS256', typ: 'JWT' };
     const icerik = {
+        sub: grup,
         grup,
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (8 * 3600), // 8 saat
-        iss: 'sb47-karargah',
+        exp: Math.floor(Date.now() / 1000) + 8 * 3600, // 8 saat
+        iss: 'nizam-sb47',
     };
-
     const enc = (obj) => btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const veri = `${enc(baslik)}.${enc(icerik)}`;
 
@@ -101,12 +89,7 @@ async function jwtOlustur(grup) {
             .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         return `${veri}.${imza}`;
     } catch {
-<<<<<<< HEAD
         throw new Error('JWT imzalama başarısız: Crypto API kullanılamıyor.');
-=======
-        // Crypto API yoksa basit token dön
-        return btoa(`${grup}:${Date.now() + 8 * 3600 * 1000}`);
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }
 
@@ -118,7 +101,7 @@ export async function POST(request) {
 
     // ── Rate Limit Kontrolü ──
     if (ratelimit) {
-        const { success, remaining } = await ratelimit.limit(`ip:${ip}`);
+        const { success } = await ratelimit.limit(`ip:${ip}`);
         if (!success) {
             return NextResponse.json(
                 { hata: 'Çok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
@@ -130,11 +113,7 @@ export async function POST(request) {
         const durum = belleKileKontrol(ip);
         if (!durum.izinli) {
             return NextResponse.json(
-<<<<<<< HEAD
-                { hata: `Çok fazla hatalı deneme. ${Math.ceil(durum.kalanSaniye / 60)} dakika bekleyin.`, kalanDeneme: 0 },
-=======
                 { hata: `Çok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 { status: 429 }
             );
         }
@@ -155,17 +134,11 @@ export async function POST(request) {
     }
 
     // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
-    // Newline (\r\n), tırnak ve boşlukları temizle (Vercel CLI bazen ekliyor)
     const temizle = (v) => v?.replace(/['"\r\n]/g, '').trim();
 
-    // En yüksek yetki önce — aynı PIN birden fazla gruba denk gelirse tam > uretim > genel
     const YETKI_SIRASI = [
         { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },
-<<<<<<< HEAD
-        // G2 FIX (Müfettiş 19.03.2026): TEST_COORDINATOR_PIN production'dan kaldırıldı.
-        // Test pini production'da aktif olursa güvenlik açığı oluşturur.
-=======
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
+        // TEST_COORDINATOR_PIN production'dan kaldırıldı (Müfettiş G2 FIX 19.03.2026)
         { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
         { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
     ];
@@ -177,16 +150,14 @@ export async function POST(request) {
         // Hatalı deneme kaydet
         if (!ratelimit) bellekHataliDeneme(ip);
 
-        // Sisteme log yaz (Supabase bağlantısı varsa)
+        // Sisteme log yaz — fire-and-forget
         try {
             const { createClient } = await import('@supabase/supabase-js');
             const sb = createClient(
-<<<<<<< HEAD
                 (process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
                 (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
             );
             if (process.env.NEXT_PUBLIC_SUPABASE_URL && sb) {
-                // Fire-and-forget — await kaldırıldı, bekleme yok
                 void (async () => {
                     try {
                         await sb.from('b0_sistem_loglari').insert([{
@@ -197,16 +168,6 @@ export async function POST(request) {
                     } catch { }
                 })();
             }
-=======
-                (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
-                (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
-            );
-            await sb.from('b0_sistem_loglari').insert([{
-                olay: 'PIN_HATALI_GIRIS',
-                detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
-                seviye: 'uyari',
-            }]);
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
         return NextResponse.json(
@@ -218,15 +179,13 @@ export async function POST(request) {
     // ── Başarılı Giriş — JWT Token Oluştur ──
     const token = await jwtOlustur(grup);
 
-    // Başarılı girişi logla
+    // Başarılı girişi logla — fire-and-forget
     try {
         const { createClient } = await import('@supabase/supabase-js');
         const sb = createClient(
-            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
-<<<<<<< HEAD
+            (process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
             (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
         );
-        // Fire-and-forget — await kaldırıldı
         void (async () => {
             try {
                 await sb.from('b0_sistem_loglari').insert([{
@@ -238,19 +197,18 @@ export async function POST(request) {
         })();
     } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
-    // ─── GÜVENLİK YAMASI: Server-side Set-Cookie (HttpOnly + Secure + SameSite) ───
-    // ESKİ: Token JSON body'de döndürülüp client-side document.cookie ile atanıyordu
-    //        → HttpOnly yoktu → XSS saldırısında JavaScript ile çalınabilirdi
-    // YENİ: Set-Cookie header ile atanıyor → tarayıcı JS'i cookie'ye ERİŞEMEZ
+    // ─── GÜVENLİK: HttpOnly Set-Cookie (XSS koruması) ───────────────
+    // Token JSON body'de değil, HttpOnly cookie olarak döner.
+    // JavaScript bu cookie'ye erişemez → XSS ile token çalınamaz.
     const isProd = process.env.NODE_ENV === 'production';
-    const cookieMaxAge = 8 * 3600; // 8 saat (saniye)
+    const cookieMaxAge = 8 * 3600; // 8 saat
 
     const response = NextResponse.json(
         { basarili: true, grup, tokenSuresi: cookieMaxAge },
         { status: 200 }
     );
 
-    // 1. JWT Token cookie — HttpOnly (JS erişemez), Secure (sadece HTTPS), SameSite=Strict (CSRF kalkanı)
+    // 1. JWT Token cookie — HttpOnly + Secure + SameSite=Strict
     response.cookies.set('sb47_jwt_token', token, {
         httpOnly: true,
         secure: isProd,
@@ -259,7 +217,7 @@ export async function POST(request) {
         maxAge: cookieMaxAge,
     });
 
-    // 2. Auth session cookie — Middleware sayfa koruması için (readable by middleware)
+    // 2. Auth session cookie — Middleware sayfa koruması için
     const sessionData = JSON.stringify({ grup, zaman: Date.now() });
     response.cookies.set('sb47_auth_session', sessionData, {
         httpOnly: true,
@@ -281,19 +239,4 @@ export async function POST(request) {
     }
 
     return response;
-=======
-            (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
-        );
-        await sb.from('b0_sistem_loglari').insert([{
-            olay: 'PIN_BASARILI_GIRIS',
-            detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
-            seviye: 'bilgi',
-        }]);
-    } catch { /* Log başarısız olsa bile sistemi engelleme */ }
-
-    return NextResponse.json(
-        { basarili: true, grup, token, tokenSuresi: 8 * 3600 },
-        { status: 200 }
-    );
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 }

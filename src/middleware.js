@@ -163,17 +163,10 @@ export async function middleware(request) {
             if (payload?.grup) yetkiliMi = true;
         }
 
-        // [C2]: Legacy cookie fallback KAPATILDI — güvenlik gerilemesi önlendi
-        // Eski sb47_auth_session JSON cookie artık yetki vermiyor
-        // Tüm kullanıcılar JWT (sb47_jwt_token) kullanmalı
-
-        // Ek pin çerezleri (JWT veya geçerli session yoksa bunlar TÜR BELİRTİSİ olarak kullanılır, TEK BAŞINA YETKİ VERMEZ!)
-        // KÖR NOKTA ÇÖZÜMÜ: Daha önce herhangi bir 'sb47_genel_pin=1' çerezi yetkiyi by-pass ediyordu. 
-        // Artık sadece JWT doğrulandıysa yetki geçerli sayılacak, bu blokta "yetkiliMi = true" otomatik atanmayacak.
-        if (!yetkiliMi && (uretimPin?.value || genelPin?.value)) {
-            // SADECE JWT Token veya Auth Session GEÇERLİYSE PIN çerezleri yönlendirmeye kılavuz olur. 
-            // Bypass deliği KAPATILDI.
-        }
+        // ─── GÜVENLİK: Legacy JSON cookie fallback KALDIRILDI ─────────────────
+        // Eski sb47_auth_session cookie'si (imzasız JSON) yetki veremez.
+        // Tek geçerli yetkilendirme: HMAC-SHA256 imzalı JWT token (sb47_jwt_token).
+        // Eski session cookie'si olan kullanıcılar giris sayfasına yönlendirilir.
 
         if (!yetkiliMi) {
             const geriDonusUrl = new URL('/?hata=yetkisiz_erisim_middleware_kalkani', request.url);
