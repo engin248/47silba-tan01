@@ -155,8 +155,8 @@ Kullanıcı komutları sistem için önceliklidir.
 
 Her yeni sohbet başladığında (veya yapay zeka uyandığında) aşağıdaki sistem bağlamı otomatik kabul edilir.
 
-System Name: THE ORDER / NIZAM  
-Project Directory: C:\Users\Esisya\Desktop\47_SilBaştan  
+System Name: THE ORDER / NİZAM  
+Project Directory: C:\Users\Esisya\Desktop\47_sil  
 Primary Website: mizanet.com  
 Database: Supabase  
 System Founder: Engin
@@ -210,9 +210,11 @@ Her cevap şu kalite filtresinden geçirilir.
 
 ## 17. GIT PUSH PROTOCOL (KAYDETMEDEN YENİSİNE GEÇMEK YASAKTIR)
 
-1. Geliştirici veya Sistem Mimarı (Antigravity vb. AI'lar), kendi görev planını uygulayıp bitirdiğinde, bir sonraki göreve (Aşamaya) ASLA doğrudan geçiş yapamaz.
-2. İşlemler bittikten ve "Onay (Vize)" alındıktan sonra, yeni görev kabul edilmeden ÖNCE kesinlikle `git push` işlemi gerçekleştirilecek ve sistem buluta mühürlenecektir.
-3. Yenisine başlarken eskisini kaydetmek EVRENSEL sistem kuralıdır.
+1. Geliştirici veya Sistem Mimarı, görevini tamamlayıp onay aldıktan sonra bir sonraki göreve geçmeden ÖNCE kesinlikle `git push` yapılacaktır.
+2. `&&` ile birleşik git komutu KULLANILMAZ. Her komut ayrı satırda çalıştırılır.
+3. Push için sırasıyla: `git pull --rebase origin main` → `git add` → `git commit` → `git push origin main`
+4. Veya proje kökündeki `cmd /c PUSH_ET.bat` kullanılır.
+5. Yenisine başlarken eskisini kaydetmek EVRENSEL sistem kuralıdır.
 
 ---
 
