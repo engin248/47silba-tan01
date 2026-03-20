@@ -28,7 +28,11 @@ export async function devamlarGetir() {
 export async function sistemAyarlariGetir() {
     const { data } = await supabase.from('b1_sistem_ayarlari').select('deger').limit(1).maybeSingle();
     if (data?.deger) {
+<<<<<<< HEAD
         try { return JSON.parse(data.deger); } catch { }
+=======
+        try { return JSON.parse(data.deger); } catch (e) { console.error('[SİSTEM HATASI] Personel Ayar Parse:', e); return null; }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
     return { dakika_basi_ucret: 2.50, prim_orani: 0.15, yillik_izin_hakki: 15 };
 }

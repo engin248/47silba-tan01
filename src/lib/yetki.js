@@ -50,8 +50,13 @@ const VARSAYILAN_YETKILER = {
 };
 
 const YetkiContext = createContext({
+<<<<<<< HEAD
     yetkiMap: {},
     yetkiVar: () => true,
+=======
+    yetkiMap: /** @type {Record<string,boolean>} */ ({}),
+    yetkiVar: /** @param {string} _k */ (_k) => true,
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     yukleniyor: false,
     yetkiGuncelle: async () => { },
     tumYetkiler: VARSAYILAN_YETKILER,
@@ -74,7 +79,12 @@ export function YetkiProvider({ children }) {
             if (error || !data?.length) {
                 // Fallback: varsayılan yetkiler
                 setTumYetkiler(VARSAYILAN_YETKILER);
+<<<<<<< HEAD
                 const grup = kullanici?.grup;
+=======
+                // @ts-ignore — useAuth() tip tanımı eksik, runtime'da çalışır
+                const grup = /** @type {any} */ (kullanici)?.grup ?? null;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 if (grup && grup !== 'tam') {
                     setYetkiMap(VARSAYILAN_YETKILER[grup] || {});
                 } else {
@@ -84,13 +94,20 @@ export function YetkiProvider({ children }) {
             }
 
             // Tüm yetkiler haritası (koordinatör paneli için)
+<<<<<<< HEAD
             const yeni = { uretim: {}, genel: {} };
             for (const row of data) {
                 if (yeni[row.grup]) yeni[row.grup][row.kaynak] = row.izin_var;
+=======
+            const yeni = /** @type {typeof VARSAYILAN_YETKILER} */ ({ uretim: /** @type {any} */ ({}), genel: /** @type {any} */ ({}) });
+            for (const row of /** @type {any[]} */ (data)) {
+                if (/** @type {any} */ (yeni)[row.grup]) /** @type {any} */ (yeni)[row.grup][row.kaynak] = row.izin_var;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }
             setTumYetkiler(yeni);
 
             // Giriş yapan kullanıcının yetki haritası
+<<<<<<< HEAD
             const grup = kullanici?.grup;
             if (grup && grup !== 'tam') {
                 setYetkiMap(yeni[grup] || VARSAYILAN_YETKILER[grup] || {});
@@ -99,6 +116,16 @@ export function YetkiProvider({ children }) {
             }
         } catch (yetkiHata) {
             console.error('[H1 YETKİ HATASI] Supabase yetki tablosu okunamadı:', yetkiHata?.message);
+=======
+            const grup = /** @type {any} */ (kullanici)?.grup;
+            if (grup && grup !== 'tam') {
+                setYetkiMap(/** @type {any} */ (yeni)[grup] || VARSAYILAN_YETKILER[grup] || {});
+            } else {
+                setYetkiMap({});
+            }
+        } catch (yetkiHatasi) {
+            console.error('[YETKİ] Yetki haritası yüklenemedi:', yetkiHatasi.message || yetkiHatasi);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             setTumYetkiler(VARSAYILAN_YETKILER);
         }
         setYukleniyor(false);
@@ -109,7 +136,11 @@ export function YetkiProvider({ children }) {
     // tam grubu her şeyi görebilir, diğerleri haritaya bakar
     const yetkiVar = useCallback((kaynak) => {
         if (!kullanici) return false;
+<<<<<<< HEAD
         if (kullanici.grup === 'tam') return true;
+=======
+        if (/** @type {any} */ (kullanici).grup === 'tam') return true;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         if (kaynak in yetkiMap) return yetkiMap[kaynak];
         return false; // tanımsız kaynaklar varsayılan gizli
     }, [kullanici, yetkiMap]);

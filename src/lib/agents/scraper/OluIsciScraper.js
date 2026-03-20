@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 // ╔══════════════════════════════════════════════════════════════════╗
 // ║ [ARŞİV] Bu dosya 16.03.2026'da oluisci.js ile birleştirildi.  ║
 // ║ AKTİF DEĞİLDİR. Referans olarak korunmaktadır.                ║
 // ║ Güncel versiyon: src/scripts/scrapers/oluisci.js                ║
 // ╚══════════════════════════════════════════════════════════════════╝
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 /**
  * NİZAM (THE ORDER) - 1. EKİP ÜYESİ: "ÖLÜ İŞÇİ" (THE SCRAPER)
  * DEPARTMAN: Ar-Ge (M1) Veri Toplama Katmanı
@@ -26,7 +29,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export class OluIsciScraper {
 
     constructor() {
+<<<<<<< HEAD
 
+=======
+        console.log("🛠️ Ölü İşçi (Scraper Ajanı) uyandı. Çakışma Kalkanı Devrede. Sadece VERİ TOPLANACAK.");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     /**
@@ -34,6 +41,10 @@ export class OluIsciScraper {
      * Görevi: Pazar yerinden ürün adı, güncel etiket fiyatı, yorum sayısını çekip M1 havuzuna yığar.
      */
     async eTicaretTara(aramaKelimesi, platform = 'Trendyol') {
+<<<<<<< HEAD
+=======
+        console.log(`[Ajan 1] ${platform} platformunda "${aramaKelimesi}" kelimesi taranıyor...`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         let browser;
         try {
@@ -69,6 +80,11 @@ export class OluIsciScraper {
                 });
             });
 
+<<<<<<< HEAD
+=======
+            console.log(`[Ajan 1] Toplam ${toplananVeriler.length} ham veri bloku çekildi. Supabase'e fırlatılıyor...`);
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             // ÇAKIŞMA KALKANI: Karar yok, sadece Supabase insert işlemi
             for (const urun of toplananVeriler) {
                 const { data, error } = await supabase
@@ -83,7 +99,11 @@ export class OluIsciScraper {
                 if (error) {
                     console.error("Veritabanı enjeksiyon hatası:", error.message);
                 } else {
+<<<<<<< HEAD
 
+=======
+                    console.log(`[Ölü İşçi] ID:${data[0].id} Veritabanına Başarıyla Bırakıldı.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     // Trend_data tablosuna (satış ivmesi için) kör ham veriyi yazar. Hesaplama Analist'e aittir.
                 }
             }
@@ -104,7 +124,11 @@ export class OluIsciScraper {
      * Yorum: YAPMAZ. Supabase'deki 'social_growth' sütununa sayıyı çarpar çıkar.
      */
     async sosyalMedyaTara(hashtag) {
+<<<<<<< HEAD
 
+=======
+        console.log(`[Ajan 2] #${hashtag} etiketi TikTok/Insta üzerinden taranıyor... Veriler sepete (DB) konulacak.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         // (Burada TikTok Unofficer API veya Apify Instagram Scraper kullanılır)
     }
 
@@ -114,7 +138,11 @@ export class OluIsciScraper {
      * Düne göre eklenen yeni ürünleri (URL ve resimi) çeker.
      */
     async rakipKoleksiyonIzle(rakipURL) {
+<<<<<<< HEAD
 
+=======
+        console.log(`[Ajan 3] ${rakipURL} hedefine sızıldı. Sadece 'Yeni Eklenenler' HTML blokları kazınıyor.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     /**
@@ -123,7 +151,11 @@ export class OluIsciScraper {
      * Supabase'te bir text sütununa fırlatıp kaçar. Analizi o yapmaz.
      */
     async sikayetMetinleriniKazi(urunURL) {
+<<<<<<< HEAD
 
+=======
+        console.log(`[Ajan 4] ${urunURL} üzerindeki tüm müşteri şikayet metinleri kopyalanıp depoya (DB) atılıyor.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }
 

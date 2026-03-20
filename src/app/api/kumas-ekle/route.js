@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+=======
+import { createClient } from '@supabase/supabase-js';
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { kumasSchema, aksesuarSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
@@ -9,6 +13,13 @@ import { hataBildir } from '@/lib/hataBildirim';
 // Bu sayede RLS bypass riski kontrol altına alınır.
 // ─── POST /api/kumas-ekle ──────────────────────────────────────
 export async function POST(request) {
+<<<<<<< HEAD
+=======
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+    );
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     try {
         // 1. RATE LIMIT KONTROLÜ
         const forwarded = request.headers.get('x-forwarded-for');

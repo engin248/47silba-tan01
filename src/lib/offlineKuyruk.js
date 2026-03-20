@@ -93,6 +93,10 @@ export async function offlineSenkronizasyonuBaslat() {
         const kuyruk = await bekleyenleriGetir();
         if (!kuyruk || kuyruk.length === 0) return { basarili: 0, basarisiz: 0 };
 
+<<<<<<< HEAD
+=======
+        console.warn(`[OFFLINE] İnternet geldi. Çevrimdışı bekleyen ${kuyruk.length} işlem Supabase'e gönderiliyor...`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         let basariliAdet = 0;
         let basarisizAdet = 0;
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ═══════════════════════════════════════════════════════════
 //  Service Worker — Offline Fallback (K-16)
 //  Strateji: Stale-While-Revalidate (SWR)
@@ -81,4 +82,18 @@ self.addEventListener('fetch', (e) => {
             return cached || networkFetch;
         })
     );
+=======
+// BOŞ KALIYOR: Eski 'sw.js' için temizleyici. Tüm önbellekleri siler (404 Cache hatası için zorunlu).
+self.addEventListener('install', (e) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keyList) => {
+            return Promise.all(keyList.map((key) => caches.delete(key)));
+        })
+    );
+    self.registration.unregister();
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 });

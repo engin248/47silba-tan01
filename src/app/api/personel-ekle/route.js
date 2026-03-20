@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+=======
+import { createClient } from '@supabase/supabase-js';
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { personelSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
 
 // ─── POST /api/personel-ekle ───────────────────────────────────
 export async function POST(request) {
+<<<<<<< HEAD
+=======
+    const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {

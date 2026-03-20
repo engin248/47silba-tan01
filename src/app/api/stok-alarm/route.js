@@ -1,7 +1,16 @@
 // src/app/api/stok-alarm/route.js
 // [A-06] Stok Kritik Uyarı Sistemi + Telegram Entegrasyonu
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
+=======
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
+);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
 const STOK_ESIGI = 5;   // Minimum stok adedi eşiği
 
@@ -10,9 +19,15 @@ export async function GET(request) {
         // Kritik stok altındakileri bul
         const { data: kritikUrunler, error } = await supabase
             .from('b2_urun_katalogu')
+<<<<<<< HEAD
             .select('id, urun_adi, urun_kodu, stok_adeti')
             .lt('stok_adeti', STOK_ESIGI)
             .order('stok_adeti', { ascending: true })
+=======
+            .select('id, urun_adi, urun_kodu, stok_adedi, kategori')
+            .lt('stok_adedi', STOK_ESIGI)
+            .order('stok_adedi', { ascending: true })
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             .limit(50);
 
         if (error) throw error;
@@ -36,9 +51,15 @@ export async function POST(request) {
         // Kritik stok altındakileri bul
         const { data: kritikUrunler, error } = await supabase
             .from('b2_urun_katalogu')
+<<<<<<< HEAD
             .select('id, urun_adi, urun_kodu, stok_adeti')
             .lt('stok_adeti', STOK_ESIGI)
             .order('stok_adeti', { ascending: true })
+=======
+            .select('id, urun_adi, urun_kodu, stok_adedi, kategori')
+            .lt('stok_adedi', STOK_ESIGI)
+            .order('stok_adedi', { ascending: true })
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             .limit(20);
 
         if (error) throw error;
@@ -49,7 +70,11 @@ export async function POST(request) {
 
         // Telegram mesajı oluştur
         const satirlar = kritikUrunler.map(u =>
+<<<<<<< HEAD
             `  • ${u.urun_adi} (${u.urun_kodu || '—'}): ${u.stok_adeti} adet`
+=======
+            `  • ${u.urun_adi} (${u.urun_kodu || '—'}): ${u.stok_adedi} adet`
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         ).join('\n');
 
         const mesaj = `⚠️ KRİTİK STOK UYARISI\n${new Date().toLocaleString('tr-TR')}\n\n${kritikUrunler.length} ürün kritik stok altında:\n${satirlar}\n\n📦 Hemen tedarik başlatın!`;
@@ -76,6 +101,7 @@ export async function POST(request) {
             telegramOk = tRes?.ok || false;
         }
 
+<<<<<<< HEAD
         try {
             await supabase.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_urun_katalogu',
@@ -84,6 +110,15 @@ export async function POST(request) {
                 eski_veri: { kritik_urun_sayisi: kritikUrunler.length, manuel, telegram: telegramOk },
             }]);
         } catch (logHata) { /* log hatası sistemi durdurmasın */ }
+=======
+        // Log yaz
+        await supabase.from('b0_sistem_loglari').insert([{
+            tablo_adi: 'b2_urun_katalogu',
+            islem_tipi: 'STOK_ALARM',
+            kullanici_adi: 'sistem',
+            eski_veri: { kritik_urun_sayisi: kritikUrunler.length, manuel, telegram: telegramOk },
+        }]).catch(() => null);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         return NextResponse.json({
             kritik: kritikUrunler,

@@ -3,7 +3,12 @@
 // Dosya: src/lib/ajanlar-v2.js
 // Her ajan kendi bölümünde tanımlı, isimler config'den gelir
 // ============================================================
-import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
+import { createClient } from '@supabase/supabase-js';
+
+const sb = createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://mock.supabase.co',
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim() || 'mock-key'
+);
 
 // ─── AJAN İSİMLERİ KONFİGÜRASYONU ──────────────────────────
 // Koordinatör istediğinde sadece bu bölümü değiştirir.
@@ -105,10 +110,10 @@ export async function sabahSubayi() {
         // ── KONTROL NOKTASI 4: Gecikmiş Üretim Emirleri ─────
         sonuc.kontrol_sayisi++;
         const bugun = new Date().toISOString().split('T')[0];
-        const { data: gecikme } = await sb.from('production_orders')
-            .select('id, status, planned_end_date')
-            .in('status', ['pending', 'in_progress'])
-            .lt('planned_end_date', bugun)
+        const { data: gecikme } = await sb.from('b1_uretim_kayitlari')
+            .select('id, modul, durum')
+            .in('durum', ['bekliyor', 'devam_ediyor'])
+            .lt('bitis_tarihi', bugun)
             .limit(10);
         if (gecikme && gecikme.length > 0) {
             sonuc.bulgular.push(`⏰ ${gecikme.length} üretim emri gecikmeli`);
@@ -176,6 +181,7 @@ export async function sabahSubayi() {
             mesaj: brifing,
         }]);
 
+        console.log(`[${isim}] ✅ ${sonuc.kontrol_sayisi} kontrol, ${sonuc.kritik} kritik`);
         return { basarili: true, brifing, sonuc };
 
     } catch (e) {
@@ -200,10 +206,10 @@ export async function aksamci() {
 
         // ── KONTROL NOKTASI 1: Bugün Tamamlanan Üretim ──────
         sonuc.kontrol_sayisi++;
-        const { data: tamamlanan } = await sb.from('production_orders')
-            .select('id')
-            .eq('status', 'completed')
-            .gte('updated_at', bugun + 'T00:00:00'); // KÖK DÜZELTMESİ: end_time sütunu yok, updated_at kullanıldı
+        const { data: tamamlanan } = await sb.from('b1_uretim_kayitlari')
+            .select('id, modul')
+            .eq('durum', 'tamamlandi')
+            .gte('updated_at', bugun + 'T00:00:00');
         sonuc.ozet.push(`✅ Bugün tamamlanan üretim: ${tamamlanan?.length || 0} iş emri`);
 
         // ── KONTROL NOKTASI 2: Yarın Teslim Edilecek ────────
@@ -244,9 +250,9 @@ export async function aksamci() {
 
         // ── KONTROL NOKTASI 4: Yarım Kalan İşler ────────────
         sonuc.kontrol_sayisi++;
-        const { data: yarimKalan } = await sb.from('production_orders')
-            .select('id')
-            .eq('status', 'in_progress');
+        const { data: yarimKalan } = await sb.from('b1_uretim_kayitlari')
+            .select('id, modul')
+            .eq('durum', 'devam_ediyor');
         if (yarimKalan && yarimKalan.length > 0) {
             sonuc.ozet.push(`⏸️ Yarım kalan: ${yarimKalan.length} iş devam ediyor`);
         }
@@ -255,13 +261,14 @@ export async function aksamci() {
         sonuc.kontrol_sayisi++;
         const { data: personel } = await sb.from('b1_personel')
             .select('ad, soyad')
-            .eq('durum', 'aktif') // KÖK DÜZELTMESİ: boolean 'aktif' sütunu yok, string 'durum' kullanılıyor
+            .eq('aktif', true)
             .limit(3);
         sonuc.ozet.push(`👥 Kapanış çeki yapıldı`);
 
         const ozetMetin = `🌆 AKŞAM KAPANIŞI — ${bugun}\n${sonuc.ozet.join('\n')}`;
         await logYaz(isim, 'aksam_kapanis', ozetMetin);
 
+        console.log(`[${isim}] ✅ ${sonuc.kontrol_sayisi} kontrol tamamlandı`);
         return { basarili: true, ozet: ozetMetin, sonuc };
 
     } catch (e) {
@@ -287,16 +294,16 @@ export async function nabiz() {
         // ── KONTROL NOKTASI 1: Stok Alarmı ─────────────────
         sonuc.kontrol_sayisi++;
         const { data: kritikStok } = await sb.from('b2_urun_katalogu')
-            .select('id, urun_adi_tr, stok_adeti, min_stok')
+            .select('id, urun_adi_tr, stok_adeti, min_stok_alarm')
             .eq('aktif', true)
-            .not('min_stok', 'is', null); // KÖK DÜZELTMESİ: min_stok_alarm sütunu yok, min_stok kullanılıyor
+            .not('min_stok_alarm', 'is', null);
         for (const u of (kritikStok || [])) {
-            if (u.stok_adeti <= u.min_stok) {
+            if (u.stok_adeti <= u.min_stok_alarm) {
                 const alarm = await alarmYaz(
                     'dusuk_stok',
                     u.stok_adeti === 0 ? 'kritik' : 'uyari',
                     `${u.stok_adeti === 0 ? 'Stok Sıfır' : 'Düşük Stok'}: ${u.urun_adi_tr}`,
-                    `${u.stok_adeti} adet | Min: ${u.min_stok}`,
+                    `${u.stok_adeti} adet | Min: ${u.min_stok_alarm}`,
                     'b2_urun_katalogu', u.id
                 );
                 if (alarm) sonuc.alarmlar.push(alarm);
@@ -364,6 +371,7 @@ export async function nabiz() {
             sonuc.alarmlar.push({ tip: 'yaklaşan_stok_alarm', sayi: yaklasanlar.length });
         }
 
+        console.log(`[${isim}] 💓 ${sonuc.kontrol_sayisi} kontrol | ${sonuc.alarmlar.length} yeni alarm`);
         return { basarili: true, sonuc };
 
     } catch (e) {
@@ -405,7 +413,7 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
 
         // ── KONTROL NOKTASI 2: Kumaş Seçilenleri Kalıba (M2→M3) ─
         sonuc.islenenler++;
-        const { data: kumasSecilen } = await sb.from('b1_kumas_arsivi')
+        const { data: kumasSecilen } = await sb.from('b1_kumas_arsiv')
             .select('id, kumas_adi, model_id')
             .eq('durum', 'model_icin_secildi')
             .is('zincir_bildirim_m3', null)
@@ -415,9 +423,9 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
                 uyari_tipi: 'diger', seviye: 'bilgi',
                 baslik: `Kumaş Seçildi: ${k.kumas_adi}`,
                 mesaj: `Kalıp çıkarılması gerekiyor.`,
-                kaynak_tablo: 'b1_kumas_arsivi', kaynak_id: k.id, durum: 'aktif',
+                kaynak_tablo: 'b1_kumas_arsiv', kaynak_id: k.id, durum: 'aktif',
             }]);
-            await sb.from('b1_kumas_arsivi').update({ zincir_bildirim_m3: new Date().toISOString() }).eq('id', k.id);
+            await sb.from('b1_kumas_arsiv').update({ zincir_bildirim_m3: new Date().toISOString() }).eq('id', k.id);
             sonuc.gecisler.push(`M2→M3: ${k.kumas_adi}`);
         }
 
@@ -477,50 +485,48 @@ export async function zincirci(tetikleyenModul = null, tetikleyenId = null) {
 
         // ── KONTROL NOKTASI 6: Üretim→Maliyet (M6→M7) ──────────
         sonuc.islenenler++;
-        const { data: uretimBitti } = await sb.from('production_orders')
-            .select('id, model_id, quantity')
-            .eq('status', 'completed')
+        const { data: uretimBitti } = await sb.from('b1_uretim_kayitlari')
+            .select('id, model_id, adet')
+            .eq('durum', 'tamamlandi')
             .is('zincir_bildirim_m7', null)
             .limit(5);
         for (const u of (uretimBitti || [])) {
-            await sb.from('b1_maliyet_kayitlari').insert([{
-                order_id: u.id,
-                maliyet_tipi: 'isletme_gideri',
-                onay_durumu: 'bekliyor',
-                kalem_aciklama: 'Zincirci otomatik oluşturdu (Maliyet hesabı)',
+            await sb.from('b1_maliyet_kalemleri').insert([{
+                uretim_kaydı_id: u.id,
+                hesaplama_durumu: 'bekliyor',
+                notlar: 'Zincirci otomatik oluşturdu',
             }]).select();
-            await sb.from('production_orders').update({ zincir_bildirim_m7: new Date().toISOString() }).eq('id', u.id);
+            await sb.from('b1_uretim_kayitlari').update({ zincir_bildirim_m7: new Date().toISOString() }).eq('id', u.id);
             sonuc.gecisler.push(`M6→M7: Üretim bitti, maliyet hesabı açıldı`);
         }
 
         // ── KONTROL NOKTASI 7: Maliyet→Muhasebe (M7→M8) ─────────
         sonuc.islenenler++;
-        const { data: maliyetOnay } = await sb.from('b1_maliyet_kayitlari')
-            .select('id, order_id, tutar_tl')
-            .eq('onay_durumu', 'onaylandi')
+        const { data: maliyetOnay } = await sb.from('b1_maliyet_kalemleri')
+            .select('id, toplam_maliyet')
+            .eq('hesaplama_durumu', 'onaylandi')
             .is('zincir_bildirim_m8', null)
             .limit(5);
         for (const m of (maliyetOnay || [])) {
             await sb.from('b1_muhasebe_raporlari').insert([{
                 rapor_tipi: 'uretim_maliyet',
-                order_id: m.order_id,
-                hedeflenen_maliyet_tl: m.tutar_tl,
+                maliyet_kalemi_id: m.id,
+                hedeflenen_maliyet_tl: m.toplam_maliyet,
                 rapor_durumu: 'taslak',
                 notlar: 'Zincirci otomatik aktarım — M7→M8',
             }]).select();
-            await sb.from('b1_maliyet_kayitlari').update({ zincir_bildirim_m8: new Date().toISOString() }).eq('id', m.id);
-            sonuc.gecisler.push(`M7→M8: Maliyet muhasebeye aktarıldı ₺${m.tutar_tl}`);
+            await sb.from('b1_maliyet_kalemleri').update({ zincir_bildirim_m8: new Date().toISOString() }).eq('id', m.id);
+            sonuc.gecisler.push(`M7→M8: Maliyet muhasebeye aktarıldı ₺${m.toplam_maliyet}`);
         }
 
         // ── KONTROL NOKTASI 8: Genel Zincir Sağlık ──────────────
         sonuc.islenenler++;
-        if (sonuc.gecisler.length > 0) {
-            await logYaz(isim, 'zincir_tarama',
-                `${sonuc.gecisler.join(' | ')}`,
-                'basarili'
-            );
-        }
+        await logYaz(isim, 'zincir_tarama',
+            `${sonuc.gecisler.length > 0 ? sonuc.gecisler.join(' | ') : 'Aktif zincir geçişi yok. Sistem normal.'}`,
+            sonuc.gecisler.length > 0 ? 'basarili' : 'basarili'
+        );
 
+        console.log(`[${isim}] ⛓️ ${sonuc.islenenler} modül kontrol | ${sonuc.gecisler.length} geçiş`);
         return { basarili: true, sonuc };
 
     } catch (e) {
@@ -642,7 +648,7 @@ export async function finansKalkani() {
 
         await logYaz(isim, 'finans_kontrol',
             `${sonuc.kontrol_sayisi} kontrol | ${sonuc.alarmlar.length} yeni alarm`);
-
+        console.log(`[${isim}] 🛡️ ${sonuc.kontrol_sayisi} kontrol | ${sonuc.alarmlar.length} alarm`);
         return { basarili: true, sonuc };
 
     } catch (e) {
@@ -739,6 +745,7 @@ export async function trendKasifi(gorevEmri = null) {
         const ozet = `${sonuc.eklenen} yeni trend Ar-Ge'ye eklendi. ${sonuc.atlanan} duplicate atlandı.`;
         await logYaz(isim, 'trend_arastirma', ozet);
 
+        console.log(`[${isim}] 🔍 ${sonuc.eklenen} trend eklendi | ${sonuc.atlanan} duplicate atlandı`);
         return { basarili: true, ozet, sonuc };
 
     } catch (e) {
@@ -778,8 +785,8 @@ export async function muhasebeYazici() {
             .reduce((s, m) => s + (m.gerceklesen_maliyet_tl || 0), 0);
 
         // ── KONTROL NOKTASI 3: Tamamlanan Üretim ────────────
-        const { data: uretimler } = await sb.from('production_orders')
-            .select('id, model_id, quantity, status').eq('status', 'completed').gte('created_at', ayBasi);
+        const { data: uretimler } = await sb.from('b1_uretim_kayitlari')
+            .select('id, model_id, adet, durum').eq('durum', 'tamamlandi').gte('created_at', ayBasi);
         sonuc.uretim_tamamlanan = uretimler?.length || 0;
 
         // ── KONTROL NOKTASI 4: Sipariş Durumu ───────────────
@@ -821,6 +828,7 @@ export async function muhasebeYazici() {
 
         await logYaz(isim, 'aylik_rapor', `${ayAdi} raporu oluşturuldu. Net kâr: ₺${(gelir - gider).toFixed(0)}`);
 
+        console.log(`[${isim}] 📊 ${ayAdi} raporu yazıldı`);
         return { basarili: true, rapor: raporMetni, sonuc };
 
     } catch (e) {
@@ -835,10 +843,9 @@ export async function muhasebeYazici() {
 export async function tumAjanlariCalistir() {
     const [sabah, aksam, nabizSonuc, zincir, finans] = await Promise.allSettled([
         sabahSubayi(),
-        aksamci(),
         nabiz(),
         zincirci(),
         finansKalkani(),
     ]);
-    return { sabah, aksam, nabizSonuc, zincir, finans };
+    return { sabah, nabizSonuc, zincir, finans };
 }

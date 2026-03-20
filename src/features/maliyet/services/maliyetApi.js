@@ -42,4 +42,8 @@ export function maliyetKanaliKur(onChange) {
 }
 
 export const KALEM_TIPLERI = ['personel_iscilik', 'isletme_gideri', 'sarf_malzeme', 'fire_kaybi'];
+<<<<<<< HEAD
 export const BOSH_FORM = { order_id: '', maliyet_tipi: 'personel_iscilik', kalem_aciklama: '', tutar_tl: '', miktar: '', birim: 'adet' };
+=======
+export const BOSH_FORM = { order_id: '', kalem_turu: 'personel_iscilik', kalem_aciklama: '', tutar_tl: '', miktar: '', birim: 'adet' };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552

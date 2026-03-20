@@ -49,7 +49,11 @@ const BOSH_FORM = {
     aciklama: '',
     vade_tarihi: '',
     musteri_id: '',
+<<<<<<< HEAD
     personel_id: '', // [M13-M7 KÖPRÜSÜ KONTROLÜ]
+=======
+    personel_id: '', // [M13-M7 KÖPRÜSÜ ZIRHI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 };
 
 const TIP_RENK = {
@@ -67,15 +71,23 @@ export default function KasaMainContainer() {
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [hareketler, setHareketler] = useState(/** @type {any[]} */([]));
     const [musteriler, setMusteriler] = useState(/** @type {any[]} */([]));
+<<<<<<< HEAD
     const [personeller, setPersoneller] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ KONTROLÜ]
+=======
+    const [personeller, setPersoneller] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ ZIRHI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const [form, setForm] = useState(BOSH_FORM);
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtreTip, setFiltreTip] = useState('hepsi');
     const [filtreOnay, setFiltreOnay] = useState('hepsi');
+<<<<<<< HEAD
     const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
     const [kasaSayfa, setKasaSayfa] = useState(50); // K-13 PAGINATION
+=======
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -85,7 +97,11 @@ export default function KasaMainContainer() {
         let kanal;
         const baslatKanal = () => {
             if (isYetkili && !document.hidden) {
+<<<<<<< HEAD
                 // SİSTEM OPTİMİZASYONU: Realtime WebSocket (Visibility Optimizasyonu)
+=======
+                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 kanal = supabase.channel('kasa-gercek-zamanli-optimize')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, yukle)
                     .subscribe();
@@ -112,7 +128,11 @@ export default function KasaMainContainer() {
     const yukle = async () => {
         setLoading(true);
         try {
+<<<<<<< HEAD
             // SİSTEM OPTİMİZASYONU: 10sn timeout DDoS kalkanı (Kriter Q)
+=======
+            // [AI ZIRHI]: 10sn timeout DDoS kalkanı (Kriter Q)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
             const [harRes, musRes, perRes] = await Promise.race([
                 Promise.allSettled([
@@ -149,7 +169,11 @@ export default function KasaMainContainer() {
             onay_durumu: 'bekliyor',
         };
 
+<<<<<<< HEAD
         // SİSTEM OPTİMİZASYONU: Offline Modu (Kriter J)
+=======
+        // [AI ZIRHI]: Offline Modu (Kriter J)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b2_kasa_hareketleri', 'INSERT', veri);
             goster('⚡ Çevrimdışı: Kasa işlemi kuyruğa alındı.');
@@ -197,14 +221,22 @@ export default function KasaMainContainer() {
             setIslemdeId(null); return goster('🔒 DİJİTAL ADALET KİLİDİ: Banka güvenlik regülasyonları gereği Onaylanmış Kasa hareketleri ASLA SİLİNEMEZ!', 'error');
         }
 
+<<<<<<< HEAD
         // SİSTEM OPTİMİZASYONU: B0 Kara Kutu silme logu (Kriter 25)
+=======
+        // [AI ZIRHI]: B0 Kara Kutu silme logu (Kriter 25)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         try {
             await supabase.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_kasa_hareketleri', islem_tipi: 'SILME',
                 kullanici_adi: /** @type {any} */ (kullanici)?.label || 'Kasa Yetkilisi',
                 eski_veri: { mesaj: `Kasa hareketi silindi. ID: ${id}` }
             }]);
+<<<<<<< HEAD
         } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KasaMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+        } catch (e) { console.error('[B0 LOG HATASI] Kasa Modülü:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         try {
             const { error } = await supabase.from('b2_kasa_hareketleri').delete().eq('id', id);
@@ -224,7 +256,11 @@ export default function KasaMainContainer() {
 
     const bekleyen = hareketler.filter(h => h.onay_durumu === 'bekliyor').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
 
+<<<<<<< HEAD
     // [EKONOMİK KÖR NOKTA KONTROLÜ]: Bakiye hesaplamasında 'avans' ve 'diger' çıkışları (ödemeler) da kasadan düşmelidir. Yoksa fiziki kasa ile sistem uyuşmaz.
+=======
+    // [EKONOMİK KÖR NOKTA ZIRHI]: Bakiye hesaplamasında 'avans' ve 'diger' çıkışları (ödemeler) da kasadan düşmelidir. Yoksa fiziki kasa ile sistem uyuşmaz.
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const cikislar = hareketler.filter(h => ['iade_odeme', 'avans', 'diger'].includes(h.hareket_tipi) && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0);
     const netBakiye = tahsilat - cikislar;
 
@@ -236,8 +272,13 @@ export default function KasaMainContainer() {
         return tipOk && onayOk;
     });
 
+<<<<<<< HEAD
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {'border-box'} */ ('border-box'), outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' };
+=======
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {'border-box'} */ ('border-box'), outline: 'none' };
+    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     if (!yetkiliMi) return (
         <div className="p-12 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 shadow-2xl" dir={isAR ? 'rtl' : 'ltr'}>
@@ -256,8 +297,13 @@ export default function KasaMainContainer() {
                         <DollarSign size={24} className="text-emerald-50" />
                     </div>
                     <div>
+<<<<<<< HEAD
                         <h1 className="text-2xl font-black text-white tracking-tight m-0">{isAR ? 'الصندوق والمالية' : 'Kasa & Finans'}</h1>
                         <p className="text-xs font-bold text-emerald-200 mt-1 uppercase tracking-wider">{isAR ? 'التحصيل → الموافقة → الرصيد → متابعة الشيكات' : 'Tahsilat → Onay → Bakiye → Çek/Senet Takibi'}</p>
+=======
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">{isAR ? 'الصندوق والمالية' : 'Kasa & Finans'}</h1>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">{isAR ? 'التحصيل → الموافقة → الرصيد → متابعة الشيكات' : 'Tahsilat → Onay → Bakiye → Çek/Senet Takibi'}</p>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -266,7 +312,11 @@ export default function KasaMainContainer() {
                         <Plus size={18} /> Yeni Hareket
                     </button>
                     <button onClick={yukle} disabled={loading}
+<<<<<<< HEAD
                         className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-[#1e4a43] px-4 py-2.5 rounded-xl font-bold text-sm transition-all">
+=======
+                        className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <RefreshCw size={15} /> Yenile
                     </button>
                     {/* [A-03] CSV Export */}
@@ -301,27 +351,47 @@ export default function KasaMainContainer() {
                     <div className="text-[10px] font-black text-amber-800 uppercase mb-1">Bekleyen İşlem</div>
                     <div className="text-2xl font-black text-amber-600 tracking-tight">₺{bekleyen.toFixed(2)}</div>
                 </div>
+<<<<<<< HEAD
                 <div className={`border-2 rounded-2xl p-4 shadow-sm ${vadesi.length > 0 ? 'bg-red-50 border-red-200' : 'bg-[#0d1117] text-white border-[#1e4a43]'}`}>
                     <div className={`text-[10px] font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-emerald-200'}`}>Vadesi Geçen</div>
                     <div className={`text-2xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-white'}`}>{vadesi.length} Adet</div>
+=======
+                <div className={`border-2 rounded-2xl p-4 shadow-sm ${vadesi.length > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`text-[10px] font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-slate-500'}`}>Vadesi Geçen</div>
+                    <div className={`text-2xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-slate-800'}`}>{vadesi.length} Adet</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 </div>
             </div>
 
             {/* GÜNLÜK KAPANIŞ VE BORÇ RAPORU VİDGETLERİ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<<<<<<< HEAD
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
                     <div>
                         <div className="text-[10px] font-black text-emerald-200 uppercase mb-1 tracking-widest">GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
                         <div className="text-xl font-black text-white mb-1">Bugün Tahsilat: <span className="text-emerald-600">₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</span></div>
+=======
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <div className="text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
+                        <div className="text-xl font-black text-slate-800 mb-1">Bugün Tahsilat: <span className="text-emerald-600">₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</span></div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <div className="text-xs font-bold text-slate-400">Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
                     </div>
                     <button onClick={() => window.print()} className="bg-slate-900 hover:bg-slate-800 border-b-4 border-slate-950 text-white rounded-xl px-4 py-2 font-black text-xs uppercase transition-all whitespace-nowrap">Gün Sonu Kes</button>
                 </div>
 
+<<<<<<< HEAD
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
                     <div>
                         <div className="text-[10px] font-black text-red-600 uppercase mb-1 tracking-widest">MÜŞTERİ BORÇ RİSKİ</div>
                         <div className="text-xl font-black text-white mb-1">Açık / Riskliler: <span className="text-red-600">{(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</span></div>
+=======
+                <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <div className="text-[10px] font-black text-red-600 uppercase mb-1 tracking-widest">MÜŞTERİ BORÇ RİSKİ</div>
+                        <div className="text-xl font-black text-slate-800 mb-1">Açık / Riskliler: <span className="text-red-600">{(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</span></div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <div className="text-xs font-bold text-slate-400">Bakiye riski &gt; 10.000 TL olan cari hesaplar.</div>
                     </div>
                     <Link href="/musteriler" className="bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-700 rounded-xl px-4 py-2 font-black text-xs uppercase transition-all no-underline whitespace-nowrap">Müşteriler Görüntüle</Link>
@@ -337,18 +407,30 @@ export default function KasaMainContainer() {
 
             {/* FORM */}
             {formAcik && (
+<<<<<<< HEAD
                 <div style={{ background: '#122b27', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
+=======
+                <div style={{ background: 'white', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>Yeni Kasa Hareketi</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
                         <div>
                             <label style={lbl}>Hareket Tipi *</label>
+<<<<<<< HEAD
                             <select value={form.hareket_tipi} onChange={e => setForm({ ...form, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27', fontWeight: 700, color: TIP_RENK[form.hareket_tipi] }}>
+=======
+                            <select value={form.hareket_tipi} onChange={e => setForm({ ...form, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white', fontWeight: 700, color: TIP_RENK[form.hareket_tipi] }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 {HAREKET_TIPLERI.map(t => <option key={t} value={t}>{TIP_ICON[t]} {t.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                             </select>
                         </div>
                         <div>
                             <label style={lbl}>Ödeme Yöntemi *</label>
+<<<<<<< HEAD
                             <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+=======
+                            <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 {ODEME_YONTEMLERI.map(y => <option key={y} value={y}>{y.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                             </select>
                         </div>
@@ -363,12 +445,20 @@ export default function KasaMainContainer() {
                         <div>
                             <label style={lbl}>{form.hareket_tipi === 'avans' ? 'İlişkili Personel (Avans için)' : 'Müşteri / Firma (İsteğe Bağlı)'}</label>
                             {form.hareket_tipi === 'avans' ? (
+<<<<<<< HEAD
                                 <select value={form.personel_id} onChange={e => setForm({ ...form, personel_id: e.target.value, musteri_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+=======
+                                <select value={form.personel_id} onChange={e => setForm({ ...form, personel_id: e.target.value, musteri_id: '' })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                     <option value="">— Avans Verilen Personeli Seçin —</option>
                                     {personeller.map(p => <option key={p.id} value={p.id}>{p.personel_kodu} | {p.ad_soyad}</option>)}
                                 </select>
                             ) : (
+<<<<<<< HEAD
                                 <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value, personel_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+=======
+                                <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value, personel_id: '' })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                     <option value="">— Anonim / Perakende —</option>
                                     {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
                                 </select>
@@ -380,7 +470,11 @@ export default function KasaMainContainer() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+<<<<<<< HEAD
                         <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+=======
+                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#059669', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
                             {loading ? '...' : 'Kaydet'}
                         </button>
@@ -389,8 +483,13 @@ export default function KasaMainContainer() {
             )}
 
             {/* FİLTRELER */}
+<<<<<<< HEAD
             <div className="flex flex-wrap items-center gap-2 mb-4 bg-[#0d1117] text-white p-2 rounded-xl border border-[#1e4a43]">
                 <span className="text-[10px] font-black text-emerald-200 mr-1 uppercase">TİP:</span>
+=======
+            <div className="flex flex-wrap items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] font-black text-slate-500 mr-1 uppercase">TİP:</span>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 {['hepsi', ...HAREKET_TIPLERI].map(t => (
                     <button key={t} onClick={() => setFiltreTip(t)}
                         style={{ backgroundColor: filtreTip === t ? (TIP_RENK[t] || '#334155') : 'transparent', color: filtreTip === t ? 'white' : '#475569', borderColor: filtreTip === t ? 'transparent' : '#cbd5e1' }}
@@ -399,6 +498,7 @@ export default function KasaMainContainer() {
                     </button>
                 ))}
                 <div className="w-[2px] h-6 bg-slate-200 mx-2" />
+<<<<<<< HEAD
                 <span className="text-[10px] font-black text-emerald-200 mr-1 uppercase">ONAY:</span>
                 {['hepsi', 'bekliyor', 'onaylandi', 'iptal'].map(o => (
                     <button key={o} onClick={() => setFiltreOnay(o)}
@@ -407,11 +507,22 @@ export default function KasaMainContainer() {
                     </button>
                 ))}
                 <span className="text-xs font-bold text-slate-400 ml-auto bg-[#122b27] px-2 py-1 rounded-md border border-[#1e4a43]">{filtreli.length} işlem listeleniyor</span>
+=======
+                <span className="text-[10px] font-black text-slate-500 mr-1 uppercase">ONAY:</span>
+                {['hepsi', 'bekliyor', 'onaylandi', 'iptal'].map(o => (
+                    <button key={o} onClick={() => setFiltreOnay(o)}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border-2 transition-all ${filtreOnay === o ? 'bg-slate-700 text-white border-transparent' : 'bg-transparent text-slate-600 border-slate-200'}`}>
+                        {o === 'hepsi' ? 'Tümü' : o === 'bekliyor' ? '⏳ Bekliyor' : o === 'onaylandi' ? '✅ Onaylı' : '❌ İptal'}
+                    </button>
+                ))}
+                <span className="text-xs font-bold text-slate-400 ml-auto bg-white px-2 py-1 rounded-md border border-slate-200">{filtreli.length} işlem listeleniyor</span>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             </div>
 
             {/* LİSTE */}
             <div className="flex flex-col gap-3">
                 {loading && filtreli.length === 0 && (
+<<<<<<< HEAD
                     <div className="text-center py-12 text-slate-400 font-bold uppercase tracking-widest bg-[#0d1117] text-white rounded-2xl border-2 border-slate-100">⏳ Yükleniyor...</div>
                 )}
                 {!loading && filtreli.length === 0 && (
@@ -423,17 +534,38 @@ export default function KasaMainContainer() {
                 )}
                 {filtreli.slice(0, kasaSayfa).map(h => (
                     <div key={h.id} style={{ borderColor: h.onay_durumu === 'onaylandi' ? '#34d399' : h.onay_durumu === 'iptal' ? '#fca5a5' : '#fcd34d' }} className="bg-[#122b27] border-l-8 border-y border-r border-[#1e4a43] rounded-xl p-4 flex justify-between items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+=======
+                    <div className="text-center py-12 text-slate-400 font-bold uppercase tracking-widest bg-slate-50 rounded-2xl border-2 border-slate-100">⏳ Yükleniyor...</div>
+                )}
+                {!loading && filtreli.length === 0 && (
+                    <div className="text-center py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">
+                        <DollarSign size={48} className="text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500 font-bold text-lg">Kasa hareketi bulunamadı.</p>
+                        <p className="text-slate-400 text-sm">"Yeni Hareket" butonu ile ilk işlemi ekleyin.</p>
+                    </div>
+                )}
+                {filtreli.map(h => (
+                    <div key={h.id} style={{ borderColor: h.onay_durumu === 'onaylandi' ? '#34d399' : h.onay_durumu === 'iptal' ? '#fca5a5' : '#fcd34d' }} className="bg-white border-l-8 border-y border-r border-slate-200 rounded-xl p-4 flex justify-between items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <div className="flex items-center gap-4 flex-1">
                             <div style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 font-black">
                                 {TIP_ICON[h.hareket_tipi] || '💰'}
                             </div>
                             <div className="flex-1 min-w-0">
+<<<<<<< HEAD
                                 <div className="font-black text-white text-lg truncate whitespace-normal mb-1">{h.aciklama}</div>
+=======
+                                <div className="font-black text-slate-800 text-lg truncate whitespace-normal mb-1">{h.aciklama}</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 <div className="flex gap-2 flex-wrap items-center">
                                     <span style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="text-[10px] font-black px-2.5 py-1 rounded uppercase tracking-wider">
                                         {h.hareket_tipi?.replace('_', ' ')}
                                     </span>
+<<<<<<< HEAD
                                     <span className="text-[10px] font-black px-2.5 py-1 rounded bg-slate-100 text-emerald-300 uppercase tracking-wider">
+=======
+                                    <span className="text-[10px] font-black px-2.5 py-1 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                         {h.odeme_yontemi?.replace('_', ' ')}
                                     </span>
                                     {h.b2_musteriler?.ad_soyad && (
@@ -473,6 +605,7 @@ export default function KasaMainContainer() {
                     </div>
                 ))}
             </div>
+<<<<<<< HEAD
             {/* K-13 PAGINATION */}
             {filtreli.length > kasaSayfa && (
                 <div className="text-center mt-4">
@@ -485,6 +618,8 @@ export default function KasaMainContainer() {
                     </button>
                 </div>
             )}
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         </div>
     );
 }

@@ -43,7 +43,11 @@ export async function POST(request) {
                 kullanici_adi: 'Server API (Otonom Zırh)',
                 eski_veri: { urun: payload.urun_id, islem: payload.hareket_tipi, adet: payload.adet }
             }]);
+<<<<<<< HEAD
         } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+        } catch (e) { }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         return NextResponse.json({ mesaj: 'Başarılı', veri: data });
     } catch (error) {

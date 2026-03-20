@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export const maxDuration = 60; // Vercel Timeout (522/504) Engelleyici
 import { NextResponse } from 'next/server';
 // Build Hatasını Önlemek İçin Upstash Geçici Olarak Devre Dışı
@@ -27,6 +28,28 @@ export async function POST(request) {
         // Redis bağlanamazsa işlemi kesme, logla ve devam et (Fallback)
     }
     */
+=======
+import { NextResponse } from 'next/server';
+
+const istekSayaci = new Map();
+function rateLimitKontrol(ip) {
+    const simdi = Date.now();
+    const kayit = istekSayaci.get(ip) || { sayi: 0, baslangic: simdi };
+    if (simdi - kayit.baslangic > 60 * 1000) {
+        istekSayaci.set(ip, { sayi: 1, baslangic: simdi });
+        return true;
+    }
+    if (kayit.sayi >= 30) return false;
+    istekSayaci.set(ip, { ...kayit, sayi: kayit.sayi + 1 });
+    return true;
+}
+
+export async function POST(request) {
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    if (!rateLimitKontrol(ip)) {
+        return NextResponse.json({ error: 'Çok fazla istek. 1 dakika bekleyin.' }, { status: 429 });
+    }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     const { sorgu } = await request.json();
 

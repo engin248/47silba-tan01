@@ -6,6 +6,7 @@
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
+<<<<<<< HEAD
 const SAYFA_BOYUTU = 50;
 
 // ─── OKUMA ────────────────────────────────────────────────────────
@@ -19,12 +20,24 @@ export async function trendleriGetir(sayfa = 0) {
         supabase.from('b1_agent_loglari')
             .select('id, ajan_adi, mesaj, sonuc, created_at')
             .eq('ajan_adi', 'Trend Kâşifi')
+=======
+// ─── OKUMA ────────────────────────────────────────────────────────
+export async function trendleriGetir() {
+    const [trendRes, logRes] = await Promise.allSettled([
+        supabase.from('b1_arge_trendler')
+            .select('*').order('created_at', { ascending: false }).limit(200),
+        supabase.from('b1_agent_loglari')
+            .select('*').eq('ajan_adi', 'Trend Kâşifi')
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             .order('created_at', { ascending: false }).limit(5),
     ]);
     return {
         trendler: trendRes.status === 'fulfilled' ? (trendRes.value.data || []) : [],
+<<<<<<< HEAD
         toplamSayisi: trendRes.status === 'fulfilled' ? (trendRes.value.count || 0) : 0,
         sayfaBoyutu: SAYFA_BOYUTU,
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         agentLoglari: logRes.status === 'fulfilled' ? (logRes.value.data || []) : [],
     };
 }

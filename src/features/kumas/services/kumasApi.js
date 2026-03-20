@@ -41,6 +41,7 @@ export async function gorselArsivGetir() {
     ];
 }
 
+<<<<<<< HEAD
 export async function m1TalepleriGetir() {
     const { data, error } = await supabase.from('b1_arge_trendler')
         .select('*')
@@ -59,6 +60,8 @@ export async function firsatlariGetir() {
     return data || [];
 }
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 // ─── YAZMA (API route üzerinden + offline fallback) ───────────────
 export async function kumasKaydet(payload) {
     if (!navigator.onLine) {
@@ -130,7 +133,11 @@ export const BOSH_AKS = { aksesuar_kodu: '', aksesuar_adi: '', aksesuar_adi_ar: 
 // ─── ALIAS (useKumas.js uyumluluğu için) ─────────────────────────
 export const fetchKumas = kumaslariGetir;
 export const fetchAksesuar = aksesuarlariGetir;
+<<<<<<< HEAD
 export const fetchM1Talepleri = m1TalepleriGetir;
 export const fetchGorselArsiv = gorselArsivGetir;
 export const fetchFirsatlar = firsatlariGetir;
+=======
+export const fetchGorselArsiv = gorselArsivGetir;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 export const kaydiSil = kumasSil;

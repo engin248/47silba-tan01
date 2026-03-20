@@ -56,17 +56,18 @@ export const ERISIM_MATRISI = {
     '/gorevler': { tam: 'full', uretim: 'full', genel: 'read' },
     '/kameralar': { tam: 'full', uretim: 'full', genel: 'read' },
     '/tasarim': { tam: 'full', uretim: null, genel: null },
-    '/haberlesme': { tam: 'full', uretim: 'full', genel: 'read' },  // YENİ: Haberleşme modülü erişim tanımı eklendi
-
 };
 
+/**
+ * @typedef {{ grup: string, label: string, gosterge: string, zaman: number }} Kullanici
+ * @typedef {{ kullanici: Kullanici|null, yukleniyor: boolean, girisYap: (pin:string) => Promise<any>, cikisYap: () => void, sayfaErisim: (href:string) => any }} AuthCtxType
+ */
+
 // ─── AUTH CONTEXT ─────────────────────────────────────────────
-/** @type {any} */
-const AuthContext = createContext(null);
+const AuthContext = createContext(/** @type {AuthCtxType|null} */(null));
 
 export function AuthProvider({ children }) {
-    /** @type {[any, any]} */
-    const [kullanici, setKullanici] = useState(null);
+    const [kullanici, setKullanici] = useState(/** @type {Kullanici|null} */(null));
     const [yukleniyor, setYukleniyor] = useState(true);
 
     useEffect(() => {
@@ -74,28 +75,33 @@ export function AuthProvider({ children }) {
             const kayit = localStorage.getItem('sb47_auth');
             if (kayit) {
                 const parsed = JSON.parse(kayit);
+                // MIMARI DÜZELTME: 4 saat → 8 saat — JWT ile senkronize edildi
+                // ESKİ: 4 * 60 * 60 * 1000 (4 saat) — JWT 8 saatti, çelişkiydi
+                // Artık: Client session = JWT süresi = 8 saat
                 if (parsed.zaman && Date.now() - parsed.zaman < 8 * 60 * 60 * 1000) {
                     setKullanici(parsed);
+                    // [AI ZIRHI] Küresel Terminal Yetki Serbestisi - Karargah içi alt uçlara otomatik giriş sağlar.
                     if (typeof window !== 'undefined') {
-                        if (parsed.grup === 'tam') {
-                            sessionStorage.setItem('sb47_uretim_token', 'true');
-                            sessionStorage.setItem('sb47_genel_token', 'true');
-                        } else if (parsed.grup === 'uretim') {
-                            sessionStorage.setItem('sb47_uretim_token', 'true');
-                        } else if (parsed.grup === 'genel') {
-                            sessionStorage.setItem('sb47_genel_token', 'true');
+                        if (typeof window !== 'undefined') {
+                            if (parsed.grup === 'tam') {
+                                sessionStorage.setItem('sb47_uretim_token', 'true');
+                                sessionStorage.setItem('sb47_genel_token', 'true');
+                            } else if (parsed.grup === 'uretim') {
+                                sessionStorage.setItem('sb47_uretim_token', 'true');
+                            } else if (parsed.grup === 'genel') {
+                                sessionStorage.setItem('sb47_genel_token', 'true');
+                            }
                         }
                     }
                 } else {
                     localStorage.removeItem('sb47_auth');
                 }
             }
-        } catch (err) {
-            console.error('Auth yükleme hatası:', err);
-            try { localStorage.removeItem('sb47_auth'); } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: auth.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
-        } finally {
-            setYukleniyor(false);
+        } catch (authHata) { 
+            console.warn('[AUTH] Oturum parse hatası, sıfırlanıyor:', authHata?.message);
+            localStorage.removeItem('sb47_auth'); 
         }
+        setYukleniyor(false);
     }, []);
 
     const girisYap = async (pin) => {
@@ -123,8 +129,9 @@ export function AuthProvider({ children }) {
                 veri = await res.json(); // artık dış scope'a atanıyor
                 grup = veri.grup || null;
             }
-        } catch {
+        } catch (agHata) {
             // Server ulaşılamaz — dinamik PIN fallback
+            console.warn('[AUTH] API ulaşılamaz, fallback devrede:', agHata?.message);
             grup = pindenGrupBul(pin);
         }
 
@@ -133,9 +140,9 @@ export function AuthProvider({ children }) {
             const deneme = JSON.parse(localStorage.getItem('sb47_yanlis_pin') || '{"sayi":0}');
             const yeniSayi = deneme.sayi + 1;
             if (yeniSayi >= 5) {
-                localStorage.setItem('sb47_kilit', JSON.stringify({ kilitBitisTarihi: Date.now() + 15 * 60 * 1000 }));
+                localStorage.setItem('sb47_kilit', JSON.stringify({ kilitBitisTarihi: Date.now() + 30 * 1000 }));
                 localStorage.setItem('sb47_yanlis_pin', JSON.stringify({ sayi: 0 }));
-                return { basarili: false, mesaj: 'Çok fazla hatalı deneme! 15 dakika kilitlendikten sonra tekrar deneyin.' };
+                return { basarili: false, mesaj: 'Çok fazla hatalı deneme! 30 saniye kilitlendikten sonra tekrar deneyin.' };
             } else {
                 localStorage.setItem('sb47_yanlis_pin', JSON.stringify({ sayi: yeniSayi }));
             }
@@ -151,14 +158,17 @@ export function AuthProvider({ children }) {
         setKullanici(kayit);
         localStorage.setItem('sb47_auth', JSON.stringify(kayit));
 
-        // ─── GÜVENLİK YAMASI: Cookie atama artık SERVER-SIDE (pin-dogrula route) ───
-        // ESKİ: document.cookie ile JWT ve session cookie'leri atanıyordu
-        //        → HttpOnly flag'i yoktu → XSS saldırısında JS ile çalınabilirdi
-        // YENİ: /api/pin-dogrula response'u Set-Cookie header ile atar
-        //        → HttpOnly + Secure + SameSite=Strict → JS ERİŞEMEZ
-        // Client-side sadece localStorage'a UI bilgisini yazar.
+        // Cookie'ye de yaz (middleware katmanı için)
+        const cookieValue = encodeURIComponent(JSON.stringify(kayit));
+        document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
 
-        // Session Storage — UI tarafı için (güvenlik kritik değil, sadece menü visibility)
+        // JWT Token cookie'ye yaz (middleware JWT doğrulaması için)
+        if (veri.token) {
+            document.cookie = `sb47_jwt_token=${veri.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
+        }
+
+
+        // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)
         if (typeof window !== 'undefined') {
             if (grup === 'tam') {
                 sessionStorage.setItem('sb47_uretim_token', 'true');
@@ -168,6 +178,13 @@ export function AuthProvider({ children }) {
             } else if (grup === 'genel') {
                 sessionStorage.setItem('sb47_genel_token', 'true');
             }
+        }
+
+        // Middleware için grup bazlı ek cookie'ler
+        if (grup === 'uretim') {
+            document.cookie = `sb47_uretim_pin=1; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
+        } else if (grup === 'genel') {
+            document.cookie = `sb47_genel_pin=1; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
         }
 
         const loglar = JSON.parse(localStorage.getItem('sb47_giris_log') || '[]');
@@ -184,12 +201,10 @@ export function AuthProvider({ children }) {
         }
         setKullanici(null);
         localStorage.removeItem('sb47_auth');
-        sessionStorage.removeItem('sb47_uretim_token');
-        sessionStorage.removeItem('sb47_genel_token');
-
-        // ─── Server-side HttpOnly cookie temizleme ───
-        // HttpOnly cookie'ler JS ile silinemez → /api/cikis endpoint'i expire eder
-        fetch('/api/cikis', { method: 'POST' }).catch(() => { });
+        document.cookie = 'sb47_auth_session=; path=/; max-age=0; SameSite=Strict';
+        document.cookie = 'sb47_uretim_pin=; path=/; max-age=0; SameSite=Strict';
+        document.cookie = 'sb47_genel_pin=; path=/; max-age=0; SameSite=Strict';
+        document.cookie = 'sb47_jwt_token=; path=/; max-age=0; SameSite=Strict'; // B-02 FIX: JWT cookie çıkışta temizleniyor
     };
 
     const sayfaErisim = (href) => {
@@ -206,6 +221,9 @@ export function AuthProvider({ children }) {
     );
 }
 
+/**
+ * @returns {{ kullanici: {grup: string, label: string, gosterge: string, zaman: number} | null, yukleniyor: boolean, girisYap: function, cikisYap: function, sayfaErisim: function }}
+ */
 export function useAuth() {
     const ctx = useContext(AuthContext);
     if (!ctx) throw new Error('useAuth must be used inside AuthProvider');

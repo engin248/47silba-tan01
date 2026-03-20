@@ -1,5 +1,19 @@
 {
     "framework": "nextjs",
     "buildCommand": "npm run build",
-    "installCommand": "npm install --legacy-peer-deps"
+    "installCommand": "npm install --legacy-peer-deps",
+    "crons": [
+        {
+            "path": "/api/cron-ajanlar?gorev=sabah_ozeti",
+            "schedule": "0 8 * * *"
+        },
+        {
+            "path": "/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik",
+            "schedule": "0 3 * * *"
+        },
+        {
+            "path": "/api/cron-ajanlar?gorev=kamera_durum_kontrol_ajan",
+            "schedule": "0 8 * * *"
+        }
+    ]
 }

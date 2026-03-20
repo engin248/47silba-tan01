@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { spamKontrol } from '@/lib/ApiZirhi';
 
 export const dynamic = 'force-dynamic';
@@ -30,12 +31,28 @@ export async function GET(request) {
             cache: 'no-store'
         });
 
+=======
+
+// go2rtc stream sunucu sağlık kontrolü
+export async function GET() {
+    const go2rtcUrl = 'https://kamera.demirtekstiltheondercom.com';
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+
+        const res = await fetch(`${go2rtcUrl}/api`, {
+            signal: controller.signal,
+            cache: 'no-store',
+        });
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         clearTimeout(timeout);
 
         if (res.ok) {
             const data = await res.json().catch(() => ({}));
             return NextResponse.json({
                 durum: 'aktif',
+<<<<<<< HEAD
                 kamera_sayisi: Object.keys(data).length || 0
             }, { status: 200 });
         }
@@ -47,5 +64,22 @@ export async function GET(request) {
             durum: 'kapali',
             mesaj: 'Baglanti koptu'
         }, { status: 200 }); // Kapasite hatasını Vercel'e yansıtma
+=======
+                url: go2rtcUrl,
+                kamera_sayisi: Object.keys(data).length || 0,
+                mesaj: 'Stream sunucusu çalışıyor',
+            });
+        }
+
+        return NextResponse.json({ durum: 'hata', url: go2rtcUrl, mesaj: `HTTP ${res.status}` }, { status: 503 });
+
+    } catch (err) {
+        const kapali = err.name === 'AbortError' || err.code === 'ECONNREFUSED';
+        return NextResponse.json({
+            durum: 'kapali',
+            url: go2rtcUrl,
+            mesaj: kapali ? 'go2rtc çalışmıyor — stream-server/BASLAT.bat ile başlatın' : err.message,
+        }, { status: 503 });
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }

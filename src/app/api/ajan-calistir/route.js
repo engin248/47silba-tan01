@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+=======
+import { createClient } from '@supabase/supabase-js';
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { z } from 'zod'; // Kriter 144: Veri Doğrulama Süzgeci
 
 // Kriter 144: İnternetten veya veritabanından alınan raw dataların Validasyonu
@@ -62,6 +66,7 @@ function ajanVeriErisimKalkani(ajanAdi, hedefTablo) {
 
 async function perplexityAra(sorgu, supabase, gorevId) {
     // Kriter 145 (Trace)
+<<<<<<< HEAD
     await ajanAkliniGoster(supabase, gorevId, '📦 BATCH AI Kuyruğuna Ekleniyor...');
 
     try {
@@ -79,6 +84,38 @@ async function perplexityAra(sorgu, supabase, gorevId) {
             hesap_kredisi: 0,
             kuyruk_id: data.id
         };
+=======
+    await ajanAkliniGoster(supabase, gorevId, '🌐 Ağ bağlantısı aranıyor: ' + sorgu.substring(0, 25));
+
+    const apiKey = process.env.PERPLEXITY_API_KEY;
+    if (!apiKey || apiKey.includes('BURAYA')) {
+        return { ozet: `[Demo] Web Araması yapıldı.\n\nTrendler:\n1. Geniş Kalıp Denim.\n2. Akıllı İplik.\n\n`, sonuclar: [] };
+    }
+    try {
+        const res = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'sonar',
+                messages: [{ role: 'system', content: 'Sen bir tekstil ajanısın.' }, { role: 'user', content: sorgu }],
+                max_tokens: 1500, // Kriter 83: Token Sınırı (Token Limitörü ile faturayı şişirmesi engelleniyor)
+            }),
+        });
+        const data = await res.json();
+
+        let metin = data?.choices?.[0]?.message?.content || 'Sonuç alınamadı.';
+
+        // Kriter 144: Dışarıdan gelen verinin zod doğrulaması
+        const parseSonuc = AjanVeriFiltresi.safeParse({ trendYorumu: metin });
+        if (!parseSonuc.success) {
+            metin = "Veri Zod Kalkanından geçemedi. (Riskli İçerik)";
+        }
+
+        // Kriter 83: Maliyet Hesabı (Tahmini Token Cost)
+        const hesapYuku = data?.usage?.total_tokens || 1500;
+
+        return { ozet: metin, hesap_kredisi: hesapYuku };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     } catch (e) {
         return { ozet: `Hata: ${e.message}`, sonuclar: [] };
     }
@@ -109,6 +146,13 @@ async function arastirmaGoreviniCalistir(gorev, supabase) {
 }
 
 export async function POST(req) {
+<<<<<<< HEAD
+=======
+    const supabaseAdmin = createClient(
+        (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://mock.supabase.co',
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim() || 'mock-key'
+    );
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     try {
         if (!yetkiKontrol(req)) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
 

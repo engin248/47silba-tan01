@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+=======
+import { createClient } from '@supabase/supabase-js';
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { gorevSchema, veriDogrula } from '@/lib/zodSchemas';
 
 // ─── POST /api/gorev-ekle ─────────────────────────────────────
 // NOT: Eski gorev-ekle varsa bunu ona birleştirin veya eski route'u silin
 export async function POST(request) {
+<<<<<<< HEAD
+=======
+    const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();

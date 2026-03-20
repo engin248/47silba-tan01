@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
+<<<<<<< HEAD
 // ─── GÜVENLİK YAMASI: Parametre Doğrulama ───────────────────────────
 // SQL injection ve tehlikeli select kalıplarını engelle
 const GUVENLI_KOLON_REGEX = /^[a-zA-Z0-9_,.*() ]+$/;
@@ -13,6 +14,8 @@ function parametreGuvenliMi(deger) {
     return true;
 }
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 export async function POST(request) {
     try {
         const { tablo, filtreler, sutunlar, limit, order } = await request.json();
@@ -30,6 +33,7 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Bu tabloya erisim izni yok.' }, { status: 403 });
         }
 
+<<<<<<< HEAD
         // ─── SUTUNLAR DOĞRULAMASI ───────────────────────────────
         // ESKİ: sutunlar doğrudan supabase.select() içine geçiriliyordu
         //        → SQL injection riski (örn: "*, (SELECT password FROM users)")
@@ -56,6 +60,12 @@ export async function POST(request) {
                         { status: 400 }
                     );
                 }
+=======
+        let sorgu = supabaseAdmin.from(tablo).select(sutunlar || '*');
+
+        if (filtreler && typeof filtreler === 'object') {
+            for (const [alan, deger] of Object.entries(filtreler)) {
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 if (deger !== undefined && deger !== null) {
                     sorgu = sorgu.eq(alan, deger);
                 }
@@ -63,6 +73,7 @@ export async function POST(request) {
         }
 
         if (order?.alan) {
+<<<<<<< HEAD
             // Order alan adı doğrulaması
             if (!parametreGuvenliMi(order.alan)) {
                 return NextResponse.json(
@@ -70,10 +81,13 @@ export async function POST(request) {
                     { status: 400 }
                 );
             }
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             sorgu = sorgu.order(order.alan, { ascending: order.artan ?? false });
         }
 
         if (limit) {
+<<<<<<< HEAD
             // Limit doğrulama — sadece 1-1000 arasında
             const sayi = Number(limit);
             if (!Number.isInteger(sayi) || sayi < 1 || sayi > 1000) {
@@ -83,6 +97,9 @@ export async function POST(request) {
                 );
             }
             sorgu = sorgu.limit(sayi);
+=======
+            sorgu = sorgu.limit(Number(limit));
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         }
 
         const { data, error } = await sorgu;

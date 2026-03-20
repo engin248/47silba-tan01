@@ -84,6 +84,10 @@ export async function logoYukle(dosya, firmaAdi = 'firma') {
  * @returns kanal (cleanup için)
  */
 export function ayarlarKanaliKur(onChange) {
+<<<<<<< HEAD
+=======
+    // @ts-ignore — supabase-js tip tanımı 'postgres_changes'i destekliyor ama TS tipi hatalı
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     return supabase.channel('ayarlar-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: TABLO }, onChange)
         .subscribe();

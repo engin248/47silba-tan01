@@ -4,7 +4,10 @@
  * Bu hook, uretim/page.js'ten tüm logic'i taşır.
  */
 'use client';
+<<<<<<< HEAD
 // @ts-nocheck
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim } from '@/lib/utils';
@@ -13,10 +16,15 @@ import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 
 export const DEPARTMANLAR = [
     { id: 'is_emri', ad: 'İş Emirleri' },
+<<<<<<< HEAD
     { id: 'receteler', ad: 'M6 Üretim Reçetesi (Rotalar)' },
     { id: 'kesim', ad: 'Bant & Montaj' },
     { id: 'kalite', ad: 'Kalite & Süre' },
     { id: 'kameralar', ad: 'M6 Kamera Takip' },
+=======
+    { id: 'kesim', ad: 'Bant & Montaj' },
+    { id: 'kalite', ad: 'Kalite & Süre' },
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     { id: 'maliyet', ad: 'Maliyet Girişi' },
     { id: 'devir', ad: 'Mağazaya Sevk' },
     { id: 'takip', ad: 'Canlı Pano' },
@@ -66,12 +74,16 @@ export function useIsEmri(kullanici) {
     const [duzenleId, setDuzenleId] = useState(null);
     const [barkodOkutulanIsId, setBarkodOkutulanIsId] = useState('');
     const [seciliSiparisler, setSeciliSiparisler] = useState([]);
+<<<<<<< HEAD
     const [islemdeId, setIslemdeId] = useState(null); // ÇİFT TIKLAMA KORUMASI
 
     // [YENİ] Çift Barkod ve Performans State'leri
     const [aktifPersonel, setAktifPersonel] = useState(null);
     const [aktifOperasyonlar, setAktifOperasyonlar] = useState([]);
     const [isReworkMod, setIsReworkMod] = useState(false); // [REWORK]
+=======
+    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     const timerRef = useRef({});
     const barkodInputRef = useRef(null);
@@ -98,6 +110,7 @@ export function useIsEmri(kullanici) {
             }
             if (pRes.data) setPersonel(pRes.data);
             if (dept === 'maliyet' || dept === 'devir') {
+<<<<<<< HEAD
                 const [malRes, rRes, perfRes] = await Promise.all([
                     Promise.race([supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200), timeout(10000)]),
                     Promise.race([supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(100), timeout(10000)]),
@@ -106,6 +119,14 @@ export function useIsEmri(kullanici) {
                 if (malRes.data) setMaliyetler(malRes.data);
                 if (rRes.data) setRaporlar(rRes.data);
                 if (perfRes.data) setAktifOperasyonlar(perfRes.data);
+=======
+                const [malRes, rRes] = await Promise.all([
+                    Promise.race([supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200), timeout(10000)]),
+                    Promise.race([supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(100), timeout(10000)]),
+                ]);
+                if (malRes.data) setMaliyetler(malRes.data);
+                if (rRes.data) setRaporlar(rRes.data);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }
         } catch (e) {
             goster('Sistem veri yükleme hatası: ' + e.message, 'error');
@@ -146,6 +167,7 @@ export function useIsEmri(kullanici) {
                     yeniSure[id] = Math.floor((Date.now() - baslangic_gercek) / 1000);
 
                     timerRef.current[id] = setInterval(() => {
+<<<<<<< HEAD
                         setSure(prev => {
                             const currentS = Math.floor((Date.now() - baslangic_gercek) / 1000);
                             // ⏱️ OTO-ZAMAN AŞIMI (TIMEOUT) - 4 Saat = 14400 saniye
@@ -157,6 +179,9 @@ export function useIsEmri(kullanici) {
                             }
                             return { ...prev, [id]: currentS };
                         });
+=======
+                        setSure(prev => ({ ...prev, [id]: Math.floor((Date.now() - baslangic_gercek) / 1000) }));
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     }, 1000);
                 } else {
                     // Duraklatılmışsa süresini de kurtaralım
@@ -167,7 +192,11 @@ export function useIsEmri(kullanici) {
                 setKronometer(prev => ({ ...prev, ...yeniKronometer }));
                 setSure(prev => ({ ...prev, ...yeniSure }));
             }
+<<<<<<< HEAD
         } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: useIsEmri.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+        } catch (e) { console.error('[B0 LOG HATASI] Üretim:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         return () => Object.values(timerRef.current).forEach(clearInterval);
     }, []);
@@ -223,6 +252,7 @@ export function useIsEmri(kullanici) {
                     kalem_aciklama: `Kronometre: ${formatSure(toplamSn)} (${sureDk} dk) | x${zorlukKatsayisi.toFixed(1)} - ${liyakatYildiz}`,
                     onay_durumu: 'hesaplandi'
                 }]);
+<<<<<<< HEAD
             } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: useIsEmri.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         }
     };
@@ -337,6 +367,36 @@ export function useIsEmri(kullanici) {
             setAktifPersonel(null); // Çift barkod güvenlik kuralı: Her işlemde "Kart->İş" silsilesi zorunludur
             if (barkodInputRef.current) barkodInputRef.current.focus();
         }
+=======
+            } catch (e) { console.error('[B0 LOG HATASI] Üretim (Beden):', e); }
+        }
+    };
+
+    // ── BARKODLU OTONOM ─────────────────────────────────────────────────────
+    const barkodlaOtonomIslemYap = async (is_id) => {
+        if (!is_id) return;
+        const o = orders.find(x => x.id === is_id || x.id == is_id);
+        if (!o) return goster('Barkod sistemde bulunamadı!', 'error');
+        if (o.status === 'pending') {
+            await durumGuncelle(o.id, 'in_progress');
+            goster(`⏱️ OTONOM BAŞLATMA: [ID: ${o.id}] bantta.`);
+            baslat(o.id);
+        } else if (o.status === 'in_progress') {
+            const gecenSn = sure[o.id] || 0;
+            if (gecenSn < 15) {
+                setBarkodOkutulanIsId('');
+                return goster('🚨 MANİPÜLASYON TESPİTİ: Spam barkod engellendi.', 'error');
+            }
+            await durdurVePerformansPuanla(o.id);
+            await durumGuncelle(o.id, 'completed');
+            goster('✅ OTONOM BİTİRME: İş kapatıldı.');
+        } else if (o.status === 'completed') {
+            setBarkodOkutulanIsId('');
+            return goster('🔒 DİJİTAL KİLİT: Tamamlanmış paket tekrar açılamaz!', 'error');
+        }
+        setBarkodOkutulanIsId('');
+        if (barkodInputRef.current) barkodInputRef.current.focus();
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     };
 
     // ── YENİ / DÜZENLE İŞ EMRİ ─────────────────────────────────────────────
@@ -493,6 +553,7 @@ export function useIsEmri(kullanici) {
         try {
             const { data: mevcut } = await supabase.from('b1_muhasebe_raporlari').select('id').eq('order_id', orderId);
             if (mevcut?.length > 0) { setLoading(false); setIslemdeId(null); return goster('⚠️ Bu iş emri için devir raporu zaten mevcut!', 'error'); }
+<<<<<<< HEAD
 
             // KARARGAH FİNANS ZAFİYETİ ONARIMI:
             const hedefSiparis = orders.find(x => x.id === orderId);
@@ -501,6 +562,11 @@ export function useIsEmri(kullanici) {
             const pt = maliyetler.filter(m => m.order_id === orderId).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
             const { error } = await supabase.from('b1_muhasebe_raporlari').insert([{
                 order_id: orderId, gerceklesen_maliyet_tl: pt, net_uretilen_adet: netAdet, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
+=======
+            const pt = maliyetler.filter(m => m.order_id === orderId).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
+            const { error } = await supabase.from('b1_muhasebe_raporlari').insert([{
+                order_id: orderId, gerceklesen_maliyet_tl: pt, net_uretilen_adet: 0, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }]);
             if (!error) { goster('Devir başlatıldı. M8 Muhasebede rapor oluşturuldu.'); yukle(); }
             else throw error;
@@ -515,10 +581,16 @@ export function useIsEmri(kullanici) {
         kronometer, sure, maliyetForm, setMaliyetForm, maliyetFormAcik, setMaliyetFormAcik,
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, duzenleId,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
+<<<<<<< HEAD
         islemdeId, setIslemdeId, // ÇİFT TIKLAMA KORUMASI
         aktifPersonel, setAktifPersonel, aktifOperasyonlar, isReworkMod, setIsReworkMod, // [ÇİFT BARKOD + REWORK]
         // Fonksiyonlar
         yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, ciftBarkodOtonomIslem,
+=======
+        islemdeId, setIslemdeId, // [SPAM ZIRHI]
+        // Fonksiyonlar
+        yukle, durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
     };

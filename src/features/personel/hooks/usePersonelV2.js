@@ -50,7 +50,13 @@ export function usePersonelV2(kullanici) {
                 const parsed = JSON.parse(data.deger);
                 setSistemAyarlari({ dakika_basi_ucret: parsed.dakika_basi_ucret ?? 2.50, prim_orani: parsed.prim_orani ?? 0.15, yillik_izin_hakki: parsed.yillik_izin_hakki ?? 15 });
             }
+<<<<<<< HEAD
         } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: usePersonelV2.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+        } catch (e) {
+            console.error("[SİSTEM HATASI] Ayarlar yüklenemedi:", e);
+        }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }, []);
 
     const yukle = useCallback(async () => {

@@ -23,7 +23,11 @@ export const VARSAYILAN_KONFIGUR = null; // Konteyner kendi config'ini sağlar
 
 export function useAjanlar(kullanici) {
     const [yetkiliMi, setYetkiliMi] = useState(false);
+<<<<<<< HEAD
     const [gorevler, setGorevler] = useState([]);
+=======
+    const [gorevler, setGorevler] = useState(/** @type {any[]} */([]));
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const [loading, setLoading] = useState(true);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [form, setForm] = useState(BOS_FORM);
@@ -34,7 +38,13 @@ export function useAjanlar(kullanici) {
     const [sekme, setSekme] = useState('gorevler');
     const [istatistik, setIstatistik] = useState({ toplam: 0, tamamlandi: 0, calisıyor: 0, hata: 0, bekliyor: 0 });
     const [konfig, setKonfig] = useState(() => konfigurasyonOku() || VARSAYILAN_KONFIGUR);
+<<<<<<< HEAD
     const pollingRef = useRef(null);
+=======
+    const pollingRef = useRef(/** @type {any} */(null));
+    const realtimeBagliRef = useRef(false);
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -56,6 +66,7 @@ export function useAjanlar(kullanici) {
         const ok = kullanici?.grup === 'tam' || pin;
         setYetkiliMi(ok);
         if (!ok) return;
+<<<<<<< HEAD
         const kanal = supabase.channel('ajanlar-realtime')
             .on('postgres_changes', { event: '*', schema: 'public' }, yukle)
             .subscribe();
@@ -67,10 +78,33 @@ export function useAjanlar(kullanici) {
     useEffect(() => {
         pollingRef.current = setInterval(() => {
             if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
+=======
+        // [DÜZELTME]: Realtime bağlandığında realtimeBagliRef = true → polling devreye girmez
+        const kanal = supabase.channel('ajanlar-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ajan_gorevler' }, yukle)
+            .subscribe((status) => {
+                realtimeBagliRef.current = (status === 'SUBSCRIBED');
+            });
+        yukle();
+        return () => {
+            realtimeBagliRef.current = false;
+            supabase.removeChannel(kanal);
+        };
+    }, [kullanici, yukle]);
+
+    // [DÜZELTME]: Polling → sadece realtime koptuğunda fallback (double-fire engellendi)
+    useEffect(() => {
+        pollingRef.current = setInterval(() => {
+            if (!realtimeBagliRef.current && gorevler.some(g => g.durum === 'calisıyor')) yukle();
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         }, 5000);
         return () => clearInterval(pollingRef.current);
     }, [gorevler, yukle]);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const gorevGonderAction = async () => {
         if (!form.gorev_adi.trim()) return goster('Görev adı zorunlu!', 'error');
         if (!form.gorev_emri.trim()) return goster('Görev emri zorunlu!', 'error');
@@ -110,8 +144,14 @@ export function useAjanlar(kullanici) {
         if (!confirm('Görevi sil?')) return;
         try {
             await apiSil(id, kullanici?.label);
+<<<<<<< HEAD
             setGorevler(p => p.filter(g => g.id !== id));
             if (secilenGorev?.id === id) setSecilenGorev(null);
+=======
+            setGorevler(p => p.filter(g => /** @type {any} */(g).id !== id));
+            if (/** @type {any} */(secilenGorev)?.id === id) setSecilenGorev(null);
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             goster('Görev silindi!');
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
     };

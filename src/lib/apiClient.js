@@ -95,7 +95,7 @@ async function istek(url, secenekler = {}, denemSayisi = 0) {
 
         // 5xx → Sunucu hatası, retry
         if (yanit.status >= 500 && denemSayisi < RETRY_SAYISI) {
-
+            console.warn(`[apiClient] ${yanit.status} hatası, ${denemSayisi + 1}. deneme: ${url}`);
             await new Promise(r => setTimeout(r, 1000)); // 1sn bekle
             return istek(url, secenekler, denemSayisi + 1);
         }
@@ -121,7 +121,7 @@ async function istek(url, secenekler = {}, denemSayisi = 0) {
         if (hata.name === 'AbortError') {
             // Retry
             if (denemSayisi < RETRY_SAYISI) {
-
+                console.warn(`[apiClient] Zaman aşımı, yeniden deneniyor: ${url}`);
                 return istek(url, secenekler, denemSayisi + 1);
             }
             throw new Error(`İstek zaman aşımına uğradı (${timeout / 1000}sn): ${url}`);

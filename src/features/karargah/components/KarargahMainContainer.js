@@ -5,7 +5,10 @@ import {
     Database, Cpu, Network, AlertTriangle, Radio, Eye, Target, Shield
 } from 'lucide-react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import Image from 'next/image';
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { useAuth } from '@/lib/auth';
 import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useCallback } from 'react';
@@ -110,6 +113,11 @@ export function KarargahMainContainer() {
     const [izPanelAcik, setIzPanelAcik] = useState(false);
     const [mesajYukleniyor, setMesajYukleniyor] = useState(false);
     const [botYukleniyor, setBotYukleniyor] = useState(false);
+<<<<<<< HEAD
+=======
+    const [sistemHatalari, setSistemHatalari] = useState(/** @type {any[]} */([]));
+    const [hataAlarmAcik, setHataAlarmAcik] = useState(false);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     // Saat
     useEffect(() => {
@@ -119,12 +127,25 @@ export function KarargahMainContainer() {
         return () => clearInterval(iv);
     }, []);
 
+<<<<<<< HEAD
     // Kamera stream
     useEffect(() => {
+=======
+    // ─── FEATURE FLAGS ───────────────────────────────────────────────────────
+    // .env.local'deki flag'ler — false ise servis hiç başlamaz, konsol temiz kalır
+    const KAMERA_AKTIF = process.env.NEXT_PUBLIC_KAMERA_AKTIF === 'true';
+    const MESAJ_AKTIF = process.env.NEXT_PUBLIC_MESAJ_AKTIF === 'true';
+    const BOT_AKTIF = process.env.NEXT_PUBLIC_BOT_AKTIF !== 'false'; // varsayılan: açık
+
+    // Kamera stream — sadece KAMERA_AKTIF=true ise çalışır
+    useEffect(() => {
+        if (!KAMERA_AKTIF) { setKameraStreamDurum('kapali'); return; }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         const kontrol = async () => {
             if (document.hidden) return;
             try {
                 const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+<<<<<<< HEAD
                 const d = await res.json();
                 setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
             } catch {
@@ -188,12 +209,60 @@ export function KarargahMainContainer() {
             .subscribe();
         return () => { supabase.removeChannel(kanal); };
     }, [mesajlariGetir]);
+=======
+                if (!res.ok) { setKameraStreamDurum('kapali'); return; }
+                const d = await res.json();
+                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
+            } catch { setKameraStreamDurum('kapali'); }
+        };
+        kontrol();
+        const iv = setInterval(kontrol, 30000);
+        const handleVisibility = () => { if (!document.hidden) kontrol(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [KAMERA_AKTIF]);
+
+
+    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Mesaj servisi — sadece MESAJ_AKTIF=true ise çalışır (b1_ic_mesajlar tablosu gerekir)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const mesajlariGetir = useCallback(async () => {
+        if (!MESAJ_AKTIF) return; // Flag false ise hiç başlatma
+        try {
+            const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
+            setMesajSayisi(count || 0);
+        } catch { /* sessiz */ }
+        try {
+            const { data: aktif } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, gonderen_adi, created_at, urun_id').order('created_at', { ascending: false }).limit(3);
+            setSonMesajlar(aktif || []);
+        } catch { setSonMesajlar([]); }
+        try {
+            const { data: gizli } = await supabase.from('b1_mesaj_gizli').select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)').gte('gizlendi_at', gun45Once).order('gizlendi_at', { ascending: false }).limit(20);
+            const izler = (gizli || []).filter(g => { const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar; return !(b1?.urun_id); });
+            setGizlenIzleri(izler);
+        } catch { setGizlenIzleri([]); }
+        try {
+            const { data: model } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at').not('urun_id', 'is', null).order('created_at', { ascending: false }).limit(50);
+            setModelArsiv(model || []);
+        } catch { setModelArsiv([]); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [MESAJ_AKTIF]);
+
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     useEffect(() => {
         const botLogCek = async () => {
             if (document.hidden) return;
+<<<<<<< HEAD
             try {
                 await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
+=======
+            if (!BOT_AKTIF) return; // Flag false ise bot’u yoklama
+            try {
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 const { data } = await supabase
                     .from('b1_agent_loglari')
                     .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
@@ -216,6 +285,13 @@ export function KarargahMainContainer() {
         };
     }, []);
 
+<<<<<<< HEAD
+=======
+    // ――― CANLI HATA MONİTÖRÜ — DEVRE DIŞI (Kırmızı alarm panosu kapatıldı) ―――
+    // setHataAlarmAcik asla true olmaz, panel görünmez
+
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
     const isAdmin = _kul?.grup === 'tam' || _kul?.rol === 'admin';
 
@@ -256,6 +332,36 @@ export function KarargahMainContainer() {
                 </div>
             )}
 
+<<<<<<< HEAD
+=======
+            {/* ── CANLI HATA ALARM PANELİ ── */}
+            {hataAlarmAcik && sistemHatalari.length > 0 && (
+                <div className="fixed top-0 left-0 right-0 z-[90] border-b-2 border-red-500"
+                    style={{ background: 'linear-gradient(90deg, #1a0000 0%, #2d0000 50%, #1a0000 100%)', animation: 'pulse 1s infinite' }}>
+                    <div className="flex items-center justify-between px-4 py-2">
+                        <div className="flex items-center gap-3">
+                            <span className="text-red-400 text-sm font-bold animate-pulse">🔴 SİSTEM HATASI</span>
+                            <span className="text-red-300 text-xs font-mono">{sistemHatalari.length} AKTIF HATA</span>
+                        </div>
+                        <div className="flex gap-4 overflow-hidden max-w-xl">
+                            {sistemHatalari.slice(0, 3).map((h, i) => (
+                                <span key={i} className="text-red-200 text-xs font-mono truncate">
+                                    ⚠ [{h.tablo_adi || '?'}] {h.islem_tipi}
+                                </span>
+
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setHataAlarmAcik(false)}
+                            className="text-red-400 hover:text-red-200 text-xs border border-red-800 px-3 py-1 ml-4 font-mono"
+                        >
+                            [ TAMAM ]
+                        </button>
+                    </div>
+                </div>
+            )}
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             {/* ── ÜST BAR ── */}
             <div className="relative z-10 border-b border-green-900/60 bg-black/40 px-6 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -279,6 +385,7 @@ export function KarargahMainContainer() {
                 {/* ── SOL / ORTA KOLON ── */}
                 <div className="lg:col-span-3 flex flex-col gap-4">
 
+<<<<<<< HEAD
                     {/* ── ADALET MÜHÜRÜ BANNER ── */}
                     <div className="relative border border-green-900/60 bg-black/70 overflow-hidden" style={{ minHeight: 120 }}>
                         {/* Arkaplan tarama efekti */}
@@ -318,6 +425,9 @@ export function KarargahMainContainer() {
 
                     {/* METRİK PANELLER */}
 
+=======
+                    {/* METRİK PANELLER */}
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
                             { baslik: 'GÜNLÜK CİRO', deger: isAdmin ? `₺ ${fm(stats.ciro)}` : '▓▓▓▓▓▓', renk: 'green', link: '/raporlar', ikon: <Target size={12} /> },

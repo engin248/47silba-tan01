@@ -23,7 +23,11 @@ export default function MuhasebeMainContainer() {
     const [aramaMetni, setAramaMetni] = useState('');
     const [duzenleModal, setDuzenleModal] = useState(/** @type {any} */(null)); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
     const [duzenleForm, setDuzenleForm] = useState(/** @type {any} */({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '', ek_maliyet_tl: '' }));
+<<<<<<< HEAD
     const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
+=======
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -33,7 +37,11 @@ export default function MuhasebeMainContainer() {
         let kanal;
         const baslatKanal = () => {
             if (isYetkili && !document.hidden) {
+<<<<<<< HEAD
                 // PERFORMANS OPTİMİZASYONU: Realtime WebSocket
+=======
+                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 kanal = supabase.channel('muhasebe-gercek-zamanli-optimize')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_muhasebe_raporlari' }, yukle)
                     .subscribe();
@@ -61,6 +69,7 @@ export default function MuhasebeMainContainer() {
         setLoading(true);
         try {
             const req1 = supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(200);
+<<<<<<< HEAD
 
             // VERİ BÜTÜNLÜĞÜ: Model Taslakları yerine tamamlanmış İş Emirleri (production_orders) referans alınıyor
             const req2 = supabase.from('production_orders')
@@ -68,6 +77,9 @@ export default function MuhasebeMainContainer() {
                 .eq('status', 'completed')
                 .order('updated_at', { ascending: false }).limit(200);
 
+=======
+            const req2 = supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi, hedef_adet').eq('durum', 'tamamlandi').order('created_at', { ascending: false }).limit(200);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
             const [rRes, mRes] = await Promise.race([
                 Promise.allSettled([req1, req2]),
@@ -77,6 +89,7 @@ export default function MuhasebeMainContainer() {
             let currentRaporlar = [];
             if (rRes.status === 'fulfilled' && rRes.value.data) {
                 currentRaporlar = rRes.value.data;
+<<<<<<< HEAD
             }
             if (mRes.status === 'fulfilled' && mRes.value.data) {
                 // b1_muhasebe_raporlari'ndaki (order_id) production_orders.id'sini temsil eder. 
@@ -99,6 +112,13 @@ export default function MuhasebeMainContainer() {
                     hedef_adet: o.quantity || 0
                 }));
                 setRaporsizemOrders(maplenmisEmirler.filter(o => !raporOrderIds.has(o.id)));
+=======
+                setRaporlar(currentRaporlar);
+            }
+            if (mRes.status === 'fulfilled' && mRes.value.data) {
+                const raporOrderIds = new Set(currentRaporlar.map(r => r.order_id));
+                setRaporsizemOrders(mRes.value.data.filter(o => !raporOrderIds.has(o.id)));
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }
         } catch (error) { goster('Ağ bağlantısı koptu! ' + error.message, 'error'); }
         setLoading(false);
@@ -157,12 +177,17 @@ export default function MuhasebeMainContainer() {
                     tablo_adi: 'b1_muhasebe_raporlari', islem_tipi: 'UPDATE', kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
                     eski_veri: { mesaj: rapor.model_kodu + ' numarali emrin muhasebesi kilitlendi ve devre verildi.' }
                 }]);
+<<<<<<< HEAD
             } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: MuhasebeMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+            } catch (e) { console.error('[SİSTEM HATASI] Muhasebe JSON Parse:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
             const { error } = await supabase.from('b1_muhasebe_raporlari').update({
                 rapor_durumu: 'kilitlendi', devir_durumu: true, onay_tarihi: new Date().toISOString()
             }).eq('id', rapor.id);
             if (error) throw error;
+<<<<<<< HEAD
 
             // ONAY AKIŞI: İmalat (M4) aşaması bittiğinde stoklar eklendiği için burada sadece 2. Birim Onayı log'laması yapılır.
             try {
@@ -188,6 +213,10 @@ export default function MuhasebeMainContainer() {
 
             goster('✅ Rapor kilitlendi. 2. Birime devir tamamlandı!'); yukle(); setSecilenRapor(null);
             telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi. Stoklar denetlendi.`);
+=======
+            goster('✅ Rapor kilitlendi. 2. Birime devir tamamlandı!'); yukle(); setSecilenRapor(null);
+            telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ ve tamamen muhasebeleştirildi.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         } catch (error) { goster('Devir hatası: ' + error.message, 'error'); }
         finally { setIslemdeId(null); }
     };
@@ -204,7 +233,11 @@ export default function MuhasebeMainContainer() {
             if (mErr) throw mErr;
             let toplamMaliyet = (maliyetler || []).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
 
+<<<<<<< HEAD
             // MALİYET KURALI: Otonom GÜG (Genel İşletme Gideri) Payı Kesintisi
+=======
+            // [M8 ZIRHI: Stratejik GÜG Körlüğü Kapatıldı]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             const yuzde15Gider = parseFloat((toplamMaliyet * 0.15).toFixed(2));
             if (yuzde15Gider > 0) {
                 try {
@@ -212,7 +245,11 @@ export default function MuhasebeMainContainer() {
                         { order_id: model.id, maliyet_tipi: 'isletme_gideri', kalem_aciklama: 'Otonom GÜG (%15 İşletme/Amortisman Payı)', tutar_tl: yuzde15Gider, onay_durumu: 'hesaplandi' }
                     ]);
                     toplamMaliyet += yuzde15Gider;
+<<<<<<< HEAD
                 } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: MuhasebeMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+                } catch (e) { console.error('[B0 LOG HATASI] Muhasebe Fiş İptali:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }
 
             const insertData = {
@@ -260,7 +297,11 @@ export default function MuhasebeMainContainer() {
         setDuzenleModal({ ...rapor, zeyilname_modu: false });
     };
 
+<<<<<<< HEAD
     // [M8 KONTROLÜ: ZEYİLNAME SİGORTASI]
+=======
+    // [M8 ZIRHI: ZEYİLNAME SİGORTASI]
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const zeyilnameAc = (rapor) => {
         if (rapor.rapor_durumu !== 'kilitlendi') return goster('Sadece devri tamamlanıp KİLİTLENMİŞ raporlara sonradan gelen farklar (Zeyilname) yazılabilir.', 'warning');
         setDuzenleForm({
@@ -317,7 +358,11 @@ export default function MuhasebeMainContainer() {
                     kullanici_adi: kullanici?.label || 'Muhasebe Yetkilisi',
                     eski_veri: { rapor_durumu: rapor.rapor_durumu, model_kodu: rapor.model_kodu }
                 }]);
+<<<<<<< HEAD
             } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: MuhasebeMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+=======
+            } catch (e) { console.error('[B0 LOG HATASI] Muhasebe Silme:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             const { error } = await supabase.from('b1_muhasebe_raporlari').delete().eq('id', rapor.id);
             if (error) throw error;
             goster('Rapor silindi.');
@@ -360,7 +405,11 @@ export default function MuhasebeMainContainer() {
         kilitli: raporlar.filter(r => r.rapor_durumu === 'kilitlendi').length,
     };
 
+<<<<<<< HEAD
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+=======
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     if (!yetkiliMi) {
         return (
@@ -381,10 +430,17 @@ export default function MuhasebeMainContainer() {
                         <FileCheck size={24} className="text-emerald-50" />
                     </div>
                     <div>
+<<<<<<< HEAD
                         <h1 className="text-2xl font-black text-white tracking-tight m-0">
                             {isAR ? 'المحاسبة والتقارير النهائية' : 'Muhasebe & Final Rapor'}
                         </h1>
                         <p className="text-xs font-bold text-emerald-200 mt-1 uppercase tracking-wider">
+=======
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">
+                            {isAR ? 'المحاسبة والتقارير النهائية' : 'Muhasebe & Final Rapor'}
+                        </h1>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             {isAR ? 'مراجعة → موافقة الشيف → قفل → تحويل إلى الوحدة الثانية' : 'İncele → Şef onayı → Kilitle → 2. Birime devir'}
                         </p>
                     </div>
@@ -404,10 +460,17 @@ export default function MuhasebeMainContainer() {
                     { label: 'Toplam Rapor', val: istatistik.toplam, colorClass: 'text-emerald-700', bgClass: 'bg-emerald-50 border-emerald-200' },
                     { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-200' },
                     { label: '✅ Onaylı', val: istatistik.onaylandi, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
+<<<<<<< HEAD
                     { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-white', bgClass: 'bg-[#0d1117] text-white border-[#1e4a43]' },
                 ].map((s, i) => (
                     <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
                         <div className="text-[10px] text-emerald-200 font-black uppercase mb-1 tracking-widest">{s.label}</div>
+=======
+                    { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-slate-800', bgClass: 'bg-slate-50 border-slate-200' },
+                ].map((s, i) => (
+                    <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1 tracking-widest">{s.label}</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <div className={`font-black text-2xl ${s.colorClass}`}>{s.val}</div>
                     </div>
                 ))}
@@ -418,7 +481,11 @@ export default function MuhasebeMainContainer() {
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
                     placeholder="Model kodu veya adına göre ara..."
+<<<<<<< HEAD
                     className="w-full pl-10 pr-4 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" />
+=======
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             </div>
 
             {mesaj.text && (
@@ -438,10 +505,17 @@ export default function MuhasebeMainContainer() {
                     </div>
                     <div className="flex flex-col gap-2">
                         {raporsizemOrders.map(o => (
+<<<<<<< HEAD
                             <div key={o.id} className="flex justify-between items-center bg-[#122b27] rounded-xl p-3 border-2 border-amber-200 shadow-sm">
                                 <div>
                                     <span className="text-xs font-black bg-amber-200 text-amber-900 px-2 py-1 rounded inline-block mr-2 uppercase">{o.model_kodu}</span>
                                     <span className="font-bold text-white text-sm uppercase">{o.model_adi || 'Model'}</span>
+=======
+                            <div key={o.id} className="flex justify-between items-center bg-white rounded-xl p-3 border-2 border-amber-200 shadow-sm">
+                                <div>
+                                    <span className="text-xs font-black bg-amber-200 text-amber-900 px-2 py-1 rounded inline-block mr-2 uppercase">{o.model_kodu}</span>
+                                    <span className="font-bold text-slate-800 text-sm uppercase">{o.model_adi || 'Model'}</span>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                     <span className="text-xs font-bold text-slate-400 ml-2">{o.hedef_adet} adet</span>
                                 </div>
                                 <button onClick={() => uretimdenRaporOlustur(o)} disabled={loading}
@@ -470,6 +544,7 @@ export default function MuhasebeMainContainer() {
                             </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+<<<<<<< HEAD
                             <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
                                 <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
@@ -479,6 +554,17 @@ export default function MuhasebeMainContainer() {
                                 <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
                             </div>
                             <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+=======
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
+                                <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
+                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sapma</div>
                                 <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{/** @type {any} */ (fark) > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({/** @type {any} */ (pct) > 0 ? '+' : ''}{pct}%)</div>
                             </div>
@@ -505,7 +591,11 @@ export default function MuhasebeMainContainer() {
                 <div className="w-full lg:w-1/2 xl:w-5/12 shrink-0">
                     <div className="flex flex-col gap-3">
                         {!loading && filtreliRaporlar.length === 0 && (
+<<<<<<< HEAD
                             <div className="text-center p-12 bg-[#0d1117] text-white rounded-2xl border-2 border-dashed border-[#1e4a43]">
+=======
+                            <div className="text-center p-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 <FileCheck size={40} className="text-slate-200 mb-3 mx-auto" />
                                 <p className="text-slate-400 font-bold">
                                     {aramaMetni ? 'Arama sonucu bulunamadı.' : 'Final rapor yok. M6 Üretim Bandından devir başlatın.'}
@@ -520,7 +610,11 @@ export default function MuhasebeMainContainer() {
                             return (
                                 <div key={r.id}
                                     onClick={() => raporSec(r)}
+<<<<<<< HEAD
                                     className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-emerald-50 border-emerald-600 shadow-md shadow-emerald-600/10' : kilitli ? 'bg-[#122b27] border-slate-800 hover:border-slate-800 shadow-sm' : 'bg-[#122b27] border-slate-100 hover:border-emerald-300 hover:shadow-sm'}`}>
+=======
+                                    className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-emerald-50 border-emerald-600 shadow-md shadow-emerald-600/10' : kilitli ? 'bg-white border-slate-800 hover:border-slate-800 shadow-sm' : 'bg-white border-slate-100 hover:border-emerald-300 hover:shadow-sm'}`}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
                                             <div className="flex gap-2 mb-2">
@@ -531,7 +625,11 @@ export default function MuhasebeMainContainer() {
                                                     {DURUM_LABEL[r.rapor_durumu]}
                                                 </span>
                                             </div>
+<<<<<<< HEAD
                                             <div className="font-black text-white text-sm tracking-tight uppercase">
+=======
+                                            <div className="font-black text-slate-800 text-sm tracking-tight uppercase">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                                 {r.model_adi || r.model_kodu || 'Model'}
                                             </div>
                                         </div>
@@ -562,7 +660,11 @@ export default function MuhasebeMainContainer() {
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 mt-2">
+<<<<<<< HEAD
                                         <div className="bg-[#0d1117] text-white rounded-xl p-2.5 border border-slate-100">
+=======
+                                        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                             <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
                                             <div className="font-black text-slate-700 text-sm">₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
@@ -579,10 +681,17 @@ export default function MuhasebeMainContainer() {
 
                 {/* SEÇİLEN RAPOR DETAY */}
                 {secilenRapor && (
+<<<<<<< HEAD
                     <div className="w-full lg:w-1/2 xl:w-7/12 shrink-0 bg-[#122b27] border-4 border-emerald-600 rounded-3xl p-6 lg:sticky lg:top-6 shadow-2xl shadow-emerald-900/10">
                         <div className="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4">
                             <h2 className="font-black text-white text-lg uppercase tracking-wider flex items-center gap-2 m-0"><span className="text-xl">📊</span> Rapor Detayı (Z-Raporu)</h2>
                             <button onClick={() => setSecilenRapor(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-emerald-200 rounded-lg transition-colors">✕</button>
+=======
+                    <div className="w-full lg:w-1/2 xl:w-7/12 shrink-0 bg-white border-4 border-emerald-600 rounded-3xl p-6 lg:sticky lg:top-6 shadow-2xl shadow-emerald-900/10">
+                        <div className="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4">
+                            <h2 className="font-black text-slate-800 text-lg uppercase tracking-wider flex items-center gap-2 m-0"><span className="text-xl">📊</span> Rapor Detayı (Z-Raporu)</h2>
+                            <button onClick={() => setSecilenRapor(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors">✕</button>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
@@ -594,7 +703,11 @@ export default function MuhasebeMainContainer() {
                                 { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, colorClass: 'text-emerald-600' },
                                 { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, colorClass: 'text-red-500' },
                             ].map((m, i) => (
+<<<<<<< HEAD
                                 <div key={i} className="bg-[#0d1117] text-white border border-slate-100 rounded-xl p-3">
+=======
+                                <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
                                     <div className={`font-black text-base ${m.colorClass}`}>{m.val}</div>
                                 </div>
@@ -618,8 +731,13 @@ export default function MuhasebeMainContainer() {
                             const mRenkBorder = { personel_iscilik: 'border-blue-500', isletme_gideri: 'border-amber-500', fason_islem: 'border-purple-500', hammadde: 'border-emerald-500', diger: 'border-slate-400' };
 
                             return (
+<<<<<<< HEAD
                                 <div className="mb-6 bg-[#0d1117] text-white p-5 border-2 border-[#1e4a43] rounded-2xl">
                                     <div className="font-black text-emerald-300 text-[11px] mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+=======
+                                <div className="mb-6 bg-slate-50 p-5 border-2 border-slate-200 rounded-2xl">
+                                    <div className="font-black text-slate-600 text-[11px] mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
                                     {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
                                     <div className="flex h-5 rounded-lg overflow-hidden mb-4 shadow-inner">
@@ -632,7 +750,11 @@ export default function MuhasebeMainContainer() {
                                         {Object.entries(uMaliyetData).map(([tip, miktar]) => {
                                             const yuzdeUi = ((miktar / (totalUI || 1)) * 100).toFixed(1);
                                             return (
+<<<<<<< HEAD
                                                 <div key={tip} className="text-xs text-emerald-300 font-bold bg-[#122b27] px-3 py-1.5 rounded-lg border border-[#1e4a43] shadow-sm flex items-center gap-2">
+=======
+                                                <div key={tip} className="text-xs text-slate-600 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                                     <span className={`inline-block w-2.5 h-2.5 rounded-full ${mRenkBg[tip] || mRenkBg.diger}`} />
                                                     {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-[10px]">(%{yuzdeUi})</span>
                                                 </div>
@@ -641,12 +763,21 @@ export default function MuhasebeMainContainer() {
                                     </div>
 
                                     <div className="h-0.5 bg-slate-200 my-4" />
+<<<<<<< HEAD
                                     <h5 className="my-3 text-white text-xs font-black uppercase tracking-wider">Maliyet Detay Dökümü</h5>
                                     <div className="max-h-[300px] overflow-y-auto pr-2 space-y-1.5 custom-scrollbar">
                                         {ilgiliMaliyetler.map((m, idx) => (
                                             <div key={m.id || idx} className={`flex justify-between items-center p-3 rounded-xl bg-[#122b27] border-l-4 border-r border-y border-slate-100 shadow-sm hover:shadow-md transition-shadow ${mRenkBorder[m.maliyet_tipi] || mRenkBorder.diger}`}>
                                                 <span className="text-xs text-slate-700 font-bold">{m.kalem_aciklama}</span>
                                                 <span className="font-black text-white text-sm">₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+=======
+                                    <h5 className="my-3 text-slate-800 text-xs font-black uppercase tracking-wider">Maliyet Detay Dökümü</h5>
+                                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-1.5 custom-scrollbar">
+                                        {ilgiliMaliyetler.map((m, idx) => (
+                                            <div key={m.id || idx} className={`flex justify-between items-center p-3 rounded-xl bg-white border-l-4 border-r border-y border-slate-100 shadow-sm hover:shadow-md transition-shadow ${mRenkBorder[m.maliyet_tipi] || mRenkBorder.diger}`}>
+                                                <span className="text-xs text-slate-700 font-bold">{m.kalem_aciklama}</span>
+                                                <span className="font-black text-slate-800 text-sm">₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                             </div>
                                         ))}
                                     </div>
@@ -687,7 +818,11 @@ export default function MuhasebeMainContainer() {
                             {/* [A-04] Yazdır / PDF */}
                             <button
                                 onClick={() => window.print()}
+<<<<<<< HEAD
                                 className="p-3 bg-[#0d1117] text-white hover:bg-slate-100 border-2 border-[#1e4a43] text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors mt-2">
+=======
+                                className="p-3 bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors mt-2">
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 🖨️ Raporu Yazdır / PDF
                             </button>
                         </div>
@@ -698,10 +833,17 @@ export default function MuhasebeMainContainer() {
             {/* DÜZENLE MODAL */}
             {duzenleModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+<<<<<<< HEAD
                     <div className="bg-[#122b27] rounded-[2rem] p-8 w-full max-w-lg shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-[#1e4a43]" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-black text-white text-xl m-0 flex items-center gap-2">✏️ Rapor Düzenle</h3>
                             <button onClick={() => setDuzenleModal(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-emerald-200 rounded-lg transition-colors">✕</button>
+=======
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-lg shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-black text-slate-800 text-xl m-0 flex items-center gap-2">✏️ Rapor Düzenle</h3>
+                            <button onClick={() => setDuzenleModal(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors">✕</button>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         </div>
                         <div className="bg-emerald-50 border-2 border-emerald-100 rounded-xl p-3 mb-6 text-sm font-black text-emerald-800 flex items-center flex-wrap gap-2 uppercase tracking-wide">
                             📁 {duzenleModal.model_kodu || duzenleModal.id?.slice(0, 8)}
@@ -711,6 +853,7 @@ export default function MuhasebeMainContainer() {
                             {!duzenleModal.zeyilname_modu ? (
                                 <>
                                     <div>
+<<<<<<< HEAD
                                         <label className="block text-[11px] font-black text-emerald-200 mb-2 uppercase tracking-widest">Zayiat Adet</label>
                                         <input type="number" min="0" value={duzenleForm.zayiat_adet}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
@@ -722,6 +865,19 @@ export default function MuhasebeMainContainer() {
                                             <input type="number" min="0" step="100" value={duzenleForm.hedeflenen_maliyet_tl}
                                                 onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-3 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all" />
+=======
+                                        <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Zayiat Adet</label>
+                                        <input type="number" min="0" value={duzenleForm.zayiat_adet}
+                                            onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Bütçelenen Hedef Maliyet Kapasitesi</label>
+                                        <div className="relative">
+                                            <input type="number" min="0" step="100" value={duzenleForm.hedeflenen_maliyet_tl}
+                                                onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all" />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">₺</span>
                                         </div>
                                     </div>
@@ -732,7 +888,11 @@ export default function MuhasebeMainContainer() {
                                     <div className="relative">
                                         <input type="number" min="0" step="10" value={duzenleForm.ek_maliyet_tl}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, ek_maliyet_tl: e.target.value })} placeholder="Fason fiyat farkı, kargo vb.."
+<<<<<<< HEAD
                                             className="w-full pl-10 pr-4 py-3 bg-[#122b27] border-2 border-amber-300 rounded-xl font-black text-amber-900 outline-none focus:border-amber-500 transition-all placeholder:text-amber-300 placeholder:font-medium" />
+=======
+                                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-amber-300 rounded-xl font-black text-amber-900 outline-none focus:border-amber-500 transition-all placeholder:text-amber-300 placeholder:font-medium" />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-600">₺</span>
                                     </div>
                                     <p className="text-[10px] font-bold text-amber-700/70 mt-3 leading-relaxed">Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
@@ -740,6 +900,7 @@ export default function MuhasebeMainContainer() {
                             )}
 
                             <div>
+<<<<<<< HEAD
                                 <label className="block text-[11px] font-black text-emerald-200 mb-2 uppercase tracking-widest">Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
                                 <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
                                     onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
@@ -748,6 +909,16 @@ export default function MuhasebeMainContainer() {
                         </div>
                         <div className="flex gap-3 justify-end mt-8 border-t-2 border-slate-100 pt-6">
                             <button onClick={() => setDuzenleModal(null)} className="px-6 py-2.5 border-2 border-[#1e4a43] hover:border-slate-300 hover:bg-[#0d1117] text-white rounded-xl font-bold text-emerald-300 transition-all">İptal</button>
+=======
+                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-widest">Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
+                                <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
+                                    onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
+                                    placeholder="İç not, açıklama..." className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all resize-y custom-scrollbar" />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 justify-end mt-8 border-t-2 border-slate-100 pt-6">
+                            <button onClick={() => setDuzenleModal(null)} className="px-6 py-2.5 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition-all">İptal</button>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             <button onClick={duzenleKaydet} disabled={loading}
                                 className={`px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 border-b-4 border-emerald-800 text-white rounded-xl font-black transition-all flex items-center gap-2 ${loading ? 'opacity-70 cursor-wait' : ''}`}>
                                 {loading ? '...' : '✅ Kaydet'}

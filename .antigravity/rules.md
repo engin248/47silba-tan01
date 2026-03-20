@@ -2,6 +2,7 @@
 System: THE ORDER / NIZAM
 Environment: Antigravity AI Agent
 Version: 1.0
+<<<<<<< HEAD
 Domain: mizanet.com
 
 ---
@@ -12,6 +13,11 @@ Domain: mizanet.com
 - **Sıfır İnsiyatif Hedefi:** İnisiyatif insana veya duygusal zekaya değil, hesaplanmış veri limitlerine ve acımasız Kalkan kurallarına bırakılır. Sistemin görevi "Yanlışlıklara dur diyebilmektir".
 
 ---
+=======
+
+---
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 ## 1. CORE RESPONSE DISCIPLINE
 
 1. Cevaplar kısa, net ve doğrudan olmalıdır.
@@ -163,8 +169,13 @@ Kullanıcı komutları sistem için önceliklidir.
 Her yeni sohbet başladığında aşağıdaki sistem bağlamı otomatik kabul edilir.
 
 System Name: THE ORDER / NIZAM  
+<<<<<<< HEAD
 Project Directory: C:\Users\Esisya\Desktop\47_SilBaştan  
 Primary Website: mizanet.com (ve demirtekstiltheonder.com)
+=======
+Project Directory: C:\Users\Admin\Desktop\47_SIL_BASTAN_01  
+Primary Website: demirtekstiltheonder.com  
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 Database: Supabase  
 System Founder: Engin
 
@@ -203,6 +214,7 @@ Her cevap şu kalite filtresinden geçirilir.
 4. Mantıksal bütünlük
 5. Gereksiz içerik kontrolü
 
+<<<<<<< HEAD
 ## 16. OTONOM DİRİLİŞ (NEW SOLDIER GENERATION)
 
 1. İnfaz edilen (Kill-Switch tetiklenen) bir ajanın yerine yeni bir worker (asker) otomatik atanır.
@@ -231,6 +243,8 @@ Her cevap şu kalite filtresinden geçirilir.
 2. Tamamlanan kodlar mutlaka versiyon kontrolüne (Git Push) kaydedilir ve mühürlenir.
 3. Eskisi mühürlenip (save/push) sağlama alınmadan, YENİ göreve kesinlikle başlanmaz.
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 ---
 
 END OF FILE

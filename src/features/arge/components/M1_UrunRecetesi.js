@@ -13,12 +13,17 @@ import NextLink from 'next/link';
 export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzenle, isAR, yetkiliMi, islemdeId }) {
     const skor = trend.talep_skoru ?? 5;
     const zorluk = trend.zorluk_derecesi ?? 5;
+<<<<<<< HEAD
     const skorRenk = (s) => s >= 8 ? '#10b981' : s >= 5 ? '#f59e0b' : '#ef4444';
+=======
+    const skorRenk = (/** @type {any} */ s) => s >= 8 ? '#10b981' : s >= 5 ? '#f59e0b' : '#ef4444';
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     // Gateway koşulu: Skor 7+ ve zorluk 8 altı ise M2'ye buton açık
     const gatewayAcik = skor >= 7 && zorluk <= 8;
 
     return (
+<<<<<<< HEAD
         <div
             style={{
                 background: 'rgba(255, 255, 255, 0.65)',
@@ -55,10 +60,28 @@ export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzen
                         <Package size={18} color="white" />
                     </div>
                     <span style={{ color: '#064e3b', fontWeight: 900, fontSize: '1.05rem', letterSpacing: '-0.01em' }}>
+=======
+        <div style={{
+            background: 'white',
+            border: '2px solid #e2e8f0',
+            borderRadius: 16,
+            overflow: 'hidden',
+        }}>
+            {/* Başlık şeridi */}
+            <div style={{
+                background: 'linear-gradient(135deg, #047857, #065f46)',
+                padding: '0.875rem 1.25rem',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Package size={16} color="white" />
+                    <span style={{ color: 'white', fontWeight: 900, fontSize: '0.9rem' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         {isAR ? trend.baslik_ar || trend.baslik : trend.baslik}
                     </span>
                 </div>
                 <div style={{
+<<<<<<< HEAD
                     background: 'rgba(5, 150, 105, 0.1)',
                     color: '#059669',
                     border: '1px solid rgba(5, 150, 105, 0.2)',
@@ -69,37 +92,65 @@ export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzen
                     boxShadow: '0 2px 10px rgba(5, 150, 105, 0.1)'
                 }}>
                     {trend.durum === 'inceleniyor' ? (isAR ? 'قيد المراجعة' : 'İnceleniyor') : (isAR ? 'مُعتمد' : 'Onaylandı')}
+=======
+                    background: 'rgba(255,255,255,0.15)',
+                    color: 'white',
+                    fontWeight: 900,
+                    fontSize: '0.75rem',
+                    padding: '3px 10px',
+                    borderRadius: 20,
+                }}>
+                    {isAR ? 'مُعتمد' : 'Onaylandı'}
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 </div>
             </div>
 
             {/* 6 Blok Grid */}
+<<<<<<< HEAD
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', gap: '1px', background: 'rgba(241, 245, 249, 0.5)' }}>
                 {[
                     { label: isAR ? 'رمز المنتج' : 'Kimlik', value: trend.id?.slice(0, 8), icon: '🆔' },
+=======
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: '#f1f5f9' }}>
+                {[
+                    { label: isAR ? 'رمز المنتج' : 'Kimlik', value: trend.id?.slice(0, 8) + '...', icon: '🆔' },
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     { label: isAR ? 'النقاط' : 'Skor', value: `${skor}/10`, icon: '📊', renk: skorRenk(skor) },
                     { label: isAR ? 'الفئة' : 'Kategori', value: isAR ? (trend.kategori || '-') : (trend.kategori || '-'), icon: '🏷️' },
                     { label: isAR ? 'الجمهور' : 'Hedef Kitle', value: isAR ? (trend.hedef_kitle === 'kadın' ? 'نسائي' : trend.hedef_kitle) : trend.hedef_kitle, icon: '👤' },
                     { label: isAR ? 'صعوبة الإنتاج' : 'Zorluk', value: `${zorluk}/10`, icon: '⚙️', renk: zorluk >= 8 ? '#ef4444' : '#f59e0b' },
                     { label: isAR ? 'المنصة' : 'Platform', value: trend.platform, icon: '🌐' },
                 ].map((blok, i) => (
+<<<<<<< HEAD
                     <div key={i} style={{ background: 'transparent', padding: '1rem', textAlign: 'center', transition: 'all 0.2s', position: 'relative', zIndex: 1 }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.8)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <div style={{ fontSize: '1.25rem', marginBottom: 4, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>{blok.icon}</div>
                         <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{blok.label}</div>
                         <div style={{ fontSize: '0.9rem', fontWeight: 900, color: blok.renk || '#0f172a' }}>{blok.value}</div>
+=======
+                    <div key={i} style={{ background: 'white', padding: '0.75rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.1rem', marginBottom: 2 }}>{blok.icon}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>{blok.label}</div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 900, color: blok.renk || '#0f172a' }}>{blok.value}</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     </div>
                 ))}
             </div>
 
             {/* Açıklama */}
             {trend.aciklama && (
+<<<<<<< HEAD
                 <div style={{ padding: '1.25rem 1.5rem', background: 'rgba(248, 250, 252, 0.4)', borderTop: '1px solid rgba(241, 245, 249, 0.8)', fontSize: '0.8rem', color: '#475569', lineHeight: 1.7 }}>
+=======
+                <div style={{ padding: '0.75rem 1rem', background: '#f8fafc', borderTop: '1px solid #f1f5f9', fontSize: '0.75rem', color: '#475569', lineHeight: 1.6 }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     {trend.aciklama.slice(0, 200)}{trend.aciklama.length > 200 ? '...' : ''}
                 </div>
             )}
 
             {/* Gateway Butonu — M2'ye Aktar */}
+<<<<<<< HEAD
             <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid rgba(241, 245, 249, 0.8)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 {gatewayAcik ? (
                     <NextLink href={`/kumas?trend_id=${trend.id}`} style={{ textDecoration: 'none' }}>
@@ -127,17 +178,41 @@ export default function M1_UrunRecetesi({ trend, onDurumGuncelle, onSil, onDuzen
                 ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: '0.75rem', fontWeight: 800, background: '#f8fafc', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                         <AlertTriangle size={14} color="#f59e0b" />
+=======
+            <div style={{ padding: '0.875rem 1rem', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {gatewayAcik ? (
+                    <NextLink href={`/modelhane?trend_id=${trend.id}`} style={{ textDecoration: 'none' }}>
+                        <button style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            background: '#047857', color: 'white',
+                            border: 'none', padding: '8px 16px', borderRadius: 8,
+                            fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer',
+                        }}>
+                            <CheckCircle2 size={14} />
+                            {isAR ? 'إرسال إلى M2 (الموديست)' : 'Fiziksel Onay Ver → M2\'ye Aktar'}
+                            <ArrowRight size={12} />
+                        </button>
+                    </NextLink>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: '0.72rem', fontWeight: 700 }}>
+                        <AlertTriangle size={13} color="#f59e0b" />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         {isAR ? 'يتطلب نقاط ≥7 وصعوبة ≤8 للإرسال' : 'M2 kilidi: Skor ≥7 ve Zorluk ≤8 gerekli'}
                     </div>
                 )}
 
                 {trend.referans_linkler?.[0] && (
                     <a href={trend.referans_linkler[0]} target="_blank" rel="noopener noreferrer"
+<<<<<<< HEAD
                         style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#3b82f6', fontSize: '0.75rem', fontWeight: 800, textDecoration: 'none', marginLeft: 'auto', padding: '8px 14px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', transition: 'background 0.2s' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
                     >
                         <ExternalLink size={14} /> {isAR ? 'مصدر' : 'Kaynak'}
+=======
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#0284c7', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', marginLeft: 'auto' }}>
+                        <ExternalLink size={11} /> {isAR ? 'مصدر' : 'Kaynak'}
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     </a>
                 )}
             </div>

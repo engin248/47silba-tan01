@@ -8,8 +8,11 @@ import { NextResponse } from 'next/server';
 // ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
 // Upstash env varları yoksa in-memory fallback (geliştirme ortamı)
 let ratelimit = null;
+<<<<<<< HEAD
 // Upstash paketleri yüklü olmadığı için geçici olarak devre dışı bırakıldı (Build Hatasını Önlemek İçin)
 /*
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 try {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         const { Ratelimit } = await import('@upstash/ratelimit');
@@ -25,8 +28,12 @@ try {
             prefix: 'pin_giris',
         });
     }
+<<<<<<< HEAD
 } catch { } // Upstash yoksa devam 
 */
+=======
+} catch (upstashHata) { console.warn('[PIN] Upstash import edilemedi, in-memory fallback aktif:', upstashHata.message); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
 // In-memory fallback (Upstash olmadığında)
 const BELLEK_KILIT = new Map();
@@ -94,7 +101,12 @@ async function jwtOlustur(grup) {
             .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         return `${veri}.${imza}`;
     } catch {
+<<<<<<< HEAD
         throw new Error('JWT imzalama başarısız: Crypto API kullanılamıyor.');
+=======
+        // Crypto API yoksa basit token dön
+        return btoa(`${grup}:${Date.now() + 8 * 3600 * 1000}`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }
 
@@ -118,7 +130,11 @@ export async function POST(request) {
         const durum = belleKileKontrol(ip);
         if (!durum.izinli) {
             return NextResponse.json(
+<<<<<<< HEAD
                 { hata: `Çok fazla hatalı deneme. ${Math.ceil(durum.kalanSaniye / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+=======
+                { hata: `Çok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 { status: 429 }
             );
         }
@@ -145,8 +161,11 @@ export async function POST(request) {
     // En yüksek yetki önce — aynı PIN birden fazla gruba denk gelirse tam > uretim > genel
     const YETKI_SIRASI = [
         { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },
+<<<<<<< HEAD
         // G2 FIX (Müfettiş 19.03.2026): TEST_COORDINATOR_PIN production'dan kaldırıldı.
         // Test pini production'da aktif olursa güvenlik açığı oluşturur.
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
         { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
     ];
@@ -162,6 +181,7 @@ export async function POST(request) {
         try {
             const { createClient } = await import('@supabase/supabase-js');
             const sb = createClient(
+<<<<<<< HEAD
                 (process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
                 (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
             );
@@ -177,6 +197,16 @@ export async function POST(request) {
                     } catch { }
                 })();
             }
+=======
+                (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+                (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
+            );
+            await sb.from('b0_sistem_loglari').insert([{
+                olay: 'PIN_HATALI_GIRIS',
+                detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
+                seviye: 'uyari',
+            }]);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         } catch { /* Log başarısız olsa bile sistemi engelleme */ }
 
         return NextResponse.json(
@@ -193,6 +223,7 @@ export async function POST(request) {
         const { createClient } = await import('@supabase/supabase-js');
         const sb = createClient(
             (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
+<<<<<<< HEAD
             (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
         );
         // Fire-and-forget — await kaldırıldı
@@ -250,4 +281,19 @@ export async function POST(request) {
     }
 
     return response;
+=======
+            (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key')
+        );
+        await sb.from('b0_sistem_loglari').insert([{
+            olay: 'PIN_BASARILI_GIRIS',
+            detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
+            seviye: 'bilgi',
+        }]);
+    } catch { /* Log başarısız olsa bile sistemi engelleme */ }
+
+    return NextResponse.json(
+        { basarili: true, grup, token, tokenSuresi: 8 * 3600 },
+        { status: 200 }
+    );
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 }

@@ -199,7 +199,7 @@ if (typeof window !== 'undefined') {
     setInterval(() => {
         const store = useAuthStore.getState();
         if (store.kullanici && !store.oturumGecerliMi()) {
-
+            console.warn('[AuthStore] Oturum süresi doldu, çıkış yapılıyor.');
             store.cikisYap();
         }
     }, 5 * 60 * 1000); // 5 dakikada bir kontrol

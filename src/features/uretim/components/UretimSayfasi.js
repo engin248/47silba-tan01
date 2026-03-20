@@ -7,8 +7,11 @@ import { LayoutList, Play, Square, Pause, FileCheck, RefreshCw, AlertTriangle, P
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL, getST_RENK, getST_LABEL } from '@/features/uretim/hooks/useIsEmri';
+<<<<<<< HEAD
 import { useUretimRecetesi } from '@/features/uretim/hooks/useUretimRecetesi';
 import M6_KameraSayaci from '@/features/uretim/components/M6_KameraSayaci';
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import YetkisizEkran from '@/components/shared/YetkisizEkran';
 import MesajBanner from '@/components/shared/MesajBanner';
 import SayfaBasligi from '@/components/ui/SayfaBasligi';
@@ -27,6 +30,7 @@ export default function UretimSayfasi() {
         kronometer, sure, maliyetForm, setMaliyetForm, maliyetFormAcik, setMaliyetFormAcik,
         aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum,
         barkodOkutulanIsId, setBarkodOkutulanIsId, seciliSiparisler, barkodInputRef,
+<<<<<<< HEAD
         durumGuncelle, baslat, duraklat, durdur, formatSure, ciftBarkodOtonomIslem,
         yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
         toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
@@ -42,6 +46,14 @@ export default function UretimSayfasi() {
         operasyonKaydet, operasyonDuzenle, operasyonSil
     } = useUretimRecetesi(kullanici, modeller, dept);
 
+=======
+        durumGuncelle, baslat, duraklat, durdur, formatSure, barkodlaOtonomIslemYap,
+        yeniIsEmri, duzenleIsEmri, silIsEmri, maliyetKaydet, devirYap,
+        toggleSiparisSec, tumunuSec, topluDurumGuncelleAction,
+        islemdeId, setIslemdeId, // [SPAM ZIRHI]
+    } = useIsEmri(kullanici);
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     // Yetki kontrolü
     let yetkiliMi = false;
     try {
@@ -54,7 +66,11 @@ export default function UretimSayfasi() {
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) {
+<<<<<<< HEAD
         return <YetkisizEkran isAR={isAR} mesaj="M6 Üretim Bandı verileri için Üretim PİN girişi zorunludur." />;
+=======
+        return <YetkisizEkran isAR={isAR} mesaj="M5 Üretim Bandı verileri için Üretim PİN girişi zorunludur." />;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     return (
@@ -75,6 +91,7 @@ export default function UretimSayfasi() {
                             <Plus size={18} /> Maliyet Ekle
                         </button>
                     )}
+<<<<<<< HEAD
                     {dept === 'receteler' && (
                         <div style={{ display: 'flex', gap: 8 }}>
                             <button onClick={() => { setOpFormAcik(false); setMakineFormAcik(!makineFormAcik); }} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1e293b', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
@@ -85,6 +102,8 @@ export default function UretimSayfasi() {
                             </button>
                         </div>
                     )}
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 </>}
             />
 
@@ -124,6 +143,7 @@ export default function UretimSayfasi() {
                 </div>
             </div>
 
+<<<<<<< HEAD
             {/* ─── D-A-YENI: REÇETELER (M6) ─────────────────────────────────────────────── */}
             {dept === 'receteler' && (
                 <div>
@@ -259,6 +279,8 @@ export default function UretimSayfasi() {
                 </div>
             )}
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             {/* ─── D-A: İŞ EMRİ ─────────────────────────────────────────────── */}
             {dept === 'is_emri' && (
                 <div>
@@ -353,6 +375,7 @@ export default function UretimSayfasi() {
             {/* ─── D-B: BAND & MONTAJ ──────────────────────────────────────── */}
             {dept === 'kesim' && (
                 <div>
+<<<<<<< HEAD
                     <div style={{ background: '#0f172a', border: `2px solid ${aktifPersonel ? '#10b981' : '#334155'}`, borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', display: 'flex', gap: 12, alignItems: 'center', transition: 'all 0.3s' }}>
                         <div style={{ padding: 10, background: aktifPersonel ? '#064e3b' : '#1e293b', borderRadius: 8 }}><Play size={24} color="#34d399" /></div>
                         <div style={{ flex: 1 }}>
@@ -377,6 +400,19 @@ export default function UretimSayfasi() {
                                     📱 TAM EKRAN KİOSK
                                 </button>
                             </Link>
+=======
+                    <div style={{ background: '#0f172a', border: '2px solid #334155', borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <div style={{ padding: 10, background: '#1e293b', borderRadius: 8 }}><Play size={24} color="#34d399" /></div>
+                        <div style={{ flex: 1 }}>
+                            <h4 style={{ color: 'white', margin: '0 0 6px', fontWeight: 800 }}>Otonom Barkod Tarayıcı</h4>
+                            <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>Barkod okuyucuyla veya manuel ID girerek okutun. Önce başlatır, sonraki okutmada bitirir.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <input ref={barkodInputRef} type="text" value={barkodOkutulanIsId} onChange={e => setBarkodOkutulanIsId(e.target.value)}
+                                placeholder="İş Emri ID..." style={{ ...inp, width: 200, border: '2px solid #3b82f6', background: '#1e293b', color: 'white' }}
+                                onKeyDown={e => { if (e.key === 'Enter') barkodlaOtonomIslemYap(barkodOkutulanIsId); }} />
+                            <button onClick={() => barkodlaOtonomIslemYap(barkodOkutulanIsId)} style={{ background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 800, cursor: 'pointer' }}>OKUT</button>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
@@ -442,11 +478,14 @@ export default function UretimSayfasi() {
                 </div>
             )}
 
+<<<<<<< HEAD
             {/* ─── D-D-K: KAMERALAR (M6 LOKAL EDGE) ───────────────────────── */}
             {dept === 'kameralar' && (
                 <M6_KameraSayaci />
             )}
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             {/* ─── D-D: MALİYET ───────────────────────────────────────────── */}
             {dept === 'maliyet' && (
                 <div>

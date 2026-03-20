@@ -27,17 +27,25 @@ export default function MesajBildirimButonu() {
     const kanalRef = useRef(null);
 
     const kGrup = kullanici?.modul || kullanici?.grup || 'genel';
+<<<<<<< HEAD
     const kullaniciId = kullanici?.id;
 
     // Sadece SAYI — head:true ile 0 bant genişliği
     const sayiGetir = useCallback(async () => {
         if (!kullaniciId) return;
+=======
+
+    // Sadece SAYI — head:true ile 0 bant genişliği
+    const sayiGetir = useCallback(async () => {
+        if (!kullanici) return;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         try {
             const { count } = await supabase
                 .from('b1_ic_mesajlar')
                 .select('id', { count: 'exact', head: true })
                 .or(`alici_grup.eq.${kGrup},alici_grup.eq.hepsi`)
                 .is('okundu_at', null)
+<<<<<<< HEAD
                 .eq('copte', false); // ✅ Boolean için .eq() kullanılmalı, .is() null içindir
             setOkunmamis(count || 0);
         } catch { /* sessiz */ }
@@ -46,12 +54,23 @@ export default function MesajBildirimButonu() {
     // Detay — yalnızca popup açılınca (lazy)
     const detayGetir = useCallback(async () => {
         if (!kullaniciId) return;
+=======
+                .is('copte', false); // Çöpteki mesajları sayma
+            setOkunmamis(count || 0);
+        } catch { /* sessiz */ }
+    }, [kullanici, kGrup]);
+
+    // Detay — yalnızca popup açılınca (lazy)
+    const detayGetir = useCallback(async () => {
+        if (!kullanici) return;
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         try {
             const { data } = await supabase
                 .from('b1_ic_mesajlar')
                 .select('id, konu, oncelik, tip, created_at, gonderen_adi')
                 .or(`alici_grup.eq.${kGrup},alici_grup.eq.hepsi`)
                 .is('okundu_at', null)
+<<<<<<< HEAD
                 .eq('copte', false) // ✅ Boolean için .eq()
                 .order('created_at', { ascending: false })
                 .limit(10);
@@ -90,6 +109,31 @@ export default function MesajBildirimButonu() {
             supabase.removeChannel(kanal);
         };
     }, [kullaniciId, kGrup, sayiGetir]);
+=======
+                .is('copte', false) // Çöpteki mesajların detaylarını gösterme
+                .order('created_at', { ascending: false })
+                .limit(10);
+            const mesajlar = data || [];
+            setSonMesajlar(mesajlar);
+            const kritik = mesajlar.filter(m => m.oncelik === 'kritik' || m.oncelik === 'acil');
+            if (kritik.length > 0) { setAlarmMesajlar(kritik); setAlarmAcik(true); }
+        } catch { /* sessiz */ }
+    }, [kullanici, kGrup]);
+
+    // İlk yükleme
+    useEffect(() => { sayiGetir(); }, [sayiGetir]);
+
+    // Realtime — WebSocket, HTTP quota tüketmez
+    useEffect(() => {
+        if (!kullanici) return;
+        const kanal = supabase.channel(`mbtn-${kGrup}`)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_ic_mesajlar' },
+                () => sayiGetir())
+            .subscribe();
+        kanalRef.current = kanal;
+        return () => supabase.removeChannel(kanal);
+    }, [kullanici, kGrup, sayiGetir]);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
     // Popup açılınca detay getir
     useEffect(() => { if (popupAcik) detayGetir(); }, [popupAcik, detayGetir]);
@@ -111,11 +155,19 @@ export default function MesajBildirimButonu() {
         <>
             {/* KRİTİK ALARM PANELİ */}
             {alarmAcik && alarmMesajlar.length > 0 && (
+<<<<<<< HEAD
                 <div className="animate-pulse" style={{
+=======
+                <div style={{
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     position: 'fixed', bottom: 82, zIndex: 99990, ...popupYan,
                     background: 'linear-gradient(135deg,#7f1d1d,#b91c1c)',
                     border: '2px solid #fca5a5', borderRadius: 12, padding: '10px 14px',
                     width: 272, boxShadow: '0 6px 24px rgba(239,68,68,.7)',
+<<<<<<< HEAD
+=======
+                    animation: 'brzTitres 1.4s ease-in-out infinite',
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     direction: isAR ? 'rtl' : 'ltr',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
@@ -150,7 +202,11 @@ export default function MesajBildirimButonu() {
                     background: '#1e293b', border: '1px solid #334155',
                     borderRadius: 12, padding: '10px', width: 270,
                     boxShadow: '0 6px 24px rgba(0,0,0,.6)',
+<<<<<<< HEAD
                     transition: 'all 0.2s ease-out',
+=======
+                    animation: 'brzSlideUp .18s ease-out',
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     direction: isAR ? 'rtl' : 'ltr',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -186,7 +242,10 @@ export default function MesajBildirimButonu() {
             {/* ANA YÜZER BUTON */}
             <button id="mesaj-bildirim-btn" onClick={() => setPopupAcik(v => !v)}
                 title={okunmamis > 0 ? `${okunmamis} okunmamış mesaj` : 'Haberleşme'}
+<<<<<<< HEAD
                 className={okunmamis > 0 ? 'animate-pulse' : ''}
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 style={{
                     position: 'fixed', bottom: 20, zIndex: 99999, ...yan,
                     width: 50, height: 50, borderRadius: '50%',
@@ -195,8 +254,13 @@ export default function MesajBildirimButonu() {
                     color: 'white', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: okunmamis > 0 ? '0 4px 18px rgba(239,68,68,.65)' : '0 4px 14px rgba(59,130,246,.4)',
+<<<<<<< HEAD
                     willChange: 'transform',
                     transition: 'all .3s ease-in-out',
+=======
+                    animation: okunmamis > 0 ? 'brzTitres 1.4s ease-in-out infinite' : 'none',
+                    transition: 'background .3s, box-shadow .3s',
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 }}>
                 <MessageSquare size={20} />
                 {okunmamis > 0 && (
@@ -211,6 +275,20 @@ export default function MesajBildirimButonu() {
                     </span>
                 )}
             </button>
+<<<<<<< HEAD
+=======
+
+            <style>{`
+                @keyframes brzTitres {
+                    0%,100% { transform:scale(1); }
+                    50%      { transform:scale(1.1); }
+                }
+                @keyframes brzSlideUp {
+                    from { transform:translateY(8px); opacity:0; }
+                    to   { transform:translateY(0);   opacity:1; }
+                }
+            `}</style>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         </>
     );
 }

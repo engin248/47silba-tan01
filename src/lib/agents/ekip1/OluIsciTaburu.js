@@ -23,14 +23,22 @@ const supabase = createClient(
 
 export class Ekip1_OluIsciTaburu {
     constructor() {
+<<<<<<< HEAD
 
+=======
+        console.log("[EKİP 1 - ÖLÜ İŞÇİ] Uyandırıldı. Hedef: Pazar Verileri. Eylem: Sadece Kazı ve Göm.");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     // =========================================================================
     // AJAN 1: E-TİCARET TARAYICI (Trendyol, Amazon, Şok Dalgaları)
     // =========================================================================
     async ajan1_eTicaretKazi(kategori = 'kargo_pantolon_kadin', url = 'https://www.trendyol.com/sr?q=kargo+pantolon+kadin') {
+<<<<<<< HEAD
 
+=======
+        console.log(`[AJAN 1] Görev Başladı: E-Ticaret Fiyat ve Satış Sinyali Kazıması. Hedef: ${url}`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         let browser;
         try {
             browser = await puppeteer.launch({
@@ -66,6 +74,11 @@ export class Ekip1_OluIsciTaburu {
                 }
             });
 
+<<<<<<< HEAD
+=======
+            console.log(`[AJAN 1] İşlem Tamamlandı. ${toplananUrunler.length} adet ham kayıt çıkarıldı.`);
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             // VERİYİ GÖM (Analiz Yok, Sadece Insert)
             for (let urun of toplananUrunler) {
                 await supabase.from('products').insert({
@@ -87,11 +100,19 @@ export class Ekip1_OluIsciTaburu {
     // AJAN 2: SOSYAL TARAYICI (Instagram / TikTok Hashtag Volümü)
     // =========================================================================
     async ajan2_sosyalHacimKazi(hashtag = 'kargopantolon') {
+<<<<<<< HEAD
 
+=======
+        console.log(`[AJAN 2] Görev Başladı: #${hashtag} TikTok/IG Hacim Taraması.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         // Not: Gerçekte TikTok API veya apify/tiktok-scraper kullanılır.
         // Görev emri gereği sahte yorum yapmaz, bulduğu sayıyı veritabanına atar.
 
         let viral_volume = Math.floor(Math.random() * 500000) + 10000; // API simülasyonu
+<<<<<<< HEAD
+=======
+        console.log(`[AJAN 2] Bulunan Hacim: ${viral_volume} gönderi/izlenme.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         await supabase.from('trend_data').insert({
             product_id: null, // Genel hashtag tablosu için
@@ -105,10 +126,17 @@ export class Ekip1_OluIsciTaburu {
     // AJAN 3: RAKİP KİMLİK KAZIYICI (Zara / H&M Yeni Koleksiyon)
     // =========================================================================
     async ajan3_rakipVitrinKazi(url = 'https://www.zara.com/tr/tr/kadin-yeni-urunler-l1180.html') {
+<<<<<<< HEAD
 
         // Yeni eklenen ürünlerin varlığını (True/False) ve adımlarını veritabanına yazar.
         const yeniGelenlerCount = 45; // Puppeteer kazıma simülasyonu sonucu
 
+=======
+        console.log(`[AJAN 3] Görev Başladı: Rakip Yeni Vitrin Taraması. Hedef: ${url}`);
+        // Yeni eklenen ürünlerin varlığını (True/False) ve adımlarını veritabanına yazar.
+        const yeniGelenlerCount = 45; // Puppeteer kazıma simülasyonu sonucu
+        console.log(`[AJAN 3] ${yeniGelenlerCount} yeni rakip ürün tespit edildi.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         // Sadece DB yazma...
     }
 
@@ -116,7 +144,11 @@ export class Ekip1_OluIsciTaburu {
     // AJAN 4: ŞİKAYET VE YORUM MEZARCISI
     // =========================================================================
     async ajan4_sikayetKazi(urunUrl) {
+<<<<<<< HEAD
 
+=======
+        console.log(`[AJAN 4] Görev Başladı: Negatif (1-2 Yıldız) Yorum Mahzeni. Hedef: ${urunUrl}`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         /* 
          * Puppeteer ile yorum sekmesine tıklar, sadece "En düşük puanlılar" filtresini seçer.
          * Çıkan metinleri ("kumaşı terletiyor", "bacak boyu kısa") Array'e atar.
@@ -129,17 +161,29 @@ export class Ekip1_OluIsciTaburu {
             "Resimdeki gibi tok durmuyor, file gibi incecik."
         ];
 
+<<<<<<< HEAD
+=======
+        console.log(`[AJAN 4]  Kazılan Ham Şikayetler DB'ye atılıyor: ${toplananSikayetler.join(" | ")}`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         // await supabase.from('raw_reviews').insert({ url: urunUrl, text: toplananSikayetler });
         return toplananSikayetler;
     }
 
     // TİMİ SAHAYA SÜR (GENEL TAARRUZ)
     async tumEkibiSahayaSur() {
+<<<<<<< HEAD
 
+=======
+        console.log("=== EKİP 1: TAM KADRO PAZARA İNİYOR ===");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         await this.ajan1_eTicaretKazi();
         await this.ajan2_sosyalHacimKazi('yazlikelbise');
         await this.ajan3_rakipVitrinKazi();
         await this.ajan4_sikayetKazi('https://site.com/urun-123');
+<<<<<<< HEAD
 
+=======
+        console.log("=== EKİP 1: OPERASYON BİTTİ. TÜM VERİLER VERİTABANINA GÖMÜLDÜ. DÜŞÜNME, HİSSETME, SADECE ÇALIŞ. ===");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }

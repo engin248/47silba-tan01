@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 // ╔══════════════════════════════════════════════════════════════════╗
 // ║ [ARŞİV] Bu dosya 16.03.2026'da yargic.js ile birleştirildi.   ║
 // ║ AKTİF DEĞİLDİR. Referans olarak korunmaktadır.                ║
 // ║ Güncel versiyon: src/scripts/ai_mastermind/yargic.js            ║
 // ╚══════════════════════════════════════════════════════════════════╝
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 /**
  * THE ORDER - EKİP 2 KOMUTANLIĞI: MATEMATİKÇİ VE KARAR YARGICI
  * Tarih: 16.03.2026
@@ -32,13 +35,21 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'api-key-tanimsiz';
 
 export class Ekip2_MatematikciYargic {
     constructor() {
+<<<<<<< HEAD
 
+=======
+        console.log("[EKİP 2 - MATEMATİKÇİ YARGIÇ] Uyandırıldı. Çamurlu ham veriler THE ORDER formülüyle yıkanacak.");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     /**
      * Motoru ateşleyen ana fonksiyon (Cron veya Trigger ile çağrılır)
      */
     async yargiMotorunuCalistir() {
+<<<<<<< HEAD
+=======
+        console.log("[EKİP 2] b1_arge_products tablosundaki işlenmemiş ürünler mercek altına alınıyor...");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         // 1. Ekip 1'in getirdiği ham ürünleri çek (Sadece strateji tablosunda karar verilmemiş olanlar)
         const { data: hamUrunler, error } = await supabase
@@ -50,24 +61,41 @@ export class Ekip2_MatematikciYargic {
             .limit(10); // Döngüsel yığılma olmaması için limitli çekim
 
         if (error || !hamUrunler || hamUrunler.length === 0) {
+<<<<<<< HEAD
 
+=======
+            console.log("[EKİP 2] İşlenecek yeni veri havuzu bulunamadı. Sessizliğe dönüyorum.");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             return;
         }
 
         // Filtre: Daha önce stratejisi belirlenmişleri atla (Inner Join kontrolü)
         const islenecekUrunler = hamUrunler.filter(u => u.strategy === null || u.strategy.length === 0);
+<<<<<<< HEAD
+=======
+        console.log(`[EKİP 2] Yargı Kürsüsüne ${islenecekUrunler.length} adet ham veri yatırıldı.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         for (const urun of islenecekUrunler) {
             await this.matematikselAlgoritmaVeKarar(urun);
         }
 
+<<<<<<< HEAD
+=======
+        console.log("[EKİP 2] Masadaki tüm dosyalar imzalandı, mühürler basıldı. İstirahate geçiliyor.");
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 
     /**
      * Tekil ürün bazında THE ORDER formülünü işleyen çekirdek yapı
      */
     async matematikselAlgoritmaVeKarar(urun) {
+<<<<<<< HEAD
 
+=======
+        console.log(`\n---------------------------------------------------------`);
+        console.log(`[->] YARGILANAN MODEL: ${urun.product_name} (Fiyat: ${urun.price_range})`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         // 2. Gemini LLM ile Tahmin & Sayısal Puan Çıkarımı
         const prompt = `
@@ -136,7 +164,13 @@ export class Ekip2_MatematikciYargic {
             decision = "İZLEME";
         }
 
+<<<<<<< HEAD
 
+=======
+        console.log(`     [Skor Tahtası] Trend: ${trend_score} || Risk: ${risk_score} || Kar Puanı: ${kar_marji_puani}`);
+        console.log(`     [NİHAİ FIRSAT SKORU] => ${opportunity_score}`);
+        console.log(`     [KARAR MÜHRÜ] -> *** ${decision} ***`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         // 5. VERİTABANI (SUPABASE) INSERT/UPDATE SÜREÇLERİ
         try {
@@ -175,6 +209,10 @@ export class Ekip2_MatematikciYargic {
                 production_quantity: decision === 'TEST ÜRETİMİ' ? 150 : 0
             });
 
+<<<<<<< HEAD
+=======
+            console.log(`     [BAŞARILI] Ürün dosyası veritabanı mühürleriyle arşivlendi.`);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         } catch (dbError) {
             console.error(`     [HATA] Veritabanına mühür basılamadı:`, dbError.message);
         }

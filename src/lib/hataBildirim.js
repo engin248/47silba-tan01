@@ -59,9 +59,14 @@ export async function hataBildir(modul, hata, ekBilgi = '') {
             signal: AbortSignal.timeout(5000) // 5sn'den uzun bekleme
         });
 
+<<<<<<< HEAD
     } catch (bildirimHata) {
         // H3 FIX: Bildirim gönderilemese bile sistemi engelleme — ama hata logla
         console.error('[H3 HATA BİLDİRİM HATASI] Telegram\'a gönderilemedi:', bildirimHata?.message);
+=======
+    } catch (_) {
+        // Bildirim gönderilemese bile sistemin çalışmasını engelleme
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }
 }
 
@@ -92,5 +97,9 @@ export async function uyariBildir(modul, mesaj) {
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: metin, parse_mode: 'HTML' }),
             signal: AbortSignal.timeout(5000)
         });
+<<<<<<< HEAD
     } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: hataBildirim.js'); }
+=======
+    } catch (_) { }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 }

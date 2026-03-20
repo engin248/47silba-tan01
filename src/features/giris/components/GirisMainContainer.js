@@ -34,7 +34,11 @@ export default function GirisSayfasi() {
             }
             const localDil = localStorage.getItem('sb47_dil') || 'tr';
             setDil(localDil);
+<<<<<<< HEAD
         } catch { }
+=======
+        } catch (e) { console.error('[SİSTEM HATASI] Login Loglaması:', e); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     }, []);
 
     const handleDilDegis = (yeniDil) => {
@@ -105,22 +109,37 @@ export default function GirisSayfasi() {
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 {/* Başlık */}
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                     <div style={{ width: 56, height: 56, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
                         <Lock size={26} color="#d8b863" />
+=======
+                {/* Başlık ve İlahi Adalet Mühürü */}
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <div style={{ width: 120, height: 120, border: '2px solid rgba(216,184,99,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', overflow: 'hidden', boxShadow: '0 0 30px rgba(216,184,99,0.2)' }}>
+                        <img src="/adalet_muhuru.png" alt="Adalet Mühürü - Namaz Kılan Adam" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     </div>
                     <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#e2e8f0', margin: 0, letterSpacing: '-0.01em' }}>
                         {T('sistem_adi', dil)}
                     </h1>
+<<<<<<< HEAD
                     <p style={{ fontSize: '0.72rem', color: '#a7f3d0', margin: '6px 0 0', fontWeight: 600 }}>
+=======
+                    <p style={{ fontSize: '0.72rem', color: '#6ee7b7', margin: '6px 0 0', fontWeight: 600 }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         {dil === 'ar' ? 'نظام الإنتاج والمتجر' : 'Üretim & Mağaza Sistemi'}
                     </p>
                 </div>
 
                 {/* PIN Kartı */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.75rem' }}>
+<<<<<<< HEAD
                     <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
+=======
+                    <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         {dil === 'ar' ? 'رمز الوصول' : 'Erişim Kodu'}
                     </label>
 
@@ -146,7 +165,11 @@ export default function GirisSayfasi() {
                             }}
                         />
                         <button onClick={() => setGoster(!goster)}
+<<<<<<< HEAD
                             style={{ position: 'absolute', right: dil === 'ar' ? 'auto' : 12, left: dil === 'ar' ? 12 : 'auto', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#a7f3d0', cursor: 'pointer', padding: 4, display: 'flex' }}>
+=======
+                            style={{ position: 'absolute', right: dil === 'ar' ? 'auto' : 12, left: dil === 'ar' ? 12 : 'auto', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4, display: 'flex' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             {goster ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                     </div>
@@ -166,26 +189,46 @@ export default function GirisSayfasi() {
                             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#fca5a5', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
                                 {kilitliSaniye}s
                             </div>
+<<<<<<< HEAD
                             <div style={{ fontSize: '0.68rem', color: '#a7f3d0', marginTop: 6, fontWeight: 600 }}>
+=======
+                            <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: 6, fontWeight: 600 }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                                 {MAX_DENEME} {dil === 'ar' ? 'محاولات فاشلة — يرجى الانتظار' : 'başarısız deneme — lütfen bekleyin'}
                             </div>
                         </div>
                     ) : (
                         <button onClick={handleGiris} disabled={yukleniyor || kilitliSaniye > 0}
+<<<<<<< HEAD
                             style={{ width: '100%', padding: '13px', background: yukleniyor ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)', color: yukleniyor ? '#475569' : '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: yukleniyor ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s', letterSpacing: '0.02em', flexDirection: dil === 'ar' ? 'row-reverse' : 'row' }}>
                             {yukleniyor ? '...' : <><LogIn size={16} color="#d8b863" /> {dil === 'ar' ? 'تسجيل الدخول' : 'Giriş'}</>}
+=======
+                            style={{ width: '100%', padding: '13px', background: yukleniyor ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)', color: yukleniyor ? '#64748b' : '#e2e8f0', border: `1px solid ${yukleniyor ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: yukleniyor ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s', letterSpacing: '0.02em', flexDirection: dil === 'ar' ? 'row-reverse' : 'row' }}>
+                            {yukleniyor
+                                ? <><span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #475569', borderTopColor: '#94a3b8', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />{dil === 'ar' ? 'جارٍ التحقق...' : 'Doğrulanıyor...'}</>
+                                : <><LogIn size={16} color="#d8b863" /> {dil === 'ar' ? 'تسجيل الدخول' : 'Giriş'}</>}
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         </button>
                     )}
                 </div>
 
+<<<<<<< HEAD
                 <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#e2e8f0', marginTop: '1.25rem', fontWeight: 600 }}>
+=======
+                <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#334155', marginTop: '1.25rem', fontWeight: 600 }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     {dil === 'ar' ? `الجلسة صالحة لمدة 4 ساعات • ${MAX_DENEME} محاولات خاطئة قفل ${KILIT_SURE_SN} ثانية` : `Oturum 4 saat geçerlidir • ${MAX_DENEME} yanlış denemede ${KILIT_SURE_SN}s kilit`}
                 </p>
             </div>
 
             <style>{`
                 @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+<<<<<<< HEAD
                 input:focus { border-color: #d8b863 !important; }
+=======
+                @keyframes spin { to { transform: rotate(360deg); } }
+                input:focus { border-color: #047857 !important; box-shadow: 0 0 0 2px rgba(4,120,87,0.25) !important; }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 input::placeholder { color: #576b63; letter-spacing: 0.1em; }
             `}</style>
         </div>

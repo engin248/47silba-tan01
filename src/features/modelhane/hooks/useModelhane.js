@@ -10,9 +10,13 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { telegramBildirim } from '@/lib/utils';
 
 export function useModelhane(kullanici) {
+<<<<<<< HEAD
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [modeller, setModeller] = useState(/** @type {any[]} */([]));
     const [m3Talepleri, setM3Talepleri] = useState(/** @type {any[]} */([]));
+=======
+    const [modeller, setModeller] = useState([]);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [aramaMetni, setAramaMetni] = useState('');
@@ -30,6 +34,7 @@ export function useModelhane(kullanici) {
                 .select('*').order('created_at', { ascending: false }).limit(200);
             if (error) throw error;
             setModeller(data || []);
+<<<<<<< HEAD
 
             // M3'ten gelen kalıp verileri (Numune emri için bekleniyor)
             const { data: kaliplar, error: kalErr } = await supabase.from('b1_model_kaliplari')
@@ -39,6 +44,8 @@ export function useModelhane(kullanici) {
             if (kalErr) throw kalErr;
             setM3Talepleri(kaliplar || []);
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         } catch (e) { goster('Veri yüklenemedi: ' + e.message, 'error'); }
         setLoading(false);
     }, []);
@@ -46,6 +53,7 @@ export function useModelhane(kullanici) {
     useEffect(() => {
         let pin = false;
         try { pin = !!atob(sessionStorage.getItem('sb47_uretim_pin') || ''); } catch { pin = !!sessionStorage.getItem('sb47_uretim_pin'); }
+<<<<<<< HEAD
         const ok = kullanici?.grup === 'tam' || pin;
         setYetkiliMi(ok);
         if (!ok) return;
@@ -53,6 +61,11 @@ export function useModelhane(kullanici) {
         const kanal = supabase.channel('modelhane-realtime')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, yukle)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, yukle)
+=======
+        if (!(kullanici?.grup === 'tam' || pin)) return;
+        const kanal = supabase.channel('modelhane-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, yukle)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             .subscribe();
         yukle();
         return () => { supabase.removeChannel(kanal); };
@@ -113,6 +126,7 @@ export function useModelhane(kullanici) {
 
     const duzenleAc = (m) => { setForm({ model_kodu: m.model_kodu, model_adi: m.model_adi, model_adi_ar: m.model_adi_ar || '', hedef_adet: String(m.hedef_adet || ''), durum: m.durum, aciklama: m.aciklama || '', video_url: m.video_url || '', versiyon: m.versiyon }); setDuzenleId(m.id); setFormAcik(true); };
 
+<<<<<<< HEAD
     // NUMUNE BANDI YÖNETİMİ (M4 Kronometre Bitişi)
     const numuneDikimiBitir = async (model_id, sureSn) => {
         try {
@@ -141,12 +155,15 @@ export function useModelhane(kullanici) {
         }
     };
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const filtreliModeller = modeller.filter(m => {
         const durumOk = filtreDurum === 'hepsi' || m.durum === filtreDurum;
         const aramaOk = !aramaMetni || m.model_kodu?.toLowerCase().includes(aramaMetni.toLowerCase()) || m.model_adi?.toLowerCase().includes(aramaMetni.toLowerCase());
         return durumOk && aramaOk;
     });
 
+<<<<<<< HEAD
     // M3'ten Numunesi dikilmemişler (Sol bölme)
     const m3DikimBekleyenler = m3Talepleri.filter(k => k.b1_model_taslaklari?.durum !== 'numune_dikildi' && k.b1_model_taslaklari?.durum !== 'uretime_hazir');
 
@@ -156,6 +173,11 @@ export function useModelhane(kullanici) {
     const istatistik = { toplam: modeller.length, taslak: modeller.filter(m => m.durum === 'taslak').length, uretimde: modeller.filter(m => m.durum === 'uretimde').length, tamamlandi: modeller.filter(m => m.durum === 'tamamlandi').length };
 
     return { yetkiliMi, modeller, m3Talepleri: m3DikimBekleyenler, teknikAnalizVerileri, numuneDikimiBitir, filtreliModeller, loading, mesaj, aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, formAcik, setFormAcik, duzenleId, form, setForm, istatistik, kaydet, durumGuncelle, sil, duzenleAc };
+=======
+    const istatistik = { toplam: modeller.length, taslak: modeller.filter(m => m.durum === 'taslak').length, uretimde: modeller.filter(m => m.durum === 'uretimde').length, tamamlandi: modeller.filter(m => m.durum === 'tamamlandi').length };
+
+    return { modeller, filtreliModeller, loading, mesaj, aramaMetni, setAramaMetni, filtreDurum, setFiltreDurum, formAcik, setFormAcik, duzenleId, form, setForm, istatistik, kaydet, durumGuncelle, sil, duzenleAc };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 }
 
 export const BOSH_FORM = { model_kodu: '', model_adi: '', model_adi_ar: '', hedef_adet: '', durum: 'taslak', aciklama: '', video_url: '', versiyon: 1 };

@@ -17,12 +17,19 @@ import {
 export function useKumas(kullanici) {
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('kumas');
+<<<<<<< HEAD
     const [kumaslar, setKumaslar] = useState(/** @type {any[]} */([]));
     const [aksesuarlar, setAksesuarlar] = useState(/** @type {any[]} */([]));
     const [firsatlar, setFirsatlar] = useState(/** @type {any[]} */([]));
     const [m1Talepleri, setM1Talepleri] = useState(/** @type {any[]} */([]));
     const [tedarikciler, setTedarikciler] = useState(/** @type {any[]} */([]));
     const [gorselArsiv, setGorselArsiv] = useState(/** @type {any[]} */([]));
+=======
+    const [kumaslar, setKumaslar] = useState([]);
+    const [aksesuarlar, setAksesuarlar] = useState([]);
+    const [tedarikciler, setTedarikciler] = useState([]);
+    const [gorselArsiv, setGorselArsiv] = useState([]);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const [form, setForm] = useState(BOSH_KUMAS);
     const [aksForm, setAksForm] = useState(BOSH_AKS);
     const [formAcik, setFormAcik] = useState(false);
@@ -48,12 +55,15 @@ export function useKumas(kullanici) {
                 setAksesuarlar(await fetchAksesuar());
             } else if (sekme === 'gorsel') {
                 setGorselArsiv(await fetchGorselArsiv());
+<<<<<<< HEAD
             } else if (sekme === 'm1') {
                 const { fetchM1Talepleri } = await import('../services/kumasApi');
                 setM1Talepleri(await fetchM1Talepleri());
             } else if (sekme === 'firsat') {
                 const { fetchFirsatlar } = await import('../services/kumasApi');
                 setFirsatlar(await fetchFirsatlar());
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             }
         } catch (e) { goster('Bağlantı Hatası: ' + e.message, 'error'); }
         setLoading(false);
@@ -139,6 +149,7 @@ export function useKumas(kullanici) {
         aksesuarlar: aksesuarlar.filter(a => a.aksesuar_adi?.toLowerCase().includes(arama.toLowerCase()) || a.aksesuar_kodu?.toLowerCase().includes(arama.toLowerCase())),
     };
 
+<<<<<<< HEAD
     const m3eAktar = async (talep) => {
         if (!confirm('Bu karara ait Model Taslağı oluşturulup M3 Kalıphane sırasına gönderilsin mi?')) return;
         setLoading(true);
@@ -174,6 +185,11 @@ export function useKumas(kullanici) {
     return {
         yetkiliMi, sekme, setSekme, kumaslar, aksesuarlar, tedarikciler, gorselArsiv, firsatlar,
         m1Talepleri, loading, mesaj, arama, setArama, filtreli,
+=======
+    return {
+        yetkiliMi, sekme, setSekme, kumaslar, aksesuarlar, tedarikciler, gorselArsiv,
+        loading, mesaj, arama, setArama, filtreli,
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         form, setForm, aksForm, setAksForm, formAcik, setFormAcik,
         duzenleId, duzenleTip, setDuzenleId, setDuzenleTip,
         barkodModal, setBarkodModal,
@@ -182,6 +198,9 @@ export function useKumas(kullanici) {
         aksesuarKaydet: aksesuarKaydetAction,
         sil: silAction,
         duzenleKumasAc,
+<<<<<<< HEAD
         m3eAktar,
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     };
 }

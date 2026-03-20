@@ -48,13 +48,21 @@ export async function POST(request) {
     );
     // ─── GÜVENLİK: Telegram Secret Token Doğrulama ────────────────────────
     if (!TELEGRAM_WEBHOOK_SECRET) {
+<<<<<<< HEAD
 
+=======
+        console.warn('[telegram-webhook] TELEGRAM_WEBHOOK_SECRET tanımlanmamış!');
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const gelenSecret = request.headers.get('x-telegram-bot-api-secret-token');
     if (gelenSecret !== TELEGRAM_WEBHOOK_SECRET) {
+<<<<<<< HEAD
 
+=======
+        console.warn('[telegram-webhook] Geçersiz secret token — istek reddedildi');
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         await supabase.from('b0_telegram_log').insert({
             chat_id: 'BILINMIYOR', komut: 'YETKISIZ_ERISIM',
             sonuc: 'ENGELLENDI', tarih: new Date().toISOString()

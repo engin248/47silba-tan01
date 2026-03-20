@@ -43,7 +43,11 @@ export default function AyarlarMainContainer() {
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
+<<<<<<< HEAD
             // SİSTEM OPTİMİZASYONU: Realtime Websocket (Kriter 20 & 34)
+=======
+            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             const kanal = supabase.channel('ayarlar-gercek-zamanli')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_ayarlari' }, () => { yukle(); })
                 .subscribe();
@@ -59,13 +63,24 @@ export default function AyarlarMainContainer() {
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 
     const yukle = async () => {
+<<<<<<< HEAD
+=======
+        setLoading(true);
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         try {
             const { data, error } = await supabase.from('b1_sistem_ayarlari').select('*').limit(1).maybeSingle();
             if (error) throw error;
             if (data?.deger) {
+<<<<<<< HEAD
                 try { setAyarlar({ ...VARSAYILAN, ...JSON.parse(data.deger) }); } catch { }
             }
         } catch (error) { goster('Ayarlar yüklenemedi: ' + error.message, 'error'); }
+=======
+                try { setAyarlar({ ...VARSAYILAN, ...JSON.parse(data.deger) }); } catch (e) { console.error('[SİSTEM HATASI] Ayarlar Parse:', e); }
+            }
+        } catch (error) { goster('Ayarlar yüklenemedi: ' + error.message, 'error'); }
+        finally { setLoading(false); }
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     };
 
     const kaydet = async () => {
@@ -97,7 +112,11 @@ export default function AyarlarMainContainer() {
             goster('✅ Ayarlar kaydedildi.');
             telegramBildirim(`⚙️ SİSTEM AYARLARI GÜNCELLENDİ\nPrim: %${(ayarlar.prim_orani * 100).toFixed(0)}\nDk Mlyt: ₺${ayarlar.dakika_basi_ucret}\nSistem parametreleri yönetici tarafından değiştirildi.`);
         } catch (error) {
+<<<<<<< HEAD
             // SİSTEM OPTİMİZASYONU: Offline guard (Kriter J)
+=======
+            // [AI ZIRHI]: Offline guard (Kriter J)
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             if (!navigator.onLine || error.message?.includes('fetch')) {
                 await cevrimeKuyrugaAl({ tablo: 'b1_sistem_ayarlari', islem_tipi: 'UPSERT', veri: { anahtar: 'sistem_genel', deger: JSON.stringify(ayarlar) } });
                 goster('İnternet Yok: Ayarlar çevrimdışı kuyruğa alındı.', 'success');
@@ -108,8 +127,13 @@ export default function AyarlarMainContainer() {
         setLoading(false);
     };
 
+<<<<<<< HEAD
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' };
+=======
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box' };
+    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const set = (k, v) => setAyarlar(prev => ({ ...prev, [k]: v }));
 
     if (!yetkiliMi) {
@@ -126,8 +150,13 @@ export default function AyarlarMainContainer() {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
+<<<<<<< HEAD
                     <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>⚙️ Sistem Ayarları</h1>
                     <p style={{ fontSize: '0.78rem', color: '#a7f3d0', margin: '4px 0 0', fontWeight: 600 }}>1. Birim — Üretim Anayasası & Sabit Değişkenler</p>
+=======
+                    <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>⚙️ Sistem Ayarları</h1>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0', fontWeight: 600 }}>1. Birim — Üretim Anayasası & Sabit Değişkenler</p>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <button onClick={kaydet} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 8, background: loading ? '#94a3b8' : '#0f172a', color: 'white', border: 'none', padding: '10px 22px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
@@ -135,7 +164,11 @@ export default function AyarlarMainContainer() {
                     </button>
                     {/* CC Kriteri Otomatik Rota (Karargaha Dönüş/Döngü Sonu) */}
                     <a href="/" style={{ textDecoration: 'none' }}>
+<<<<<<< HEAD
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#122b27', color: 'white', border: '2px solid #e2e8f0', padding: '10px 22px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
+=======
+                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#0f172a', border: '2px solid #e2e8f0', padding: '10px 22px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             🏛️ Karargâh (Başa Dön)
                         </button>
                     </a>
@@ -150,8 +183,13 @@ export default function AyarlarMainContainer() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                 {/* KARAR KİLİTLERİ */}
+<<<<<<< HEAD
                 <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 16, padding: '1.5rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: 'white', marginBottom: '1.25rem' }}>
+=======
+                <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1.25rem' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <Settings2 size={18} color="#f97316" /> İnisiyatif & Tolerans Kilitleri
                     </h2>
 
@@ -162,14 +200,23 @@ export default function AyarlarMainContainer() {
                     ].map(({ key, baslik, aciklama }) => (
                         <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                             <div style={{ flex: 1 }}>
+<<<<<<< HEAD
                                 <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{baslik}</div>
                                 <div style={{ fontSize: '0.72rem', color: '#a7f3d0', marginTop: 3 }}>{aciklama}</div>
+=======
+                                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{baslik}</div>
+                                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 3 }}>{aciklama}</div>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             </div>
                             <button
                                 onClick={() => set(key, !ayarlar[key])}
                                 style={{ width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', background: ayarlar[key] ? '#10b981' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', marginLeft: 12, flexShrink: 0 }}
                             >
+<<<<<<< HEAD
                                 <span style={{ position: 'absolute', top: 3, left: ayarlar[key] ? 24 : 3, width: 20, height: 20, borderRadius: '50%', background: '#122b27', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+=======
+                                <span style={{ position: 'absolute', top: 3, left: ayarlar[key] ? 24 : 3, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             </button>
                         </div>
                     ))}
@@ -234,14 +281,23 @@ export default function AyarlarMainContainer() {
                 </div>
 
                 {/* DİL & MEDYA */}
+<<<<<<< HEAD
                 <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 16, padding: '1.5rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: 'white', marginBottom: '1.25rem' }}>
+=======
+                <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1.25rem' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                         <Globe size={18} color="#3b82f6" /> Dil & Medya Optimizasyonu
                     </h2>
 
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={lbl}>İkinci Dil (Arayüz Çevirisi)</label>
+<<<<<<< HEAD
                         <select value={ayarlar.aktif_dil} onChange={e => set('aktif_dil', e.target.value)} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+=======
+                        <select value={ayarlar.aktif_dil} onChange={e => set('aktif_dil', e.target.value)} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             <option value="ar">Arapça (العربية)</option>
                             <option value="en">İngilizce (English)</option>
                             <option value="fr">Fransızca (Français)</option>
@@ -259,16 +315,26 @@ export default function AyarlarMainContainer() {
 
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={lbl}>Görsel Sıkıştırma Seviyesi</label>
+<<<<<<< HEAD
                         <select value={ayarlar.goruntu_sikiştirma} onChange={e => set('goruntu_sikiştirma', e.target.value)} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+=======
+                        <select value={ayarlar.goruntu_sikiştirma} onChange={e => set('goruntu_sikiştirma', e.target.value)} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             <option value="yuksek">Yüksek Sıkıştırma (WebP — %80 tasarruf)</option>
                             <option value="orta">Orta Kalite (HD — %30 tasarruf)</option>
                             <option value="ham">Ham (Sıkıştırmasız)</option>
                         </select>
                     </div>
 
+<<<<<<< HEAD
                     <div style={{ background: '#0b1d1a', borderRadius: 10, padding: '0.875rem', marginTop: '0.5rem' }}>
                         <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#e2e8f0', marginBottom: '0.375rem' }}>MEVCUT AYARLAR</div>
                         <div style={{ fontSize: '0.72rem', color: '#a7f3d0', fontFamily: 'monospace', lineHeight: 1.6 }}>
+=======
+                    <div style={{ background: '#f8fafc', borderRadius: 10, padding: '0.875rem', marginTop: '0.5rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#374151', marginBottom: '0.375rem' }}>MEVCUT AYARLAR</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace', lineHeight: 1.6 }}>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             Föy Zorunlu: {ayarlar.teknik_foy_zorunlu ? '✅' : '❌'}<br />
                             Vicdan Motor: {ayarlar.vidan_hesaplayici ? '✅' : '❌'}<br />
                             Sıralı Adım: {ayarlar.siraladim_adim ? '✅' : '❌'}<br />
@@ -285,8 +351,13 @@ export default function AyarlarMainContainer() {
             </div>
 
             {/* AYR-01: FIRMA PROFILI */}
+<<<<<<< HEAD
             <div style={{ marginTop: '1.25rem', background: '#122b27', border: '2px solid #1e4a43', borderRadius: 16, padding: '1.5rem' }}>
                 <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: 'white', marginBottom: '1rem' }}> Firma Profili</h2>
+=======
+            <div style={{ marginTop: '1.25rem', background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
+                <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1rem' }}> Firma Profili</h2>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
                     {[
                         { key: 'firma_adi', label: 'Firma Adi', ph: '47 Tekstil...' },
@@ -303,8 +374,13 @@ export default function AyarlarMainContainer() {
             </div>
 
             {/* AYR-02: BILDIRIM TERCIHLERI */}
+<<<<<<< HEAD
             <div style={{ marginTop: '1.25rem', background: '#122b27', border: '2px solid #1e4a43', borderRadius: 16, padding: '1.5rem' }}>
                 <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: 'white', marginBottom: '1rem' }}> Telegram Bildirim Tercihleri</h2>
+=======
+            <div style={{ marginTop: '1.25rem', background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
+                <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1rem' }}> Telegram Bildirim Tercihleri</h2>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     {[
                         { key: 'bildirim_uretim', label: 'Uretim Bandi Olaylari' },
@@ -312,10 +388,17 @@ export default function AyarlarMainContainer() {
                         { key: 'bildirim_siparis', label: 'Yeni Siparis Bildirimi' },
                         { key: 'bildirim_personel', label: 'Personel Devamlilik' },
                     ].map(({ key, label }) => (
+<<<<<<< HEAD
                         <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0b1d1a', borderRadius: 8, border: '1px solid #1e4a43' }}>
                             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#e2e8f0' }}>{label}</span>
                             <button onClick={() => set(key, !ayarlar[key])} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: ayarlar[key] ? '#10b981' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
                                 <span style={{ position: 'absolute', top: 2, left: ayarlar[key] ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#122b27', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+=======
+                        <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#374151' }}>{label}</span>
+                            <button onClick={() => set(key, !ayarlar[key])} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: ayarlar[key] ? '#10b981' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
+                                <span style={{ position: 'absolute', top: 2, left: ayarlar[key] ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                             </button>
                         </div>
                     ))}

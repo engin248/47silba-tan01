@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+<<<<<<< HEAD
 import { hataBildir } from '@/lib/hataBildirim';
 
 const AI_MODEL_VERSION = 'gemini-2.5-flash'; // Kriter 139: Model Versiyon Kontrolü
@@ -15,6 +16,11 @@ function _rateLimiterKontrol() {
     return { izin: _rateLimiter.sayac <= 15, dakikadaIstek: _rateLimiter.sayac };
 }
 
+=======
+
+const AI_MODEL_VERSION = 'gemini-2.5-flash'; // Kriter 139: Model Versiyon Kontrolü
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 // Kriter 78, 136, 137, 138: Karar Doğrulama, Semizleme ve Bias Denetimi
 export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 'genel') {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -22,6 +28,7 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
         return { hata: true, mesaj: 'API Anahtarı (.env) eksik.', guven_skoru: 0 };
     }
 
+<<<<<<< HEAD
     // 🔒 KORUMA 1: Rate Limiter
     const kotaKontrol = _rateLimiterKontrol();
     if (!kotaKontrol.izin) {
@@ -33,6 +40,8 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
         return { hata: true, mesaj: 'AI rate limit: dakikada çok fazla istek. Lütfen bekleyin.', guven_skoru: 0 };
     }
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const genai = new GoogleGenAI({ apiKey });
     const startTime = performance.now();
 
@@ -49,6 +58,7 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
     const fullPrompt = `${safetySistemi}\n${prompt}\n\nTemizlenmiş Veri Modeli:\n${JSON.stringify(temizContext)}`;
 
     try {
+<<<<<<< HEAD
         // ⏱️ KORUMA 2: 15 saniye timeout — sonsuz beklemeyi önler
         const zamanAsimi = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('[AI_TIMEOUT] Gemini 15 saniyede yanıt vermedi')), 15000)
@@ -58,6 +68,12 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
             genai.models.generateContent({ model: AI_MODEL_VERSION, contents: fullPrompt }),
             zamanAsimi
         ]);
+=======
+        const response = await genai.models.generateContent({
+            model: AI_MODEL_VERSION,
+            contents: fullPrompt,
+        });
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
         const endTime = performance.now();
         const durationMs = endTime - startTime; // Kriter 140: Performans Ölçümü (Zaman)
@@ -65,12 +81,21 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
         let aiKarari = response.text || '';
 
         // JSON formatına zorla temizleme ve parse etme
+<<<<<<< HEAD
         if (aiKarari.includes('```json')) {
             aiKarari = aiKarari.split('```json')[1].split('```')[0].trim();
+=======
+        if (aiKarari.includes('\`\`\`json')) {
+            aiKarari = aiKarari.split('\`\`\`json')[1].split('\`\`\`')[0].trim();
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         }
 
         try {
             const jsonResult = JSON.parse(aiKarari);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             return {
                 hata: false,
                 sonuc: jsonResult,
@@ -82,6 +107,7 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
         }
 
     } catch (e) {
+<<<<<<< HEAD
         // 🚨 KORUMA 3: Hata anında Telegram'a otomatik uyarı
         const hataKodu = e.message?.includes('500') ? '500 Dahili Hata' :
             e.message?.includes('429') ? '429 Rate Limit / Kota Doldu' :
@@ -94,6 +120,8 @@ export async function GuvenliYapayZekaMotoru(prompt, context_data = null, tip = 
             `Tip: ${tip} | Model: ${AI_MODEL_VERSION} | Nasıl kapatılır: Ajan servisini yeniden başlat`
         );
 
+=======
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         return { hata: true, mesaj: 'LLM İletişim Hatası: ' + e.message, guven_skoru: 0 };
     }
 }

@@ -35,10 +35,18 @@ export const viewport = {
     themeColor: '#0f172a',
 };
 
+<<<<<<< HEAD
 export default function RootLayout({ children }) {
     return (
         <html lang="tr" suppressHydrationWarning translate="no" className="notranslate">
             <body suppressHydrationWarning className="notranslate">
+=======
+// ─── ROOT LAYOUT ──────────────────────────────────────────────
+export default function RootLayout({ children }) {
+    return (
+        <html lang="tr" suppressHydrationWarning>
+            <body suppressHydrationWarning>
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 <ClientLayout>
                     {children}
                 </ClientLayout>
