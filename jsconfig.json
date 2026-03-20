@@ -21,25 +21,8 @@
         ]
     },
     "include": [
-<<<<<<< HEAD
         "src/**/*.js",
         "src/**/*.jsx"
-    ],
-    "exclude": [
-        "node_modules",
-        ".next"
-=======
-        "src/app/**/*.js",
-        "src/app/**/*.jsx",
-        "src/features/**/*.js",
-        "src/features/**/*.jsx",
-        "src/components/**/*.js",
-        "src/components/**/*.jsx",
-        "src/lib/**/*.js",
-        "src/lib/**/*.jsx",
-        "src/store/**/*.js",
-        "src/hooks/**/*.js",
-        "src/middleware.js"
     ],
     "exclude": [
         "node_modules",
@@ -47,6 +30,5 @@
         "src/__tests__",
         "src/scripts",
         "src/ai"
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     ]
 }
