@@ -5,10 +5,7 @@ import {
     Database, Cpu, Network, AlertTriangle, Radio, Eye, Target, Shield
 } from 'lucide-react';
 import Link from 'next/link';
-<<<<<<< HEAD
 import Image from 'next/image';
-=======
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 import { useAuth } from '@/lib/auth';
 import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useCallback } from 'react';
@@ -69,7 +66,7 @@ const MODUL_GRUPLARI = [
         ]
     },
     {
-        baslik: '[ SİSTEM KOMUTANLıĞI ]',
+        baslik: '[ SİSTEM KOMANDÖRLİĞİ ]',
         renk: 'text-red-400',
         sinif: 'border-red-900/40 hover:border-red-500/50 hover:bg-red-950/20 text-red-300',
         moduller: [
@@ -100,12 +97,12 @@ export function KarargahMainContainer() {
     const setSimulasyon = _hook.setSimulasyon;
     const mesaj = /** @type {any} */ (_hook.mesaj ?? {});
 
-    const [botLoglar, setBotLoglar] = useState(/** @type {any[]} */([]));
+    const [botLoglar, setBotLoglar] = useState(/** @type {any[]} */([]));;
     const [botDurum, setBotDurum] = useState('kontrol');
-    const [sonMesajlar, setSonMesajlar] = useState(/** @type {any[]} */([]));
+    const [sonMesajlar, setSonMesajlar] = useState(/** @type {any[]} */([]));;
     const [mesajSayisi, setMesajSayisi] = useState(0);
-    const [gizlenIzleri, setGizlenIzleri] = useState(/** @type {any[]} */([]));
-    const [modelArsiv, setModelArsiv] = useState(/** @type {any[]} */([]));
+    const [gizlenIzleri, setGizlenIzleri] = useState(/** @type {any[]} */([]));;
+    const [modelArsiv, setModelArsiv] = useState(/** @type {any[]} */([]));;
     const _kul = /** @type {any} */ (kullanici);
     const [kameraStreamDurum, setKameraStreamDurum] = useState('kontrol');
     const [saat, setSaat] = useState('');
@@ -113,11 +110,11 @@ export function KarargahMainContainer() {
     const [izPanelAcik, setIzPanelAcik] = useState(false);
     const [mesajYukleniyor, setMesajYukleniyor] = useState(false);
     const [botYukleniyor, setBotYukleniyor] = useState(false);
-<<<<<<< HEAD
-=======
-    const [sistemHatalari, setSistemHatalari] = useState(/** @type {any[]} */([]));
-    const [hataAlarmAcik, setHataAlarmAcik] = useState(false);
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
+
+    // ─── FEATURE FLAGS ───────────────────────────────────────────────────────
+    const KAMERA_AKTIF = process.env.NEXT_PUBLIC_KAMERA_AKTIF === 'true';
+    const MESAJ_AKTIF = process.env.NEXT_PUBLIC_MESAJ_AKTIF === 'true';
+    const BOT_AKTIF = process.env.NEXT_PUBLIC_BOT_AKTIF !== 'false'; // varsayılan: açık
 
     // Saat
     useEffect(() => {
@@ -127,89 +124,13 @@ export function KarargahMainContainer() {
         return () => clearInterval(iv);
     }, []);
 
-<<<<<<< HEAD
-    // Kamera stream
-    useEffect(() => {
-=======
-    // ─── FEATURE FLAGS ───────────────────────────────────────────────────────
-    // .env.local'deki flag'ler — false ise servis hiç başlamaz, konsol temiz kalır
-    const KAMERA_AKTIF = process.env.NEXT_PUBLIC_KAMERA_AKTIF === 'true';
-    const MESAJ_AKTIF = process.env.NEXT_PUBLIC_MESAJ_AKTIF === 'true';
-    const BOT_AKTIF = process.env.NEXT_PUBLIC_BOT_AKTIF !== 'false'; // varsayılan: açık
-
     // Kamera stream — sadece KAMERA_AKTIF=true ise çalışır
     useEffect(() => {
         if (!KAMERA_AKTIF) { setKameraStreamDurum('kapali'); return; }
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
         const kontrol = async () => {
             if (document.hidden) return;
             try {
                 const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(4000), cache: 'no-store' });
-<<<<<<< HEAD
-                const d = await res.json();
-                setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
-            } catch {
-                setKameraStreamDurum('kapali');
-            }
-        };
-        kontrol();
-        const iv = setInterval(kontrol, 15000);
-        const handleVisibility = () => { if (!document.hidden) kontrol(); };
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
-    }, []);
-
-    const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
-
-    const mesajlariGetir = useCallback(async () => {
-        try {
-            const { count } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id', { count: 'exact', head: true })
-                .is('okundu_at', null);
-            setMesajSayisi(count || 0);
-
-            const { data: aktif } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id, konu, oncelik, gonderen_adi, created_at, urun_id')
-                .order('created_at', { ascending: false })
-                .limit(3);
-            setSonMesajlar(aktif || []);
-
-            const { data: gizli } = await supabase
-                .from('b1_mesaj_gizli')
-                .select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)')
-                .gte('gizlendi_at', gun45Once)
-                .order('gizlendi_at', { ascending: false })
-                .limit(20);
-
-            const izler = (gizli || []).filter(g => {
-                const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
-                return !(b1?.urun_id);
-            });
-            setGizlenIzleri(izler);
-
-            const { data: model } = await supabase
-                .from('b1_ic_mesajlar')
-                .select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at')
-                .not('urun_id', 'is', null)
-                .order('created_at', { ascending: false })
-                .limit(50);
-            setModelArsiv(model || []);
-
-        } catch { /* sessiz */ }
-    }, [gun45Once]);
-
-    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
-
-    useEffect(() => {
-        const kanal = supabase.channel('karargah-mesaj-optimize')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
-            .subscribe();
-        return () => { supabase.removeChannel(kanal); };
-    }, [mesajlariGetir]);
-=======
                 if (!res.ok) { setKameraStreamDurum('kapali'); return; }
                 const d = await res.json();
                 setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
@@ -220,16 +141,13 @@ export function KarargahMainContainer() {
         const handleVisibility = () => { if (!document.hidden) kontrol(); };
         document.addEventListener('visibilitychange', handleVisibility);
         return () => { clearInterval(iv); document.removeEventListener('visibilitychange', handleVisibility); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [KAMERA_AKTIF]);
-
 
     const gun45Once = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Mesaj servisi — sadece MESAJ_AKTIF=true ise çalışır (b1_ic_mesajlar tablosu gerekir)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Mesaj servisi — sadece MESAJ_AKTIF=true ise çalışır
     const mesajlariGetir = useCallback(async () => {
-        if (!MESAJ_AKTIF) return; // Flag false ise hiç başlatma
+        if (!MESAJ_AKTIF) return;
         try {
             const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
             setMesajSayisi(count || 0);
@@ -250,19 +168,22 @@ export function KarargahMainContainer() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [MESAJ_AKTIF]);
 
+    useEffect(() => { mesajlariGetir(); }, [mesajlariGetir]);
 
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
+    useEffect(() => {
+        if (!MESAJ_AKTIF) return;
+        const kanal = supabase.channel('karargah-mesaj-optimize')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ic_mesajlar' }, () => { if (!document.hidden) mesajlariGetir(); })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_mesaj_gizli' }, () => { if (!document.hidden) mesajlariGetir(); })
+            .subscribe();
+        return () => { supabase.removeChannel(kanal); };
+    }, [mesajlariGetir, MESAJ_AKTIF]);
 
     useEffect(() => {
         const botLogCek = async () => {
             if (document.hidden) return;
-<<<<<<< HEAD
+            if (!BOT_AKTIF) return;
             try {
-                await fetch('/api/telegram-bildirim', { method: 'GET' }).catch(() => null);
-=======
-            if (!BOT_AKTIF) return; // Flag false ise bot’u yoklama
-            try {
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                 const { data } = await supabase
                     .from('b1_agent_loglari')
                     .select('ajan_adi, islem_tipi, mesaj, sonuc, created_at')
@@ -283,15 +204,8 @@ export function KarargahMainContainer() {
             supabase.removeChannel(kanal);
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, []);
+    }, [BOT_AKTIF]);
 
-<<<<<<< HEAD
-=======
-    // ――― CANLI HATA MONİTÖRÜ — DEVRE DIŞI (Kırmızı alarm panosu kapatıldı) ―――
-    // setHataAlarmAcik asla true olmaz, panel görünmez
-
-
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
     const fm = (num) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(num);
     const isAdmin = _kul?.grup === 'tam' || _kul?.rol === 'admin';
 
@@ -332,36 +246,6 @@ export function KarargahMainContainer() {
                 </div>
             )}
 
-<<<<<<< HEAD
-=======
-            {/* ── CANLI HATA ALARM PANELİ ── */}
-            {hataAlarmAcik && sistemHatalari.length > 0 && (
-                <div className="fixed top-0 left-0 right-0 z-[90] border-b-2 border-red-500"
-                    style={{ background: 'linear-gradient(90deg, #1a0000 0%, #2d0000 50%, #1a0000 100%)', animation: 'pulse 1s infinite' }}>
-                    <div className="flex items-center justify-between px-4 py-2">
-                        <div className="flex items-center gap-3">
-                            <span className="text-red-400 text-sm font-bold animate-pulse">🔴 SİSTEM HATASI</span>
-                            <span className="text-red-300 text-xs font-mono">{sistemHatalari.length} AKTIF HATA</span>
-                        </div>
-                        <div className="flex gap-4 overflow-hidden max-w-xl">
-                            {sistemHatalari.slice(0, 3).map((h, i) => (
-                                <span key={i} className="text-red-200 text-xs font-mono truncate">
-                                    ⚠ [{h.tablo_adi || '?'}] {h.islem_tipi}
-                                </span>
-
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setHataAlarmAcik(false)}
-                            className="text-red-400 hover:text-red-200 text-xs border border-red-800 px-3 py-1 ml-4 font-mono"
-                        >
-                            [ TAMAM ]
-                        </button>
-                    </div>
-                </div>
-            )}
-
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
             {/* ── ÜST BAR ── */}
             <div className="relative z-10 border-b border-green-900/60 bg-black/40 px-6 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -385,13 +269,10 @@ export function KarargahMainContainer() {
                 {/* ── SOL / ORTA KOLON ── */}
                 <div className="lg:col-span-3 flex flex-col gap-4">
 
-<<<<<<< HEAD
                     {/* ── ADALET MÜHÜRÜ BANNER ── */}
                     <div className="relative border border-green-900/60 bg-black/70 overflow-hidden" style={{ minHeight: 120 }}>
-                        {/* Arkaplan tarama efekti */}
                         <div className="absolute inset-0 opacity-20"
                             style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,255,65,0.05) 40px, rgba(0,255,65,0.05) 41px)' }} />
-                        {/* Sol: Taktik metin */}
                         <div className="absolute inset-0 flex flex-col justify-center pl-6 z-10">
                             <div className="text-[8px] text-green-700 uppercase tracking-[0.4em] mb-1">Demir Tekstil — THE ORDER</div>
                             <div className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] leading-tight">
@@ -404,10 +285,8 @@ export function KarargahMainContainer() {
                             </div>
                             <div className="mt-1 text-[7px] text-green-900 uppercase tracking-widest">Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım</div>
                         </div>
-                        {/* Sağ: Adalet Mühürü */}
                         <div className="absolute right-0 top-0 bottom-0 w-40 flex items-center justify-center">
                             <div className="relative">
-                                {/* Glow halka */}
                                 <div className="absolute inset-0 rounded-full bg-green-500/10 blur-xl scale-150" />
                                 <Image
                                     src="/adalet_muhuru.png"
@@ -419,15 +298,10 @@ export function KarargahMainContainer() {
                                 />
                             </div>
                         </div>
-                        {/* Alt çizgi ışık efekti */}
                         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500/40 to-transparent" />
                     </div>
 
                     {/* METRİK PANELLER */}
-
-=======
-                    {/* METRİK PANELLER */}
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
                             { baslik: 'GÜNLÜK CİRO', deger: isAdmin ? `₺ ${fm(stats.ciro)}` : '▓▓▓▓▓▓', renk: 'green', link: '/raporlar', ikon: <Target size={12} /> },
@@ -441,7 +315,6 @@ export function KarargahMainContainer() {
                                         m.renk === 'red' ? 'border-red-900/60 group-hover:border-red-500/60' :
                                             m.renk === 'yellow' ? 'border-yellow-900/40 group-hover:border-yellow-500/50' :
                                                 'border-orange-900/40 group-hover:border-orange-500/40'}`}>
-                                    {/* Köşe süsü */}
                                     <div className={`absolute top-0 right-0 w-0 h-0 border-t-[16px] border-r-[16px] border-l-transparent
                                         ${m.renk === 'green' ? 'border-t-green-900/40 border-r-green-900/40' :
                                             m.renk === 'red' ? 'border-t-red-900/30 border-r-red-900/30' :
@@ -468,56 +341,32 @@ export function KarargahMainContainer() {
 
                     {/* GÖREV & AI PANEL */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        {/* GÖREV MERKEZİ */}
                         <div className="border border-green-900/50 bg-black/50 p-4">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-1 h-4 bg-green-500" />
                                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-green-600">GÖREV MERKEZİ / CMD</span>
                             </div>
                             <div className="flex gap-2 mb-4">
-                                <input
-                                    value={commandText}
-                                    onChange={(e) => setCommandText(e.target.value)}
-                                    placeholder="komut gir..."
-                                    className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono"
-                                />
-                                <button onClick={hizliGorevAtama} className="bg-green-900/30 hover:bg-green-800/40 text-green-300 text-xs px-4 py-2 border border-green-800/50 hover:border-green-500/60 font-bold uppercase tracking-wider transition-colors">
-                                    GÖNDER
-                                </button>
+                                <input value={commandText} onChange={(e) => setCommandText(e.target.value)} placeholder="komut gir..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono" />
+                                <button onClick={hizliGorevAtama} className="bg-green-900/30 hover:bg-green-800/40 text-green-300 text-xs px-4 py-2 border border-green-800/50 hover:border-green-500/60 font-bold uppercase tracking-wider transition-colors">GÖNDER</button>
                             </div>
                             <div className="border-t border-green-900/40 pt-4">
                                 <div className="flex items-center justify-between mb-2 text-[9px] uppercase tracking-widest">
-                                    <span className="text-green-700">PROJEKSIYON SİMÜLATÖRÜ</span>
+                                    <span className="text-green-700">PROJEKSİYON SİMÜLATÖRÜ</span>
                                     <span className="text-green-400 font-bold">{simulasyon > 0 ? '+' : ''}{simulasyon}%</span>
                                 </div>
-                                <input
-                                    type="range" min="-20" max="20" step="1"
-                                    value={simulasyon}
-                                    onChange={(e) => setSimulasyon(parseInt(e.target.value))}
-                                    className="w-full h-1 bg-green-900/40 accent-green-500 cursor-pointer"
-                                />
+                                <input type="range" min="-20" max="20" step="1" value={simulasyon} onChange={(e) => setSimulasyon(parseInt(e.target.value))} className="w-full h-1 bg-green-900/40 accent-green-500 cursor-pointer" />
                             </div>
                         </div>
 
-                        {/* YAPAY ZEKA */}
                         <div className="border border-green-900/50 bg-black/50 p-4">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-1 h-4 bg-yellow-500" />
                                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-yellow-600">DİJİTAL DANIŞMAN / AI</span>
                             </div>
                             <div className="flex gap-2 mb-3">
-                                <input
-                                    value={aiSorgu}
-                                    onChange={(e) => setAiSorgu(e.target.value)}
-                                    placeholder="analiz isteği..."
-                                    className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono"
-                                />
-                                <button
-                                    onClick={aiAnalizBaslat}
-                                    disabled={isAiLoading}
-                                    className="bg-yellow-900/20 hover:bg-yellow-800/30 text-yellow-300 text-xs px-4 py-2 border border-yellow-900/40 hover:border-yellow-500/50 font-bold uppercase tracking-wider transition-colors disabled:opacity-40"
-                                >
+                                <input value={aiSorgu} onChange={(e) => setAiSorgu(e.target.value)} placeholder="analiz isteği..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono" />
+                                <button onClick={aiAnalizBaslat} disabled={isAiLoading} className="bg-yellow-900/20 hover:bg-yellow-800/30 text-yellow-300 text-xs px-4 py-2 border border-yellow-900/40 hover:border-yellow-500/50 font-bold uppercase tracking-wider transition-colors disabled:opacity-40">
                                     {isAiLoading ? '...' : 'ANALİZ'}
                                 </button>
                             </div>
@@ -526,12 +375,6 @@ export function KarargahMainContainer() {
                                     <p className="text-[10px] text-green-300 leading-relaxed font-mono whitespace-pre-wrap">{aiSonuc}</p>
                                 </div>
                             )}
-                            <div className="mt-3 border-t border-green-900/40 pt-3 flex items-center gap-2">
-                                <span className="text-[9px] text-green-800 uppercase tracking-widest">BANT AKIŞI</span>
-                                <div className="flex-1 h-px bg-green-900/40 relative overflow-hidden">
-                                    <div className="absolute inset-y-0 left-0 w-1/3 bg-green-600/40 animate-pulse" />
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -558,7 +401,7 @@ export function KarargahMainContainer() {
                     </div>
                 </div>
 
-                {/* ── SAĞ KOLON — RADAR PANELİ ── */}
+                {/* ── SAĞ KOLON ── */}
                 <div className="flex flex-col gap-4">
 
                     {/* DURUM RADARI */}
@@ -580,10 +423,7 @@ export function KarargahMainContainer() {
                                             <AlertTriangle size={10} className="text-red-400 mt-0.5 flex-shrink-0" />
                                             <p className="text-[10px] text-red-300 leading-relaxed">{al.text}</p>
                                         </div>
-                                        <button
-                                            onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })}
-                                            className="text-[8px] text-red-600 hover:text-red-400 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors"
-                                        >
+                                        <button onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })} className="text-[8px] text-red-600 hover:text-red-400 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors">
                                             <span>ETKİ ANALİZİ</span>
                                             <ArrowRight size={8} />
                                         </button>
@@ -657,7 +497,7 @@ export function KarargahMainContainer() {
                         </div>
                         <div className="space-y-2">
                             {mesajYukleniyor ? (
-                                <div className="text-[9px] text-green-800 text-center py-3 uppercase tracking-widest animate-pulse">VERİ ÇEKILIYOR...</div>
+                                <div className="text-[9px] text-green-800 text-center py-3 uppercase tracking-widest animate-pulse">VERİ ÇEKİLİYOR...</div>
                             ) : sonMesajlar.length === 0 ? (
                                 <div className="text-[9px] text-green-900 text-center py-3 uppercase tracking-widest">— SESSİZLİK —</div>
                             ) : sonMesajlar.map(m => (
@@ -712,10 +552,7 @@ export function KarargahMainContainer() {
 
                     {/* GİZLENEN MESAJLAR */}
                     <div className="border border-green-900/50 bg-black/50 p-4">
-                        <button
-                            onClick={() => setIzPanelAcik(v => !v)}
-                            className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.15em] text-green-700 mb-1"
-                        >
+                        <button onClick={() => setIzPanelAcik(v => !v)} className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.15em] text-green-700 mb-1">
                             <span>MESAJ İZLERİ [{gizlenIzleri.length}]</span>
                             <span className="text-[7px] text-green-900">45 GÜN KURALI</span>
                         </button>
