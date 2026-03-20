@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -7,7 +6,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(req) {
     if (!supabaseUrl || !supabaseKey) {
-        return NextResponse.json({ success: false, error: 'Supabase yapÄ±landÄ±rma hatasÄ±.' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Supabase yapılandırma hatası.' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -23,7 +22,7 @@ export async function POST(req) {
         const islemAdeti = Math.max(1, parseInt(adet) || 1);
         const kalite = Math.min(10, Math.max(0, parseFloat(kalite_puani) || 8.0));
 
-        // 1. Operasyonun deÄŸer bilgilerini Ã§ek
+        // 1. Operasyonun değer bilgilerini çek
         const { data: opData, error: opErr } = await supabase
             .from('b1_operasyon_tanimlari')
             .select('isletmeye_kattigi_deger_tl, baz_prim_tl, zorluk_derecesi, operasyon_adi')
@@ -31,12 +30,12 @@ export async function POST(req) {
             .single();
 
         if (opErr || !opData) {
-            return NextResponse.json({ success: false, error: 'Operasyon bulunamadÄ±.' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Operasyon bulunamadı.' }, { status: 404 });
         }
 
         const katilanDeger = islemAdeti * parseFloat(opData.isletmeye_kattigi_deger_tl || 0);
 
-        // 2. Personelin bu ay toplam biriktirdiÄŸi deÄŸeri ve aylÄ±k maliyetini Ã§ek
+        // 2. Personelin bu ay toplam biriktirdiği değeri ve aylık maliyetini çek
         const date = new Date();
         const ilkGun = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
 
@@ -52,8 +51,8 @@ export async function POST(req) {
         const mevcutBirikis = (perfLogs || []).reduce((acc, r) => acc + parseFloat(r.isletmeye_katilan_deger || 0), 0);
         const yeniBirikis = mevcutBirikis + katilanDeger;
 
-        // 3. Prim hesabÄ±: sadece maliyet kotasÄ± aÅŸÄ±lmÄ±ÅŸsa prim yaz
-        // FormÃ¼l: Adet Ã— Zorluk Ã‡arpanÄ± Ã— Baz Prim TL
+        // 3. Prim hesabı: sadece maliyet kotası aşılmışsa prim yaz
+        // Formül: Adet × Zorluk Çarpanı × Baz Prim TL
         let kazanilanPrim = 0;
         const primYazildiMi = yeniBirikis >= aylikMaliyet && aylikMaliyet > 0;
         if (primYazildiMi) {
@@ -62,7 +61,7 @@ export async function POST(req) {
             kazanilanPrim = parseFloat((islemAdeti * zorluk * bazPrim).toFixed(2));
         }
 
-        // 4. Performans kaydÄ±nÄ± INSERT et
+        // 4. Performans kaydını INSERT et
         const { error: perfErr } = await supabase
             .from('b1_personel_performans')
             .insert([{
@@ -87,7 +86,7 @@ export async function POST(req) {
             kazanilanPrim,
             toplamBirikis: yeniBirikis,
             aylikMaliyet,
-            amortiYuzdesi: aylikMaliyet > 0 ? ((yeniBirikis / aylikMaliyet) * 100).toFixed(1) : 'SÄ±nÄ±rsÄ±z'
+            amortiYuzdesi: aylikMaliyet > 0 ? ((yeniBirikis / aylikMaliyet) * 100).toFixed(1) : 'Sınırsız'
         });
 
     } catch (error) {

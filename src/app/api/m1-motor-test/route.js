@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { M1GelistirilmisTrendMotoru } from '@/services/M1TrendAnalizMotoru';
 
@@ -6,13 +5,13 @@ export async function POST(req) {
     try {
         const body = await req.json();
 
-        // Gelen test/simÃ¼lasyon verisi, yoksa varsayÄ±lan rastgele bir Ã¼rÃ¼n profili atayalÄ±m
+        // Gelen test/simülasyon verisi, yoksa varsayılan rastgele bir ürün profili atayalım
         const rawData = body.rawData || {
             veriGecikmesiSaat: 2,
             toplamIzlenme: 1250000,
             yorumSayisi: 850,
             sepetTotal: 12000,
-            satisSinyali: 11500, // DÃ¶nÃ¼ÅŸÃ¼m yÃ¼ksek
+            satisSinyali: 11500, // Dönüşüm yüksek
 
             sepetDeltasi: 400,
             yorumDeltasi: 35,
@@ -48,14 +47,14 @@ export async function POST(req) {
             benzerVaryantSayisi: 1,
 
             // Makro Katmanlar
-            ayinGunu: 15,          // MaaÅŸ gÃ¼nÃ¼ (Tetikleyici)
+            ayinGunu: 15,          // Maaş günü (Tetikleyici)
             ozelGunAdi: null,
             ozelGuneKalanGun: null,
             urunPiyasadaKacGundurVar: 5,
             yorumKelimeleri: "",
             birYildizOrani: 2,
 
-            // Hava KatmanÄ±
+            // Hava Katmanı
             gelecek15GunHavaTahmini: "ani_soguma",
             urunIklimTipi: "soguk",
             urunHavaIhtiyaci: "ani_soguma" // CUK OTURDU
@@ -63,7 +62,7 @@ export async function POST(req) {
 
         const result = M1GelistirilmisTrendMotoru.trendiKoklaVeriEle(rawData);
 
-        // UI iÃ§in ham verileri ve logu geri dÃ¶nÃ¼yoruz
+        // UI için ham verileri ve logu geri dönüyoruz
         return NextResponse.json({
             basarili: true,
             motorSonucu: result,

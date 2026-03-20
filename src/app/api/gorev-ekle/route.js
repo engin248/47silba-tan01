@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { gorevSchema, veriDogrula } from '@/lib/zodSchemas';

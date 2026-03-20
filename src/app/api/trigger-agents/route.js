@@ -1,13 +1,12 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { KuyrugaEkle } from '../../../../src/lib/redis_kuyruk';
 
 export async function POST(req) {
     try {
-        // Ajan gÃ¶revlerini kuyruÄŸa ASENKRON olarak ekler (UI Asla Kilitlenmez)
-        // Bu, arkaplanda calisan worker.js tarafÄ±ndan iÅŸlenecektir.
+        // Ajan görevlerini kuyruğa ASENKRON olarak ekler (UI Asla Kilitlenmez)
+        // Bu, arkaplanda calisan worker.js tarafından işlenecektir.
 
-        // Ã–rnek tetiklemeler: TikTok ve Trendyol saha taramalarÄ±
+        // Örnek tetiklemeler: TikTok ve Trendyol saha taramaları
         await KuyrugaEkle('scraper_jobs', {
             hedef: 'trendyol_indirim',
             ajanadi: 'Vision Trendyol Ajani',
@@ -22,11 +21,11 @@ export async function POST(req) {
 
         return NextResponse.json({
             success: true,
-            message: 'GÃ¶revler Sentinel/Worker havuzuna sevk edildi. Arka planda asenkron yÃ¼rÃ¼tÃ¼lecek.'
+            message: 'Görevler Sentinel/Worker havuzuna sevk edildi. Arka planda asenkron yürütülecek.'
         }, { status: 200 });
 
     } catch (error) {
-        console.error('API Tetikleme HatasÄ±:', error);
+        console.error('API Tetikleme Hatası:', error);
         return NextResponse.json({
             success: false,
             message: error.message

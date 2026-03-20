@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { mesajCoz } from '@/lib/kripto';
@@ -12,7 +11,7 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Oda bilgisi eksik' }, { status: 400 });
         }
 
-        // Sadece Hedef Odaya veya Genel Karargaha ait (veya odanÄ±n gÃ¶nderdiÄŸi) mesajlarÄ± Ã§ek
+        // Sadece Hedef Odaya veya Genel Karargaha ait (veya odanın gönderdiği) mesajları çek
         const { data, error } = await supabaseAdmin
             .from('b1_askeri_haberlesme')
             .select('*')
@@ -21,14 +20,14 @@ export async function GET(req) {
             .limit(100);
 
         if (error) {
-            // Tablo yoksa boÅŸ dizi dÃ¶n (Sistem Ã§Ã¶kmemesi iÃ§in Kural 0 zÄ±rhÄ±)
+            // Tablo yoksa boş dizi dön (Sistem çökmemesi için Kural 0 zırhı)
             if (error.code === '42P01') return NextResponse.json({ mesajlar: [] });
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         if (!data) return NextResponse.json({ mesajlar: [] });
 
-        // VeritabanÄ±ndaki ÅŸifreli (Hex) paketleri sadece bu Server'da (Process Env Key ile) Ã§Ã¶zÃ¼yoruz
+        // Veritabanındaki şifreli (Hex) paketleri sadece bu Server'da (Process Env Key ile) çözüyoruz
         const cozulmusMesajlar = data.map(msg => {
             const orjinal = mesajCoz(msg.sifreli_mesaj, msg.iv_vektoru, msg.auth_tag);
             return {

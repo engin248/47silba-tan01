@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { TheOrderYargic } from '@/services/TheOrderYargic';
 
@@ -6,7 +5,7 @@ export async function POST(req) {
     try {
         const body = await req.json();
 
-        // UI'dan gelen veya simÃ¼le edilen veriler
+        // UI'dan gelen veya simüle edilen veriler
         const pazarVerisi = body.pazarVerisi || {
             sepetArtisi: true,
             yorumArtisi: true,
@@ -33,7 +32,7 @@ export async function POST(req) {
         };
 
         const uretimMaliyetVerisi = body.uretimMaliyetVerisi || {
-            beklenenMarjYuzdesi: 35 // Ä°yi marj
+            beklenenMarjYuzdesi: 35 // İyi marj
         };
 
         const riskVerisi = body.riskVerisi || {

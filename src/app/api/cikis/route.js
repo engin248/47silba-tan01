@@ -1,9 +1,8 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 
 export async function POST() {
     try {
-        const response = NextResponse.json({ success: true, message: 'Ã‡Ä±kÄ±ÅŸ baÅŸarÄ±lÄ±' });
+        const response = NextResponse.json({ success: true, message: 'Çıkış başarılı' });
 
         // HttpOnly olan JWT token cookie'sini sil
         response.cookies.set({

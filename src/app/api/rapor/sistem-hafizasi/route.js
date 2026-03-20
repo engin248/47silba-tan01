@@ -1,26 +1,25 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// SÄ°STEM HAFIZASI GERÄ° BÄ°LDÄ°RÄ°MÄ° â€” THE ORDER / NIZAM
+// SİSTEM HAFIZASI GERİ BİLDİRİMİ — THE ORDER / NIZAM
 // /api/rapor/sistem-hafizasi
 //
-// POST â†’ Ar-Ge form gÃ¶nderilmeden Ã–NCE Ã§aÄŸrÄ±lÄ±r.
-//        GeÃ§miÅŸte zarar eden model/kumaÅŸ kombinasyonu varsa
-//        BLOCK sinyali dÃ¶ner ve form engellenir.
-// GET  â†’ Zarar kaydÄ± listesi (YÃ¶netim iÃ§in)
+// POST → Ar-Ge form gönderilmeden ÖNCE çağrılır.
+//        Geçmişte zarar eden model/kumaş kombinasyonu varsa
+//        BLOCK sinyali döner ve form engellenir.
+// GET  → Zarar kaydı listesi (Yönetim için)
 // ============================================================
 
-// HermAI GerÃ§eklik Freni burada da devrede:
-// EÅŸleÅŸme skoru %60'Ä±n altÄ±nda kalan benzerlik uyarÄ±ya dÃ¶nÃ¼ÅŸmez.
+// HermAI Gerçeklik Freni burada da devrede:
+// Eşleşme skoru %60'ın altında kalan benzerlik uyarıya dönüşmez.
 
 function basitBenzerlik(str1, str2) {
     if (!str1 || !str2) return 0;
     const a = str1.toLowerCase().trim();
     const b = str2.toLowerCase().trim();
     if (a === b) return 100;
-    // Kelime bazlÄ± eÅŸleÅŸme
+    // Kelime bazlı eşleşme
     const kelimelerA = a.split(/\s+/);
     const kelimelerB = b.split(/\s+/);
     const eslesenler = kelimelerA.filter(k => k.length > 2 && kelimelerB.includes(k));
@@ -33,10 +32,10 @@ export async function POST(req) {
         const { baslik, kategori, kumas_turu, hedef_kitle } = body;
 
         if (!baslik) {
-            return NextResponse.json({ engel: false, mesaj: 'BaÅŸlÄ±k boÅŸ, kontrol atlandÄ±.' });
+            return NextResponse.json({ engel: false, mesaj: 'Başlık boş, kontrol atlandı.' });
         }
 
-        // â”€ Son 3 yÄ±lÄ±n zarar eden / reddedilen trendlerini Ã§ek
+        // ─ Son 3 yılın zarar eden / reddedilen trendlerini çek
         const ucYilOnce = new Date(Date.now() - 3 * 365 * 86400000).toISOString();
 
         const { data: reddedilenler } = await sb
@@ -53,7 +52,7 @@ export async function POST(req) {
             .gte('created_at', ucYilOnce)
             .limit(100);
 
-        // â”€ Benzerlik taramasÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Benzerlik taraması ──────────────────────────────────
         const uyarilar = [];
         let maxBenzerlik = 0;
 
@@ -72,23 +71,23 @@ export async function POST(req) {
                     benzerlik_skoru: toplamSkor,
                     gecmis_durum: 'Reddedildi',
                     tarih: r.created_at,
-                    mesaj: `âš ï¸ "${r.baslik}" geÃ§miÅŸte reddedildi (%${toplamSkor} benzerlik)`,
+                    mesaj: `⚠️ "${r.baslik}" geçmişte reddedildi (%${toplamSkor} benzerlik)`,
                 });
             }
         }
 
-        // â”€ HermAI GerÃ§eklik Freni: %90 Ã¼stÃ¼ â†’ TAM ENGEL â”€â”€â”€â”€â”€â”€
+        // ─ HermAI Gerçeklik Freni: %90 üstü → TAM ENGEL ──────
         const tamEngel = maxBenzerlik >= 90;
         const uyariEngel = maxBenzerlik >= 60 && maxBenzerlik < 90;
 
-        // â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Log ───────────────────────────────────────────────
         if (uyarilar.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Sistem HafÄ±zasÄ± Geri Bildirimi',
+                ajan_adi: 'Sistem Hafızası Geri Bildirimi',
                 islem_tipi: 'hafiza_kontrol',
                 kaynak_tablo: 'b1_arge_trendler',
                 sonuc: tamEngel ? 'hata' : 'uyari',
-                mesaj: `"${baslik}" iÃ§in ${uyarilar.length} geÃ§miÅŸ eÅŸleÅŸme. Max benzerlik: %${maxBenzerlik}. Engel: ${tamEngel ? 'EVET' : 'HAYIR'}`,
+                mesaj: `"${baslik}" için ${uyarilar.length} geçmiş eşleşme. Max benzerlik: %${maxBenzerlik}. Engel: ${tamEngel ? 'EVET' : 'HAYIR'}`,
             }]);
         }
 
@@ -97,12 +96,12 @@ export async function POST(req) {
             engel: tamEngel,
             uyari: uyariEngel,
             benzerlik_skoru: maxBenzerlik,
-            uyarÄ±lar: uyarilar.slice(0, 5),
+            uyarılar: uyarilar.slice(0, 5),
             mesaj: tamEngel
-                ? `ğŸš« ENGELLENDI: Bu model/Ã¼rÃ¼n geÃ§miÅŸte %${maxBenzerlik} benzerliÄŸiyle baÅŸarÄ±sÄ±z oldu. Yeniden dÃ¼ÅŸÃ¼nÃ¼n.`
+                ? `🚫 ENGELLENDI: Bu model/ürün geçmişte %${maxBenzerlik} benzerliğiyle başarısız oldu. Yeniden düşünün.`
                 : uyariEngel
-                    ? `âš ï¸ UYARI: Benzer iÃ§erik geÃ§miÅŸte sorun yaÅŸadÄ± (%${maxBenzerlik}). Devam edebilirsiniz ama dikkatli olun.`
-                    : 'âœ… GeÃ§miÅŸ hafÄ±zada sorun bulunamadÄ±. Devam edin.',
+                    ? `⚠️ UYARI: Benzer içerik geçmişte sorun yaşadı (%${maxBenzerlik}). Devam edebilirsiniz ama dikkatli olun.`
+                    : '✅ Geçmiş hafızada sorun bulunamadı. Devam edin.',
         });
 
     } catch (e) {
@@ -110,7 +109,7 @@ export async function POST(req) {
     }
 }
 
-// â”€â”€â”€ GET: Zarar eden Ã¼rÃ¼n/model geÃ§miÅŸi listesi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET: Zarar eden ürün/model geçmişi listesi ──────────────
 export async function GET(req) {
     try {
         const { data: reddedilenler } = await sb

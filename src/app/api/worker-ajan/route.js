@@ -1,19 +1,18 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  PARÃ‡A 1B â€” BACKEND
+// ═══════════════════════════════════════════════════════════
+//  PARÇA 1B — BACKEND
 //  /api/worker-ajan
-//  Worker A veya B olarak Ã§alÄ±ÅŸÄ±r.
-//  gorev_listesi alÄ±r, sÄ±rayla iÅŸler, ilerleme kaydeder.
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  Worker A veya B olarak çalışır.
+//  gorev_listesi alır, sırayla işler, ilerleme kaydeder.
+// ═══════════════════════════════════════════════════════════
 
 async function goreviIsle(gorev, workerId) {
     try {
-        // â”€â”€ GÃ–REV TÄ°PÄ°: stok_alarmi â”€â”€
+        // ── GÖREV TİPİ: stok_alarmi ──
         if (gorev.tip === 'stok_alarmi') {
-            // b1_sistem_uyarilari tablosuna alarm yaz (duplicate Ã¶nleme)
+            // b1_sistem_uyarilari tablosuna alarm yaz (duplicate önleme)
             const { data: mevcut } = await supabaseAdmin
                 .from('b1_sistem_uyarilari')
                 .select('id')
@@ -33,59 +32,59 @@ async function goreviIsle(gorev, workerId) {
                     durum: 'aktif',
                 }]);
             }
-            return { id: gorev.id, durum: 'ok', aciklama: `Stok alarmÄ± iÅŸlendi (${workerId})` };
+            return { id: gorev.id, durum: 'ok', aciklama: `Stok alarmı işlendi (${workerId})` };
         }
 
-        // â”€â”€ GÃ–REV TÄ°PÄ°: siparis_alarmi â”€â”€
+        // ── GÖREV TİPİ: siparis_alarmi ──
         if (gorev.tip === 'siparis_alarmi') {
             await supabaseAdmin.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'diger',
                 seviye: 'uyari',
                 baslik: gorev.baslik,
-                mesaj: '2 gÃ¼nden fazla beklemede kalan sipariÅŸ',
+                mesaj: '2 günden fazla beklemede kalan sipariş',
                 kaynak_tablo: 'b2_siparisler',
                 kaynak_id: gorev.veri?.siparis_id,
                 durum: 'aktif',
             }]).select();
-            return { id: gorev.id, durum: 'ok', aciklama: `SipariÅŸ alarmÄ± yazÄ±ldÄ± (${workerId})` };
+            return { id: gorev.id, durum: 'ok', aciklama: `Sipariş alarmı yazıldı (${workerId})` };
         }
 
-        // â”€â”€ GÃ–REV TÄ°PÄ°: ajan_gorevi â”€â”€
+        // ── GÖREV TİPİ: ajan_gorevi ──
         if (gorev.tip === 'ajan_gorevi' && gorev.veri?.gorev_id) {
-            // GÃ¶revin durumunu "calisÄ±yor" olarak iÅŸaretle ve baÅŸlat
+            // Görevin durumunu "calisıyor" olarak işaretle ve başlat
             await supabaseAdmin.from('b1_ajan_gorevler')
-                .update({ durum: 'calisÄ±yor', baslangic_tarihi: new Date().toISOString() })
+                .update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() })
                 .eq('id', gorev.veri.gorev_id);
 
-            // GÃ¶revi simÃ¼le et (gerÃ§ek Ã§alÄ±ÅŸma iÃ§in ajan-calistir'a yÃ¶nlendirilebilir)
+            // Görevi simüle et (gerçek çalışma için ajan-calistir'a yönlendirilebilir)
             await new Promise(r => setTimeout(r, 200));
 
             await supabaseAdmin.from('b1_ajan_gorevler')
                 .update({
                     durum: 'tamamlandi',
                     bitis_tarihi: new Date().toISOString(),
-                    sonuc_ozeti: `${workerId} tarafÄ±ndan otomatik iÅŸlendi (Orkestrator)`,
+                    sonuc_ozeti: `${workerId} tarafından otomatik işlendi (Orkestrator)`,
                 })
                 .eq('id', gorev.veri.gorev_id);
 
-            return { id: gorev.id, durum: 'ok', aciklama: `Ajan gÃ¶revi tamamlandÄ± (${workerId})` };
+            return { id: gorev.id, durum: 'ok', aciklama: `Ajan görevi tamamlandı (${workerId})` };
         }
 
-        // â”€â”€ GÃ–REV TÄ°PÄ°: uretim_gecikmesi â”€â”€
+        // ── GÖREV TİPİ: uretim_gecikmesi ──
         if (gorev.tip === 'uretim_gecikmesi') {
             await supabaseAdmin.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'diger',
                 seviye: 'kritik',
                 baslik: gorev.baslik,
-                mesaj: 'Ãœretim emri planlanan bitiÅŸ tarihini geÃ§ti',
+                mesaj: 'Üretim emri planlanan bitiş tarihini geçti',
                 kaynak_tablo: 'production_orders',
                 kaynak_id: gorev.veri?.order_id,
                 durum: 'aktif',
             }]).select();
-            return { id: gorev.id, durum: 'ok', aciklama: `Ãœretim gecikmesi alarmÄ± yazÄ±ldÄ± (${workerId})` };
+            return { id: gorev.id, durum: 'ok', aciklama: `Üretim gecikmesi alarmı yazıldı (${workerId})` };
         }
 
-        // â”€â”€ GÃ–REV TÄ°PÄ°: bilgi (sadece log) â”€â”€
+        // ── GÖREV TİPİ: bilgi (sadece log) ──
         if (gorev.tip === 'bilgi') {
             await supabaseAdmin.from('b1_agent_loglari').insert([{
                 ajan_adi: workerId,
@@ -94,10 +93,10 @@ async function goreviIsle(gorev, workerId) {
                 sonuc: 'basarili',
                 mesaj: gorev.baslik,
             }]);
-            return { id: gorev.id, durum: 'ok', aciklama: `Bilgi logu yazÄ±ldÄ± (${workerId})` };
+            return { id: gorev.id, durum: 'ok', aciklama: `Bilgi logu yazıldı (${workerId})` };
         }
 
-        return { id: gorev.id, durum: 'atlandi', aciklama: `Bilinmeyen gÃ¶rev tipi: ${gorev.tip}` };
+        return { id: gorev.id, durum: 'atlandi', aciklama: `Bilinmeyen görev tipi: ${gorev.tip}` };
 
     } catch (e) {
         return { id: gorev.id, durum: 'hata', aciklama: e.message };
@@ -120,16 +119,16 @@ export async function POST(req) {
         const baslangic = Date.now();
         const sonuclar = [];
 
-        // Worker log baÅŸlat
+        // Worker log başlat
         await supabaseAdmin.from('b1_agent_loglari').insert([{
             ajan_adi: worker_id,
             islem_tipi: 'worker_basladi',
             kaynak_tablo: 'orkestrator',
             sonuc: 'basarili',
-            mesaj: `${worker_id} baÅŸladÄ± â€” ${gorevler.length} gÃ¶rev alÄ±ndÄ±`,
+            mesaj: `${worker_id} başladı — ${gorevler.length} görev alındı`,
         }]);
 
-        // GÃ¶revleri sÄ±rayla iÅŸle
+        // Görevleri sırayla işle
         for (const gorev of gorevler) {
             const sonuc = await goreviIsle(gorev, worker_id);
             sonuclar.push(sonuc);
@@ -145,7 +144,7 @@ export async function POST(req) {
             islem_tipi: 'worker_tamamlandi',
             kaynak_tablo: 'orkestrator',
             sonuc: hatali === 0 ? 'basarili' : 'uyari',
-            mesaj: `${worker_id} tamamlandÄ± â€” ${basarili}/${gorevler.length} baÅŸarÄ±lÄ±, ${sure}sn`,
+            mesaj: `${worker_id} tamamlandı — ${basarili}/${gorevler.length} başarılı, ${sure}sn`,
         }]);
 
         return NextResponse.json({

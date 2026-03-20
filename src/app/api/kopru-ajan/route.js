@@ -1,8 +1,7 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// GUI'DE TRACE GÃ–STERÄ°MÄ° Ä°Ã‡Ä°N
+// GUI'DE TRACE GÖSTERİMİ İÇİN
 async function ajanAkliniGoster(gorevId, mesaj) {
     if (!gorevId) return;
     await supabaseAdmin.from('b1_ajan_gorevler').update({
@@ -10,20 +9,20 @@ async function ajanAkliniGoster(gorevId, mesaj) {
     }).eq('id', gorevId);
 }
 
-// â”€â”€â”€ TELEGRAM BÄ°LDÄ°RÄ°M â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── TELEGRAM BİLDİRİM ────────────────────────────────────────
 async function telegramBildirimGonder(urunAdi, firsatSkoru, karar, agentNote, botToken, chatId) {
     if (!botToken || !chatId) return false;
 
-    const emoji = karar === 'ÃœRETÄ°M' ? 'ğŸ­' : 'ğŸ§ª';
-    const mesaj = `${emoji} *THE ORDER â€” YENÄ° KARAR*
+    const emoji = karar === 'ÜRETİM' ? '🏭' : '🧪';
+    const mesaj = `${emoji} *THE ORDER — YENİ KARAR*
 
-ğŸ“¦ *ÃœrÃ¼n:* ${urunAdi}
-ğŸ“Š *FÄ±rsat Skoru:* ${firsatSkoru.toFixed(1)}/100
-âš¡ *Karar:* ${karar}
+📦 *Ürün:* ${urunAdi}
+📊 *Fırsat Skoru:* ${firsatSkoru.toFixed(1)}/100
+⚡ *Karar:* ${karar}
 
-ğŸ“ _${agentNote || 'Detay yok.'}_
+📝 _${agentNote || 'Detay yok.'}_
 
-_Karargah panelinden onaylayÄ±n._`;
+_Karargah panelinden onaylayın._`;
 
     try {
         const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -37,45 +36,45 @@ _Karargah panelinden onaylayÄ±n._`;
     }
 }
 
-// â”€â”€â”€ YENÄ° KARARLARI TARA VE BÄ°LDÄ°R â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── YENİ KARARLARI TARA VE BİLDİR ───────────────────────────
 async function yeniKararlariTara(gorevId, botToken, chatId) {
-    if (gorevId) await ajanAkliniGoster(gorevId, 'ğŸ” Telegram gÃ¶nderilecek yeni kararlar taranÄ±yor...');
+    if (gorevId) await ajanAkliniGoster(gorevId, '🔍 Telegram gönderilecek yeni kararlar taranıyor...');
 
     const birSaatOnce = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const { data: yeniKararlar, error } = await supabaseAdmin
         .from('b1_arge_strategy')
         .select('*')
-        .in('nizam_decision', ['ÃœRETÄ°M', 'TEST ÃœRETÄ°MÄ° (Numune)'])
-        // Sadece 'boss_approved' = false olanlarÄ± yani onaylanmamÄ±ÅŸlarÄ± alabiliriz ama orijinal script son 1 saate gÃ¶reydi.
+        .in('nizam_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
+        // Sadece 'boss_approved' = false olanları yani onaylanmamışları alabiliriz ama orijinal script son 1 saate göreydi.
         .gte('created_at', birSaatOnce)
         .order('opportunity_score', { ascending: false });
 
     if (error || !yeniKararlar || yeniKararlar.length === 0) {
-        if (gorevId) await ajanAkliniGoster(gorevId, 'ğŸ“­ Telegram iÃ§in yeni bildirim bulunamadÄ±.');
+        if (gorevId) await ajanAkliniGoster(gorevId, '📭 Telegram için yeni bildirim bulunamadı.');
         return 0;
     }
 
-    if (gorevId) await ajanAkliniGoster(gorevId, `ğŸ“¤ ${yeniKararlar.length} adet yeni karar bulundu. GÃ¶nderiliyor...`);
+    if (gorevId) await ajanAkliniGoster(gorevId, `📤 ${yeniKararlar.length} adet yeni karar bulundu. Gönderiliyor...`);
 
     let gonderilen = 0;
     for (let i = 0; i < yeniKararlar.length; i++) {
         const karar = yeniKararlar[i];
-        if (gorevId) await ajanAkliniGoster(gorevId, `ğŸ“± Telegram Ä°letiÅŸiyor: [${i + 1}/${yeniKararlar.length}] ${karar.product_name?.substring(0, 15)}...`);
+        if (gorevId) await ajanAkliniGoster(gorevId, `📱 Telegram İletişiyor: [${i + 1}/${yeniKararlar.length}] ${karar.product_name?.substring(0, 15)}...`);
 
-        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen ÃœrÃ¼n', karar.opportunity_score || 0, karar.nizam_decision, karar.agent_note, botToken, chatId);
+        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen Ürün', karar.opportunity_score || 0, karar.nizam_decision, karar.agent_note, botToken, chatId);
         if (basarili) gonderilen++;
 
-        // Telegram rate limit korumasÄ± â€” mesajlar arasÄ± 1sn bekle (Sadece dÄ±ÅŸ baÄŸlantÄ±larda)
+        // Telegram rate limit koruması — mesajlar arası 1sn bekle (Sadece dış bağlantılarda)
         await new Promise(r => setTimeout(r, 1000));
     }
 
     return gonderilen;
 }
 
-// â”€â”€â”€ Ã‡Ã–P SÃœPÃœRGESÄ° (7 GÃœNLÃœK TEMÄ°ZLÄ°K) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── ÇÖP SÜPÜRGESİ (7 GÜNLÜK TEMİZLİK) ─────────────────────
 async function copSupurgesi(gorevId) {
-    if (gorevId) await ajanAkliniGoster(gorevId, 'ğŸ§¹ 7 gÃ¼nden eski iÅŸlenmiÅŸ kayÄ±tlar temizleniyor...');
+    if (gorevId) await ajanAkliniGoster(gorevId, '🧹 7 günden eski işlenmiş kayıtlar temizleniyor...');
 
     const yediGunOnce = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -87,41 +86,41 @@ async function copSupurgesi(gorevId) {
         .select('id');
 
     const silinen = data?.length || 0;
-    if (gorevId) await ajanAkliniGoster(gorevId, `ğŸ§¹ ${silinen} eski yedek temizlendi.`);
+    if (gorevId) await ajanAkliniGoster(gorevId, `🧹 ${silinen} eski yedek temizlendi.`);
     return silinen;
 }
 
-// â”€â”€â”€ API ENDPOINT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── API ENDPOINT ──────────────────────────────────────────────
 export async function POST(req) {
     try {
         const body = await req.json();
         const { gorev_id } = body;
 
         const auth = req.headers.get('authorization');
-        const isCron = auth === `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`; // GÃœVENLIK: NEXT_PUBLIC_ prefix'i kaldÄ±rÄ±ldÄ±
+        const isCron = auth === `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`; // GÜVENLIK: NEXT_PUBLIC_ prefix'i kaldırıldı
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
         if (gorev_id) {
-            await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisÄ±yor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
-            await ajanAkliniGoster(gorev_id, 'ğŸŒ‰ KÃ¶prÃ¼ AjanÄ± BaÅŸlatÄ±ldÄ±...');
+            await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
+            await ajanAkliniGoster(gorev_id, '🌉 Köprü Ajanı Başlatıldı...');
         }
 
         const gonderilen = await yeniKararlariTara(gorev_id, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID);
         const silinen = await copSupurgesi(gorev_id);
 
-        const sonucMesaji = `KÃ¶prÃ¼ Raporu: ${gonderilen} karar yÃ¶neticilere (Telegram'a) iletildi, ${silinen} Ã§Ã¶p veri temizlendi.`;
+        const sonucMesaji = `Köprü Raporu: ${gonderilen} karar yöneticilere (Telegram'a) iletildi, ${silinen} çöp veri temizlendi.`;
 
         if (gorev_id) {
-            await ajanAkliniGoster(gorev_id, 'âœ… KÃ¶prÃ¼ ProtokolÃ¼ TamamlandÄ±.');
+            await ajanAkliniGoster(gorev_id, '✅ Köprü Protokolü Tamamlandı.');
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
                 sonuc_ozeti: sonucMesaji
             }).eq('id', gorev_id);
 
             await supabaseAdmin.from('b1_agent_loglari').insert([{
-                ajan_adi: 'KÃ¶prÃ¼ AjanÄ± (Haberci)', islem_tipi: 'iletiÅŸim_ve_temizlik', kaynak_tablo: 'b1_arge_strategy', sonuc: 'basarili', mesaj: sonucMesaji
+                ajan_adi: 'Köprü Ajanı (Haberci)', islem_tipi: 'iletişim_ve_temizlik', kaynak_tablo: 'b1_arge_strategy', sonuc: 'basarili', mesaj: sonucMesaji
             }]);
         }
 

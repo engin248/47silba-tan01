@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import {
@@ -11,41 +10,41 @@ import {
 } from '@/lib/ajanlar-v2';
 
 /**
- * /api/cron-ajanlar â€” ZamanlanmÄ±ÅŸ Ajan KÃ¶prÃ¼sÃ¼
+ * /api/cron-ajanlar — Zamanlanmış Ajan Köprüsü
  *
  * Vercel cron veya x-internal-api-key ile tetiklenir.
- * Her cron gÃ¶revi, ajanlar-v2.js'deki ilgili fonksiyonu direkt Ã§aÄŸÄ±rÄ±r.
+ * Her cron görevi, ajanlar-v2.js'deki ilgili fonksiyonu direkt çağırır.
  */
 export async function GET(req) {
     const authHeader = req.headers.get('Authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return NextResponse.json({ error: 'Yetkisiz Cron Ä°steÄŸi' }, { status: 401 });
+        return NextResponse.json({ error: 'Yetkisiz Cron İsteği' }, { status: 401 });
     }
 
     const gorev = new URL(req.url).searchParams.get('gorev');
 
     try {
-        // â”€â”€ SABAH Ã–ZETÄ° (08:00 TR) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── SABAH ÖZETİ (08:00 TR) ─────────────────────────────────
         if (gorev === 'sabah_ozeti') {
             const sonuc = await sabahSubayi();
             await nabiz();
             await zincirci();
 
             await supabaseAdmin.from('b1_ajan_gorevler').insert([{
-                ajan_adi: 'Sabah SubayÄ±',
-                gorev_adi: 'Otomatik Sabah Ã–zeti (Cron)',
+                ajan_adi: 'Sabah Subayı',
+                gorev_adi: 'Otomatik Sabah Özeti (Cron)',
                 gorev_tipi: 'rapor',
                 durum: sonuc.basarili ? 'tamamlandi' : 'hata',
                 oncelik: 'yuksek',
                 bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: sonuc.brifing || sonuc.hata || 'Sabah brifing tamamlandÄ±.',
-                gorev_emri: 'Sabah taramasÄ± â€” tÃ¼m kritik kontroller yapÄ±ldÄ±'
+                sonuc_ozeti: sonuc.brifing || sonuc.hata || 'Sabah brifing tamamlandı.',
+                gorev_emri: 'Sabah taraması — tüm kritik kontroller yapıldı'
             }]);
 
-            return NextResponse.json({ success: true, mesaj: 'Sabah cronu Ã§alÄ±ÅŸtÄ±', sonuc });
+            return NextResponse.json({ success: true, mesaj: 'Sabah cronu çalıştı', sonuc });
         }
 
-        // â”€â”€ GECE YEDEKLEMESÄ° (03:00 TR) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── GECE YEDEKLEMESİ (03:00 TR) ────────────────────────────
         if (gorev === 'gece_yedekleme_ve_temizlik') {
             const aksamSonuc = await aksamci();
             const muhasebeSonuc = await muhasebeYazici();
@@ -60,27 +59,27 @@ export async function GET(req) {
 
             await supabaseAdmin.from('b1_ajan_gorevler').insert([{
                 ajan_adi: 'Sistem',
-                gorev_adi: 'Gece Log ArÅŸivleme ve Muhasebe (Cron)',
+                gorev_adi: 'Gece Log Arşivleme ve Muhasebe (Cron)',
                 gorev_tipi: 'kontrol',
                 durum: 'tamamlandi',
                 oncelik: 'normal',
                 bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: `Gece operasyonu tamamlandÄ±. ${silinenLoglar?.length || 0} eski log temizlendi.`,
-                gorev_emri: '30 gÃ¼nden eski loglarÄ± temizle, muhasebe gÃ¼ncelle.'
+                sonuc_ozeti: `Gece operasyonu tamamlandı. ${silinenLoglar?.length || 0} eski log temizlendi.`,
+                gorev_emri: '30 günden eski logları temizle, muhasebe güncelle.'
             }]);
 
             return NextResponse.json({
-                success: true, mesaj: 'Gece cronu Ã§alÄ±ÅŸtÄ±',
+                success: true, mesaj: 'Gece cronu çalıştı',
                 aksamSonuc, muhasebeSonuc,
                 temizlenen_log: silinenLoglar?.length || 0
             });
         }
 
-        // â”€â”€ KAMERA DURUM KONTROL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── KAMERA DURUM KONTROL ─────────────────────────────────────
         if (gorev === 'kamera_durum_kontrol_ajan') {
             const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL;
             if (!go2rtcUrl) {
-                return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanÄ±mlÄ± deÄŸil.' });
+                return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanımlı değil.' });
             }
 
             let nvrDurum = 'aktif';
@@ -109,7 +108,7 @@ export async function GET(req) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             chat_id: TELEGRAM_CHAT_ID,
-                            text: "ğŸ”´ *KRÄ°TÄ°K UYARI* ğŸ”´\n\nNVR Kamera Stream Sunucusu ulaÅŸÄ±lamÄ±yor!",
+                            text: "🔴 *KRİTİK UYARI* 🔴\n\nNVR Kamera Stream Sunucusu ulaşılamıyor!",
                             parse_mode: 'Markdown'
                         })
                     }).catch(() => null);
@@ -122,10 +121,10 @@ export async function GET(req) {
                 } catch { }
             }
 
-            return NextResponse.json({ success: true, mesaj: `Kamera Cron Ã‡alÄ±ÅŸtÄ±. Durum: ${nvrDurum}, Mesai DÄ±ÅŸÄ±: ${mesaiDisi}` });
+            return NextResponse.json({ success: true, mesaj: `Kamera Cron Çalıştı. Durum: ${nvrDurum}, Mesai Dışı: ${mesaiDisi}` });
         }
 
-        // â”€â”€ AR-GE ZÄ°NCÄ°RÄ°: YargÄ±Ã§ + KÃ¶prÃ¼ + Zincirci â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── AR-GE ZİNCİRİ: Yargıç + Köprü + Zincirci ────────────────
         if (gorev === 'arge_zincir') {
             await zincirci();
 
@@ -137,29 +136,29 @@ export async function GET(req) {
 
             fetch(`${domain}/api/ajan-yargic`, {
                 method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-            }).catch(e => console.log('YargÄ±Ã§ Cron Tetikleme HatasÄ±:', e));
+            }).catch(e => console.log('Yargıç Cron Tetikleme Hatası:', e));
 
             setTimeout(() => {
                 fetch(`${domain}/api/kopru-ajan`, {
                     method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-                }).catch(e => console.log('KÃ¶prÃ¼ Cron Tetikleme HatasÄ±:', e));
+                }).catch(e => console.log('Köprü Cron Tetikleme Hatası:', e));
             }, 5000);
 
             await supabaseAdmin.from('b1_ajan_gorevler').insert([{
                 ajan_adi: 'Sistem Cron',
-                gorev_adi: 'Ar-Ge Zinciri (YargÄ±Ã§+KÃ¶prÃ¼+Zincirci) Tetiklendi',
+                gorev_adi: 'Ar-Ge Zinciri (Yargıç+Köprü+Zincirci) Tetiklendi',
                 gorev_tipi: 'otomasyon',
                 durum: 'tamamlandi',
                 oncelik: 'yuksek',
                 bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: 'Vercel Cron otonom zinciri ateÅŸledi.',
-                gorev_emri: 'Ar-Ge zinciri: Zincirci â†’ YargÄ±Ã§ â†’ KÃ¶prÃ¼'
+                sonuc_ozeti: 'Vercel Cron otonom zinciri ateşledi.',
+                gorev_emri: 'Ar-Ge zinciri: Zincirci → Yargıç → Köprü'
             }]);
 
             return NextResponse.json({ success: true, mesaj: 'Ar-Ge zinciri tetiklendi.' });
         }
 
-        return NextResponse.json({ success: true, mesaj: 'Bilinmeyen Cron Parametresi. BoÅŸ dÃ¶nÃ¼ldÃ¼.' });
+        return NextResponse.json({ success: true, mesaj: 'Bilinmeyen Cron Parametresi. Boş dönüldü.' });
 
     } catch (e) {
         return NextResponse.json({ error: e.message }, { status: 500 });

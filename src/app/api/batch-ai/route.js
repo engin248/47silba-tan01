@@ -1,23 +1,22 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// â”€â”€â”€ BATCH GEMÄ°NÄ° ANALÄ°Z MOTORU â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── BATCH GEMİNİ ANALİZ MOTORU ─────────────────────────────────────
 async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
-    if (!GEMINI_URL) return { error: 'Gemini API anahtarÄ± yok', results: [] };
+    if (!GEMINI_URL) return { error: 'Gemini API anahtarı yok', results: [] };
 
     try {
         const pazar_urunleri = is_data_array.map(i => ({ id: i.kuyruk_id, ad: i.urunAdi, fiyat: i.fiyatSayi, data: i.ham_veri }));
 
-        const prompt = `Sen THE ORDER tekstil ÅŸirketinin acÄ±masÄ±z pazar analistisin. 
-AÅŸaÄŸÄ±daki liste, ${is_data_array.length} adet farklÄ± e-ticaret (Trendyol/Zara vb.) Ã¼rÃ¼n verisidir.
-GÃ¶rev: Bu Ã¼rÃ¼nlerin HER BÄ°RÄ°NÄ° tekstil Ã¼retiminde kÃ¢rlÄ±lÄ±k ve risk aÃ§Ä±sÄ±ndan analiz et. SonuÃ§larÄ± kesinlikle aÅŸaÄŸÄ±daki formatta YALNIZCA BÄ°R JSON LÄ°STESÄ° (Array) olarak dÃ¶n. Ä°Ã§ine ekstra aÃ§Ä±klama ekleme.
+        const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin. 
+Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) ürün verisidir.
+Görev: Bu ürünlerin HER BİRİNİ tekstil üretiminde kârlılık ve risk açısından analiz et. Sonuçları kesinlikle aşağıdaki formatta YALNIZCA BİR JSON LİSTESİ (Array) olarak dön. İçine ekstra açıklama ekleme.
 [{
-    "kuyruk_id": "Buraya Listedeki ÃœrÃ¼n ID'sini Yaz",
-    "satis_buyumesi": 0-100 arasÄ± puan, "sosyal_medya_etkisi": 0-100 arasÄ± puan, "rakip_kullanim_hizi": 0-100 arasÄ± puan, "sezon_uyumu": 0-100 arasÄ± puan, "teorik_maliyet": TL cinsinden Ã¼retim maliyeti tahmini, "kumas_turu": "KumaÅŸ tÃ¼rÃ¼", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arasÄ± (dÃ¼ÅŸÃ¼k iyi), "uretim_karma_puani": 10-60 arasÄ± (dÃ¼ÅŸÃ¼k iyi), "risk_ozeti": "KÄ±sa risk uyarÄ±sÄ±", "agent_notu": "KÄ±sa Ã¼retilmeli mi analizi"
+    "kuyruk_id": "Buraya Listedeki Ürün ID'sini Yaz",
+    "satis_buyumesi": 0-100 arası puan, "sosyal_medya_etkisi": 0-100 arası puan, "rakip_kullanim_hizi": 0-100 arası puan, "sezon_uyumu": 0-100 arası puan, "teorik_maliyet": TL cinsinden üretim maliyeti tahmini, "kumas_turu": "Kumaş türü", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arası (düşük iyi), "uretim_karma_puani": 10-60 arası (düşük iyi), "risk_ozeti": "Kısa risk uyarısı", "agent_notu": "Kısa üretilmeli mi analizi"
 }]
 
-HAM ÃœRÃœN LÄ°STESÄ°:
+HAM ÜRÜN LİSTESİ:
 ${JSON.stringify(pazar_urunleri)}`;
 
         const res = await fetch(GEMINI_URL, {
@@ -45,7 +44,7 @@ ${JSON.stringify(pazar_urunleri)}`;
     }
 }
 
-// â”€â”€â”€ API ENDPOINT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── API ENDPOINT ──────────────────────────────────────────────
 export async function POST(req) {
     try {
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -61,11 +60,11 @@ export async function POST(req) {
         if (kuyrukErr) throw kuyrukErr;
 
         if (!yargic_isleri || yargic_isleri.length === 0) {
-            return NextResponse.json({ message: 'Ä°ÅŸlenecek kuyruk verisi yok.', basarili: true });
+            return NextResponse.json({ message: 'İşlenecek kuyruk verisi yok.', basarili: true });
         }
 
         const islerimIDleri = yargic_isleri.map(j => j.id);
-        await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'calisÄ±yor', islenme_tarihi: new Date().toISOString() }).in('id', islerimIDleri);
+        await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'calisıyor', islenme_tarihi: new Date().toISOString() }).in('id', islerimIDleri);
 
         const veriPaketi = yargic_isleri.map(j => ({
             kuyruk_id: j.id,
@@ -83,7 +82,7 @@ export async function POST(req) {
 
         if (aiBatchRes.error) {
             await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'hata', sonuc_datasi: { hata: aiBatchRes.error } }).in('id', islerimIDleri);
-            throw new Error(`Toplu Gemini Analizi Ã‡Ã¶ktÃ¼: ${aiBatchRes.error}`);
+            throw new Error(`Toplu Gemini Analizi Çöktü: ${aiBatchRes.error}`);
         }
 
         for (const ai of aiBatchRes.results) {
@@ -96,15 +95,15 @@ export async function POST(req) {
             const firsatSkoru = Math.max(0, Math.min(100, trendSkoru - (ortalamaRisk * 0.5)));
 
             let decision = '';
-            if (firsatSkoru >= 85) decision = 'ÃœRETÄ°M';
-            else if (firsatSkoru >= 70) decision = 'TEST ÃœRETÄ°MÄ° (Numune)';
-            else if (firsatSkoru >= 50) decision = 'Ä°ZLEME';
+            if (firsatSkoru >= 85) decision = 'ÜRETİM';
+            else if (firsatSkoru >= 70) decision = 'TEST ÜRETİMİ (Numune)';
+            else if (firsatSkoru >= 50) decision = 'İZLEME';
             else decision = 'REDDET';
 
-            const riskLevel = ortalamaRisk > 30 ? 'YÃ¼ksek' : ortalamaRisk > 15 ? 'Orta' : 'DÃ¼ÅŸÃ¼k';
-            let timeRiskStr = '3-5 gÃ¼n';
-            if (ai.iscilik_zorlugu === 'Zor') timeRiskStr = '10-15 gÃ¼n';
-            else if (ai.iscilik_zorlugu === 'Orta') timeRiskStr = '7-10 gÃ¼n';
+            const riskLevel = ortalamaRisk > 30 ? 'Yüksek' : ortalamaRisk > 15 ? 'Orta' : 'Düşük';
+            let timeRiskStr = '3-5 gün';
+            if (ai.iscilik_zorlugu === 'Zor') timeRiskStr = '10-15 gün';
+            else if (ai.iscilik_zorlugu === 'Orta') timeRiskStr = '7-10 gün';
 
             const estimatedProfit = orgData.fiyatSayi ? Math.round(orgData.fiyatSayi * 0.45 * 100) : 0;
 
@@ -113,7 +112,7 @@ export async function POST(req) {
                     product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak,
                     opportunity_score: firsatSkoru, nizam_decision: decision, risk_level: riskLevel,
                     supply_risk: ai.risk_ozeti || '', time_risk: timeRiskStr, estimated_profit: 0, outsource_cost: Number(ai.teorik_maliyet) || 0,
-                    agent_note: ai.agent_notu || '', boss_approved: false, reason: 'Risk oranlarÄ± potansiyeli aÅŸtÄ±.'
+                    agent_note: ai.agent_notu || '', boss_approved: false, reason: 'Risk oranları potansiyeli aştı.'
                 });
             } else {
                 await supabaseAdmin.from('b1_arge_trend_data').insert({ product_id: orgData.urun_id, sales_growth: ai.satis_buyumesi, social_media_impact: ai.sosyal_medya_etkisi, competitor_usage: ai.rakip_kullanim_hizi, season_fit: ai.sezon_uyumu, trend_score: trendSkoru });
@@ -129,7 +128,7 @@ export async function POST(req) {
                 if (firsatSkoru >= 70) {
                     await supabaseAdmin.from('b1_arge_trendler').insert({
                         baslik: orgData.urunAdi, platform: orgData.kaynak.toLowerCase().includes('zara') ? 'zara' : 'trendyol', kategori: 'diger',
-                        hedef_kitle: 'kadÄ±n', talep_skoru: Math.round(firsatSkoru / 10), zorluk_derecesi: ai.iscilik_zorlugu === 'Zor' ? 8 : 5,
+                        hedef_kitle: 'kadın', talep_skoru: Math.round(firsatSkoru / 10), zorluk_derecesi: ai.iscilik_zorlugu === 'Zor' ? 8 : 5,
                         aciklama: ai.agent_notu || '', durum: firsatSkoru >= 85 ? 'inceleniyor' : 'inceleniyor', referans_linkler: null
                     });
                 }
@@ -150,7 +149,7 @@ export async function POST(req) {
 
         return NextResponse.json({
             basarili: true,
-            mesaj: `${aiBatchRes.results.length} gÃ¶rev TEK BÄ°R API BULK (BATCH) paketi ile hesaplandÄ± ve daÄŸÄ±tÄ±ldÄ±.`
+            mesaj: `${aiBatchRes.results.length} görev TEK BİR API BULK (BATCH) paketi ile hesaplandı ve dağıtıldı.`
         });
 
     } catch (e) {

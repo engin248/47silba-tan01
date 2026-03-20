@@ -1,13 +1,12 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// KÃ–R NOKTA FIRE RADARI â€” THE ORDER / NIZAM
+// KÖR NOKTA FIRE RADARI — THE ORDER / NIZAM
 // /api/rapor/kor-nokta
 //
-// GET  â†’ Model bazÄ±nda kumaÅŸ harcama & fire oranÄ± raporu
-// POST â†’ Manuel fire kaydÄ± ekle (Usta giriÅŸi)
+// GET  → Model bazında kumaş harcama & fire oranı raporu
+// POST → Manuel fire kaydı ekle (Usta girişi)
 // ============================================================
 
 export async function GET(req) {
@@ -18,7 +17,7 @@ export async function GET(req) {
 
         const baslangic = new Date(Date.now() - gunSayisi * 86400000).toISOString();
 
-        // â”€ Ãœretim emirlerini Ã§ek (biten sipariÅŸler) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Üretim emirlerini çek (biten siparişler) ──────────
         let uretimQuery = sb
             .from('production_orders')
             .select('id, model_id, quantity, fabric_used, fabric_planned, status, created_at, completed_at')
@@ -29,7 +28,7 @@ export async function GET(req) {
         if (filtreModel) uretimQuery = uretimQuery.eq('model_id', filtreModel);
         const { data: uretimler } = await uretimQuery.limit(100);
 
-        // â”€ Fire hesabÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Fire hesabı ───────────────────────────────────────
         const modelFireMap = {};
         for (const u of (uretimler || [])) {
             const key = u.model_id || 'bilinmiyor';
@@ -54,7 +53,7 @@ export async function GET(req) {
             };
         }).sort((a, b) => b.fire_oran_yuzde - a.fire_oran_yuzde);
 
-        // â”€ Manuel fire kayÄ±tlarÄ±nÄ± Ã§ek â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Manuel fire kayıtlarını çek ───────────────────────
         const { data: manuelFireler } = await sb
             .from('b1_fire_kayitlari')
             .select('*')
@@ -62,13 +61,13 @@ export async function GET(req) {
             .order('created_at', { ascending: false })
             .limit(50);
 
-        // â”€ Alarm: %10 Ã¼stÃ¼ fire varsa kaydet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Alarm: %10 üstü fire varsa kaydet ─────────────────
         const kritikler = fireRaporlari.filter(f => f.durum === 'kritik');
         if (kritikler.length > 0) {
             await sb.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'fire_yuksek',
                 seviye: 'kritik',
-                baslik: `ğŸ”¥ ${kritikler.length} modelde yÃ¼ksek fire oranÄ± tespit edildi`,
+                baslik: `🔥 ${kritikler.length} modelde yüksek fire oranı tespit edildi`,
                 mesaj: kritikler.map(k => `Model ${k.model_id}: %${k.fire_oran_yuzde} fire`).join(', '),
                 kaynak_tablo: 'production_orders',
                 durum: 'aktif',
@@ -77,11 +76,11 @@ export async function GET(req) {
 
         if (kritikler.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'KÃ¶r Nokta Fire RadarÄ±',
+                ajan_adi: 'Kör Nokta Fire Radarı',
                 islem_tipi: 'fire_analiz',
                 kaynak_tablo: 'production_orders',
                 sonuc: 'uyari',
-                mesaj: `${fireRaporlari.length} model analiz edildi. ${kritikler.length} kritik fire vakasÄ±.`,
+                mesaj: `${fireRaporlari.length} model analiz edildi. ${kritikler.length} kritik fire vakası.`,
             }]);
         }
 
@@ -102,7 +101,7 @@ export async function GET(req) {
     }
 }
 
-// â”€â”€â”€ POST: Manuel Fire KaydÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST: Manuel Fire Kaydı ──────────────────────────────────
 export async function POST(req) {
     try {
         const body = await req.json();

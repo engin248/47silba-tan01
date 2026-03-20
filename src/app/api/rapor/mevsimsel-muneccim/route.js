@@ -1,13 +1,12 @@
-export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// MEVSÄ°MSEL MÃœNECCÄ°M â€” THE ORDER / NIZAM
+// MEVSİMSEL MÜNECCİM — THE ORDER / NIZAM
 // /api/rapor/mevsimsel-muneccim
 //
-// GET  â†’ Son 3 yÄ±lÄ±n aynÄ± dÃ¶nemi satÄ±ÅŸ + trend analizi
-//        "GeÃ§en yÄ±l bu ay X fÄ±rladÄ±, Ã¶nceden hazÄ±rlan" uyarÄ±sÄ±
+// GET  → Son 3 yılın aynı dönemi satış + trend analizi
+//        "Geçen yıl bu ay X fırladı, önceden hazırlan" uyarısı
 // ============================================================
 
 export async function GET(req) {
@@ -17,9 +16,9 @@ export async function GET(req) {
         const hedefTarih = tarihStr ? new Date(tarihStr) : new Date();
         const hedefAy = hedefTarih.getMonth() + 1; // 1-12
         const hedefYil = hedefTarih.getFullYear();
-        const ilerideGun = parseInt(url.searchParams.get('ileri') || '30'); // KaÃ§ gÃ¼n Ã¶ncesinden uyar
+        const ilerideGun = parseInt(url.searchParams.get('ileri') || '30'); // Kaç gün öncesinden uyar
 
-        // â”€ Son 3 yÄ±lÄ±n aynÄ± ayÄ± verisi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Son 3 yılın aynı ayı verisi ───────────────────────
         const yillar = [hedefYil - 1, hedefYil - 2, hedefYil - 3];
         const gecmisAnaliz = [];
 
@@ -35,7 +34,7 @@ export async function GET(req) {
                 .lte('created_at', aySonu)
                 .limit(50);
 
-            // SipariÅŸ verileri
+            // Sipariş verileri
             const { data: siparisler } = await sb
                 .from('b2_siparisler')
                 .select('id, toplam_tutar, durum, created_at')
@@ -58,7 +57,7 @@ export async function GET(req) {
             });
         }
 
-        // â”€ Tahmin motoru â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Tahmin motoru ──────────────────────────────────────
         const ciroOrtalama = gecmisAnaliz.length > 0
             ? gecmisAnaliz.reduce((s, a) => s + a.siparis_ciro, 0) / gecmisAnaliz.length
             : 0;
@@ -67,35 +66,35 @@ export async function GET(req) {
         const enYuksekYil = gecmisAnaliz.find(a => a.siparis_ciro === enYuksekCiro);
 
         const trendArtis = gecmisAnaliz.length >= 2 &&
-            gecmisAnaliz[0].siparis_ciro > gecmisAnaliz[1].siparis_ciro * 1.1; // %10+ artÄ±ÅŸ trendi
+            gecmisAnaliz[0].siparis_ciro > gecmisAnaliz[1].siparis_ciro * 1.1; // %10+ artış trendi
 
         // Trend kategorisi tespiti
         const kategoriBirikimleri = {};
         for (const a of gecmisAnaliz) {
-            // Placeholder â€” gerÃ§ek kategori verisi trend tablosundaki kategori alanÄ±ndan
+            // Placeholder — gerçek kategori verisi trend tablosundaki kategori alanından
         }
 
-        // â”€ UyarÄ± mesajÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Uyarı mesajı ──────────────────────────────────────
         const uyarilar = [];
         if (enYuksekYil) {
-            uyarilar.push(`ğŸ“… GeÃ§en ${enYuksekYil.yil} yÄ±lÄ± ${hedefAy}. ay'da ${enYuksekYil.siparis_ciro.toLocaleString('tr-TR')} TL ciro gerÃ§ekleÅŸti.`);
+            uyarilar.push(`📅 Geçen ${enYuksekYil.yil} yılı ${hedefAy}. ay'da ${enYuksekYil.siparis_ciro.toLocaleString('tr-TR')} TL ciro gerçekleşti.`);
         }
         if (trendArtis) {
-            uyarilar.push(`ğŸ“ˆ Son yÄ±l bu ay Ã¶n yÄ±la gÃ¶re %${Math.round(((gecmisAnaliz[0].siparis_ciro - gecmisAnaliz[1].siparis_ciro) / Math.max(gecmisAnaliz[1].siparis_ciro, 1)) * 100)} artÄ±ÅŸ yaÅŸandÄ±.`);
+            uyarilar.push(`📈 Son yıl bu ay ön yıla göre %${Math.round(((gecmisAnaliz[0].siparis_ciro - gecmisAnaliz[1].siparis_ciro) / Math.max(gecmisAnaliz[1].siparis_ciro, 1)) * 100)} artış yaşandı.`);
         }
         if (ciroOrtalama > 0) {
-            uyarilar.push(`ğŸ’¡ Tahmin: Bu ay yaklaÅŸÄ±k ${Math.round(ciroOrtalama * 1.05).toLocaleString('tr-TR')} TL ciro beklenmektedir.`);
+            uyarilar.push(`💡 Tahmin: Bu ay yaklaşık ${Math.round(ciroOrtalama * 1.05).toLocaleString('tr-TR')} TL ciro beklenmektedir.`);
         }
-        uyarilar.push(`â° ${ilerideGun} gÃ¼n Ã¶ncesinden hammadde ve Ã¼retim kapasitesini hazÄ±rlayÄ±n.`);
+        uyarilar.push(`⏰ ${ilerideGun} gün öncesinden hammadde ve üretim kapasitesini hazırlayın.`);
 
-        // â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─ Log ───────────────────────────────────────────────
         if (ciroOrtalama > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Mevsimsel MÃ¼neccim',
+                ajan_adi: 'Mevsimsel Müneccim',
                 islem_tipi: 'mevsim_tahmini',
                 kaynak_tablo: 'b1_arge_trendler + b2_siparisler',
                 sonuc: 'basarili',
-                mesaj: `${hedefAy}. ay iÃ§in son 3 yÄ±l analizi tamamlandÄ±. Tahmini ciro: ${Math.round(ciroOrtalama).toLocaleString('tr-TR')} TL`,
+                mesaj: `${hedefAy}. ay için son 3 yıl analizi tamamlandı. Tahmini ciro: ${Math.round(ciroOrtalama).toLocaleString('tr-TR')} TL`,
             }]);
         }
 

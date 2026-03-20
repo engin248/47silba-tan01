@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { stokHareketiSchema, veriDogrula } from '@/lib/zodSchemas';
