@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
     try {
-        const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN)?.trim();
-        const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID)?.trim();
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim();
+        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID?.trim();
 
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             return NextResponse.json({ success: false, error: 'Telegram Bot Token veya Chat ID eksik.' }, { status: 500 });
