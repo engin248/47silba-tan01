@@ -26,6 +26,9 @@
     ],
     "exclude": [
         "node_modules",
-        ".next"
+        ".next",
+        "src/__tests__",
+        "src/scripts",
+        "src/ai"
     ]
 }

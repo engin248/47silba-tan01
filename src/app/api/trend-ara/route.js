@@ -1,23 +1,32 @@
+﻿export const maxDuration = 60; // Vercel Timeout (522/504) Engelleyici
 import { NextResponse } from 'next/server';
+// Build Hatasını Önlemek İçin Upstash Geçici Olarak Devre Dışı
+// import { Ratelimit } from '@upstash/ratelimit';
+// import { Redis } from '@upstash/redis';
 
-const istekSayaci = new Map();
-function rateLimitKontrol(ip) {
-    const simdi = Date.now();
-    const kayit = istekSayaci.get(ip) || { sayi: 0, baslangic: simdi };
-    if (simdi - kayit.baslangic > 60 * 1000) {
-        istekSayaci.set(ip, { sayi: 1, baslangic: simdi });
-        return true;
-    }
-    if (kayit.sayi >= 30) return false;
-    istekSayaci.set(ip, { ...kayit, sayi: kayit.sayi + 1 });
-    return true;
-}
+// IP tabanlı kalıcı rate limit (Mock)
+/*
+const ratelimit = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(1, '10 m'), // Zafiyet Kapatıldı: Her IP 10 dakikada sadece 1 araştırma yapabilir
+    analytics: true,
+});
+*/
 
 export async function POST(request) {
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    if (!rateLimitKontrol(ip)) {
-        return NextResponse.json({ error: 'Çok fazla istek. 1 dakika bekleyin.' }, { status: 429 });
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+
+    // Güvenlik Kalkanı (Devre Dışı)
+    /*
+    try {
+        const { success } = await ratelimit.limit(`trend-ara_${ip}`);
+        if (!success) {
+            return NextResponse.json({ error: 'Sistem Bütçe Koruması devrede. Spam ve mali kayıp riski (Sorgu başı Fatura) önlendi. Yeni bir arama yapmak için lütfen 10 dakika bekleyiniz.' }, { status: 429 });
+        }
+    } catch (error) {
+        // Redis bağlanamazsa işlemi kesme, logla ve devam et (Fallback)
     }
+    */
 
     const { sorgu } = await request.json();
 

@@ -1,0 +1,138 @@
+﻿=== ajanlar ===
+index.js|12||state:0|eff:0|tg:0|confirm:0|rt:0
+AjanlarMainContainer.js|742|b1_ajan_gorevler,b0_sistem_loglari|state:14|eff:3|tg:5|confirm:2|rt:1
+useAjanlar.js|142||state:13|eff:3|tg:0|confirm:1|rt:1
+ajanlarApi.js|136|b0_sistem_loglari,b1_ajan_gorevler|state:0|eff:0|tg:2|confirm:0|rt:0
+=== arge ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+ArgeMainContainer.js|1351|b1_arge_trendler,b1_agent_loglari,b0_sistem_loglari|state:19|eff:2|tg:1|confirm:1|rt:1
+ArgeSayfasi.js|8||state:0|eff:0|tg:0|confirm:0|rt:0
+M1_AramaMotoru.js|131||state:2|eff:0|tg:0|confirm:0|rt:0
+M1_TrendSonucKarti.js|176||state:4|eff:0|tg:0|confirm:0|rt:0
+M1_UrunRecetesi.js|109||state:0|eff:0|tg:0|confirm:0|rt:0
+useArge.js|164|b1_arge_trendler,b1_agent_loglari,b0_sistem_loglari|state:14|eff:2|tg:0|confirm:1|rt:1
+argeApi.js|97|b1_arge_trendler,b1_agent_loglari,b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+hermAi.js|42||state:0|eff:0|tg:0|confirm:0|rt:0
+=== ayarlar ===
+index.js|18||state:0|eff:0|tg:0|confirm:0|rt:0
+AyarlarMainContainer.js|329|b1_sistem_ayarlari|state:5|eff:2|tg:3|confirm:0|rt:1
+useAyarlar.js|112|b1_sistem_ayarlari|state:5|eff:2|tg:2|confirm:0|rt:1
+ayarlarApi.js|91||state:0|eff:0|tg:0|confirm:0|rt:1
+=== denetmen ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+DenetmenMainContainer.js|543|b1_sistem_uyarilari,b1_agent_loglari|state:15|eff:2|tg:4|confirm:0|rt:1
+useDenetmen.js|63||state:8|eff:2|tg:0|confirm:0|rt:0
+denetmenApi.js|49|b1_sistem_uyarilari,b1_agent_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== giris ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+GirisMainContainer.js|197||state:8|eff:3|tg:0|confirm:0|rt:0
+=== gorevler ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+GorevlerMainContainer.js|365|b1_gorevler,b0_sistem_loglari|state:11|eff:2|tg:4|confirm:1|rt:1
+useGorevler.js|89|b1_gorevler|state:9|eff:2|tg:2|confirm:1|rt:1
+gorevlerApi.js|49|b1_gorevler|state:0|eff:0|tg:0|confirm:0|rt:1
+=== guvenlik ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+GuvenlikMainContainer.js|452||state:8|eff:2|tg:7|confirm:1|rt:0
+useGuvenlik.js|63|b0_sistem_loglari,b0_giris_girisimleri|state:6|eff:2|tg:0|confirm:0|rt:1
+guvenlikApi.js|38|b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== haberlesme ===
+index.js|2||state:0|eff:0|tg:0|confirm:0|rt:0
+HaberlesmeMainContainer.js|946|b1_model_taslaklari,b1_ic_mesajlar,b0_sistem_loglari|state:17|eff:3|tg:2|confirm:1|rt:1
+=== imalat ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+ImalatMainContainer.js|760|production_orders,b1_model_taslaklari,v2_models,v2_production_steps,v2_model_workflows,v2_order_production_steps,v2_users,b1_maliyet_kayitlari|state:18|eff:2|tg:9|confirm:0|rt:1
+useImalat.js|77||state:9|eff:2|tg:0|confirm:1|rt:0
+imalatApi.js|46|b1_imalat_emirleri,b1_model_taslaklari,b0_sistem_loglari|state:0|eff:0|tg:2|confirm:0|rt:1
+=== kalip ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+KalipMainContainer.js|549|b1_model_taslaklari,b1_arge_trendler,b1_model_kaliplari,b0_sistem_loglari|state:13|eff:2|tg:4|confirm:1|rt:1
+useKalip.js|69||state:8|eff:2|tg:0|confirm:1|rt:0
+kalipApi.js|61|b1_model_kaliplari,b1_model_taslaklari,b1_arge_trendler,b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== kameralar ===
+CameraPlayer.js|142||state:5|eff:5|tg:0|confirm:0|rt:0
+KameralarMainContainer.js|627|camera_access_log,camera_events|state:14|eff:7|tg:2|confirm:0|rt:1
+useMotionDetection.js|138|camera_events|state:2|eff:2|tg:0|confirm:0|rt:0
+=== karargah ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+KarargahMainContainer.js|609||state:13|eff:6|tg:0|confirm:0|rt:2
+useKarargah.js|131||state:10|eff:2|tg:0|confirm:0|rt:1
+komutSchema.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+hermAi.js|35||state:0|eff:0|tg:0|confirm:0|rt:0
+karargahApi.js|60|b2_siparisler,b1_model_taslaklari,b2_urun_katalogu,b1_muhasebe_raporlari,b1_arge_trendler,b0_ajan_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== kasa ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+KasaMainContainer.js|478|b2_kasa_hareketleri,b2_musteriler,b1_personel,b0_sistem_loglari|state:12|eff:2|tg:3|confirm:1|rt:1
+useKasa.js|73||state:8|eff:2|tg:0|confirm:1|rt:0
+hermAi.js|37||state:0|eff:0|tg:0|confirm:0|rt:0
+kasaApi.js|61|b2_kasa_hareketleri,b2_musteriler,b0_sistem_loglari|state:0|eff:0|tg:2|confirm:0|rt:1
+=== katalog ===
+index.js|23||state:0|eff:0|tg:0|confirm:0|rt:0
+KatalogMainContainer.js|1015|b2_teklif_logs,b2_urun_katalogu,b2_urun_varyant_stok,b0_sistem_loglari|state:27|eff:3|tg:6|confirm:3|rt:1
+useKatalog.js|212||state:17|eff:2|tg:3|confirm:1|rt:0
+katalogApi.js|164||state:0|eff:0|tg:0|confirm:0|rt:1
+=== kesim ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+KesimMainContainer.js|572|b1_kesim_operasyonlari,b1_model_taslaklari,production_orders,b1_maliyet_kayitlari,b1_kumas_arsivi,b0_sistem_loglari|state:15|eff:3|tg:7|confirm:2|rt:1
+useKesim.js|72||state:8|eff:2|tg:0|confirm:1|rt:0
+kesimApi.js|54|b1_kesim_operasyonlari,b1_model_taslaklari,b0_sistem_loglari|state:0|eff:0|tg:1|confirm:0|rt:1
+=== kumas ===
+index.js|12||state:0|eff:0|tg:0|confirm:0|rt:0
+KumasMainContainer.js|687|b1_kumas_arsivi,b2_tedarikciler,b1_aksesuar_arsivi,b0_sistem_loglari|state:19|eff:2|tg:6|confirm:1|rt:1
+useKumas.js|147||state:16|eff:2|tg:0|confirm:1|rt:1
+kumasApi.js|117|b1_kumas_arsivi,b2_tedarikciler,b1_aksesuar_arsivi,b0_sistem_loglari|state:0|eff:0|tg:3|confirm:0|rt:1
+=== maliyet ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+MaliyetMainContainer.js|625|b1_maliyet_kayitlari,production_orders,b0_sistem_loglari|state:18|eff:3|tg:6|confirm:3|rt:1
+useMaliyet.js|132||state:10|eff:2|tg:0|confirm:1|rt:0
+maliyetApi.js|46|b1_maliyet_kayitlari,b1_model_taslaklari,b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== modelhane ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+M2_FizikselMuhendislikFormu.js|200||state:3|eff:0|tg:0|confirm:0|rt:0
+M2_GelenIlhamKarti.js|123||state:0|eff:0|tg:0|confirm:0|rt:0
+ModelhaneMainContainer.js|907|b1_arge_trendler,b1_numune_uretimleri,b1_model_taslaklari,b1_dikim_talimatlari,b1_model_kaliplari,b0_sistem_loglari|state:19|eff:4|tg:1|confirm:1|rt:1
+useModelhane.js|114|b1_model_taslaklari,b0_sistem_loglari|state:9|eff:2|tg:2|confirm:1|rt:1
+modelhaneApi.js|44|b1_model_taslaklari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== muhasebe ===
+index.js|12||state:0|eff:0|tg:0|confirm:0|rt:0
+MuhasebeMainContainer.js|716|b1_muhasebe_raporlari,b1_model_taslaklari,b1_maliyet_kayitlari,b0_sistem_loglari|state:12|eff:2|tg:5|confirm:2|rt:1
+useMuhasebe.js|168||state:11|eff:2|tg:0|confirm:2|rt:1
+hermAi.js|39||state:0|eff:0|tg:0|confirm:0|rt:0
+muhasebeApi.js|135|b1_muhasebe_raporlari,b1_model_taslaklari,b0_sistem_loglari,b1_maliyet_kayitlari|state:0|eff:0|tg:4|confirm:0|rt:0
+=== musteriler ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+MusterilerMainContainer.js|529|b2_musteriler,b0_sistem_loglari|state:17|eff:2|tg:3|confirm:1|rt:1
+useMusteriler.js|91|b2_musteriler,b2_siparisler,b0_sistem_loglari|state:10|eff:2|tg:0|confirm:1|rt:1
+musterilerApi.js|54|b2_musteriler,b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:1
+=== personel ===
+index.js|6||state:0|eff:0|tg:0|confirm:0|rt:0
+PersonelMainContainer.js|826|b1_sistem_ayarlari,b1_personel,b2_kasa_hareketleri,b0_sistem_loglari,b1_personel_devam|state:18|eff:3|tg:6|confirm:2|rt:1
+usePersonelV2.js|219|b1_sistem_ayarlari,b1_personel,b1_personel_devam,b0_sistem_loglari|state:15|eff:3|tg:4|confirm:2|rt:1
+hermAi.js|44||state:0|eff:0|tg:0|confirm:0|rt:0
+personelApi.js|111|b1_personel,b1_personel_devam,b1_sistem_ayarlari,b0_sistem_loglari|state:0|eff:0|tg:4|confirm:0|rt:1
+=== raporlar ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+RaporlarMainContainer.js|546|b1_model_taslaklari,b1_kumas_arsivi,b2_siparisler,b1_personel,b1_maliyet_kayitlari,b1_muhasebe_raporlari,b1_personel_devam|state:11|eff:2|tg:3|confirm:0|rt:1
+useRaporlar.js|185|b1_model_taslaklari,b1_kumas_arsivi,b2_siparisler,b1_personel,b1_maliyet_kayitlari,b1_muhasebe_raporlari,b1_personel_devam|state:11|eff:2|tg:2|confirm:0|rt:1
+raporlarApi.js|92|b1_maliyet_kayitlari,b2_siparisler|state:0|eff:0|tg:0|confirm:0|rt:1
+=== siparisler ===
+index.js|12||state:0|eff:0|tg:0|confirm:0|rt:0
+SiparislerMainContainer.js|961|b2_siparisler,b2_musteriler,b2_urun_katalogu,b2_siparis_kalemleri,b2_stok_hareketleri,b0_sistem_loglari|state:18|eff:2|tg:6|confirm:1|rt:2
+useSiparisler.js|172||state:17|eff:2|tg:0|confirm:1|rt:1
+hermAi.js|35||state:0|eff:0|tg:0|confirm:0|rt:0
+siparislerApi.js|146|b2_musteriler,b2_urun_katalogu,b2_siparisler,b2_stok_hareketleri,b2_siparis_kalemleri,b0_sistem_loglari|state:0|eff:0|tg:5|confirm:0|rt:0
+=== stok ===
+index.js|7||state:0|eff:0|tg:0|confirm:0|rt:0
+StokMainContainer.js|460|b2_urun_katalogu,b2_stok_hareketleri,b0_sistem_loglari|state:10|eff:2|tg:4|confirm:1|rt:1
+useStok.js|102||state:8|eff:2|tg:0|confirm:1|rt:0
+hermAi.js|39||state:0|eff:0|tg:0|confirm:0|rt:0
+stokApi.js|80|b2_urun_katalogu,b2_stok_hareketleri,b0_sistem_loglari|state:0|eff:0|tg:3|confirm:0|rt:1
+=== tasarim ===
+TasarimMainContainer.js|468|b0_tasarim_ayarlari|state:15|eff:3|tg:0|confirm:0|rt:0
+=== uretim ===
+index.js|24||state:0|eff:0|tg:0|confirm:0|rt:0
+IsEmriListesi.js|126||state:0|eff:0|tg:0|confirm:0|rt:0
+MaliyetOzeti.js|96||state:0|eff:0|tg:0|confirm:0|rt:0
+UretimSayfasi.js|378||state:0|eff:0|tg:0|confirm:0|rt:0
+useIsEmri.js|414|b1_model_taslaklari,production_orders,b1_personel,b1_maliyet_kayitlari,b1_muhasebe_raporlari,b0_sistem_loglari|state:21|eff:3|tg:6|confirm:3|rt:1
+uretimApi.js|117|b1_model_taslaklari,production_orders,b1_personel,b1_maliyet_kayitlari,b1_muhasebe_raporlari,b0_sistem_loglari|state:0|eff:0|tg:0|confirm:0|rt:0

@@ -1,7 +1,11 @@
 version: "2"
 
 ffmpeg:
+<<<<<<< HEAD
+  bin: "C:\\Users\\Esisya\\Desktop\\47_SilBaştan\\stream-server\\ffmpeg.exe"
+=======
   bin: "C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe"
+>>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
 rtsp:
   disable_auth: true

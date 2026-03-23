@@ -11,9 +11,10 @@ RETURNS TABLE(urun_kodu varchar, urun_adi text, stok_adeti numeric, min_stok num
 AS $$
 BEGIN
   RETURN QUERY 
-  SELECT uk.urun_kodu, uk.urun_adi, uk.stok_adeti, uk.min_stok 
+  SELECT uk.urun_kodu, uk.urun_adi_tr::text, uk.stok_adeti, uk.min_stok_alarm
   FROM public.b2_urun_katalogu uk 
-  WHERE uk.durum = 'aktif' AND uk.stok_adeti < COALESCE(uk.min_stok, 0)
+  WHERE uk.aktif = true AND uk.stok_adeti < COALESCE(uk.min_stok_alarm, 0)
   ORDER BY uk.stok_adeti ASC;
 END;
 $$ LANGUAGE plpgsql;
+

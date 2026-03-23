@@ -1,5 +1,17 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+
+// ─── GÜVENLİK YAMASI: Parametre Doğrulama ───────────────────────────
+// SQL injection ve tehlikeli select kalıplarını engelle
+const GUVENLI_KOLON_REGEX = /^[a-zA-Z0-9_,.*() ]+$/;
+const TEHLIKELI_KALIPLAR = /(\b(DROP|DELETE|INSERT|UPDATE|ALTER|EXEC|UNION|SELECT\s+\*\s+FROM)\b|--|;|\/\*)/i;
+
+function parametreGuvenliMi(deger) {
+    if (!deger || typeof deger !== 'string') return false;
+    if (TEHLIKELI_KALIPLAR.test(deger)) return false;
+    if (!GUVENLI_KOLON_REGEX.test(deger)) return false;
+    return true;
+}
 
 export async function POST(request) {
     try {
@@ -18,10 +30,32 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Bu tabloya erisim izni yok.' }, { status: 403 });
         }
 
-        let sorgu = supabaseAdmin.from(tablo).select(sutunlar || '*');
+        // ─── SUTUNLAR DOĞRULAMASI ───────────────────────────────
+        // ESKİ: sutunlar doğrudan supabase.select() içine geçiriliyordu
+        //        → SQL injection riski (örn: "*, (SELECT password FROM users)")
+        // YENİ: Regex whitelist + tehlikeli kalıp engeli
+        let secimKolonlari = '*';
+        if (sutunlar && typeof sutunlar === 'string' && sutunlar !== '*') {
+            if (!parametreGuvenliMi(sutunlar)) {
+                return NextResponse.json(
+                    { hata: 'Geçersiz sutunlar parametresi. Sadece alfanümerik, virgül ve alt çizgi kabul edilir.' },
+                    { status: 400 }
+                );
+            }
+            secimKolonlari = sutunlar;
+        }
+
+        let sorgu = supabaseAdmin.from(tablo).select(secimKolonlari);
 
         if (filtreler && typeof filtreler === 'object') {
             for (const [alan, deger] of Object.entries(filtreler)) {
+                // Filtre alan adı doğrulaması
+                if (!parametreGuvenliMi(alan)) {
+                    return NextResponse.json(
+                        { hata: `Geçersiz filtre alan adı: ${alan}` },
+                        { status: 400 }
+                    );
+                }
                 if (deger !== undefined && deger !== null) {
                     sorgu = sorgu.eq(alan, deger);
                 }
@@ -29,11 +63,26 @@ export async function POST(request) {
         }
 
         if (order?.alan) {
+            // Order alan adı doğrulaması
+            if (!parametreGuvenliMi(order.alan)) {
+                return NextResponse.json(
+                    { hata: `Geçersiz sıralama alan adı: ${order.alan}` },
+                    { status: 400 }
+                );
+            }
             sorgu = sorgu.order(order.alan, { ascending: order.artan ?? false });
         }
 
         if (limit) {
-            sorgu = sorgu.limit(Number(limit));
+            // Limit doğrulama — sadece 1-1000 arasında
+            const sayi = Number(limit);
+            if (!Number.isInteger(sayi) || sayi < 1 || sayi > 1000) {
+                return NextResponse.json(
+                    { hata: 'Limit 1-1000 arasında bir tam sayı olmalıdır.' },
+                    { status: 400 }
+                );
+            }
+            sorgu = sorgu.limit(sayi);
         }
 
         const { data, error } = await sorgu;

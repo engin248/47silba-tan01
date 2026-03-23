@@ -65,17 +65,15 @@ export default function ImalatMainContainer() {
     const [onayBekleyenIsler, setOnayBekleyenIsler] = useState([]);
 
     useEffect(() => {
-        let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
-
-        const isYetkili = kullanici?.grup === 'tam' || uretimPin;
+        const jwtGecerli = !!document.cookie.includes('sb47_jwt_token') || !!document.cookie.includes('sb47_auth_session');
+        const isYetkili = kullanici?.grup === 'tam' || kullanici?.grup === 'uretim' || jwtGecerli;
         setYetkiliMi(isYetkili);
 
         let kanal;
         const baslatKanal = () => {
             if (isYetkili && !document.hidden) {
-                // [AI ZIRHI]: Realtime WebSocket (Visibility Optimizasyonu)
                 kanal = supabase.channel('imalat-gercek-zamanli-optimize')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'v2_order_production_steps' }, () => {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_operasyon_takip' }, () => {
                         if (mainTab === 'uretim') yukleSahadakiIsler();
                         else if (mainTab === 'maliyet_muhasebe') yukleOnayBekleyenIsler();
                     })
@@ -185,35 +183,31 @@ export default function ImalatMainContainer() {
 
         setLoading(true);
         try {
-            // ZIRH: V2 ve B1 köprüsü! 
-            // Shadow Model Yaratımı (Eski tabloların kilitlenmemesi için gölge v2 objesi basılıyor)
-            let modKodu = seciliModel.b1_model_taslaklari ? seciliModel.b1_model_taslaklari.model_kodu : 'BİLİNMİYOR';
-            let { data: shadowModel } = await supabase.from('v2_models').select('id').eq('model_name', modKodu).single();
-            if (!shadowModel) {
-                const { data: yModel } = await supabase.from('v2_models').insert([{ model_name: modKodu, material_cost: 0 }]).select().single();
-                shadowModel = yModel;
-            }
+            const modelId = seciliModel.b1_model_taslaklari?.id || seciliModel.id;
+            const modKodu = seciliModel.b1_model_taslaklari?.model_kodu || 'BİLİNMİYOR';
 
-            // Gölge Siparişi (Quantity dinamik, M3'ten veya Input'tan beslenir)
-            const { data: orderData, error: orderErr } = await supabase
-                .from('v2_production_orders')
-                .insert([{ order_code: seciliModel.order_code || 'ORD-' + Date.now(), model_id: shadowModel?.id, quantity: parseInt(uretimAdeti), status: 'pending' }])
+            // 1. Bant adımını b1_operasyon_adimlari'na yaz
+            const { data: stepData, error: stepErr } = await supabase
+                .from('b1_operasyon_adimlari')
+                .insert([{ step_name: islemAdimlari[0].islem_adi, estimated_duration_minutes: parseInt(islemAdimlari[0].ideal_sure_dk) || 0 }])
                 .select().single();
-            if (orderErr) throw orderErr;
+            if (stepErr) throw stepErr;
 
-            const { data: stepData } = await supabase.from('v2_production_steps')
-                .insert([{ step_name: islemAdimlari[0].islem_adi, estimated_duration_minutes: islemAdimlari[0].ideal_sure_dk }])
+            // 2. Model iş akışını b1_model_is_akislari'na bağla
+            const { data: wfData, error: wfErr } = await supabase
+                .from('b1_model_is_akislari')
+                .insert([{ model_id: modelId, step_id: stepData.id, step_order: 1 }])
                 .select().single();
+            if (wfErr) throw wfErr;
 
-            const { data: wfData } = await supabase.from('v2_model_workflows')
-                .insert([{ model_id: shadowModel?.id, step_id: stepData.id, step_order: 1 }])
-                .select().single();
+            // 3. Bant takip kaydını b1_operasyon_takip'e ekle
+            const { error: takipErr } = await supabase
+                .from('b1_operasyon_takip')
+                .insert([{ order_id: seciliModel.id, model_workflow_id: wfData.id, status: 'assigned' }]);
+            if (takipErr) throw takipErr;
 
-            await supabase.from('v2_order_production_steps')
-                .insert([{ order_id: orderData.id, model_workflow_id: wfData.id, status: 'assigned' }]);
-
-            // GERÇEK SİPARİŞİ DE GÜNCELLE
-            await supabase.from('production_orders').update({ status: 'in_progress' }).eq('id', seciliModel.id);
+            // 4. Production order'ı güncelle
+            await supabase.from('production_orders').update({ status: 'in_progress', quantity: parseInt(uretimAdeti) }).eq('id', seciliModel.id);
 
             showMessage(`İŞLEMLER ONAYLANDI! ${parseInt(uretimAdeti)} Adet Üretim Bandına fırlatıldı!`);
             telegramBildirim(`🚀 SERİ ÜRETİM BAŞLADI!\nModel: ${modKodu}\nAtanan İlk Adım: ${islemAdimlari[0].islem_adi}\nMiktar: ${parseInt(uretimAdeti)} Adet`);
@@ -225,7 +219,7 @@ export default function ImalatMainContainer() {
             yukleTeknikFoyler();
         } catch (error) {
             if (!navigator.onLine || error.message?.includes('fetch')) {
-                showMessage('İnternet Yok: Sistem üretim bandı işlemini çevrimdışı kuyruğa alamıyor (Karmaşık Relasyonlar).', 'error');
+                showMessage('İnternet Yok: Sistem üretim bandı işlemini çevrimdışı kuyruğa alamıyor.', 'error');
             } else showMessage('Bağlantı veya Yetki Hatası: ' + error.message, 'error');
         }
         setLoading(false);
@@ -234,7 +228,13 @@ export default function ImalatMainContainer() {
     // --- 3. PENCERE FONKSİYONLARI ---
     const yukleSahadakiIsler = async () => {
         try {
-            const res = await Promise.race([supabase.from('v2_order_production_steps').select('*, v2_production_orders(order_code, quantity, v2_models(model_name))').neq('status', 'completed').limit(200), timeoutPromise()]);
+            const res = await Promise.race([
+                supabase.from('b1_operasyon_takip')
+                    .select('*, production_orders(order_code, quantity, b1_model_taslaklari(model_kodu, model_adi))')
+                    .neq('status', 'completed')
+                    .limit(200),
+                timeoutPromise()
+            ]);
             if (res.error) throw res.error;
             if (res.data) setSahadakiIsler(res.data);
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
@@ -242,7 +242,7 @@ export default function ImalatMainContainer() {
 
     const yuklePersoneller = async () => {
         try {
-            const res = await Promise.race([supabase.from('v2_users').select('*').limit(100), timeoutPromise()]);
+            const res = await Promise.race([supabase.from('b1_personel').select('*').limit(100), timeoutPromise()]);
             if (res.error) throw res.error;
             if (res.data) setPersoneller(res.data);
         } catch (error) { showMessage('Personel listesi hatası: ' + error.message, 'error'); }
@@ -252,7 +252,7 @@ export default function ImalatMainContainer() {
         if (islemdeId === id) return;
         setIslemdeId(id);
         try {
-            const { error } = await supabase.from('v2_order_production_steps').update({ status: 'in_progress', start_time: new Date().toISOString() }).eq('id', id);
+            const { error } = await supabase.from('b1_operasyon_takip').update({ status: 'in_progress', start_time: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             showMessage('SAHA: Kronometre çalışmaya başladı. İşçinin primi/maliyeti hesaplanıyor.');
             telegramBildirim(`⏱️ ÜRETİM: Kronometre Başlatıldı. Bant çalışıyor.`);
@@ -265,7 +265,7 @@ export default function ImalatMainContainer() {
         if (islemdeId === id) return;
         setIslemdeId(id);
         try {
-            const { error } = await supabase.from('v2_order_production_steps').update({ status: 'blocked_machine' }).eq('id', id);
+            const { error } = await supabase.from('b1_operasyon_takip').update({ status: 'blocked_machine' }).eq('id', id);
             if (error) throw error;
             showMessage('VİCDAN-ADALET: Arıza(Duruş) bildirildi. İşçiden zarar kesilmeyecek, sisteme yazılacak.', 'error');
             telegramBildirim(`⚠️ ÜRETİM DURDU!\nMakina Arızası veya Gecikme Bildirildi.`);
@@ -278,7 +278,7 @@ export default function ImalatMainContainer() {
         if (islemdeId === id) return;
         setIslemdeId(id);
         try {
-            const { error } = await supabase.from('v2_order_production_steps').update({ status: 'waiting_for_proof', end_time: new Date().toISOString() }).eq('id', id);
+            const { error } = await supabase.from('b1_operasyon_takip').update({ status: 'waiting_for_proof', end_time: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             showMessage('SAHA: İş Bitti! Analiz ve Onay için 4. Pencereye (Maliye/Karargah) yansıdı.');
             telegramBildirim(`✅ ÜRETİM BANDI: Bir operasyon tamamlandı!\nMüfettiş Onayı ve Analiz Bekleniyor.`);
@@ -290,7 +290,13 @@ export default function ImalatMainContainer() {
     // --- 4. PENCERE FONKSİYONLARI ---
     const yukleOnayBekleyenIsler = async () => {
         try {
-            const res = await Promise.race([supabase.from('v2_order_production_steps').select('*, v2_production_orders(order_code, quantity, v2_models(model_name, material_cost))').eq('status', 'waiting_for_proof').limit(200), timeoutPromise()]);
+            const res = await Promise.race([
+                supabase.from('b1_operasyon_takip')
+                    .select('*, production_orders(order_code, quantity, b1_model_taslaklari(model_kodu, model_adi, numune_maliyeti))')
+                    .eq('status', 'waiting_for_proof')
+                    .limit(200),
+                timeoutPromise()
+            ]);
             if (res.error) throw res.error;
             if (res.data) setOnayBekleyenIsler(res.data);
         } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
@@ -300,14 +306,14 @@ export default function ImalatMainContainer() {
         if (islemdeId === islem.id) return;
         setIslemdeId(islem.id);
         try {
-            const { error } = await supabase.from('v2_order_production_steps').update({ status: 'completed' }).eq('id', islem.id);
+            const { error } = await supabase.from('b1_operasyon_takip').update({ status: 'completed' }).eq('id', islem.id);
             if (error) throw error;
 
-            // 💥 KASAP OPERASYONU: Otomatik Maliyet / Muhasebeye Fiş Kesme
-            const siparis_id = islem.order_id || (islem.v2_production_orders ? islem.v2_production_orders.id : null);
+            // Otomatik Maliyet / Muhasebeye Fiş Kesme
+            const siparis_id = islem.order_id;
             if (siparis_id) {
-                const operasyonZamaniDk = 42; // Sembolik standart süre
-                const dakikaMaliyeti = 4; // Ortalama Bant işçilik baremi (Dakikada 4 TL)
+                const operasyonZamaniDk = 42;
+                const dakikaMaliyeti = 4;
                 const toplamMaliyet = operasyonZamaniDk * dakikaMaliyeti;
 
                 await supabase.from('b1_maliyet_kayitlari').insert([{
@@ -318,9 +324,6 @@ export default function ImalatMainContainer() {
                     onay_durumu: 'hesaplandi'
                 }]);
             }
-
-            // FPY (Kusursuzluk) Onayı
-            if (islem.worker_id) { }
 
             showMessage(`MÜFETTİŞ: Her şey kusursuz. Operasyon maliyeti (₺) MUHASEBE süzgecinden geçti. Kasa'ya +Net Değer olarak yazıldı!`);
             telegramBildirim(`📊 KALİTE VE MALİYET ONAYLANDI: Kusursuz üretim Muhasebe'ye işlendi!`);
@@ -333,7 +336,7 @@ export default function ImalatMainContainer() {
         if (islemdeId === is.id) return;
         setIslemdeId(is.id);
         try {
-            const { error } = await supabase.from('v2_order_production_steps').update({ status: 'assigned', rework_count: (is.rework_count || 0) + 1 }).eq('id', is.id);
+            const { error } = await supabase.from('b1_operasyon_takip').update({ status: 'assigned', rework_count: (is.rework_count || 0) + 1 }).eq('id', is.id);
             if (error) throw error;
             showMessage('MÜFETTİŞ: Hatalı Dikim Tespit Edildi! (FPY Düştü). İşlem Fasona/Ustaya "Tekrar Dik" diye geri fırlatıldı.', 'error');
             telegramBildirim(`🚫 KALİTE REDDİ! Üretilen mal kusurlu. Revizyona (Tamire) gönderildi. Fire maliyeti hesaplanıyor.`);
@@ -580,8 +583,8 @@ export default function ImalatMainContainer() {
                                     </div>
                                     {sahadakiIsler.filter(i => i.status === kolon.key).map(is => (
                                         <div key={is.id} className={`bg-white rounded-xl p-3 mb-2 shadow-sm border border-${kolon.renk}-100`}>
-                                            <div className="font-black text-xs text-slate-800">{is.v2_production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
-                                            <div className="text-[10px] font-bold text-slate-500 mb-2">{is.v2_production_orders?.v2_models?.model_name || '—'}</div>
+                                            <div className="font-black text-xs text-slate-800">{is.production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
+                                            <div className="text-[10px] font-bold text-slate-500 mb-2">{is.production_orders?.b1_model_taslaklari?.model_kodu || '—'}</div>
                                             {kolon.key === 'assigned' && (
                                                 <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className={`mt-1 font-black text-[10px] bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors w-full ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                     {islemdeId === is.id ? '...' : (isAR ? '▶ ابدأ' : '▶ Başlat')}
@@ -623,12 +626,12 @@ export default function ImalatMainContainer() {
                                         <div key={is.id} className={`border-2 rounded-xl p-5 flex flex-col shadow-sm transition-all ${is.status === 'in_progress' ? 'border-orange-400 bg-orange-50/50' : 'border-slate-200 bg-white'}`}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
-                                                    <h3 className="font-black text-lg text-slate-800 uppercase">[{isAR ? 'الرمز' : 'KOD'}: {is.v2_production_orders?.order_code}]</h3>
-                                                    <p className="text-sm text-slate-600 font-bold mt-1">{isAR ? 'الطلب' : 'Sipariş'}: {is.v2_production_orders?.v2_models?.model_name || (isAR ? 'نموذج مخفي' : 'Gizli Model')}</p>
+                                                    <h3 className="font-black text-lg text-slate-800 uppercase">[{isAR ? 'الرمز' : 'KOD'}: {is.production_orders?.order_code}]</h3>
+                                                    <p className="text-sm text-slate-600 font-bold mt-1">{isAR ? 'الطلب' : 'Sipariş'}: {is.production_orders?.b1_model_taslaklari?.model_kodu || (isAR ? 'نموذج مخفي' : 'Gizli Model')}</p>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1">
                                                     <span className="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-black border uppercase">{is.status}</span>
-                                                    <span className="text-xs font-bold text-gray-500">{isAR ? 'الكمية' : 'Miktar'}: {is.v2_production_orders?.quantity} {isAR ? 'قطعة' : 'Adet'}</span>
+                                                    <span className="text-xs font-bold text-gray-500">{isAR ? 'الكمية' : 'Miktar'}: {is.production_orders?.quantity} {isAR ? 'قطعة' : 'Adet'}</span>
                                                 </div>
                                             </div>
 
@@ -673,14 +676,14 @@ export default function ImalatMainContainer() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {personeller.filter(p => !p.email.includes('admin')).map(p => (
+                                            {personeller.filter(p => !p.email?.includes('admin')).map(p => (
                                                 <tr key={p.id} className="border-b bg-white hover:bg-slate-50">
                                                     <td className="p-3">
-                                                        <div className="font-black text-sm text-slate-800 truncate max-w-[150px]">{p.full_name || 'Usta'}</div>
-                                                        <div className="text-[10px] font-bold text-gray-400 mt-1">{p.role}</div>
+                                                        <div className="font-black text-sm text-slate-800 truncate max-w-[150px]">{p.ad_soyad || p.full_name || 'Usta'}</div>
+                                                        <div className="text-[10px] font-bold text-gray-400 mt-1">{p.gorev || p.unvan || '—'}</div>
                                                     </td>
                                                     <td className="p-3 text-center">
-                                                        <span className={`px-2 py-1 font-black rounded text-sm ${p.fp_yield >= 1.0 ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>% {Number(p.fp_yield * 100).toFixed(0)}</span>
+                                                        <span className={`px-2 py-1 font-black rounded text-sm ${(p.fp_yield || 0) >= 1.0 ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>% {Number((p.fp_yield || 0) * 100).toFixed(0)}</span>
                                                     </td>
                                                     <td className="p-3 text-center">
                                                         <div className="font-black text-indigo-600">{p.social_points || 0} Puan</div>
@@ -719,8 +722,8 @@ export default function ImalatMainContainer() {
 
                                 <div className="flex justify-between items-start mb-6 border-b pb-4">
                                     <div>
-                                        <h3 className="text-2xl font-black text-slate-800 uppercase mb-1">{is.v2_production_orders?.v2_models?.model_name || 'Gizli Model'}</h3>
-                                        <p className="text-sm font-bold text-gray-500 uppercase">SİPARİŞ KODU: {is.v2_production_orders?.order_code} | MİKTAR: {is.v2_production_orders?.quantity} ADET</p>
+                                        <h3 className="text-2xl font-black text-slate-800 uppercase mb-1">{is.production_orders?.b1_model_taslaklari?.model_kodu || is.production_orders?.b1_model_taslaklari?.model_adi || 'Gizli Model'}</h3>
+                                        <p className="text-sm font-bold text-gray-500 uppercase">SİPARİŞ KODU: {is.production_orders?.order_code} | MİKTAR: {is.production_orders?.quantity} ADET</p>
                                     </div>
                                 </div>
 
@@ -733,7 +736,7 @@ export default function ImalatMainContainer() {
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'تجاوز حد التكلفة؟' : 'Maliyet Sınırı Delindi mi?'}</span>
                                         <div className="font-black text-2xl text-emerald-600">{isAR ? 'آمن' : 'GÜVENLİ'}</div>
-                                        <span className="text-[10px] font-bold text-emerald-500">{isAR ? 'الهدف' : 'Hedef'}: {is.v2_production_orders?.v2_models?.material_cost || 0}₺</span>
+                                        <span className="text-[10px] font-bold text-emerald-500">{isAR ? 'الهدف' : 'Hedef'}: {is.production_orders?.b1_model_taslaklari?.numune_maliyeti || 0}₺</span>
                                     </div>
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'نقاط الجودة (الأخطاء)' : 'Kalite Skoru (Hata)'}</span>

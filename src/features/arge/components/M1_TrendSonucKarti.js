@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { TrendingUp, Plus, ExternalLink, Bot, Zap, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
 
@@ -22,6 +22,10 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
         if (kasifYukleniyor) return;
         setKasifYukleniyor(true);
         setKasifSonucu(null);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s Timeout
+
         try {
             const res = await fetch('/api/agent/kasif', {
                 method: 'POST',
@@ -33,12 +37,19 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
                     sezon: sonuc.sezon || 'genel',
                     hermesSkoru: skor,
                 }),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             const data = await res.json();
             setKasifSonucu(data);
             setKasifAcik(true);
         } catch (e) {
-            setKasifSonucu({ error: 'Kaşif bağlantı hatası: ' + e.message });
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') {
+                setKasifSonucu({ error: 'Kaşif bağlantısı zaman aşımına uğradı. Veri boyutu büyük olabilir veya ajan meşgul.' });
+            } else {
+                setKasifSonucu({ error: 'Kaşif bağlantı hatası: ' + e.message });
+            }
         } finally {
             setKasifYukleniyor(false);
         }
@@ -82,6 +93,21 @@ export default function M1_TrendSonucKarti({ sonuc, onKaydet, isAR }) {
                 {sonuc.fiyat_araligi && (
                     <div style={{ marginBottom: 6 }}>
                         💰 <strong>Fiyat:</strong> {sonuc.fiyat_araligi}
+                    </div>
+                )}
+                {sonuc.hedef_musteri && (
+                    <div style={{ marginBottom: 6 }}>
+                        🎯 <strong>Hedef Kitle:</strong> {sonuc.hedef_musteri}
+                    </div>
+                )}
+                {sonuc.pazar_uyumu && (
+                    <div style={{ marginBottom: 6, color: '#3b82f6' }}>
+                        🌍 <strong>Pazar Uyumu:</strong> {sonuc.pazar_uyumu}
+                    </div>
+                )}
+                {sonuc.kategori && (
+                    <div style={{ marginBottom: 6, color: '#8b5cf6', textTransform: 'capitalize' }}>
+                        🏷️ <strong>Kategori:</strong> {sonuc.kategori}
                     </div>
                 )}
                 {sonuc.risk_seviyesi && (

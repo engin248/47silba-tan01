@@ -1,4 +1,4 @@
-/**
+﻿/**
  * features/kumas/services/kumasApi.js
  * Tablolar: b1_kumas_arsivi, b1_aksesuar_arsivi, b2_tedarikciler
  */
@@ -39,6 +39,24 @@ export async function gorselArsivGetir() {
         ...k.map(x => ({ ...x, tip: 'kumas', ad: x.kumas_adi })),
         ...a.map(x => ({ ...x, tip: 'aksesuar', ad: x.aksesuar_adi })),
     ];
+}
+
+export async function m1TalepleriGetir() {
+    const { data, error } = await supabase.from('b1_arge_trendler')
+        .select('*')
+        .eq('durum', 'onaylandi')
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+export async function firsatlariGetir() {
+    const { data, error } = await supabase.from('b2_malzeme_katalogu')
+        .select('*')
+        .eq('is_firsat', true)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
 }
 
 // ─── YAZMA (API route üzerinden + offline fallback) ───────────────
@@ -112,5 +130,7 @@ export const BOSH_AKS = { aksesuar_kodu: '', aksesuar_adi: '', aksesuar_adi_ar: 
 // ─── ALIAS (useKumas.js uyumluluğu için) ─────────────────────────
 export const fetchKumas = kumaslariGetir;
 export const fetchAksesuar = aksesuarlariGetir;
+export const fetchM1Talepleri = m1TalepleriGetir;
 export const fetchGorselArsiv = gorselArsivGetir;
+export const fetchFirsatlar = firsatlariGetir;
 export const kaydiSil = kumasSil;

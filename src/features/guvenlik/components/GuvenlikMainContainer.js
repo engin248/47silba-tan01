@@ -23,7 +23,7 @@ export default function GuvenlikMainContainer() {
     const [yetkiState, setYetkiState] = useState({ uretim: '', genel: '' });
     const [pinDegistir, setPinDegistir] = useState({ grup: 'uretim', eskiPin: '', yeniPin: '', yeniPin2: '' });
     const [hataliGirisler, setHataliGirisler] = useState({}); // GVN-02: { grup: count }
-    const [islemdeId, setIslemdeId] = useState(null); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(null); // ÇİFT TIKLAMA KORUMASI
 
     useEffect(() => {
         try {
@@ -95,10 +95,10 @@ export default function GuvenlikMainContainer() {
 
     if (kullanici?.grup !== 'tam') {
         return (
-            <div dir={isAR ? 'rtl' : 'ltr'} style={{ textAlign: 'center', padding: '5rem', background: '#f8fafc', borderRadius: 20, border: '2px solid #e2e8f0' }}>
+            <div dir={isAR ? 'rtl' : 'ltr'} style={{ textAlign: 'center', padding: '5rem', background: '#0b1d1a', borderRadius: 20, border: '2px solid #e2e8f0' }}>
                 <Shield size={44} color="#94a3b8" style={{ marginBottom: '1rem' }} />
                 <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#6366f1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>M17 — Erişim Yönetimi & Güvenlik</div>
-                <h2 style={{ color: '#374151', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem yönetimine aittir</h2>
+                <h2 style={{ color: '#e2e8f0', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem yönetimine aittir</h2>
                 <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.85rem' }}>
                     Erişim ayarları merkezi olarak yönetilmektedir.
                 </p>
@@ -108,7 +108,7 @@ export default function GuvenlikMainContainer() {
 
 
     const inp = {
-        width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb',
+        width: '100%', padding: '9px 12px', border: '2px solid #1e4a43',
         borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit',
         boxSizing: 'border-box', outline: 'none',
     };
@@ -208,11 +208,11 @@ export default function GuvenlikMainContainer() {
                             💡 Yetki verdiğinizde sistem bir kod belirler — o kodu ilgili kişiyle paylaşırsınız. İstediğiniz zaman kapatabilirsiniz; kod anında geçersiz olur.
                         </div>
                         {GRUPLAR.map(g => (
-                            <div key={g.key} style={{ background: 'white', border: `2px solid ${g.aktif ? g.renk + '40' : '#e5e7eb'}`, borderRadius: 14, padding: '1.25rem' }}>
+                            <div key={g.key} style={{ background: '#122b27', border: `2px solid ${g.aktif ? g.renk + '40' : '#e5e7eb'}`, borderRadius: 14, padding: '1.25rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div>
-                                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', marginBottom: 4 }}>{g.label}</div>
-                                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{g.aciklama}</div>
+                                        <div style={{ fontWeight: 800, color: 'white', fontSize: '0.92rem', marginBottom: 4 }}>{g.label}</div>
+                                        <div style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>{g.aciklama}</div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: g.aktif ? '#ecfdf5' : '#fef2f2', color: g.aktif ? '#059669' : '#dc2626' }}>
@@ -221,7 +221,7 @@ export default function GuvenlikMainContainer() {
                                     </div>
                                 </div>
                                 {g.aktif && (
-                                    <div style={{ marginTop: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                                    <div style={{ marginTop: 10, padding: '8px 12px', background: '#0b1d1a', borderRadius: 8, fontSize: '0.72rem', color: '#a7f3d0', fontWeight: 600 }}>
                                         Aktif kod mevcut — paylaşıldıysa erişim açık.
                                     </div>
                                 )}
@@ -232,7 +232,7 @@ export default function GuvenlikMainContainer() {
                                     </button>
                                     {g.aktif && (
                                         <button onClick={() => yetkiIptal(g.key)}
-                                            style={{ padding: '9px 16px', background: 'white', border: '2px solid #ef4444', color: '#dc2626', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
+                                            style={{ padding: '9px 16px', background: '#122b27', border: '2px solid #ef4444', color: '#dc2626', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
                                             🚫 Kapat
                                         </button>
                                     )}
@@ -247,17 +247,17 @@ export default function GuvenlikMainContainer() {
             {sekme === 'genel' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '1rem' }}>
                     {Object.entries(ERISIM_GRUPLARI).map(([key, g]) => (
-                        <div key={key} style={{ background: 'white', border: `1px solid ${GRUP_RENK[key]}30`, borderRadius: 14, padding: '1.25rem' }}>
+                        <div key={key} style={{ background: '#122b27', border: `1px solid ${GRUP_RENK[key]}30`, borderRadius: 14, padding: '1.25rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.75rem' }}>
                                 <span style={{ fontSize: '1.5rem' }}>{g.gosterge}</span>
                                 <div>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>{g.label} Erişimi</div>
+                                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.92rem' }}>{g.label} Erişimi</div>
                                     <div style={{ fontSize: '0.65rem', color: GRUP_RENK[key], fontWeight: 700 }}>
                                         {Object.values(ERISIM_MATRISI).filter(m => m[key] !== null && m[key] !== undefined).length} sayfa
                                     </div>
                                 </div>
                             </div>
-                            <p style={{ fontSize: '0.72rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>{GRUP_ACIKLAMA[key]}</p>
+                            <p style={{ fontSize: '0.72rem', color: '#a7f3d0', margin: 0, lineHeight: 1.5 }}>{GRUP_ACIKLAMA[key]}</p>
                         </div>
                     ))}
                     <div style={{ background: '#0f172a', borderRadius: 14, padding: '1.25rem' }}>
@@ -268,7 +268,7 @@ export default function GuvenlikMainContainer() {
                             { label: 'Giriş kaydı', val: 'Aktif' },
                         ].map((i, idx) => (
                             <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: '0.72rem' }}>
-                                <span style={{ color: '#64748b' }}>{i.label}</span>
+                                <span style={{ color: '#a7f3d0' }}>{i.label}</span>
                                 <span style={{ color: '#34d399', fontWeight: 700 }}>✅ {i.val}</span>
                             </div>
                         ))}
@@ -278,11 +278,11 @@ export default function GuvenlikMainContainer() {
 
             {/* ── ERİŞİM TABLOSU ── */}
             {sekme === 'erisim' && (
-                <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
+                <div style={{ background: '#122b27', borderRadius: 14, padding: '1.25rem', border: '1px solid #1e4a43', overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                         <thead>
-                            <tr style={{ background: '#f8fafc' }}>
-                                <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 800, color: '#374151', borderBottom: '2px solid #e5e7eb' }}>Sayfa</th>
+                            <tr style={{ background: '#0b1d1a' }}>
+                                <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 800, color: '#e2e8f0', borderBottom: '2px solid #e5e7eb' }}>Sayfa</th>
                                 {Object.entries(ERISIM_GRUPLARI).map(([k, g]) => (
                                     <th key={k} style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 800, color: GRUP_RENK[k], borderBottom: '2px solid #e5e7eb' }}>
                                         {g.gosterge} {g.label}
@@ -293,7 +293,7 @@ export default function GuvenlikMainContainer() {
                         <tbody>
                             {Object.entries(ERISIM_MATRISI).map(([href, erisim]) => (
                                 <tr key={href} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                    <td style={{ padding: '7px 14px', fontWeight: 600, color: '#0f172a', fontFamily: 'monospace', fontSize: '0.72rem' }}>{href}</td>
+                                    <td style={{ padding: '7px 14px', fontWeight: 600, color: 'white', fontFamily: 'monospace', fontSize: '0.72rem' }}>{href}</td>
                                     {Object.keys(ERISIM_GRUPLARI).map(grup => (
                                         <td key={grup} style={{ padding: '7px 14px', textAlign: 'center' }}>
                                             {erisim[grup] === 'full' && <span style={{ background: '#ecfdf5', color: '#059669', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}>✅ Tam</span>}
@@ -314,11 +314,11 @@ export default function GuvenlikMainContainer() {
                     <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: '1.25rem', fontSize: '0.8rem', fontWeight: 600, color: '#92400e' }}>
                         Erişim kodu değişikliklerini kalıcı hale getirmek için sunucu ortam değişkenlerini güncelleyin.
                     </div>
-                    <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 14, padding: '1.5rem' }}>
-                        <h3 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem', fontSize: '0.95rem' }}>Erişim Kodu Güncelle</h3>
+                    <div style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 14, padding: '1.5rem' }}>
+                        <h3 style={{ fontWeight: 800, color: 'white', marginBottom: '1rem', fontSize: '0.95rem' }}>Erişim Kodu Güncelle</h3>
                         <div style={{ display: 'grid', gap: '0.875rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Erişim Grubu</label>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' }}>Erişim Grubu</label>
                                 <select value={pinDegistir.grup} onChange={e => setPinDegistir({ ...pinDegistir, grup: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
                                     {Object.entries(ERISIM_GRUPLARI).map(([k, g]) => (
                                         <option key={k} value={k}>{g.gosterge} {g.label} Erişimi</option>
@@ -326,19 +326,22 @@ export default function GuvenlikMainContainer() {
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Mevcut Kod</label>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' }}>Mevcut Kod</label>
                                 <input type="password" value={pinDegistir.eskiPin} onChange={e => setPinDegistir({ ...pinDegistir, eskiPin: e.target.value })} style={inp} />
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod</label>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod</label>
                                 <input type="password" maxLength={20} value={pinDegistir.yeniPin} onChange={e => setPinDegistir({ ...pinDegistir, yeniPin: e.target.value })} style={inp} />
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod (Tekrar)</label>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' }}>Yeni Kod (Tekrar)</label>
                                 <input type="password" maxLength={20} value={pinDegistir.yeniPin2} onChange={e => setPinDegistir({ ...pinDegistir, yeniPin2: e.target.value })} style={inp} />
                             </div>
+                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px', fontSize: '0.75rem', color: '#991b1b', fontWeight: 600 }}>
+                                ⚠️ <strong style={{ color: '#7f1d1d' }}>KRİTİK BİLGİ:</strong> Bu panelden yapılan şifre değişikliği yalnızca bu cihaz/tarayıcı için "Yerel Yönetici Yetkisi" tanımlar. Sistemin global şifresi (ENV) değişmez. Cihazınızı devretmeden önce çıkış yapın.
+                            </div>
                             <button disabled={islemdeId === 'pinDegistir'} onClick={handlePinDegistir}
-                                style={{ background: '#047857', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1 }}>
+                                style={{ background: '#047857', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: islemdeId === 'pinDegistir' ? 'wait' : 'pointer', fontSize: '0.88rem', opacity: islemdeId === 'pinDegistir' ? 0.6 : 1, marginTop: '4px' }}>
                                 {islemdeId === 'pinDegistir' ? 'Güncelleniyor...' : 'Kodu Güncelle'}
                             </button>
                         </div>
@@ -350,14 +353,14 @@ export default function GuvenlikMainContainer() {
             {sekme === 'log' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>{loglar.length} kayıt</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a7f3d0' }}>{loglar.length} kayıt</span>
                         <button disabled={islemdeId === 'logTemizle'} onClick={logTemizle}
-                            style={{ background: 'white', border: '1px solid #e5e7eb', color: '#64748b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'logTemizle' ? 'wait' : 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'logTemizle' ? 0.5 : 1 }}>
+                            style={{ background: '#122b27', border: '1px solid #1e4a43', color: '#a7f3d0', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'logTemizle' ? 'wait' : 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, opacity: islemdeId === 'logTemizle' ? 0.5 : 1 }}>
                             <RefreshCw size={12} /> {islemdeId === 'logTemizle' ? 'Temizleniyor...' : 'Temizle'}
                         </button>
                     </div>
                     {loglar.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 14, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', background: '#0b1d1a', borderRadius: 14, border: '2px dashed #e5e7eb' }}>
                             <Clock size={40} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.85rem' }}>Henüz giriş kaydı yok.</p>
                         </div>
@@ -366,10 +369,10 @@ export default function GuvenlikMainContainer() {
                         {loglar.map((log, i) => {
                             const g = ERISIM_GRUPLARI[log.grup];
                             return (
-                                <div key={i} style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 10, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div key={i} style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 10, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <span style={{ fontSize: '1.1rem' }}>{g?.gosterge || '?'}</span>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.82rem' }}>{g?.label || log.grup} Erişimi</div>
+                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.82rem' }}>{g?.label || log.grup} Erişimi</div>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{formatTarih(log.saat)}</div>
                                     </div>
                                     <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 10px', borderRadius: 6, background: log.islem === 'giris' ? '#ecfdf5' : '#f8fafc', color: log.islem === 'giris' ? '#059669' : '#94a3b8' }}>
@@ -386,25 +389,25 @@ export default function GuvenlikMainContainer() {
             {sekme === 'guvenlik_durum' && (
                 <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1.25rem' }}>
-                            <h3 style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', marginBottom: '1rem' }}> Hatalı Giriş Takibi (GVN-02)</h3>
+                        <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 14, padding: '1.25rem' }}>
+                            <h3 style={{ fontWeight: 800, color: 'white', fontSize: '0.92rem', marginBottom: '1rem' }}> Hatalı Giriş Takibi (GVN-02)</h3>
                             {['uretim', 'genel', 'tam'].map(g => {
                                 const sayi = hataliGirisler[g] || 0;
                                 return (
                                     <div key={g} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#374151', textTransform: 'capitalize' }}>{g} grubu</span>
+                                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#e2e8f0', textTransform: 'capitalize' }}>{g} grubu</span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                             <span style={{ fontWeight: 900, fontSize: '0.8rem', color: sayi >= 5 ? '#dc2626' : sayi > 0 ? '#d97706' : '#10b981' }}>
                                                 {sayi}/5 deneme
                                             </span>
-                                            {sayi > 0 && <button onClick={() => (() => { const pin = prompt('Sıfırlamak için Admin PIN girin:'); const dogruPin = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_ADMIN_PIN) || '9999'; if (pin !== dogruPin) { goster('Yetkisiz! PIN hatalı.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sıfırlandı.'); })()} style={{ fontSize: '0.65rem', background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#64748b' }}>sıfırla</button>}
+                                             {sayi > 0 && <button onClick={async () => { const pin = prompt('Sifirlamak icin Admin PIN girin:'); if (!pin) return; try { const res = await fetch('/api/pin-dogrula', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin, grup: 'tam' }) }); const d = await res.json(); if (!d.token) { goster('Yetkisiz! PIN hatali.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sifirlandi.'); } catch { goster('Sunucu hatasi.', 'error'); } }} style={{ fontSize: '0.65rem', background: '#173a34', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#a7f3d0' }}>sifirla</button>}
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
-                        <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1.25rem' }}>
-                            <h3 style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', marginBottom: '1rem' }}> Güvenlik Kontrol Listesi (GVN-04)</h3>
+                        <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 14, padding: '1.25rem' }}>
+                            <h3 style={{ fontWeight: 800, color: 'white', fontSize: '0.92rem', marginBottom: '1rem' }}> Güvenlik Kontrol Listesi (GVN-04)</h3>
                             {[
                                 { label: 'PIN Koruması', ok: true },
                                 { label: 'Hatalı Giriş Kilidi (5 deneme)', ok: true },
@@ -414,7 +417,7 @@ export default function GuvenlikMainContainer() {
                                 { label: 'IP Kısıtlama', ok: false },
                             ].map((item, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f8fafc', fontSize: '0.78rem' }}>
-                                    <span style={{ color: '#374151', fontWeight: 600 }}>{item.label}</span>
+                                    <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{item.label}</span>
                                     <span style={{ fontWeight: 800, color: item.ok ? '#10b981' : '#f59e0b' }}>{item.ok ? '' : ' Planlandı'}</span>
                                 </div>
                             ))}
@@ -422,8 +425,8 @@ export default function GuvenlikMainContainer() {
                     </div>
 
                     {/* [M17] AKTİF OTURUMLAR WİDGET (GVN-06) */}
-                    <div style={{ background: 'white', border: '2px solid #e0f2fe', borderRadius: 14, padding: '1.25rem', marginTop: '1.5rem', marginBottom: '8rem' }}>
-                        <h3 style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.92rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ background: '#122b27', border: '2px solid #e0f2fe', borderRadius: 14, padding: '1.25rem', marginTop: '1.5rem', marginBottom: '8rem' }}>
+                        <h3 style={{ fontWeight: 900, color: 'white', fontSize: '0.92rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                             Aktif Oturum Yönetimi (M17)
                         </h3>
                         {kullanici ? (
@@ -445,7 +448,8 @@ export default function GuvenlikMainContainer() {
                         )}
                     </div>
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

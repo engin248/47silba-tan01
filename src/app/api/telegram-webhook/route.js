@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase service key ile (storage yazma yetkisi için)
@@ -48,13 +48,13 @@ export async function POST(request) {
     );
     // ─── GÜVENLİK: Telegram Secret Token Doğrulama ────────────────────────
     if (!TELEGRAM_WEBHOOK_SECRET) {
-        console.warn('[telegram-webhook] TELEGRAM_WEBHOOK_SECRET tanımlanmamış!');
+
         return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const gelenSecret = request.headers.get('x-telegram-bot-api-secret-token');
     if (gelenSecret !== TELEGRAM_WEBHOOK_SECRET) {
-        console.warn('[telegram-webhook] Geçersiz secret token — istek reddedildi');
+
         await supabase.from('b0_telegram_log').insert({
             chat_id: 'BILINMIYOR', komut: 'YETKISIZ_ERISIM',
             sonuc: 'ENGELLENDI', tarih: new Date().toISOString()

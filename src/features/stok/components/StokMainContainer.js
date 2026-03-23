@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * features/stok/components/StokMainContainer.js
  * Kaynak: app/stok/page.js → features mimarisine taşındı
@@ -34,7 +34,7 @@ export default function StokDepoKarargahi() {
     const [yeniHareket, setYeniHareket] = useState(BOSH_HAREKET);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [arama, setArama] = useState('');
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
 
     const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
 
@@ -172,7 +172,7 @@ export default function StokDepoKarargahi() {
                     tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M11 Sorumlusu',
                     eski_veri: { durum: `Silinen ürün kodu: ${urun_kodu}, Stok hareketi ID: ${id}` }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: StokMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b2_stok_hareketleri').delete().eq('id', id);
             if (error) throw error;
@@ -202,7 +202,7 @@ export default function StokDepoKarargahi() {
     const filtrelenmisStok = stokEnvanteri.filter(s => s.urun_kodu?.toLowerCase().includes(arama.toLowerCase()) || s.urun_adi?.toLowerCase().includes(arama.toLowerCase()));
 
     const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
-    const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
+    const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     return (
         <div style={{ padding: '2rem', fontFamily: 'inherit' }} dir={isAR ? 'rtl' : 'ltr'}>
@@ -249,10 +249,10 @@ export default function StokDepoKarargahi() {
                         <Boxes size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', margin: 0 }}>
                             {isAR ? 'إدارة المخزون (M11)' : 'Depo ve Stok Yönetimi (M11)'}
                         </h1>
-                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                        <p style={{ fontSize: '0.8rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>
                             {isAR ? 'إدارة المخزون المحمية ضد الانقطاع' : 'Stok giriş, çıkış, iade ve fire kaydı.'}
                         </p>
                     </div>
@@ -310,7 +310,7 @@ export default function StokDepoKarargahi() {
             </div>
 
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)', position: 'relative' }}>
+                <div style={{ background: '#122b27', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)', position: 'relative' }}>
                     <div style={{ position: 'absolute', top: 0, right: isAR ? 'auto' : 0, left: isAR ? 0 : 'auto', background: '#d97706', color: 'white', padding: '4px 12px', fontSize: '0.65rem', fontWeight: 900, borderBottomLeftRadius: isAR ? 0 : 18, borderBottomRightRadius: isAR ? 18 : 0, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         {isAR ? 'منطقة ٙمنة أوفلاين' : 'Offline Zirhlı Bölge'}
                     </div>
@@ -320,14 +320,14 @@ export default function StokDepoKarargahi() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                         <div>
                             <label style={lbl}>{isAR ? 'اختر المنتج *' : 'Ürün Kimliği Seç *'}</label>
-                            <select value={yeniHareket.urun_id} onChange={e => setYeniHareket({ ...yeniHareket, urun_id: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <select value={yeniHareket.urun_id} onChange={e => setYeniHareket({ ...yeniHareket, urun_id: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                 <option value="">--- {isAR ? 'اختر' : 'Ürün Seç'} ---</option>
                                 {stokEnvanteri.map(s => <option key={s.id} value={s.id}>{s.urun_kodu} ({s.net_stok} {isAR ? 'متوفر' : 'Mevcut'})</option>)}
                             </select>
                         </div>
                         <div>
                             <label style={lbl}>{isAR ? 'نوع الحركة *' : 'Hareket Tipi *'}</label>
-                            <select value={yeniHareket.hareket_tipi} onChange={e => setYeniHareket({ ...yeniHareket, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <select value={yeniHareket.hareket_tipi} onChange={e => setYeniHareket({ ...yeniHareket, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                 <option value="giris">🟢 {isAR ? 'إدخال (+)' : 'GİRİŞ (+)'}</option>
                                 <option value="cikis">🔴 {isAR ? 'إخراج (-)' : 'ÇIKIŞ (-)'}</option>
                                 <option value="iade">🟣 {isAR ? 'إرجاع (+)' : 'İADE (+)'}</option>
@@ -344,7 +344,7 @@ export default function StokDepoKarargahi() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        <button onClick={() => setFormAcik(false)} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: 'white', fontWeight: 800, cursor: 'pointer', color: '#475569' }}>
+                        <button onClick={() => setFormAcik(false)} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: '#122b27', fontWeight: 800, cursor: 'pointer', color: '#a7f3d0' }}>
                             {isAR ? 'إلغاء' : 'İPTAL ET'}
                         </button>
                         <button onClick={stokHareketiKaydet} disabled={loading} style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
@@ -363,23 +363,23 @@ export default function StokDepoKarargahi() {
                     const kritikMi = stok.net_stok <= kritikLimiti;
 
                     return (
-                        <div key={stok.id} style={{ background: 'white', border: '2px solid', borderColor: kritikMi ? '#fca5a5' : '#f1f5f9', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                        <div key={stok.id} style={{ background: '#122b27', border: '2px solid', borderColor: kritikMi ? '#fca5a5' : '#f1f5f9', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                     <div>
                                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
-                                            <span style={{ fontSize: '0.65rem', fontWeight: 900, background: '#f8fafc', color: '#475569', padding: '3px 10px', borderRadius: 6, border: '1px solid #e2e8f0' }}>KOD: {stok.urun_kodu}</span>
+                                            <span style={{ fontSize: '0.65rem', fontWeight: 900, background: '#0b1d1a', color: '#a7f3d0', padding: '3px 10px', borderRadius: 6, border: '1px solid #1e4a43' }}>KOD: {stok.urun_kodu}</span>
                                             {stok.net_stok <= (stok.min_stok || 10) && <span style={{ fontSize: '0.65rem', fontWeight: 900, background: '#fef2f2', color: '#dc2626', padding: '3px 8px', borderRadius: 6, border: '1px solid #fecaca' }}> KRİTİK STOK</span>}
                                         </div>
-                                        <h3 style={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', margin: '8px 0 0' }}>{stok.urun_adi}</h3>
-                                        {isAR && stok.urun_adi_ar && <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: '0.8rem' }}>{stok.urun_adi_ar}</p>}
+                                        <h3 style={{ fontWeight: 900, fontSize: '1.1rem', color: 'white', margin: '8px 0 0' }}>{stok.urun_adi}</h3>
+                                        {isAR && stok.urun_adi_ar && <p style={{ margin: '2px 0 0', color: '#a7f3d0', fontSize: '0.8rem' }}>{stok.urun_adi_ar}</p>}
                                     </div>
                                     {kritikMi && <AlertTriangle color="#ef4444" size={24} />}
                                 </div>
                             </div>
                             <div style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                 <div>
-                                    <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, letterSpacing: '0.05em', marginBottom: 4 }}>
+                                    <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 800, letterSpacing: '0.05em', marginBottom: 4 }}>
                                         {isAR ? 'المخزون الفعلي' : 'GERÇEK ZAMANLI STOK'}
                                     </div>
                                     <div style={{ fontWeight: 900, fontSize: '2rem', color: kritikMi ? '#dc2626' : '#059669', lineHeight: 1 }}>
@@ -391,7 +391,7 @@ export default function StokDepoKarargahi() {
                                 </div>
                                 <div style={{ textAlign: isAR ? 'left' : 'right' }}>
                                     <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, marginBottom: 4 }}>{isAR ? 'السعر' : 'Maliyet/Fiyat'}</div>
-                                    <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>{stok.satis_fiyati_tl || 0} ₺</div>
+                                    <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>{stok.satis_fiyati_tl || 0} ₺</div>
                                 </div>
                             </div>
                         </div>
@@ -400,19 +400,19 @@ export default function StokDepoKarargahi() {
             </div>
 
             {/* SON HAREKETLER (LOG BÖLÜMÜ) */}
-            <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ background: '#f8fafc', padding: '1.25rem', borderBottom: '2px solid #f1f5f9' }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ background: '#0b1d1a', padding: '1.25rem', borderBottom: '2px solid #f1f5f9' }}>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
                         <ArrowRightLeft color="#6366f1" size={20} /> {isAR ? 'الحركات الأخيرة في المستودع' : 'SON HAREKETLER (KARA KUTU)'}
                     </h2>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, margin: '4px 0 0', color: '#64748b' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, margin: '4px 0 0', color: '#a7f3d0' }}>
                         {isAR ? 'بيانات المستودع مقفلة ضد التلاعب' : 'Sistemdeki lojistik veriler manipülasyona karşı kilitlidir.'}
                     </p>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
                         <thead>
-                            <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <tr style={{ background: '#0b1d1a', color: '#a7f3d0', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'الكود' : 'Ürün Kodu'}</th>
                                 <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'نوع العملية' : 'İşlem Yönü'}</th>
                                 <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'left' : 'right' }}>{isAR ? 'الكمية' : 'Miktar'}</th>
@@ -435,7 +435,7 @@ export default function StokDepoKarargahi() {
                                         <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: 900, textAlign: isAR ? 'left' : 'right', fontSize: '1rem', color: isGiris ? '#059669' : '#dc2626' }} dir="ltr">
                                             {isGiris ? '+' : '-'}{h.adet}
                                         </td>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>{h.aciklama}</td>
+                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#a7f3d0', fontWeight: 700 }}>{h.aciklama}</td>
                                         <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(h.created_at).toLocaleString('tr-TR')}</td>
                                         {erisim === 'full' && (
                                             <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>

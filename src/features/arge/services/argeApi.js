@@ -1,4 +1,4 @@
-/**
+﻿/**
  * features/arge/services/argeApi.js
  * Tablolar: b1_arge_trendler, b1_agent_loglari
  * Hook: useArge.js (165 satır, zaten tam)
@@ -6,17 +6,25 @@
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
+const SAYFA_BOYUTU = 50;
+
 // ─── OKUMA ────────────────────────────────────────────────────────
-export async function trendleriGetir() {
+export async function trendleriGetir(sayfa = 0) {
+    const from = sayfa * SAYFA_BOYUTU;
+    const to = from + SAYFA_BOYUTU - 1;
     const [trendRes, logRes] = await Promise.allSettled([
         supabase.from('b1_arge_trendler')
-            .select('*').order('created_at', { ascending: false }).limit(200),
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false }).range(from, to),
         supabase.from('b1_agent_loglari')
-            .select('*').eq('ajan_adi', 'Trend Kâşifi')
+            .select('id, ajan_adi, mesaj, sonuc, created_at')
+            .eq('ajan_adi', 'Trend Kâşifi')
             .order('created_at', { ascending: false }).limit(5),
     ]);
     return {
         trendler: trendRes.status === 'fulfilled' ? (trendRes.value.data || []) : [],
+        toplamSayisi: trendRes.status === 'fulfilled' ? (trendRes.value.count || 0) : 0,
+        sayfaBoyutu: SAYFA_BOYUTU,
         agentLoglari: logRes.status === 'fulfilled' ? (logRes.value.data || []) : [],
     };
 }

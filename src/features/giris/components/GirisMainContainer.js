@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -113,14 +113,14 @@ export default function GirisSayfasi() {
                     <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#e2e8f0', margin: 0, letterSpacing: '-0.01em' }}>
                         {T('sistem_adi', dil)}
                     </h1>
-                    <p style={{ fontSize: '0.72rem', color: '#475569', margin: '6px 0 0', fontWeight: 600 }}>
+                    <p style={{ fontSize: '0.72rem', color: '#a7f3d0', margin: '6px 0 0', fontWeight: 600 }}>
                         {dil === 'ar' ? 'نظام الإنتاج والمتجر' : 'Üretim & Mağaza Sistemi'}
                     </p>
                 </div>
 
                 {/* PIN Kartı */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.75rem' }}>
-                    <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
+                    <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
                         {dil === 'ar' ? 'رمز الوصول' : 'Erişim Kodu'}
                     </label>
 
@@ -146,7 +146,7 @@ export default function GirisSayfasi() {
                             }}
                         />
                         <button onClick={() => setGoster(!goster)}
-                            style={{ position: 'absolute', right: dil === 'ar' ? 'auto' : 12, left: dil === 'ar' ? 12 : 'auto', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                            style={{ position: 'absolute', right: dil === 'ar' ? 'auto' : 12, left: dil === 'ar' ? 12 : 'auto', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#a7f3d0', cursor: 'pointer', padding: 4, display: 'flex' }}>
                             {goster ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                     </div>
@@ -166,7 +166,7 @@ export default function GirisSayfasi() {
                             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#fca5a5', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
                                 {kilitliSaniye}s
                             </div>
-                            <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: 6, fontWeight: 600 }}>
+                            <div style={{ fontSize: '0.68rem', color: '#a7f3d0', marginTop: 6, fontWeight: 600 }}>
                                 {MAX_DENEME} {dil === 'ar' ? 'محاولات فاشلة — يرجى الانتظار' : 'başarısız deneme — lütfen bekleyin'}
                             </div>
                         </div>
@@ -178,7 +178,7 @@ export default function GirisSayfasi() {
                     )}
                 </div>
 
-                <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#334155', marginTop: '1.25rem', fontWeight: 600 }}>
+                <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#e2e8f0', marginTop: '1.25rem', fontWeight: 600 }}>
                     {dil === 'ar' ? `الجلسة صالحة لمدة 4 ساعات • ${MAX_DENEME} محاولات خاطئة قفل ${KILIT_SURE_SN} ثانية` : `Oturum 4 saat geçerlidir • ${MAX_DENEME} yanlış denemede ${KILIT_SURE_SN}s kilit`}
                 </p>
             </div>

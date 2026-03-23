@@ -13,10 +13,6 @@
  *   muhasebe_detay   → Muhasebe kalemleri
  *   ajan_komuta      → Ajan çalıştırma paneli
  *   siparis_fiyat    → Sipariş fiyat kolonları
- *
- * Kullanım:
- *   const { yetkiVar } = useYetki('maliyet_tutar');
- *   if (!yetkiVar) return <span>****</span>;
  */
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -51,7 +47,7 @@ const VARSAYILAN_YETKILER = {
 
 const YetkiContext = createContext({
     yetkiMap: {},
-    yetkiVar: () => true,
+    yetkiVar: (_k) => true,
     yukleniyor: false,
     yetkiGuncelle: async () => { },
     tumYetkiler: VARSAYILAN_YETKILER,
@@ -97,7 +93,8 @@ export function YetkiProvider({ children }) {
             } else {
                 setYetkiMap({});
             }
-        } catch {
+        } catch (yetkiHata) {
+            console.error('[H1 YETKİ HATASI] Supabase yetki tablosu okunamadı:', yetkiHata?.message);
             setTumYetkiler(VARSAYILAN_YETKILER);
         }
         setYukleniyor(false);

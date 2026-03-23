@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useRef } from 'react';
 import { Bot, Plus, Play, Square, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle, Settings, Database, Globe, Cpu, FileText, Trash2, RefreshCw, Zap, Send, ToggleLeft, ToggleRight, Lock } from 'lucide-react';
@@ -7,91 +7,59 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import AjanKomutaGostergesi from '@/components/AjanKomutaGostergesi';
+import AjanOrchestrator from './AjanOrchestrator';
 
 // ─── AJAN GÖREV KONFİGÜRASYONU ──────────────────────────────
 // Koordinatör buradan her ajanın her görevini açıp kapatır
 // AKTİF = true → Ajan bu görevi yapıyor
 // PASİF = false → Modül yok veya gerek yok, kod bekliyor
 const VARSAYILAN_KONFIGUR = {
-    sabah: {
-        isim: 'Sabah Subayı', ikon: '🌅', renk: '#f59e0b',
+    trendyol: {
+        isim: 'Trendyol Gölge Avcısı', ikon: '🛒', renk: '#f97316',
         gorevler: [
-            { id: 'sb_1', ad: 'Sipariş 2 gün teslim alarmı', aktif: false, tablo: 'b2_siparisler', neden_pasif: 'Gerçek sipariş takibi sisteme oturmadı' },
-            { id: 'sb_2', ad: 'Sıfır stok alarmı', aktif: false, tablo: 'b2_urun_katalogu', neden_pasif: 'Stok akışı henüz gerçekçi değil' },
-            { id: 'sb_3', ad: 'Onay bekleyen trend sayısı (sadece bilgi)', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'sb_4', ad: 'Üretim kayıt takibi (kim-ne-ne zaman)', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
-            { id: 'sb_5', ad: 'Ödenmemiş fatura', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'sb_6', ad: 'Kasa bakiye özeti', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'sb_7', ad: 'Aktif personel sayısı', aktif: true, tablo: 'b1_personel', neden_pasif: '' },
-            { id: 'sb_8', ad: 'Ortak görev tahtası — bekleyen iş emirleri', aktif: true, tablo: 'b1_ajan_gorevler', neden_pasif: '' },
+            { id: 'ty_1', ad: 'Sepete Ekleme Deltası (Hız) Takibi', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'ty_2', ad: 'Yorum Zehri (1-Yıldız Şikayet Oranı) Analizi', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'ty_3', ad: 'Fiyat Baskısı & Rekabet Kan Gölü Tespiti', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'ty_4', ad: 'Favori/Kaydetme Artış Sinyalleri', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' }
         ]
     },
-    aksam: {
-        isim: 'Akşamcı', ikon: '🌆', renk: '#6366f1',
+    tiktok: {
+        isim: 'TikTok Gözcüsü', ikon: '🎵', renk: '#000000',
         gorevler: [
-            { id: 'ak_1', ad: 'Bugün tamamlanan üretim', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
-            { id: 'ak_2', ad: 'Yarın teslim siparişleri', aktif: true, tablo: 'b2_siparisler', neden_pasif: '' },
-            { id: 'ak_3', ad: 'Günlük kasa özeti', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'ak_4', ad: 'Yarım kalan üretim işleri', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
-            { id: 'ak_5', ad: 'Kapanış logu yaz', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
+            { id: 'tk_1', ad: 'Videolarda Viral Kopma Hızı', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'tk_2', ad: 'İçerik Klonlanma/Taklit Edilme Çarpanı', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'tk_3', ad: 'Video Süresi ve Tamamlanma Oranı', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'tk_4', ad: '"Sahte Bildirim/Balon Yönelim" Filtresi', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' }
         ]
     },
-    nabiz: {
-        isim: 'Nabız', ikon: '💓', renk: '#ef4444',
+    instagram: {
+        isim: 'Instagram Radar Botu', ikon: '📸', renk: '#e1306c',
         gorevler: [
-            { id: 'nb_1', ad: 'Stok alarm kontrolü', aktif: true, tablo: 'b2_urun_katalogu', neden_pasif: '' },
-            { id: 'nb_2', ad: 'Maliyet aşımı takibi', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
-            { id: 'nb_3', ad: 'Diğer ajanlar durdu mu? (müfettişlik)', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
-            { id: 'nb_4', ad: 'Vadesi geçen ödeme', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'nb_5', ad: 'Yaklaşan stok erken uyarı', aktif: true, tablo: 'b2_urun_katalogu', neden_pasif: '' },
+            { id: 'ig_1', ad: 'Koleksiyona Kaydetme Sıcaklık Skoru', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'ig_2', ad: 'Yönlendirme Linki (Swipe) Tıklamaları', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'ig_3', ad: 'Boutique (Butik) Hesapların Sahiplenme Hızı', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' }
         ]
     },
-    zincir: {
-        isim: 'Zincirci', ikon: '⛓️', renk: '#10b981',
+    facebook: {
+        isim: 'Facebook Demografi Analizörü', ikon: '📘', renk: '#1877f2',
         gorevler: [
-            { id: 'zn_1', ad: 'M1→M2: Trend onaylandı → Kumaş', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'zn_2', ad: 'M2→M3: Kumaş seçildi → Kalıp', aktif: true, tablo: 'b1_kumas_arsiv', neden_pasif: '' },
-            { id: 'zn_3', ad: 'M3→M4: Kalıp hazır → Modelhane', aktif: true, tablo: 'b1_model_taslaklari', neden_pasif: '' },
-            { id: 'zn_4', ad: 'M4→M5: Numune onaylı → Kesim', aktif: true, tablo: 'b1_modelhane_kayitlari', neden_pasif: '' },
-            { id: 'zn_5', ad: 'M5→M6: Kesim bitti → Üretim', aktif: false, tablo: 'b1_kesim_emirleri', neden_pasif: 'Kesim emirleri tablosu yok' },
-            { id: 'zn_6', ad: 'M6→M7: Üretim bitti → Maliyet', aktif: false, tablo: 'b1_uretim_kayitlari', neden_pasif: 'Maliyet bağlantısı kurulmadı' },
-            { id: 'zn_7', ad: 'M7→M8: Maliyet onaylı → Muhasebe', aktif: false, tablo: 'b1_maliyet_kalemleri', neden_pasif: 'Maliyet kalemleri tablosu yok' },
-            { id: 'zn_8', ad: 'Zincir sağlık raporu', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
+            { id: 'fb_1', ad: 'Organik Büyüme vs Şişirilmiş Reklam Ayrımı', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'fb_2', ad: 'Yaş Kırılımı ve Hedef Kitle Cüzdan Analizi', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' }
         ]
     },
-    finans: {
-        isim: 'Finans Kalkanı', ikon: '🛡️', renk: '#8b5cf6',
+    motor: {
+        isim: 'M1 Merkezi Karar Motoru (Zırh)', ikon: '⚙️', renk: '#10b981',
         gorevler: [
-            { id: 'fn_1', ad: 'Maliyet aşımı %15+', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
-            { id: 'fn_2', ad: 'Vadeli alacak takibi', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Modül yok' },
-            { id: 'fn_3', ad: 'Kasa kritik seviye', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Kasa modülü yok' },
-            { id: 'fn_4', ad: 'Gider artışı %20+', aktif: true, tablo: 'b2_kasa_hareketleri', neden_pasif: '' },
-            { id: 'fn_5', ad: 'Kâr marjı %10 altı uyarı', aktif: true, tablo: 'b2_kasa_hareketleri', neden_pasif: '' },
-            { id: 'fn_6', ad: 'Gelecek ödeme hatırlatma', aktif: false, tablo: 'b2_kasa_hareketleri', neden_pasif: 'Ödeme takvimi yok' },
+            { id: 'mt_1', ad: 'Sosyal Sinyal ile Pazar Satışını Üst Üste Oturtma', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'mt_2', ad: 'Kullanıcı Tanımlı Kâr Tavan/Taban Filtrelemesi', aktif: true, tablo: 'b1_arge_products', neden_pasif: '' },
+            { id: 'mt_3', ad: 'Kumaş/Malzeme Tedarik Risk Oranı Hesaplama', aktif: true, tablo: 'b1_kumas_arsivi', neden_pasif: '' },
+            { id: 'mt_4', ad: 'Geçmiş Satış Kayıtlarından Tarihsel Doğrulama', aktif: false, tablo: 'b2_siparisler', neden_pasif: 'Geçmiş ciro datası/veri havuzu henüz boş' }
         ]
-    },
-    kasif: {
-        isim: 'Trend Kâşifi', ikon: '🔍', renk: '#3b82f6',
-        gorevler: [
-            { id: 'tk_1', ad: 'Duplicate trend kontrolü', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'tk_2', ad: 'Perplexity AI ile internet araştırması', aktif: true, tablo: 'internet', neden_pasif: '' },
-            { id: 'tk_3', ad: 'Kalite + uzunluk filtresi', aktif: true, tablo: 'dahili', neden_pasif: '' },
-            { id: 'tk_4', ad: 'Ar-Ge tablosuna kaydet (durum: inceleniyor)', aktif: true, tablo: 'b1_arge_trendler', neden_pasif: '' },
-            { id: 'tk_5', ad: 'Görev tamamlama raporu', aktif: true, tablo: 'b1_agent_loglari', neden_pasif: '' },
-        ]
-    },
-    muhasebe: {
-        isim: 'Muhasebe Yazıcı', ikon: '📊', renk: '#0ea5e9',
-        gorevler: [
-            { id: 'mh_1', ad: 'Aylık gelir/gider hesabı', aktif: true, tablo: 'b2_kasa_hareketleri', neden_pasif: '' },
-            { id: 'mh_2', ad: 'Model kârlılık analizi', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
-            { id: 'mh_3', ad: 'Tamamlanan üretim özeti', aktif: true, tablo: 'b1_uretim_kayitlari', neden_pasif: '' },
-            { id: 'mh_4', ad: 'Sipariş teslim oranı', aktif: true, tablo: 'b2_siparisler', neden_pasif: '' },
-            { id: 'mh_5', ad: 'Aktif personel özeti', aktif: true, tablo: 'b1_personel', neden_pasif: '' },
-            { id: 'mh_6', ad: 'Aylık raporu muhasebe tablosuna yaz', aktif: true, tablo: 'b1_muhasebe_raporlari', neden_pasif: '' },
-        ]
-    },
+    }
 };
+
+
 
 const AJAN_LISTESI = [
     { ad: 'Trend Kâşifi', ikon: '🔍', renk: '#3b82f6', modul: 'arge', aciklama: 'Trendyol, Amazon araştırır' },
@@ -137,7 +105,7 @@ export default function AjanlarMainContainer() {
     const { lang } = useLang();
     const isAR = lang === 'ar';
     const [yetkiliMi, setYetkiliMi] = useState(false);
-    const [sekme, setSekme] = useState('gorevler'); // 'gorevler' | 'konfigur'
+    const [sekme, setSekme] = useState('gorevler'); // 'gorevler' | 'konfigur' | 'orkestrator'
     const [gorevler, setGorevler] = useState(/** @type {any[]} */([]));
     const [loading, setLoading] = useState(true);
     const [formAcik, setFormAcik] = useState(false);
@@ -145,9 +113,9 @@ export default function AjanlarMainContainer() {
     const [calistiriliyor, setCalistiriliyor] = useState({});
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [filtre, setFiltre] = useState('hepsi');
-    const [secilenGorev, setSecilenGorev] = useState(null);
+    const [secilenGorev, setSecilenGorev] = useState(/** @type {any} */(null));
     const [istatistik, setIstatistik] = useState({ toplam: 0, tamamlandi: 0, calisıyor: 0, hata: 0, bekliyor: 0 });
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
     const [konfig, setKonfig] = useState(() => {
         if (typeof window !== 'undefined') {
             const k = localStorage.getItem('ajan_konfig');
@@ -155,7 +123,7 @@ export default function AjanlarMainContainer() {
         }
         return VARSAYILAN_KONFIGUR;
     });
-    const pollingRef = useRef(null);
+    const pollingRef = useRef(/** @type {ReturnType<typeof setInterval> | undefined} */(undefined));
 
     useEffect(() => {
         let ajanPin = false;
@@ -165,9 +133,11 @@ export default function AjanlarMainContainer() {
 
         let kanal;
         if (erisebilir) {
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            // [K-08 & K-15 DÜZELTME]: Realtime sadece kendi tablosunu dinliyor
+            // ESKİ: { schema: 'public' } — tüm tablolardaki DEĞİŞİKLİKLERDE Ajanlar sayfasını yeniden yüklüyordu!
+            // YENİ: Sadece ajan görevleri tablosunu izliyor → %90 daha az Supabase trafiği
             kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ajan_gorevler' }, () => { yukle(); })
                 .subscribe();
         }
 
@@ -176,13 +146,32 @@ export default function AjanlarMainContainer() {
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici]);
 
-    // [BUGFIX]: Polling devre dışı kalmıştı (dead code). Düzeltildi.
+    // [BUGFIX ve TİTREME DÜZELTMESİ]: Polling ekranı baştan çizmeyip sadece var olanı yeniler.
     useEffect(() => {
-        pollingRef.current = /** @type {any} */ (setInterval(() => {
-            if (gorevler.some(g => g.durum === 'calisıyor')) yukle();
-        }, 5000));
-        return () => clearInterval(/** @type {any} */(pollingRef.current));
-    }, [gorevler]);
+        pollingRef.current = setInterval(() => {
+            // Sadece çalışıyor state'inde sessizce yükle (Loading spinner çıkartmadan)
+            setGorevler(prev => {
+                if (prev.some(g => g.durum === 'calisıyor')) yukleSessiz();
+                return prev;
+            });
+        }, 5000);
+        return () => clearInterval(pollingRef.current);
+    }, []);
+
+    const yukleSessiz = async () => {
+        try {
+            const { data, error } = await supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50);
+            if (error) return;
+            if (data) {
+                setGorevler(data);
+                setIstatistik({
+                    toplam: data.length, tamamlandi: data.filter(g => g.durum === 'tamamlandi').length,
+                    'calisıyor': data.filter(g => g.durum === 'calisıyor').length, hata: data.filter(g => g.durum === 'hata').length,
+                    bekliyor: data.filter(g => g.durum === 'bekliyor').length,
+                });
+            }
+        } catch (error) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: AjanlarMainContainer.js | Hata:', error ? error.message || error : 'Bilinmiyor'); }
+    };
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
@@ -193,7 +182,7 @@ export default function AjanlarMainContainer() {
 
     const yukle = async () => {
         try {
-            // [AI ZIRHI]: 10sn timeout DDoS kalkanı (Kriter Q)
+            // SİSTEM OPTİMİZASYONU: 10sn timeout DDoS kalkanı (Kriter Q)
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
             const { data, error } = await Promise.race([
                 supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50),
@@ -239,7 +228,7 @@ export default function AjanlarMainContainer() {
             setForm(BOS_FORM); setFormAcik(false); yukle();
             if (form.oncelik === 'acil') setTimeout(() => gorevCalistir(data.id), 500);
         } catch (error) {
-            // [AI ZIRHI]: Offline guard (Kriter J)
+            // SİSTEM OPTİMİZASYONU: Offline guard (Kriter J)
             if (!navigator.onLine || error.message?.includes('fetch')) {
                 const { cevrimeKuyrugaAl } = await import('@/lib/offlineKuyruk');
                 await cevrimeKuyrugaAl({ tablo: 'b1_ajan_gorevler', islem_tipi: 'INSERT', veri: { ...form, durum: 'bekliyor' } });
@@ -257,7 +246,15 @@ export default function AjanlarMainContainer() {
         if (!window.confirm(uyariMetni)) return;
         setCalistiriliyor(p => ({ ...p, [gorev_id]: true }));
         try {
-            const res = await fetch('/api/ajan-calistir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gorev_id }) });
+            const gorevObj = gorevler.find(g => g.id === gorev_id);
+            let endpoint = '/api/ajan-calistir'; // Default (Perplexity/Genel vb.)
+            if (gorevObj && (gorevObj.ajan_adi.includes('Yargıç') || gorevObj.ajan_adi.includes('Matematik'))) {
+                endpoint = '/api/ajan-yargic'; // Yeni Gemini Yargıç API'si
+            } else if (gorevObj && gorevObj.ajan_adi.includes('Köprü')) {
+                endpoint = '/api/kopru-ajan'; // Köprü Ajan API'si
+            }
+
+            const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gorev_id }) });
             const d = await res.json();
             d.basarili ? goster('✅ Görev tamamlandı!') : goster('⚠️ ' + (d.error || 'Hata'), 'error');
         } catch (e) { goster('Bağlantı hatası', 'error'); }
@@ -275,7 +272,7 @@ export default function AjanlarMainContainer() {
 
         try {
 
-            // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
+            // SİSTEM OPTİMİZASYONU: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: String('b1_ajan_gorevler').replace(/['"]/g, ''),
@@ -283,7 +280,7 @@ export default function AjanlarMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: AjanlarMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
             if (error) throw error;
@@ -296,7 +293,7 @@ export default function AjanlarMainContainer() {
 
     const gorevToggle = (ajanKey, gorevId) => {
         const yeni = { ...konfig };
-        const idx = yeni[ajanKey].gorevler.findIndex(g => g.id === gorevId);
+        const idx = yeni[ajanKey].gorevler.findIndex(/** @type {any} */(g) => g.id === gorevId);
         yeni[ajanKey].gorevler[idx] = { ...yeni[ajanKey].gorevler[idx], aktif: !yeni[ajanKey].gorevler[idx].aktif };
         setKonfig(yeni);
         localStorage.setItem('ajan_konfig', JSON.stringify(yeni));
@@ -331,14 +328,14 @@ export default function AjanlarMainContainer() {
                         <Bot size={26} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 m-0">AI Ajan Komuta Merkezi</h1>
-                        <p className="text-xs text-slate-500 mt-1 font-semibold">
+                        <h1 className="text-2xl font-black text-white m-0">AI Ajan Komuta Merkezi</h1>
+                        <p className="text-xs text-emerald-200 mt-1 font-semibold">
                             Görev Tahtası — Ajanlar okur, sonuçları kendi tablolarına yazar
                         </p>
                     </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                    <button onClick={yukle} className="flex items-center gap-1.5 px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold cursor-pointer text-slate-700 text-sm hover:bg-slate-50 transition-colors">
+                    <button onClick={yukle} className="flex items-center gap-1.5 px-4 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold cursor-pointer text-slate-700 text-sm hover:bg-[#0d1117] text-white transition-colors">
                         <RefreshCw size={14} /> Yenile
                     </button>
                     <button onClick={() => setFormAcik(!formAcik)} className="flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-purple-500 text-white border-none px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm shadow-[0_4px_14px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.6)] transition-all transform hover:-translate-y-0.5">
@@ -361,17 +358,22 @@ export default function AjanlarMainContainer() {
                 </div>
             )}
 
+            {/* ─── EVRENSEL AI AĞI PANOSU ─── */}
+            <div className="mb-6">
+                <AjanKomutaGostergesi />
+            </div>
+
             {/* ─── İSTATİSTİKLER ─── */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
                 {[
                     { label: 'Toplam Görev', val: istatistik.toplam, renk: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-                    { label: 'Bekliyor', val: istatistik.bekliyor, renk: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-100' },
+                    { label: 'Bekliyor', val: istatistik.bekliyor, renk: 'text-emerald-200', bg: 'bg-[#0d1117] text-white', border: 'border-slate-100' },
                     { label: 'Çalışıyor', val: istatistik.calisıyor, renk: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
                     { label: 'Tamamlandı', val: istatistik.tamamlandi, renk: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
                     { label: 'Hata', val: istatistik.hata, renk: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
                 ].map((k, i) => (
                     <div key={i} className={`${k.bg} border-2 ${k.border} rounded-xl p-3.5 text-center`}>
-                        <div className="text-[10px] text-slate-500 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
+                        <div className="text-[10px] text-emerald-200 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
                         <div className={`font-black text-2xl md:text-3xl leading-none ${k.renk}`}>{k.val}</div>
                     </div>
                 ))}
@@ -381,11 +383,12 @@ export default function AjanlarMainContainer() {
             <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1">
                 {[
                     { key: 'gorevler', label: '📋 Görev Tahtası', desc: 'İş emirleri' },
-                    { key: 'konfigur', label: '⚙️ Ajan Yapılandırma', desc: 'Aktif/Pasif' },
+                    { key: 'konfigur', label: '⚙️ Yapılandırma', desc: 'Aktif/Pasif' },
+                    { key: 'orkestrator', label: '🎯 Orkestrator', desc: '3-Worker AI' },
                 ].map(s => (
                     <button key={s.key} onClick={() => setSekme(s.key)} className={`
                         flex-1 px-4 py-2.5 rounded-lg border-none cursor-pointer font-bold text-sm transition-all text-center
-                        ${sekme === s.key ? 'bg-white text-indigo-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}
+                        ${sekme === s.key ? 'bg-[#122b27] text-indigo-600 shadow-sm' : 'bg-transparent text-emerald-200 hover:text-slate-700 hover:bg-slate-200/50'}
                     `}>
                         {s.label}
                         <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">{s.desc}</span>
@@ -409,13 +412,13 @@ export default function AjanlarMainContainer() {
                                     <div style={{ fontSize: '1rem', fontWeight: 900, color: 'white' }}>🎖️ Yeni Görev Emri</div>
                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Tüm ajanlar bu görev tahtasını okur</div>
                                 </div>
-                                <button onClick={() => setFormAcik(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+                                <button onClick={() => setFormAcik(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#a7f3d0', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div style={{ gridColumn: '1 / -1' }}>
                                     <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>🏷️ Görev Adı *</label>
-                                    <input maxLength={100} value={form.gorev_adi} onChange={e => setForm({ ...form, gorev_adi: e.target.value })}
+                                    <input dir="auto" maxLength={100} value={form.gorev_adi} onChange={e => setForm({ ...form, gorev_adi: e.target.value })}
                                         placeholder="Örn: 2026 Yaz Sezonu Trend Araştırması"
                                         style={{ width: '100%', padding: '12px 16px', background: '#1e293b', border: '2px solid #334155', borderRadius: 10, color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }} />
                                 </div>
@@ -471,14 +474,14 @@ export default function AjanlarMainContainer() {
 
                                 <div style={{ gridColumn: '1 / -1' }}>
                                     <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>📋 Görev Emri *</label>
-                                    <textarea maxLength={1000} rows={4} value={form.gorev_emri} onChange={e => setForm({ ...form, gorev_emri: e.target.value })}
+                                    <textarea dir="auto" maxLength={1000} rows={4} value={form.gorev_emri} onChange={e => setForm({ ...form, gorev_emri: e.target.value })}
                                         placeholder="Ajan ne yapmalı? Detaylı yaz..."
                                         style={{ width: '100%', padding: '12px 16px', background: '#1e293b', border: '2px solid #334155', borderRadius: 10, color: 'white', fontFamily: 'inherit', fontSize: '0.88rem', boxSizing: 'border-box', resize: 'vertical', outline: 'none', lineHeight: 1.6 }} />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                                <button onClick={() => setFormAcik(false)} style={{ padding: '11px 22px', background: 'transparent', border: '2px solid #334155', borderRadius: 10, color: '#64748b', cursor: 'pointer', fontWeight: 700 }}>İptal</button>
+                                <button onClick={() => setFormAcik(false)} style={{ padding: '11px 22px', background: 'transparent', border: '2px solid #334155', borderRadius: 10, color: '#a7f3d0', cursor: 'pointer', fontWeight: 700 }}>İptal</button>
                                 <button disabled={islemdeId === 'yeniGorev'} onClick={gorevGonder} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 28px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: islemdeId === 'yeniGorev' ? 'wait' : 'pointer', fontSize: '0.95rem', opacity: islemdeId === 'yeniGorev' ? 0.5 : 1 }}>
                                     <Send size={16} /> {islemdeId === 'yeniGorev' ? 'Gönderiliyor...' : 'Görevi Gönder'}
                                 </button>
@@ -505,10 +508,10 @@ export default function AjanlarMainContainer() {
                     </div>
 
                     {/* Görev Tablosu */}
-                    <div style={{ background: 'white', borderRadius: 16, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                    <div style={{ background: '#122b27', borderRadius: 16, border: '1px solid #1e4a43', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         <div style={{ overflowX: 'auto' }}>
-                            <div style={{ minWidth: 680 }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 100px', gap: '0.5rem', padding: '10px 16px', background: '#f8fafc', borderBottom: '2px solid #f1f5f9', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
+                            <div style={{ minWidth: 720 }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 140px', gap: '0.5rem', padding: '10px 16px', background: '#0b1d1a', borderBottom: '2px solid #f1f5f9', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
                                     <span>GÖREV</span><span>AJAN</span><span>TİP</span><span>ÖNCELİK</span><span>DURUM</span><span>SÜRE</span><span>İŞLEM</span>
                                 </div>
 
@@ -529,17 +532,17 @@ export default function AjanlarMainContainer() {
                                     const secili = secilenGorev?.id === gorev.id;
                                     return (
                                         <div key={gorev.id} style={{ borderBottom: '1px solid #f8fafc' }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 100px', gap: '0.5rem', padding: '12px 16px', alignItems: 'center', background: secili ? '#f5f3ff' : 'white', cursor: 'pointer' }}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 80px 100px 120px 80px 140px', gap: '0.5rem', padding: '12px 16px', alignItems: 'center', background: secili ? '#f5f3ff' : 'white', cursor: 'pointer' }}
                                                 onClick={() => setSecilenGorev(secili ? null : gorev)}>
                                                 <div>
-                                                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', marginBottom: 2 }}>{gorev.gorev_adi}</div>
+                                                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'white', marginBottom: 2 }}>{gorev.gorev_adi}</div>
                                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>{formatTarih(gorev.created_at)} — {gorev.hedef_modul?.toUpperCase() || 'GENEL'}</div>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                                                     <span style={{ fontSize: '1rem' }}>{ajan.ikon}</span>
                                                     <span style={{ fontSize: '0.7rem', fontWeight: 700, color: ajan.renk }}>{gorev.ajan_adi}</span>
                                                 </div>
-                                                <span style={{ fontSize: '0.68rem', fontWeight: 700, background: '#f1f5f9', color: '#64748b', padding: '3px 8px', borderRadius: 6 }}>
+                                                <span style={{ fontSize: '0.68rem', fontWeight: 700, background: '#173a34', color: '#a7f3d0', padding: '3px 8px', borderRadius: 6 }}>
                                                     {GOREV_TIPLERI.find(t => t.deger === gorev.gorev_tipi)?.ikon} {gorev.gorev_tipi}
                                                 </span>
                                                 <span style={{ fontSize: '0.68rem', fontWeight: 800, background: onc.bg, color: onc.renk, padding: '3px 10px', borderRadius: 10, border: `1px solid ${onc.renk}` }}>{onc.etiket}</span>
@@ -547,22 +550,38 @@ export default function AjanlarMainContainer() {
                                                     <DurumIcon size={12} style={{ animation: gorev.durum === 'calisıyor' ? 'spin 1s linear infinite' : 'none' }} />
                                                     {dur.etiket}
                                                 </span>
-                                                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sure(gorev.baslangic_tarihi, gorev.bitis_tarihi) || '—'}</div>
-                                                <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
-                                                    {gorev.durum === 'bekliyor' && (
-                                                        <button onClick={() => gorevCalistir(gorev.id)} disabled={calisiyor}
-                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>
-                                                            {calisiyor ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} />} Başlat
+                                                <div style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>{sure(gorev.baslangic_tarihi, gorev.bitis_tarihi) || '—'}</div>
+                                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+
+                                                    {/* B1 HİBRİT ONAY KONTROLÜ KALKANI */}
+                                                    {gorev.hibrit_onay_gerekli && gorev.yonetici_onayi === 'bekliyor' ? (
+                                                        <button onClick={async () => {
+                                                            if (!confirm('Bu Otonom Göreve YÖNETİCİ ONAYI verilsin mi?')) return;
+                                                            await supabase.from('b1_ajan_gorevler').update({ yonetici_onayi: 'onaylandi' }).eq('id', gorev.id);
+                                                            yukleSessiz();
+                                                            goster('Görev onaylandı. AI Ajan artık devreye girebilir.', 'success');
+                                                        }}
+                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 7, fontWeight: 900, cursor: 'pointer', fontSize: '0.68rem', boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)' }}>
+                                                            🛡️ ONAYLA
                                                         </button>
-                                                    )}
-                                                    {gorev.durum === 'tamamlandi' && (
-                                                        <button onClick={() => gorevCalistir(gorev.id)}
-                                                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#f1f5f9', color: '#6366f1', border: '1px solid #6366f1', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>
-                                                            <RefreshCw size={11} /> Tekrar
-                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            {gorev.durum === 'bekliyor' && (
+                                                                <button onClick={() => gorevCalistir(gorev.id)} disabled={calisiyor}
+                                                                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>
+                                                                    {calisiyor ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} />} Başlat
+                                                                </button>
+                                                            )}
+                                                            {gorev.durum === 'tamamlandi' && (
+                                                                <button onClick={() => gorevCalistir(gorev.id)}
+                                                                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#173a34', color: '#6366f1', border: '1px solid #6366f1', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>
+                                                                    <RefreshCw size={11} /> Tekrar
+                                                                </button>
+                                                            )}
+                                                        </>
                                                     )}
                                                     <button disabled={islemdeId === 'sil_' + gorev.id} onClick={() => gorevSil(gorev.id)}
-                                                        style={{ padding: '5px 8px', background: '#f8fafc', color: '#94a3b8', border: '1px solid #e5e7eb', borderRadius: 7, cursor: islemdeId === 'sil_' + gorev.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + gorev.id ? 0.3 : 1 }}>
+                                                        style={{ padding: '5px 8px', background: '#0b1d1a', color: '#94a3b8', border: '1px solid #1e4a43', borderRadius: 7, cursor: islemdeId === 'sil_' + gorev.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + gorev.id ? 0.3 : 1 }}>
                                                         <Trash2 size={11} />
                                                     </button>
                                                 </div>
@@ -571,14 +590,19 @@ export default function AjanlarMainContainer() {
                                                 <div style={{ background: '#fafafa', borderTop: '1px solid #f1f5f9', padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                                                     <div>
                                                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>📋 Görev Emri</div>
-                                                        <div style={{ fontSize: '0.82rem', color: '#374151', lineHeight: 1.6, background: 'white', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 12px' }}>{gorev.gorev_emri}</div>
+                                                        <div style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.6, background: '#122b27', border: '1px solid #1e4a43', borderRadius: 8, padding: '10px 12px' }}>{gorev.gorev_emri}</div>
+                                                        {gorev.hibrit_onay_gerekli && (
+                                                            <div style={{ marginTop: 8, fontSize: '0.7rem', color: gorev.yonetici_onayi === 'onaylandi' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+                                                                {gorev.yonetici_onayi === 'onaylandi' ? '✅ Yönetici Tarafından Onaylandı' : '🛡️ İşlem İçin Yönetici Onayı Bekleniyor!'}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>✅ Görev Sonucu</div>
                                                         {gorev.sonuc_ozeti ? (
                                                             <div style={{ fontSize: '0.82rem', color: '#065f46', lineHeight: 1.6, background: '#ecfdf5', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 12px', maxHeight: 150, overflowY: 'auto' }}>{gorev.sonuc_ozeti}</div>
                                                         ) : (
-                                                            <div style={{ fontSize: '0.78rem', color: '#94a3b8', background: 'white', border: '1px dashed #e5e7eb', borderRadius: 8, padding: '16px 12px', textAlign: 'center' }}>
+                                                            <div style={{ fontSize: '0.78rem', color: '#94a3b8', background: '#122b27', border: '1px dashed #e5e7eb', borderRadius: 8, padding: '16px 12px', textAlign: 'center' }}>
                                                                 {gorev.durum === 'bekliyor' ? '▶ Başlat butonuna bas' : '⏳ Bekleniyor...'}
                                                             </div>
                                                         )}
@@ -612,14 +636,14 @@ export default function AjanlarMainContainer() {
                         {Object.entries(konfig).map(([ajanKey, ajan]) => {
                             const aktifSayisi = ajan.gorevler.filter(g => g.aktif).length;
                             return (
-                                <div key={ajanKey} style={{ background: 'white', borderRadius: 16, border: '2px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                                <div key={ajanKey} style={{ background: '#122b27', borderRadius: 16, border: '2px solid #1e4a43', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                                     {/* Ajan başlık */}
                                     <div style={{ padding: '14px 18px', borderBottom: '2px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${ajan.renk}08` }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                             <span style={{ fontSize: '1.4rem' }}>{ajan.ikon}</span>
                                             <div>
-                                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.92rem' }}>{ajan.isim}</div>
-                                                <div style={{ fontSize: '0.66rem', color: '#64748b' }}>{aktifSayisi}/{ajan.gorevler.length} görev aktif</div>
+                                                <div style={{ fontWeight: 900, color: 'white', fontSize: '0.92rem' }}>{ajan.isim}</div>
+                                                <div style={{ fontSize: '0.66rem', color: '#a7f3d0' }}>{aktifSayisi}/{ajan.gorevler.length} görev aktif</div>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: 4 }}>
@@ -652,7 +676,7 @@ export default function AjanlarMainContainer() {
                                                         {gorev.ad}
                                                     </div>
                                                     <div style={{ fontSize: '0.62rem', color: '#94a3b8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                        <span style={{ background: '#f1f5f9', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace' }}>{gorev.tablo}</span>
+                                                        <span style={{ background: '#173a34', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace' }}>{gorev.tablo}</span>
                                                         {!gorev.aktif && gorev.neden_pasif && (
                                                             <span style={{ color: '#f59e0b', fontSize: '0.6rem' }}>⚠️ {gorev.neden_pasif}</span>
                                                         )}
@@ -677,39 +701,57 @@ export default function AjanlarMainContainer() {
                     </div>
 
                     {/* Vercel Cron API Arayüzü */}
-                    <div style={{ marginTop: '1.25rem', background: '#f8fafc', borderRadius: 16, padding: '1.25rem', border: '2px solid #e2e8f0' }}>
+                    <div style={{ marginTop: '1.25rem', background: '#0b1d1a', borderRadius: 16, padding: '1.25rem', border: '2px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem' }}>
                             <Clock size={20} color="#3b82f6" />
                             <div>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Zamanlanmış Ajan Görevleri (Cron Jobs)</div>
-                                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Ajanların belirli saatlerde otomatik uyanıp görev almasını sağlayan sistem uç noktaları (Vercel Cron uyumlu).</div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'white' }}>Zamanlanmış Ajan Görevleri (Cron Jobs)</div>
+                                <div style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>Ajanların belirli saatlerde otomatik uyanıp görev almasını sağlayan sistem uç noktaları (Vercel Cron uyumlu).</div>
                             </div>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                             {/* Sabah Cron */}
-                            <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: 10, padding: '12px' }}>
+                            <div style={{ background: '#122b27', border: '1px solid #cbd5e1', borderRadius: 10, padding: '12px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                     <div style={{ fontWeight: 800, color: '#f59e0b', fontSize: '0.8rem' }}>🌅 Sabah Operasyonu (08:00)</div>
-                                    <span style={{ fontSize: '0.65rem', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 8 * * *</span>
+                                    <span style={{ fontSize: '0.65rem', background: '#173a34', color: '#a7f3d0', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 8 * * *</span>
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 12 }}>Tüm gece üretimini toparlar, dünkü verilerle güne başlama özeti oluşturur. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=sabah_ozeti</code>)</div>
-                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Sabah Cron Job çalıştırıldı.'); goster('Sabah cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=sabah_ozeti', { headers: { 'Authorization': 'Bearer ' + (process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret') } }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#fffbeb', border: '1px solid #fcd34d', color: '#d97706', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                                <div style={{ fontSize: '0.7rem', color: '#a7f3d0', marginBottom: 12 }}>Tüm gece üretimini toparlar, dünkü verilerle güne başlama özeti oluşturur. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=sabah_ozeti</code>)</div>
+                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Sabah Cron Job çalıştırıldı.'); goster('Sabah cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=sabah_ozeti', { credentials: 'include' }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#fffbeb', border: '1px solid #fcd34d', color: '#d97706', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
                             </div>
                             {/* Gece Cron */}
-                            <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: 10, padding: '12px' }}>
+                            <div style={{ background: '#122b27', border: '1px solid #cbd5e1', borderRadius: 10, padding: '12px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                     <div style={{ fontWeight: 800, color: '#6366f1', fontSize: '0.8rem' }}>🌌 Gece Yedekleme (03:00)</div>
-                                    <span style={{ fontSize: '0.65rem', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 3 * * *</span>
+                                    <span style={{ fontSize: '0.65rem', background: '#173a34', color: '#a7f3d0', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>0 3 * * *</span>
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 12 }}>Günlük tabloları sıkıştırır, eski logları (7+ gün) arşive kaldırır ve bakım yapar. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik</code>)</div>
-                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Gece Cron Job çalıştırıldı.'); goster('Gece cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik', { headers: { 'Authorization': 'Bearer ' + (process.env.NEXT_PUBLIC_CRON_SECRET || 'dev_secret') } }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#e0e7ff', border: '1px solid #a5b4fc', color: '#4f46e5', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                                <div style={{ fontSize: '0.7rem', color: '#a7f3d0', marginBottom: 12 }}>Günlük tabloları sıkıştırır, eski logları (7+ gün) arşive kaldırır ve bakım yapar. (Endpoint: <code style={{ color: '#3b82f6' }}>/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik</code>)</div>
+                                <button onClick={() => { telegramBildirim('⏰ Manuel tetikleme: Gece Cron Job çalıştırıldı.'); goster('Gece cronu manuel tetiklendi.', 'success'); fetch('/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik', { credentials: 'include' }).then(() => yukle()); }} style={{ width: '100%', padding: '6px', background: '#e0e7ff', border: '1px solid #a5b4fc', color: '#4f46e5', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>Dürt & Manuel Tetikle</button>
+                            </div>
+
+                            {/* BATCH AI PROCESSOR */}
+                            <div style={{ background: '#122b27', border: '2px solid #ef4444', borderRadius: 10, padding: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                    <div style={{ fontWeight: 900, color: '#ef4444', fontSize: '0.8rem' }}>⚡ BATCH AI (Toplu Yapay Zeka İstekleri)</div>
+                                    <span style={{ fontSize: '0.65rem', background: '#450a0a', color: '#fca5a5', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>Manuel / 2 Saatte</span>
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#fca5a5', marginBottom: 12 }}>Gemini ve Perplexity'e giden bekleyen görevleri birleştirir (BATCH), tek paket yapar, API maliyetini %95 düşürür. <code style={{ color: '#ef4444' }}>/api/batch-ai</code></div>
+                                <button onClick={async () => {
+                                    goster('Toplu AI Görevi (Batch) başlatıldı...', 'success');
+                                    try {
+                                        const r = await fetch('/api/batch-ai', { method: 'POST' });
+                                        const d = await r.json();
+                                        goster(d.mesaj || 'Batch işlem bitti.', d.basarili ? 'success' : 'error');
+                                        yukle();
+                                    } catch (e) { goster('Batch hatası: ' + e.message, 'error'); }
+                                }} style={{ width: '100%', padding: '8px', background: '#fef2f2', border: '2px solid #f87171', color: '#dc2626', borderRadius: 6, fontWeight: 900, cursor: 'pointer', fontSize: '0.78rem' }}>🚀 Toplu AI Kuyruğunu (BATCH) Çalıştır</button>
                             </div>
                         </div>
                     </div>
 
                     {/* Özet */}
-                    <div style={{ marginTop: '1.25rem', background: 'white', borderRadius: 16, padding: '1.25rem', border: '2px solid #f1f5f9' }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.75rem' }}>📊 Toplam Görev Özeti</div>
+                    <div style={{ marginTop: '1.25rem', background: '#122b27', borderRadius: 16, padding: '1.25rem', border: '2px solid #1e4a43' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#a7f3d0', textTransform: 'uppercase', marginBottom: '0.75rem' }}>📊 Toplam Görev Özeti</div>
                         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                             {Object.values(konfig).map(ajan => {
                                 const aktif = ajan.gorevler.filter(g => g.aktif).length;
@@ -717,14 +759,14 @@ export default function AjanlarMainContainer() {
                                 return (
                                     <div key={ajan.isim} style={{ textAlign: 'center' }}>
                                         <div style={{ fontSize: '1.2rem' }}>{ajan.ikon}</div>
-                                        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>{ajan.isim}</div>
+                                        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#a7f3d0' }}>{ajan.isim}</div>
                                         <div style={{ fontSize: '0.85rem', fontWeight: 900, color: aktif > 0 ? '#10b981' : '#94a3b8' }}>{aktif}/{toplam}</div>
                                     </div>
                                 );
                             })}
                             <div style={{ textAlign: 'center', marginLeft: 'auto' }}>
                                 <div style={{ fontSize: '1.2rem' }}>🎯</div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>TOPLAM AKTİF</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#a7f3d0' }}>TOPLAM AKTİF</div>
                                 <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#6366f1' }}>
                                     {Object.values(konfig).reduce((s, a) => s + a.gorevler.filter(g => g.aktif).length, 0)}/
                                     {Object.values(konfig).reduce((s, a) => s + a.gorevler.length, 0)}
@@ -732,6 +774,13 @@ export default function AjanlarMainContainer() {
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* ─── ORKESTRATOR SEKMESİ ─── */}
+            {sekme === 'orkestrator' && yetkiliMi && (
+                <div style={{ background: '#122b27', borderRadius: 18, padding: '1.5rem', border: '2px solid #7c3aed' }}>
+                    <AjanOrchestrator />
                 </div>
             )}
 

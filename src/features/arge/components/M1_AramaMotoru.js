@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { Search, Zap, Globe, Tag, CheckCircle2, AlertTriangle, PackageSearch } from 'lucide-react';
 import { useState } from 'react';
 
@@ -69,25 +69,25 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
             </div>
 
             {/* Ana arama kutusu */}
-            <div className="flex gap-3 mb-4">
-                <div className="flex-1 relative">
-                    <Search size={18} className="text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+            <div className={`flex gap-3 mb-4 ${isAR ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className="flex-1 relative flex items-center">
+                    <Search size={18} className={`text-slate-500 absolute ${isAR ? 'right-4' : 'left-4'}`} />
                     <input
                         value={aiSorgu}
                         onChange={(e) => setAiSorgu(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder={isAR ? 'ابحث عن منتج... (مثال: قميص كتان صيفي)' : 'Ürün veya Kategori Ara... (Örn: Erkek Kargo Pantolon)'}
                         maxLength={150}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-950/50 border-2 border-slate-700 rounded-xl text-white text-sm font-bold outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-500 placeholder:font-semibold"
-                        dir={isAR ? 'rtl' : 'ltr'}
+                        className={`w-full py-3 bg-slate-950/50 border-2 border-slate-700 rounded-xl text-white text-sm font-bold outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-500 placeholder:font-semibold ${isAR ? 'pr-11 pl-4 text-right' : 'pl-11 pr-4'}`}
+                        dir="auto"
                     />
                 </div>
                 <button
                     onClick={trendAra}
                     disabled={aiAraniyor || !aiSorgu.trim()}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-sm transition-all whitespace-nowrap shadow-lg ${aiAraniyor || !aiSorgu.trim()
-                            ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-emerald-50 border border-emerald-400/50 shadow-[0_0_15px_rgba(5,150,105,0.4)] hover:shadow-[0_0_20px_rgba(5,150,105,0.6)]'
+                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
+                        : 'bg-emerald-600 hover:bg-emerald-500 text-emerald-50 border border-emerald-400/50 shadow-[0_0_15px_rgba(5,150,105,0.4)] hover:shadow-[0_0_20px_rgba(5,150,105,0.6)]'
                         }`}
                 >
                     {aiAraniyor ? (

@@ -23,27 +23,29 @@ const NAV_ITEMS = [
     { href: '/', icon: LayoutDashboard, labelTR: 'Karargâh', labelAR: 'المقر الرئيسي', group: 'ana' },
     // 1. BİRİM
     { href: '/arge', icon: TrendingUp, labelTR: 'Ar-Ge & Trend', labelAR: 'بحث وتطوير', badge: 'M1', group: 'birim1' },
-    { href: '/kumas', icon: Layers, labelTR: 'Kumaş & Arşiv', labelAR: 'أرشيف الأقمشة', badge: 'M2', group: 'birim1' },
+    { href: '/kumas', icon: Layers, labelTR: 'Kumaş & Malzeme', labelAR: 'أرشيف الأقمشة', badge: 'M2', group: 'birim1' },
     { href: '/kalip', icon: BookOpen, labelTR: 'Kalıp & Serileme', labelAR: 'القالب والتسلسل', badge: 'M3', group: 'birim1' },
-    { href: '/modelhane', icon: FileSearch, labelTR: 'Modelhane & Video', labelAR: 'النمذجة والفيديو', badge: 'M4', group: 'birim1' },
-    { href: '/kesim', icon: Scissors, labelTR: 'Kesim & Ara İşçilik', labelAR: 'القطع والتشطيب', badge: 'M5', group: 'birim1' },
-    { href: '/uretim', icon: Cpu, labelTR: 'Üretim Bandı', labelAR: 'خط الإنتاج', badge: 'M6', group: 'birim1' },
+    { href: '/modelhane', icon: FileSearch, labelTR: 'Modelhane & Prova', labelAR: 'النمذجة والفيديو', badge: 'M4', group: 'birim1' },
+    { href: '/kesim', icon: Scissors, labelTR: 'Kesim & Fire', labelAR: 'القطع والتشطيب', badge: 'M5', group: 'birim1' },
+    { href: '/uretim', icon: Cpu, labelTR: 'Üretim & Bant', labelAR: 'التصنيع وخط الإنتاج', badge: 'M6', group: 'birim1' },
     { href: '/maliyet', icon: Activity, labelTR: 'Maliyet Merkezi', labelAR: 'مركز التكلفة', badge: 'M7', group: 'birim1' },
-    { href: '/muhasebe', icon: BarChart3, labelTR: 'Muhasebe & Rapor', labelAR: 'المحاسبة والتقرير', badge: 'M8', group: 'birim1' },
+    { href: '/muhasebe', icon: BarChart3, labelTR: 'Muhasebe & Nakit', labelAR: 'المحاسبة والتقرير', badge: 'M8', group: 'birim1' },
     // 2. BİRİM
-    { href: '/katalog', icon: ShoppingBag, labelTR: 'Ürün Kataloğu', labelAR: 'كتالوج المنتجات', badge: 'M9', group: 'birim2' },
-    { href: '/siparisler', icon: ShoppingCart, labelTR: 'Siparişler', labelAR: 'إدارة الطلبات', badge: 'M10', group: 'birim2' },
-    { href: '/stok', icon: Package, labelTR: 'Stok & Sevkiyat', labelAR: 'الجرد والشحن', badge: 'M11', group: 'birim2' },
+    { href: '/katalog', icon: ShoppingBag, labelTR: 'Ürün Kartları', labelAR: 'كتالوج المنتجات', badge: 'M9', group: 'birim2' },
+    { href: '/siparisler', icon: ShoppingCart, labelTR: 'Siparişler & Kargo', labelAR: 'إدارة الطلبات', badge: 'M10', group: 'birim2' },
+    { href: '/stok', icon: Package, labelTR: 'Stok & Depo', labelAR: 'الجرد والشحن', badge: 'M11', group: 'birim2' },
     { href: '/kasa', icon: Wallet, labelTR: 'Kasa & Tahsilat', labelAR: 'الصندوق والتحصيل', badge: 'M12', group: 'birim2' },
-    { href: '/kameralar', icon: Camera, labelTR: 'Kameralar (AI)', labelAR: 'الكاميرات', badge: 'M18', group: 'birim2' },
     // YÖNETİM
     { href: '/musteriler', icon: UserCheck, labelTR: 'Müşteri CRM', labelAR: 'إدارة العملاء', badge: 'M13', group: 'yonetim' },
-    { href: '/personel', icon: Users, labelTR: 'Personel & Prim', labelAR: 'الموظفون', badge: 'M14', group: 'yonetim' },
-    { href: '/gorevler', icon: ClipboardList, labelTR: 'Görev Takibi', labelAR: 'متابعة المهام', badge: 'M15', group: 'yonetim' },
-    { href: '/raporlar', icon: PieChart, labelTR: 'Raporlar', labelAR: 'التقارير', badge: 'M16', group: 'yonetim' },
-    { href: '/ajanlar', icon: Zap, labelTR: '🤖 Ajan Komuta', labelAR: 'قيادة الوكلاء', badge: 'AI', group: 'sistem' },
-    { href: '/denetmen', icon: Bot, labelTR: 'Müfettiş (AI)', labelAR: 'المفتش', group: 'sistem' },
-    { href: '/guvenlik', icon: Shield, labelTR: 'Güvenlik', labelAR: 'الأمان', group: 'sistem' },
+    { href: '/personel', icon: Users, labelTR: 'Personel & Performans', labelAR: 'الموظفون', badge: 'M14', group: 'yonetim' },
+    { href: '/gorevler', icon: ClipboardList, labelTR: 'Görev & Kanban', labelAR: 'متابعة المهام', badge: 'M15', group: 'yonetim' },
+    { href: '/raporlar', icon: PieChart, labelTR: 'Analitik Raporlar', labelAR: 'التقارير', badge: 'M16', group: 'yonetim' },
+
+    // SİSTEM
+    { href: '/ajanlar', icon: Zap, labelTR: '🤖 AI Komuta Merkezi', labelAR: 'قيادة الوكلاء', group: 'sistem' },
+
+    { href: '/denetmen', icon: Bot, labelTR: 'Müfettiş & Öğrenme', labelAR: 'المفتش', group: 'sistem' },
+    { href: '/guvenlik', icon: Shield, labelTR: 'Güvenlik & Loglar', labelAR: 'الأمان', group: 'sistem' },
     { href: '/ayarlar', icon: Settings, labelTR: 'Sistem Ayarları', labelAR: 'الإعدادات', group: 'sistem' },
 ];
 
@@ -64,8 +66,10 @@ function SidebarInner({ isAR }) {
         const aktif = pathname === item.href;
         return (
             <Link href={item.href} className="nav-item"
+                aria-label={item.labelTR}
+                aria-current={aktif ? 'page' : undefined}
                 style={{ paddingLeft: isAR ? '8px' : '14px', paddingRight: isAR ? '14px' : '8px', opacity: aktif ? 1 : 0.85, minHeight: '36px', marginBottom: '2px' }}>
-                <item.icon size={18} />
+                <item.icon size={18} aria-hidden="true" />
                 <span style={{ flex: 1, fontSize: '1.05rem', fontWeight: 600 }}>{isAR ? item.labelAR : item.labelTR}</span>
                 {item.badge && (
                     <span style={{ fontSize: '0.55rem', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}
@@ -95,7 +99,7 @@ function SidebarInner({ isAR }) {
             {/* Ana */}
             {NAV_ITEMS.filter(n => n.group === 'ana').map(item => (
                 gorunur(item.href) && (
-                    <Link key={item.href} href={item.href} className="nav-item">
+                    <Link key={item.href} href={item.href} className="nav-item" aria-label={item.labelTR}>
                         <item.icon size={16} />
                         <span>{isAR ? item.labelAR : item.labelTR}</span>
                     </Link>
@@ -117,7 +121,7 @@ function SidebarInner({ isAR }) {
                             </div>
                             <div style={{ fontSize: '0.6rem', color: '#475569' }}>Aktif oturum</div>
                         </div>
-                        <button onClick={cikisYap} title="Çıkış Yap"
+                        <button onClick={cikisYap} title="Çıkış Yap" aria-label="Sistemden çıkış yap"
                             style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <LogOut size={11} /> Çıkış
                         </button>
@@ -179,14 +183,10 @@ function LayoutInner({ children }) {
         window.addEventListener('online', onOnline);
         window.addEventListener('offline', onOffline);
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
-            }).catch(function (err) {
-                console.error('Service Worker temizleme hatası:', err);
-            });
+        // K-16: Gerçek Service Worker Kaydı (Stale-While-Revalidate offline fallback)
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .catch(() => { /* SW kaydı sessiz başarısız olabilir */ });
         }
 
         return () => {
@@ -212,23 +212,18 @@ function LayoutInner({ children }) {
 
     useEffect(() => {
         if (!yukleniyor && !kullanici && pathname !== '/giris') {
-            router.push('/giris');
+            window.location.href = '/giris';
         }
     }, [kullanici, yukleniyor, pathname]);
 
-    if (yukleniyor) {
-        return (
-            <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                <div style={{ width: 40, height: 40, border: '4px solid #334155', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                <div style={{ color: '#94a3b8', fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.1em' }}>SİSTEME BAĞLANILIYOR...</div>
-                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-            </div>
-        );
-    }
-
-    if (isGiris || !kullanici) {
+    // KÖKLÜ ÇÖZÜM: SSR Hydration çakışmasına sebep olan "SİSTEME BAĞLANILIYOR" tam ekran kilidi KURTARILDI.
+    // Artık sistem client tarafında React'i dondurmayacak, direkt render edilecek.
+    if (isGiris || (!kullanici && yukleniyor === false)) {
         return <>{children}</>;
     }
+
+    // SSR ve mount sırasında UI uyuşmazlığını engellemek için, giriş yapılmamışsa (kullanici == null) arayüzü çizme
+    if (!kullanici) return null;
 
     return (
         <div className="layout-container" style={{ flexDirection: isAR ? 'row-reverse' : 'row' }}>
@@ -254,7 +249,8 @@ function LayoutInner({ children }) {
                 </div>
 
                 {/* Nav */}
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: '1px', padding: '0 0.625rem', overflowY: 'auto', flex: 1 }}>
+                <nav style={{ display: 'flex', flexDirection: 'column', gap: '1px', padding: '0 0.625rem', overflowY: 'auto', flex: 1 }}
+                    role="navigation" aria-label="Ana Navigasyon">
                     <SidebarInner isAR={isAR} />
                 </nav>
 
@@ -281,7 +277,9 @@ function LayoutInner({ children }) {
                         <button
                             className="hamburger-btn"
                             onClick={() => setSidebarAcik(v => !v)}
-                            aria-label="Menü"
+                            aria-label="Menüyü aç/kapat"
+                            aria-expanded={sidebarAcik}
+                            aria-controls="sidebar"
                         >
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <line x1="3" y1="6" x2="21" y2="6" />
@@ -299,8 +297,8 @@ function LayoutInner({ children }) {
                                         : "THE ORDER / NİZAM";
 
                                 return (
-                                    <h2 style={{ margin: 0, fontSize: pathname === '/' ? '1.5rem' : '1.2rem', fontWeight: 900, color: '#02624B', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        {aktifItem && <aktifItem.icon size={pathname === '/' ? 26 : 20} style={{ color: '#047857' }} />}
+                                    <h2 style={{ margin: 0, fontSize: pathname === '/' ? '1.5rem' : '1.2rem', fontWeight: 900, color: '#34d399', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        {aktifItem && <aktifItem.icon size={pathname === '/' ? 26 : 20} style={{ color: '#6ee7b7' }} />}
                                         {baslikMtn}
                                     </h2>
                                 );
@@ -313,12 +311,12 @@ function LayoutInner({ children }) {
                                 ⚡ {bekleyenIslemAdeti > 0 ? `${bekleyenIslemAdeti} Bekliyor` : 'Çevrimdışı'}
                             </span>
                         ) : (
-                            <span className="badge badge-success">
+                            <span style={{ background: 'rgba(52,211,153,0.15)', color: '#6ee7b7', padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(52,211,153,0.2)' }}>
                                 {isAR ? 'النظام نشط' : 'Sistem Aktif'}
                             </span>
                         )}
                         <BildirimZili />
-                        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: '#e2e8f0' }}>
                             {kullanici?.gosterge} {kullanici?.label}
                         </span>
                     </div>

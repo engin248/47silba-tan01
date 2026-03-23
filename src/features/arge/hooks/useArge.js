@@ -1,4 +1,4 @@
-/**
+﻿/**
  * features/arge/hooks/useArge.js
  * AR-GE Trend Araştırma Sayfası — Tüm Logic
  */
@@ -131,7 +131,7 @@ export function useArge(kullanici, isAR = false) {
                 const onaylayanAd = kullanici?.ad || 'Atölye Lideri (PIN)';
                 const ilgiliTrend = trendler.find(t => t.id === id);
                 await supabase.from('b1_agent_loglari').insert([{ ajan_adi: 'Trend Kâşifi', islem_tipi: 'Trend Onaylandı', mesaj: `Onaylayan: ${onaylayanAd}`, sonuc: 'basarili', created_at: new Date().toISOString() }]);
-                fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: `🚀 YENİ TREND ONAYLANDI!\n📌 ${ilgiliTrend?.baslik || ''}\n👤 ${onaylayanAd}` }) });
+                fetch('/api/telegram-bildirim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: `🚀 YENİ TREND ONAYLANDI!\n📌 ${ilgiliTrend?.baslik || ''}\n👤 ${onaylayanAd}` }) }).catch(() => null);
             }
         }
     };

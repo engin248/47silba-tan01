@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * features/personel/components/PersonelMainContainer.js
  * Kaynak: app/personel/page.js → features mimarisine taşındı
@@ -47,12 +47,12 @@ export default function PersonelMainContainer() {
     const [filtreRol, setFiltreRol] = useState('hepsi');
     const [sekme, setSekme] = useState('liste'); // liste | prim | devam
     const [devamlar, setDevamlar] = useState(/** @type {any[]} */([]));
-    const [avanslar, setAvanslar] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ ZIRHI]
+    const [avanslar, setAvanslar] = useState(/** @type {any[]} */([])); // [M13-M7 KÖPRÜSÜ KONTROLÜ]
     const [devamForm, setDevamForm] = useState(/** @type {any} */({ personel_id: '', tarih: new Date().toISOString().split('T')[0], durum: 'calisti', notlar: '' }));
     const [devamFormAcik, setDevamFormAcik] = useState(false);
     const [devamDuzenleId, setDevamDuzenleId] = useState(/** @type {any} */(null));
     const [sistemAyarlari, setSistemAyarlari] = useState({ dakika_basi_ucret: 2.50, prim_orani: 0.15, yillik_izin_hakki: 15 });
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -61,7 +61,7 @@ export default function PersonelMainContainer() {
 
         if (erisebilir) {
 
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            // SİSTEM OPTİMİZASYONU: Realtime Websocket (Kriter 20 & 34)
             const kanal = supabase.channel('islem-gercek-zamanli-ai')
                 .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
                 .subscribe();
@@ -102,7 +102,7 @@ export default function PersonelMainContainer() {
     const yukle = async () => {
         setLoading(true);
         try {
-            // [AI ZIRHI]: 10sn timeout DDoS kalkanı (Kriter Q)
+            // SİSTEM OPTİMİZASYONU: 10sn timeout DDoS kalkanı (Kriter Q)
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
 
             // Personelleri Çek
@@ -207,7 +207,7 @@ export default function PersonelMainContainer() {
         if (!confirm('Personel kalıcı olarak silinsin mi?')) { setIslemdeId(null); return; }
         try {
 
-            // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
+            // SİSTEM OPTİMİZASYONU: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: String('b1_personel').replace(/['"]/g, ''),
@@ -215,7 +215,7 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: PersonelMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_personel').delete().eq('id', id);
             if (error) throw error;
@@ -285,7 +285,7 @@ export default function PersonelMainContainer() {
         if (!confirm('Bu devam kaydı silinsin mi?')) { setIslemdeId(null); return; }
         try {
 
-            // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
+            // SİSTEM OPTİMİZASYONU: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
                     tablo_adi: String('b1_personel_devam').replace(/['"]/g, ''),
@@ -293,7 +293,7 @@ export default function PersonelMainContainer() {
                     kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
                     eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: PersonelMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
             const { error } = await supabase.from('b1_personel_devam').delete().eq('id', id);
             if (error) throw error;
@@ -305,7 +305,7 @@ export default function PersonelMainContainer() {
     const durumGuncelle = async (id, adSoyad, yeniDurum) => {
         if (islemdeId === 'durum_' + id) return;
         setIslemdeId('durum_' + id);
-        // [AI ZIRHI]: Offline Modu (Kriter J)
+        // SİSTEM OPTİMİZASYONU: Offline Modu (Kriter J)
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_personel', 'UPDATE', { id, durum: yeniDurum });
             setIslemdeId(null);
@@ -328,8 +328,8 @@ export default function PersonelMainContainer() {
     };
 
     const isAR = lang === 'ar';
-    const inp = /** @type {any} */ ({ width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
-    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
+    const inp = /** @type {any} */ ({ width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' });
+    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' };
 
 
 
@@ -367,7 +367,7 @@ export default function PersonelMainContainer() {
         const asim = uretimDegeri - aylikMaliyet;
         const primHakki = asim > 0 ? asim * PRIM_ORANI : 0;
 
-        // [M13-M7 KÖPRÜSÜ ZIRHI] Personelin kasadan aldığı toplam avans 
+        // [M13-M7 KÖPRÜSÜ KONTROLÜ] Personelin kasadan aldığı toplam avans 
         const avansToplam = avanslar.filter(a => a.personel_id === p.id).reduce((sum, curr) => sum + (parseFloat(curr.tutar_tl) || 0), 0);
 
         return { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam };
@@ -422,10 +422,10 @@ export default function PersonelMainContainer() {
                         <Users size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>
                             {isAR ? 'إدارة الموظفين' : 'Personel & Prim'}
                         </h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                        <p style={{ fontSize: '0.78rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>
                             {isAR ? 'سجل الموظفين — الأدوار والأجور' : 'Çalışan kaydı — Rol / Ücret / Prim takibi'}
                         </p>
                     </div>
@@ -459,7 +459,7 @@ export default function PersonelMainContainer() {
                     { label: 'Günlük Maaş', val: `₺${toplamUcretGun.toFixed(0)}`, color: '#D4AF37', bg: '#fffbeb' },
                 ].map((s, i) => (
                     <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
                         <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
                     </div>
                 ))}
@@ -474,7 +474,7 @@ export default function PersonelMainContainer() {
 
             {/* FORM */}
             {formAcik && (
-                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.08)' }}>
+                <div style={{ background: '#122b27', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.08)' }}>
                     <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>
                         {duzenleId ? '✏️ Personel Düzenle' : '👤 Yeni Personel Ekle'}
                     </h3>
@@ -485,7 +485,7 @@ export default function PersonelMainContainer() {
                         </div>
                         <div>
                             <label style={lbl}>Rol / Görev</label>
-                            <select value={form.rol} onChange={e => setForm({ ...form, rol: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <select value={form.rol} onChange={e => setForm({ ...form, rol: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                 {ROLLER.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
                             </select>
                         </div>
@@ -530,7 +530,7 @@ export default function PersonelMainContainer() {
                         </div>
                         <div>
                             <label style={lbl}>Durum</label>
-                            <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                 {DURUM.map(d => <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>)}
                             </select>
                         </div>
@@ -540,7 +540,7 @@ export default function PersonelMainContainer() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: '1rem' }}>
-                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
                         <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
                             {loading ? '...' : (duzenleId ? 'Güncelle' : 'Kaydet')}
                         </button>
@@ -567,13 +567,13 @@ export default function PersonelMainContainer() {
                 {/* PERSONEL LİSTESİ */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '0.75rem' }}>
                     {!loading && filtreli.length === 0 && (
-                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', background: '#0b1d1a', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <Users size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Personel yok. İlk çalışanı ekleyin.</p>
                         </div>
                     )}
                     {filtreli.map(p => (
-                        <div key={p.id} style={{ background: 'white', border: `2px solid ${p.durum === 'aktif' ? '#e0f2fe' : p.durum === 'izinli' ? '#fef3c7' : '#fee2e2'}`, borderRadius: 14, padding: '1.125rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                        <div key={p.id} style={{ background: '#122b27', border: `2px solid ${p.durum === 'aktif' ? '#e0f2fe' : p.durum === 'izinli' ? '#fef3c7' : '#fee2e2'}`, borderRadius: 14, padding: '1.125rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                                 <div>
                                     <span style={{ fontSize: '0.62rem', fontWeight: 800, background: '#f0f9ff', color: '#0369a1', padding: '2px 8px', borderRadius: 4 }}>{p.personel_kodu}</span>
@@ -582,9 +582,9 @@ export default function PersonelMainContainer() {
                                 </div>
                                 <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${DURUM_RENK[p.durum]}20`, color: DURUM_RENK[p.durum] }}>{p.durum}</span>
                             </div>
-                            <h3 style={{ fontWeight: 800, color: '#0f172a', margin: '4px 0', fontSize: '1rem' }}>{isAR && p.ad_soyad_ar ? p.ad_soyad_ar : p.ad_soyad}</h3>
+                            <h3 style={{ fontWeight: 800, color: 'white', margin: '4px 0', fontSize: '1rem' }}>{isAR && p.ad_soyad_ar ? p.ad_soyad_ar : p.ad_soyad}</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem', marginBottom: 8 }}>
-                                <div style={{ background: '#f8fafc', borderRadius: 6, padding: '5px 8px' }}>
+                                <div style={{ background: '#0b1d1a', borderRadius: 6, padding: '5px 8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#94a3b8', fontWeight: 700 }}>SAATLİK</div>
                                     <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0369a1' }}>₺{parseFloat(p.saatlik_ucret_tl || 0).toFixed(2)}</div>
                                 </div>
@@ -593,10 +593,10 @@ export default function PersonelMainContainer() {
                                     <div style={{ fontWeight: 900, fontSize: '0.88rem', color: '#0c4a6e' }}>₺{gunlukUcret(p)}</div>
                                 </div>
                             </div>
-                            {p.telefon && <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: 4 }}>📞 {p.telefon}</div>}
+                            {p.telefon && <div style={{ fontSize: '0.75rem', color: '#a7f3d0', marginBottom: 4 }}>📞 {p.telefon}</div>}
                             {p.ise_giris_tarihi && <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 4 }}>📅 Giriş: {p.ise_giris_tarihi}</div>}
                             <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.63rem', color: '#94a3b8', background: '#f8fafc', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>🕐 Eklenme: {formatTarih(p.created_at)}</span>
+                                <span style={{ fontSize: '0.63rem', color: '#94a3b8', background: '#0b1d1a', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>🕐 Eklenme: {formatTarih(p.created_at)}</span>
                                 {p.updated_at && p.updated_at !== p.created_at && <span style={{ fontSize: '0.63rem', color: '#f59e0b', background: '#fffbeb', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>✏️ Güncelleme: {formatTarih(p.updated_at)}</span>}
                             </div>
                             <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
@@ -619,13 +619,13 @@ export default function PersonelMainContainer() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: '0.625rem', marginBottom: '1rem' }}>
                             {Object.entries(istatistik).map(([k, v]) => (
                                 <div key={k} style={{ background: DEVAM_DURUM[k]?.bg || '#f8fafc', border: `1px solid ${DEVAM_DURUM[k]?.color || '#e5e7eb'}30`, borderRadius: 10, padding: '0.75rem', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>{DEVAM_DURUM[k]?.label || k}</div>
+                                    <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#a7f3d0', textTransform: 'uppercase', marginBottom: 4 }}>{DEVAM_DURUM[k]?.label || k}</div>
                                     <div style={{ fontWeight: 900, fontSize: '1.4rem', color: DEVAM_DURUM[k]?.color || '#0f172a' }}>{v}</div>
                                 </div>
                             ))}
                         </div>
                         {/* İZİN BAKİYESİ */}
-                        <div style={{ background: 'white', border: '2px solid #ddd6fe', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1rem' }}>
+                        <div style={{ background: '#122b27', border: '2px solid #ddd6fe', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1rem' }}>
                             <div style={{ fontWeight: 800, color: '#5b21b6', fontSize: '0.85rem', marginBottom: '0.75rem' }}>📅 Personel Yıllık İzin Bakiyesi (14 Gün Hak)</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                                 {personeller.filter(p => p.durum === 'aktif').map(p => {
@@ -635,7 +635,7 @@ export default function PersonelMainContainer() {
                                     const pct = (kullanilan / YILLIK_HAK) * 100;
                                     return (
                                         <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 3fr', gap: '0.75rem', alignItems: 'center', padding: '6px 0' }}>
-                                            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.82rem' }}>{p.ad_soyad}</div>
+                                            <div style={{ fontWeight: 700, color: 'white', fontSize: '0.82rem' }}>{p.ad_soyad}</div>
                                             <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700, textAlign: 'center' }}>{kullanilan} gün kullanıldı</div>
                                             <div style={{ fontSize: '0.82rem', fontWeight: 900, color: kalan < 3 ? '#ef4444' : kalan < 7 ? '#f59e0b' : '#059669', textAlign: 'center' }}>{kalan} gün kaldı</div>
                                             <div style={{ height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
@@ -649,12 +649,12 @@ export default function PersonelMainContainer() {
                         </div>
 
                         {devamFormAcik && (
-                            <div style={{ background: 'white', border: '2px solid #f59e0b', borderRadius: 14, padding: '1.25rem', marginBottom: '1.25rem' }}>
+                            <div style={{ background: '#122b27', border: '2px solid #f59e0b', borderRadius: 14, padding: '1.25rem', marginBottom: '1.25rem' }}>
                                 <h3 style={{ fontWeight: 800, color: '#92400e', marginBottom: '1rem', fontSize: '1rem' }}>{devamDuzenleId ? '✏️ Devam Kaydını Düzenle' : '📅 Yeni Devam Kaydı'}</h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                                     <div style={{ gridColumn: devamDuzenleId ? 'auto' : '1/-1' }}>
                                         <label style={lbl}>Personel *</label>
-                                        <select value={devamForm.personel_id} onChange={e => setDevamForm({ ...devamForm, personel_id: e.target.value })} disabled={!!devamDuzenleId} style={{ ...inp, cursor: 'pointer', background: 'white', opacity: devamDuzenleId ? 0.6 : 1 }}>
+                                        <select value={devamForm.personel_id} onChange={e => setDevamForm({ ...devamForm, personel_id: e.target.value })} disabled={!!devamDuzenleId} style={{ ...inp, cursor: 'pointer', background: '#122b27', opacity: devamDuzenleId ? 0.6 : 1 }}>
                                             <option value="">— Seçiniz —</option>
                                             {personeller.map(p => <option key={p.id} value={p.id}>{p.ad_soyad} ({p.personel_kodu})</option>)}
                                         </select>
@@ -665,7 +665,7 @@ export default function PersonelMainContainer() {
                                     </div>
                                     <div>
                                         <label style={lbl}>Durum *</label>
-                                        <select value={devamForm.durum} onChange={e => setDevamForm({ ...devamForm, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                        <select value={devamForm.durum} onChange={e => setDevamForm({ ...devamForm, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                             {Object.entries(DEVAM_DURUM).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                                         </select>
                                     </div>
@@ -675,20 +675,20 @@ export default function PersonelMainContainer() {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: '0.875rem' }}>
-                                    <button onClick={() => { setDevamFormAcik(false); setDevamDuzenleId(null); }} style={{ padding: '8px 16px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                                    <button onClick={() => { setDevamFormAcik(false); setDevamDuzenleId(null); }} style={{ padding: '8px 16px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
                                     <button onClick={devamKaydet} disabled={loading} style={{ padding: '8px 20px', background: loading ? '#94a3b8' : '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : devamDuzenleId ? 'Güncelle' : 'Kaydet'}</button>
                                 </div>
                             </div>
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                            {devamlar.length === 0 && <div style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: 14, border: '2px dashed #e5e7eb', color: '#94a3b8', fontWeight: 700 }}>Devam kaydı yok. "Devam Ekle" ile başlayın.</div>}
+                            {devamlar.length === 0 && <div style={{ textAlign: 'center', padding: '3rem', background: '#0b1d1a', borderRadius: 14, border: '2px dashed #e5e7eb', color: '#94a3b8', fontWeight: 700 }}>Devam kaydı yok. "Devam Ekle" ile başlayın.</div>}
                             {devamlar.map(d => (
-                                <div key={d.id} style={{ background: 'white', border: `1px solid ${DEVAM_DURUM[d.durum]?.color || '#e5e7eb'}30`, borderRadius: 10, padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', gap: '1rem', alignItems: 'center' }}>
+                                <div key={d.id} style={{ background: '#122b27', border: `1px solid ${DEVAM_DURUM[d.durum]?.color || '#e5e7eb'}30`, borderRadius: 10, padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', gap: '1rem', alignItems: 'center' }}>
                                     <div style={{ width: 8, height: 36, borderRadius: 4, background: DEVAM_DURUM[d.durum]?.color || '#e5e7eb' }} />
                                     <div>
-                                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{d.b1_personel?.ad_soyad}</div>
+                                        <div style={{ fontWeight: 800, color: 'white', fontSize: '0.875rem' }}>{d.b1_personel?.ad_soyad}</div>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{d.tarih} · {ROL_LABEL[d.b1_personel?.rol] || d.b1_personel?.rol}</div>
-                                        {d.notlar && <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: 2 }}>{d.notlar}</div>}
+                                        {d.notlar && <div style={{ fontSize: '0.68rem', color: '#a7f3d0', marginTop: 2 }}>{d.notlar}</div>}
                                     </div>
                                     <span style={{ fontSize: '0.72rem', fontWeight: 800, background: DEVAM_DURUM[d.durum]?.bg, color: DEVAM_DURUM[d.durum]?.color, padding: '3px 10px', borderRadius: 6 }}>{DEVAM_DURUM[d.durum]?.label || d.durum}</span>
                                     <div style={{ display: 'flex', gap: 4 }}>
@@ -738,7 +738,7 @@ export default function PersonelMainContainer() {
                                 URL.revokeObjectURL(link.href);
                                 telegramBildirim(`📊 AY SONU BORDRO TABLOSU İNDİRİLDİ!\nYetkili tarafından tüm personelin Excel prim/maaş dökümü alındı.`);
                             }}
-                            style={{ padding: '8px 16px', background: 'white', color: '#064e3b', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                            style={{ padding: '8px 16px', background: '#122b27', color: '#064e3b', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
                         >
                             ⬇️ Excel Tablosu İndir
                         </button>
@@ -750,11 +750,11 @@ export default function PersonelMainContainer() {
                             const yuzdeDolum = Math.min((uretimDegeri / aylikMaliyet) * 100, 150);
                             const esikAsildi = asim > 0;
                             return (
-                                <div key={p.id} style={{ background: 'white', borderRadius: 14, padding: '1rem', border: `2px solid ${esikAsildi ? '#10b981' : '#e5e7eb'}`, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                <div key={p.id} style={{ background: '#122b27', borderRadius: 14, padding: '1rem', border: `2px solid ${esikAsildi ? '#10b981' : '#e5e7eb'}`, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                                         <div>
-                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
-                                            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: 2 }}>{ROL_LABEL[p.rol]}</div>
+                                            <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
+                                            <div style={{ fontSize: '0.68rem', color: '#a7f3d0', fontWeight: 600, marginTop: 2 }}>{ROL_LABEL[p.rol]}</div>
                                         </div>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, background: esikAsildi ? '#ecfdf5' : '#fef2f2', color: esikAsildi ? '#059669' : '#dc2626' }}>
                                             {esikAsildi ? '✅ Prim Hakkı' : '⛔ Eşik Yok'}
@@ -762,25 +762,25 @@ export default function PersonelMainContainer() {
                                     </div>
 
                                     {/* Dolum çubuğu */}
-                                    <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, marginBottom: '0.75rem', overflow: 'hidden' }}>
+                                    <div style={{ height: 8, background: '#173a34', borderRadius: 4, marginBottom: '0.75rem', overflow: 'hidden' }}>
                                         <div style={{ height: '100%', width: `${yuzdeDolum}%`, background: esikAsildi ? 'linear-gradient(90deg,#10b981,#059669)' : 'linear-gradient(90deg,#f59e0b,#d97706)', borderRadius: 4, transition: 'width 0.5s ease' }} />
                                     </div>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.72rem' }}>
-                                        <div style={{ background: '#f8fafc', borderRadius: 8, padding: '6px 10px' }}>
-                                            <div style={{ color: '#64748b', fontWeight: 700, marginBottom: 2 }}>AYLIK MALİYET EŞİĞİ</div>
+                                        <div style={{ background: '#0b1d1a', borderRadius: 8, padding: '6px 10px' }}>
+                                            <div style={{ color: '#a7f3d0', fontWeight: 700, marginBottom: 2 }}>AYLIK MALİYET EŞİĞİ</div>
                                             <div style={{ fontWeight: 900, color: '#ef4444' }}>₺{aylikMaliyet.toFixed(0)}</div>
                                         </div>
-                                        <div style={{ background: '#f8fafc', borderRadius: 8, padding: '6px 10px' }}>
-                                            <div style={{ color: '#64748b', fontWeight: 700, marginBottom: 2 }}>ÜRETİM DEĞERİ</div>
+                                        <div style={{ background: '#0b1d1a', borderRadius: 8, padding: '6px 10px' }}>
+                                            <div style={{ color: '#a7f3d0', fontWeight: 700, marginBottom: 2 }}>ÜRETİM DEĞERİ</div>
                                             <div style={{ fontWeight: 900, color: '#0369a1' }}>₺{uretimDegeri.toFixed(0)}</div>
                                         </div>
-                                        <div style={{ background: '#f8fafc', borderRadius: 8, padding: '6px 10px' }}>
-                                            <div style={{ color: '#64748b', fontWeight: 700, marginBottom: 2 }}>AŞIM MİKTARI</div>
+                                        <div style={{ background: '#0b1d1a', borderRadius: 8, padding: '6px 10px' }}>
+                                            <div style={{ color: '#a7f3d0', fontWeight: 700, marginBottom: 2 }}>AŞIM MİKTARI</div>
                                             <div style={{ fontWeight: 900, color: esikAsildi ? '#059669' : '#94a3b8' }}>₺{Math.max(asim, 0).toFixed(0)}</div>
                                         </div>
                                         <div style={{ background: esikAsildi ? '#ecfdf5' : '#f8fafc', borderRadius: 8, padding: '6px 10px', border: esikAsildi ? '1px solid #a7f3d0' : 'none' }}>
-                                            <div style={{ color: '#64748b', fontWeight: 700, marginBottom: 2 }}>PRİM HAKKI (%15)</div>
+                                            <div style={{ color: '#a7f3d0', fontWeight: 700, marginBottom: 2 }}>PRİM HAKKI (%15)</div>
                                             <div style={{ fontWeight: 900, fontSize: '0.9rem', color: esikAsildi ? '#059669' : '#94a3b8' }}>
                                                 {esikAsildi ? `₺${primHakki.toFixed(2)}` : '—'}
                                             </div>
@@ -789,7 +789,7 @@ export default function PersonelMainContainer() {
                                             <div style={{ background: '#fef2f2', borderRadius: 8, padding: '6px 10px', border: '1px solid #fca5a5', gridColumn: '1/-1' }}>
                                                 <div style={{ color: '#ef4444', fontWeight: 800, marginBottom: 2 }}>KASADAN ALINAN AVANS KESİNTİSİ (-)</div>
                                                 <div style={{ fontWeight: 900, fontSize: '0.9rem', color: '#b91c1c' }}>
-                                                    -₺${avansToplam.toFixed(2)}
+                                                    -₺{avansToplam.toFixed(2)}
                                                 </div>
                                             </div>
                                         )}
@@ -798,7 +798,7 @@ export default function PersonelMainContainer() {
                                         <div style={{ color: '#94a3b8', fontSize: '0.72rem', fontWeight: 700 }}>NET ÖDENECEK</div>
                                         <div style={{ color: '#38bdf8', fontSize: '1.2rem', fontWeight: 900 }}>₺{Math.max(0, aylikMaliyet + primHakki - avansToplam).toFixed(2)}</div>
                                     </div>
-                                    <button onClick={() => bordroYazdir(p, { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam })} style={{ marginTop: '0.5rem', width: '100%', padding: '6px', background: 'transparent', color: '#64748b', border: '2px solid #e5e7eb', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.color = '#0f172a'; e.currentTarget.style.borderColor = '#0f172a'; }} onMouseOut={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e5e7eb'; }}>
+                                    <button onClick={() => bordroYazdir(p, { aylikMaliyet, uretimDegeri, asim, primHakki, avansToplam })} style={{ marginTop: '0.5rem', width: '100%', padding: '6px', background: 'transparent', color: '#a7f3d0', border: '2px solid #1e4a43', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.color = '#0f172a'; e.currentTarget.style.borderColor = '#0f172a'; }} onMouseOut={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e5e7eb'; }}>
                                         🖨️ Bordro Çıktısı Al
                                     </button>
                                 </div>

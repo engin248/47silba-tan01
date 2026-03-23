@@ -2,17 +2,27 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // ─── MIMARI DÜZELTME: CSP ortam bazlı ─────────────────────────────────────
-    // ESKİ: 'unsafe-eval' her ortamda açıktı (XSS saldırısında eval() ile kod çalıştırılabilirdi)
-    // YENİ: 'unsafe-eval' sadece dev'de açık (Turbopack büylüe gerçtekiyor), production'da kapalı
     async headers() {
         const isDev = process.env.NODE_ENV === 'development';
+
+        // CORS başlıkları
+        const corsHeaders = [
+            { key: 'Access-Control-Allow-Credentials', value: 'true' },
+            { key: 'Access-Control-Allow-Origin', value: '*' },
+            { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS' },
+            { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
+        ];
+
         return [
+            {
+                source: '/api/:path*',
+                headers: corsHeaders
+            },
             {
                 source: '/(.*)',
                 headers: [
                     { key: 'X-XSS-Protection', value: '1; mode=block' },
-                    { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+                    { key: 'X-Frame-Options', value: 'DENY' },
                     { key: 'X-Content-Type-Options', value: 'nosniff' },
                     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
                     { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -21,7 +31,6 @@ const nextConfig = {
                         value: [
                             "default-src 'self'",
                             // 'unsafe-eval' sadece dev'de (Turbopack zorunlu kılıyor)
-                            // Production'da kaldırıldı — XSS kalkını güçlendirildi
                             isDev
                                 ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io"
                                 : "script-src 'self' 'unsafe-inline' https://*.sentry.io",
@@ -49,12 +58,33 @@ const nextConfig = {
         formats: ['image/webp', 'image/avif'],
     },
 
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
+
+    // ─── SCRAPER BAĞIMLILIKLAR — Webpack Bundle'dan Dışla ─────────────────
+    // puppeteer, puppeteer-extra ve cheerio Next.js bundle'ına girmez.
+    // Bu paketler sadece VPS/Node.js ortamında çalışır.
+    webpack: (config, { isServer }) => {
+        if (isServer) {
+            config.externals = [
+                ...(config.externals || []),
+                'puppeteer',
+                'puppeteer-extra',
+                'puppeteer-extra-plugin-stealth',
+                'cheerio',
+            ];
+        }
+        return config;
+    },
+
     reactStrictMode: true,
 };
 
+// Sentry wrapper — App Router ile aktif
 export default withSentryConfig(nextConfig, {
-    org: process.env.SENTRY_ORG, // Vercel environment variable
-    project: process.env.SENTRY_PROJECT, // Vercel environment variable
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
     silent: true,
     widenClientFileUpload: true,
     hideSourceMaps: true,

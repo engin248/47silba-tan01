@@ -1,0 +1,275 @@
+## KARARGAH
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: karargahApi.js]
+K4 Yükleme durumu   : ⚠️
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ❌
+
+## ARGE
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/arge/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: argeApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KUMAS
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/kumas/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: kumasApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## MODELHANE
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/modelhane/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: modelhaneApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KALIP
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/kalip/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: kalipApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KESIM
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/kesim/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: kesimApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## IMALAT
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/imalat/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: imalatApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## MALIYET
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/maliyet/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: maliyetApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## MUHASEBE
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/muhasebe/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: muhasebeApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KASA
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/kasa/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: kasaApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## STOK
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/stok/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: stokApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KATALOG
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/katalog/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: katalogApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## SIPARISLER
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/siparisler/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: siparislerApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## MUSTERILER
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/musteriler/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: musterilerApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## PERSONEL
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/personel/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: personelApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## GOREVLER
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/gorevler/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: gorevlerApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## KAMERALAR
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/kameralar/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: useMotionDetection.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ⚠️
+K9 Tema rengi       : ✅
+
+## AJANLAR
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/ajanlar/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: ajanlarApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## DENETMEN
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/denetmen/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: denetmenApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ❌
+
+## RAPORLAR
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/raporlar/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: raporlarApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## TASARIM
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/tasarim/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: TasarimMainContainer.js]
+K4 Yükleme durumu   : ⚠️
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## URETIM
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/uretim/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: uretimApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## GUVENLIK
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/guvenlik/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: guvenlikApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ✅
+K9 Tema rengi       : ✅
+
+## AYARLAR
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/ayarlar/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ✅ — [kanıt: ayarlarApi.js]
+K4 Yükleme durumu   : ✅
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ⚠️
+K9 Tema rengi       : ✅
+
+## GIRIS
+K1 Sayfa var mı      : ✅ — [kanıt: src/app/giris/page.js]
+K2 Container bağlı  : ✅ — [kanıt: page.js imports Container]
+K3 Veri çekme       : ❌ — [kanıt: Yok]
+K4 Yükleme durumu   : ⚠️
+K5 Hata durumu      : ✅
+K6 Ekle butonu      : ✅
+K7 Form doğrulama   : ✅
+K8 Silme onayı      : ⚠️
+K9 Tema rengi       : ❌
+

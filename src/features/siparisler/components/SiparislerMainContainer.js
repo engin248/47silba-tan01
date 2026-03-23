@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * features/siparisler/components/SiparislerMainContainer.js
  * Kaynak: app/siparisler/page.js → features mimarisine taşındı
@@ -55,7 +55,11 @@ export default function SiparislerSayfasi() {
     const [kargoModal, setKargoModal] = useState(/** @type {any} */(null));
     const [kargoNo, setKargoNo] = useState('');
     const [aramaMetni, setAramaMetni] = useState('');
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
+    // [K-13 PAGINATION]: Sayfa tabanlı yükleme — 10K+ kayıtta çöküşü önler
+    const [sayfaNo, setSayfaNo] = useState(0);
+    const [dahaFazlaVar, setDahaFazlaVar] = useState(true);
+    const SAYFA_BOYUTU = 50;
 
     useEffect(() => {
         let satisPin = false;
@@ -76,7 +80,7 @@ export default function SiparislerSayfasi() {
                     .subscribe();
                 isSubscribed = true;
             } else if (document.visibilityState === 'hidden' && kanal) {
-                // [SIFIR MALİYET ZIRHI]: Sekme arkaplana düşünce websocket kopartılır (fatura engeli)
+                // [SIFIR MALİYET KONTROLÜ]: Sekme arkaplana düşünce websocket kopartılır (fatura engeli)
                 supabase.removeChannel(kanal);
                 kanal = null;
                 isSubscribed = false;
@@ -103,19 +107,27 @@ export default function SiparislerSayfasi() {
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 
-    const yukle = async () => {
+    const yukle = async (sayfa = 0, sifirla = true) => {
         setLoading(true);
         try {
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Bağlantı zaman aşımı (10sn)')), 10000));
+            const from = sayfa * SAYFA_BOYUTU;
+            const to = from + SAYFA_BOYUTU - 1;
             const [sRes, mRes, uRes] = await Promise.race([
                 Promise.allSettled([
-                    supabase.from('b2_siparisler').select('*, b2_musteriler:musteri_id(ad_soyad,musteri_kodu)').order('created_at', { ascending: false }).limit(200),
+                    // [K-13]: range() ile sayfa bazlı veri çekme — LIMIT 200 yerine LIMIT 50 + sayfalama
+                    supabase.from('b2_siparisler').select('*, b2_musteriler:musteri_id(ad_soyad,musteri_kodu)').order('created_at', { ascending: false }).range(from, to),
                     supabase.from('b2_musteriler').select('id,musteri_kodu,ad_soyad').eq('aktif', true).limit(500),
                     supabase.from('b2_urun_katalogu').select('id,urun_kodu,urun_adi,satis_fiyati_tl,stok_adeti').eq('durum', 'aktif').limit(500)
                 ]),
                 timeout
             ]);
-            if (sRes.status === 'fulfilled' && sRes.value.data) setSiparisler(sRes.value.data);
+            if (sRes.status === 'fulfilled' && sRes.value.data) {
+                const gelen = sRes.value.data;
+                setSiparisler(prev => sifirla ? gelen : [...prev, ...gelen]);
+                setDahaFazlaVar(gelen.length === SAYFA_BOYUTU); // Sayfada tam kayıt geldiyse daha var
+                setSayfaNo(sayfa);
+            }
             if (mRes.status === 'fulfilled' && mRes.value.data) setMusteriler(mRes.value.data);
             if (uRes.status === 'fulfilled' && uRes.value.data) setUrunler(uRes.value.data);
         } catch (error) { goster('Sistem verileri alınamadı: ' + error.message, 'error'); }
@@ -148,7 +160,7 @@ export default function SiparislerSayfasi() {
         if (kalemler.some(k => !k.urun_id)) return goster('Tüm kalemlerin ürünü seçilmeli!', 'error');
         if (kalemler.some(k => !k.adet || parseInt(k.adet) < 1)) return goster('Tüm kalemlerin adeti 1\'den büyük olmalı!', 'error');
 
-        // [M9 ZIRHI]: %10 Üzeri İskonto Kalkanı
+        // [M9 KONTROLÜ]: %10 Üzeri İskonto Kalkanı
         const enYuksekIskonto = Math.max(...kalemler.map(k => parseFloat(k.iskonto_pct) || 0));
         if (enYuksekIskonto > 10 && !yetkiliMi) {
             return goster('🚨 GÜVENLİK İHLALİ: %10 üzerinde iskonto vermek için KASA/YÖNETİCİ yetkisi zorunludur!', 'error');
@@ -210,7 +222,7 @@ export default function SiparislerSayfasi() {
         setIslemdeId('durum_' + id);
         try {
             // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli
-            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum').eq('id', id).single();
+            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum, toplam_tutar_tl, siparis_no, musteri_id, odeme_yontemi').eq('id', id).single();
             if (mevcutSiparis && mevcutSiparis.durum === durum) {
                 return goster(`⚠️ Sipariş zaten "${DURUM_LABEL[durum] || durum}" durumunda! Mükerrer işlem engellendi.`, 'error');
             }
@@ -241,8 +253,33 @@ export default function SiparislerSayfasi() {
 
                 // Teslim olunca — stok zaten onaylandi'da düşüldü, tekrar düşme
             } else if (durum === 'teslim') {
-                goster('🎉 Sipariş teslim edildi.');
-                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş ID: ${id}`);
+                // ✅ [KRİTİK DÜZELTME #2] Kasa Entegrasyonu: Teslim edilen siparişin tahsilatını Kasa'ya devret
+                try {
+                    const kasaPayload = {
+                        hareket_tipi: 'tahsilat',
+                        odeme_yontemi: mevcutSiparis?.odeme_yontemi || 'nakit',
+                        tutar_tl: mevcutSiparis?.toplam_tutar_tl || 0,
+                        aciklama: `Otonom Sipariş Tahsilatı (Sipariş No: ${mevcutSiparis?.siparis_no || id})`,
+                        musteri_id: mevcutSiparis?.musteri_id || null,
+                        onay_durumu: 'onaylandi' // Sistem aktardığı için direkt onaylı
+                    };
+
+                    if (!navigator.onLine) {
+                        await cevrimeKuyrugaAl('b2_kasa_hareketleri', 'INSERT', kasaPayload);
+                    } else {
+                        await supabase.from('b2_kasa_hareketleri').insert([kasaPayload]);
+                        await supabase.from('b0_sistem_loglari').insert([{
+                            tablo_adi: 'b2_kasa_hareketleri', islem_tipi: 'OTOMATIK_KASA_GIRIS',
+                            kullanici_adi: 'SİSTEM (GAMMA AJAN)',
+                            eski_veri: { siparis_no: mevcutSiparis?.siparis_no || id, tutar_tl: mevcutSiparis?.toplam_tutar_tl || 0 }
+                        }]);
+                    }
+                } catch (e) {
+                    console.error('Kasa yazma hatası:', e);
+                }
+
+                goster('🎉 Sipariş teslim edildi ve tahsilat (Gelir) Kasa modülüne aktarıldı!');
+                telegramBildirim(`🎉 SİPARİŞ TESLİM EDİLDİ!\nSipariş No: ${mevcutSiparis?.siparis_no || id}\nTahsilat işlemleri Kasaya yönlendirildi.`);
 
             } else if (durum === 'kargoda') {
                 goster('🚚 Kargoya verildi.');
@@ -304,15 +341,21 @@ export default function SiparislerSayfasi() {
         try {
             await supabase.from('b2_siparis_kalemleri').delete().eq('siparis_id', id);
 
-            // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
+            // [K-14 DÜZELTME - AUDIT LOGU]: Kimin, hangi siparışi sildiği artık kalıcı kaydediliyor
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: String('b2_siparisler').replace(/['"]/g, ''),
+                    tablo_adi: String('b2_siparisler').replace(/['"]/ / g, ''),
                     islem_tipi: 'SILME',
-                    kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
-                    eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
+                    kullanici_adi: kullanici?.ad || kullanici?.email || 'Bilinmeyen Kullanici',
+                    eski_veri: {
+                        siparis_id: id,
+                        siparis_no: anaSiparis?.siparis_no || 'Bilinmiyor',
+                        toplam_tutar_tl: anaSiparis?.toplam_tutar_tl || 0,
+                        durum: anaSiparis?.durum || 'bilinmiyor',
+                        silme_zamani: new Date().toISOString()
+                    }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.warn('[AUDIT LOG HATA]', e); }
 
             const { error } = await supabase.from('b2_siparisler').delete().eq('id', id);
             if (error) throw error;
@@ -335,8 +378,8 @@ export default function SiparislerSayfasi() {
     const isAR = lang === 'ar';
 
 
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
-    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' };
 
     // [A-05] 5 ADIMLI SİPARİŞ STEPPER BİLEŞENİ
     const SiparisStepperBileseni = ({ durum }) => {
@@ -429,24 +472,24 @@ export default function SiparislerSayfasi() {
                 baslik={isAR ? 'إدارة الطلبات' : 'Sipariş Yönetimi'}
                 altBaslik={/** @type {any} */ (isAR ? 'استلام → تأكيد → شحن → تسليم' : 'Al → Onayla → Hazırla → Kargoyla → Teslim')}
                 islemButonlari={/** @type {any} */(
-                    <>
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                         <button onClick={() => { setForm({ ...BOSH_FORM, siparis_no: siparisNoUret() }); setFormAcik(!formAcik); }}
-                            className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white border-0 px-5 py-2.5 rounded-xl font-bold cursor-pointer transition-all shadow-[0_4px_14px_rgba(4,120,87,0.35)]">
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white border-0 px-5 py-2.5 rounded-xl font-bold cursor-pointer transition-all shadow-[0_4px_14px_rgba(4,120,87,0.35)]">
                             <Plus size={18} /> Yeni Sipariş
                         </button>
-                        <Link href="/stok" className="no-underline">
-                            <button className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm transition-all shadow-[0_4px_14px_rgba(217,119,6,0.35)]">
+                        <Link href="/stok" className="flex-1 sm:flex-none no-underline">
+                            <button className="w-full flex justify-center items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 py-2.5 rounded-xl font-black cursor-pointer text-sm transition-all shadow-[0_4px_14px_rgba(217,119,6,0.35)]">
                                 📦 Stoklar (M11)
                             </button>
                         </Link>
-                    </>
+                    </div>
                 )}
             />
 
             <IstatistikKutulari kartlar={[
                 { label: 'Toplam Sipariş', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
                 { label: '⏳ Bekleyen', val: istatistik.bekleyen, color: '#d97706', bg: '#fffbeb' },
-                { label: '🚛 Kargoda', val: istatistik.kargoda, color: '#374151', bg: '#f8fafc' },
+                { label: '🚛 Kargoda', val: istatistik.kargoda, color: '#e2e8f0', bg: '#f8fafc' },
                 { label: '💰 Teslim Ciro', val: `₺${istatistik.gelir.toFixed(0)}`, color: '#059669', bg: '#ecfdf5' },
                 // [FAZ 3 - B-02] Karlılık göstergesi
                 ...(istatistik.karliSiparis + istatistik.zararlıSiparis > 0 ? [
@@ -457,9 +500,9 @@ export default function SiparislerSayfasi() {
 
             {/* AI Destekli Trend & Mağaza Analiz Kalkanı (Kriter 45, 47, 48) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
+                <div className="bg-[#122b27] p-5 rounded-2xl border-2 border-[#1e4a43] shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
-                    <h3 className="m-0 mb-4 text-sm font-black text-slate-800 flex items-center gap-2 relative z-10">
+                    <h3 className="m-0 mb-4 text-sm font-black text-white flex items-center gap-2 relative z-10">
                         <span className="text-emerald-600">📈</span> Satış Trend Hız Analizi
                     </h3>
                     {/* [A5 FIX] Hardcode +%34.2 kaldırıldı — gerçek son 7 gün vs önceki 7 gün ciro karşılaştırması */}
@@ -482,7 +525,7 @@ export default function SiparislerSayfasi() {
                         const renkSinifMap = {
                             up: { yazi: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', textLight: 'text-emerald-600/70', emoji: '🚀', label: 'Hızlanış' },
                             down: { yazi: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', textLight: 'text-red-600/70', emoji: '📉', label: 'Yavaşlama' },
-                            flat: { yazi: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200', textLight: 'text-slate-500/70', emoji: '➡️', label: 'Sabit' }
+                            flat: { yazi: 'text-emerald-300', bg: 'bg-[#0d1117] text-white', border: 'border-[#1e4a43]', textLight: 'text-emerald-200/70', emoji: '➡️', label: 'Sabit' }
                         };
                         const { yazi, bg, border, emoji, label, textLight } = renkSinifMap[yon];
 
@@ -504,8 +547,8 @@ export default function SiparislerSayfasi() {
                         );
                     })()}
                 </div>
-                <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-sm hover:border-sky-200 transition-colors">
-                    <h3 className="m-0 mb-4 text-sm font-black text-slate-800 flex items-center gap-2">
+                <div className="bg-[#122b27] p-5 rounded-2xl border-2 border-[#1e4a43] shadow-sm hover:border-sky-200 transition-colors">
+                    <h3 className="m-0 mb-4 text-sm font-black text-white flex items-center gap-2">
                         <span className="text-sky-500">🏪</span> Mağaza/Kanal Performans Ciro Ölçümü
                     </h3>
                     <div className="flex flex-col gap-3">
@@ -515,11 +558,11 @@ export default function SiparislerSayfasi() {
                             { ad: 'E-Ticaret', ciro: istatistik.gelir * 0.20, yuzde: 20, color: 'bg-amber-500' },
                         ].map((m, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-24 text-xs font-bold text-slate-600 tracking-tight">{m.ad}</div>
+                                <div className="w-24 text-xs font-bold text-emerald-300 tracking-tight">{m.ad}</div>
                                 <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
                                     <div className={`h-full rounded-full ${m.color}`} style={{ width: `${m.yuzde}%` }} />
                                 </div>
-                                <div className="text-xs font-black text-slate-800 w-16 text-right">₺{(m.ciro || 0).toFixed(0)}</div>
+                                <div className="text-xs font-black text-white w-16 text-right">₺{(m.ciro || 0).toFixed(0)}</div>
                             </div>
                         ))}
                     </div>
@@ -530,24 +573,24 @@ export default function SiparislerSayfasi() {
 
             {/* FORM */}
             {formAcik && (
-                <div className="bg-white border-2 border-emerald-600 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(4,120,87,0.08)]">
+                <div className="bg-[#122b27] border-2 border-emerald-600 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(4,120,87,0.08)]">
                     <h3 className="font-black text-emerald-800 mb-5 text-lg">✨ Yeni Sipariş Oluştur</h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                         <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Sipariş No *</label>
-                            <input maxLength={50} value={form.siparis_no} onChange={e => setForm({ ...form, siparis_no: e.target.value })} className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all text-sm" />
+                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Sipariş No *</label>
+                            <input maxLength={50} value={form.siparis_no} onChange={e => setForm({ ...form, siparis_no: e.target.value })} className="w-full px-3 py-2.5 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all text-sm" />
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Müşteri</label>
-                            <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value })} className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
+                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Müşteri</label>
+                            <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 <option value="">— Perakende / Anonim —</option>
                                 {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Kanal *</label>
-                            <select value={form.kanal} onChange={e => setForm({ ...form, kanal: e.target.value })} className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
+                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Kanal *</label>
+                            <select value={form.kanal} onChange={e => setForm({ ...form, kanal: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 {KANALLAR.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
                             </select>
                         </div>
@@ -561,8 +604,8 @@ export default function SiparislerSayfasi() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Para Birimi</label>
-                            <select value={form.para_birimi} onChange={e => setForm({ ...form, para_birimi: e.target.value })} className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
+                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Para Birimi</label>
+                            <select value={form.para_birimi} onChange={e => setForm({ ...form, para_birimi: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 {PARA_BIRIMLERI.map(p => <option key={p.kod} value={p.kod}>{p.bayrak} {p.kod} ({p.simge})</option>)}
                             </select>
                         </div>
@@ -570,7 +613,7 @@ export default function SiparislerSayfasi() {
                         <div>
                             <label className="block text-[11px] font-black text-red-600 mb-1.5 uppercase tracking-widest">📅 Termin Tarihi (SIP-03) *</label>
                             <input type='date' value={form.termin_tarihi || ''} onChange={e => setForm({ ...form, termin_tarihi: e.target.value })} min={new Date().toISOString().slice(0, 10)}
-                                className={`w-full px-3 py-2.5 bg-white border-2 rounded-xl font-bold outline-none transition-all text-sm ${form.termin_tarihi ? 'border-emerald-500 text-slate-700' : 'border-red-400 text-red-700'}`} />
+                                className={`w-full px-3 py-2.5 bg-[#122b27] border-2 rounded-xl font-bold outline-none transition-all text-sm ${form.termin_tarihi ? 'border-emerald-500 text-slate-700' : 'border-red-400 text-red-700'}`} />
                         </div>
                         {/* SIP-02: Katalog bağlantısı */}
                         <div className="flex items-end lg:col-span-2">
@@ -581,12 +624,12 @@ export default function SiparislerSayfasi() {
                             </Link>
                         </div>
                         <div className="md:col-span-2 lg:col-span-3">
-                            <label className="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Notlar</label>
+                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Notlar</label>
                             <textarea maxLength={300} rows={1} value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })}
-                                className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all text-sm resize-none custom-scrollbar" />
+                                className="w-full px-3 py-2.5 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all text-sm resize-none custom-scrollbar" />
                         </div>
                         <div className="md:col-span-1 lg:col-span-1 flex items-end">
-                            <label className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 cursor-pointer transition-all ${form.acil ? 'bg-red-50 border-red-500 text-red-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
+                            <label className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 cursor-pointer transition-all ${form.acil ? 'bg-red-50 border-red-500 text-red-700' : 'bg-[#0d1117] text-white border-[#1e4a43] text-emerald-200 hover:bg-slate-100'}`}>
                                 <input type="checkbox" checked={form.acil} onChange={e => setForm({ ...form, acil: e.target.checked })} className="w-4 h-4 cursor-pointer accent-red-600" />
                                 <span className="text-[11px] font-black tracking-wide">🚨 ACİL SİPARİŞ</span>
                             </label>
@@ -594,7 +637,7 @@ export default function SiparislerSayfasi() {
                     </div>
 
                     {/* ÜRÜN KALEMLERİ */}
-                    <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-200 mb-6 relative overflow-hidden">
+                    <div className="bg-[#0d1117] text-white p-4 rounded-xl border-2 border-[#1e4a43] mb-6 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-3xl bg-emerald-100/50"></div>
                         <div className="flex flex-wrap justify-between items-center mb-4 gap-3 border-b-2 border-slate-100 pb-3">
                             <label className="font-black text-slate-700 text-sm m-0 uppercase flex items-center gap-2"><ShoppingCart size={16} className="text-emerald-600" /> Ürün Kalemleri *</label>
@@ -607,8 +650,8 @@ export default function SiparislerSayfasi() {
                         </div>
 
                         {kalemler.length === 0 && (
-                            <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-slate-200">
-                                <p className="text-slate-400 font-bold text-sm m-0">Önce müşteri/özel sipariş bilgilerini girip, ardından <span className="text-slate-600">"Ürün Ekle"</span> butonunu kullanın.</p>
+                            <div className="text-center py-8 bg-[#122b27] rounded-xl border-2 border-dashed border-[#1e4a43]">
+                                <p className="text-slate-400 font-bold text-sm m-0">Önce müşteri/özel sipariş bilgilerini girip, ardından <span className="text-emerald-300">"Ürün Ekle"</span> butonunu kullanın.</p>
                             </div>
                         )}
 
@@ -616,28 +659,28 @@ export default function SiparislerSayfasi() {
                             {kalemler.map((k, i) => {
                                 const kalemTutar = (parseInt(k.adet) || 0) * parseFloat(k.birim_fiyat_tl || 0) * (1 - (parseFloat(k.iskonto_pct) || 0) / 100);
                                 return (
-                                    <div key={i} className="bg-white p-3.5 rounded-xl border-2 border-slate-100 shadow-sm relative group hover:border-emerald-200 transition-colors">
+                                    <div key={i} className="bg-[#122b27] p-3.5 rounded-xl border-2 border-slate-100 shadow-sm relative group hover:border-emerald-200 transition-colors">
                                         <button type="button" onClick={() => kalemSil(i)} className="absolute -top-2.5 -right-2.5 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white shadow-sm border border-red-200"><X size={12} /></button>
 
                                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-3">
                                             <div className="md:col-span-4">
                                                 <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Ürün</label>
-                                                <select value={k.urun_id} onChange={e => kalemGuncelle(i, 'urun_id', e.target.value)} className="w-full px-2.5 py-2 bg-slate-50 border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs cursor-pointer truncate">
+                                                <select value={k.urun_id} onChange={e => kalemGuncelle(i, 'urun_id', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs cursor-pointer truncate">
                                                     <option value="">— Katalogdan Seç —</option>
                                                     {urunler.map(u => <option key={u.id} value={u.id}>{u.urun_kodu} | ₺{(parseFloat(u.satis_fiyati_tl) || 0).toFixed(0)}</option>)}
                                                 </select>
                                             </div>
                                             <div className="md:col-span-2">
                                                 <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Beden</label>
-                                                <input maxLength={20} value={k.beden} onChange={e => kalemGuncelle(i, 'beden', e.target.value)} placeholder="Örn: M, XL" className="w-full px-2.5 py-2 bg-slate-50 border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
+                                                <input maxLength={20} value={k.beden} onChange={e => kalemGuncelle(i, 'beden', e.target.value)} placeholder="Örn: M, XL" className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
                                             </div>
                                             <div className="md:col-span-2">
                                                 <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Adet</label>
-                                                <input type="number" min="1" value={k.adet} onChange={e => kalemGuncelle(i, 'adet', e.target.value)} className="w-full px-2.5 py-2 bg-slate-50 border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs text-center" />
+                                                <input type="number" min="1" value={k.adet} onChange={e => kalemGuncelle(i, 'adet', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs text-center" />
                                             </div>
                                             <div className="md:col-span-2">
                                                 <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Birim Fiyat</label>
-                                                <input type="number" step="0.01" value={k.birim_fiyat_tl} onChange={e => kalemGuncelle(i, 'birim_fiyat_tl', e.target.value)} className="w-full px-2.5 py-2 bg-slate-50 border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
+                                                <input type="number" step="0.01" value={k.birim_fiyat_tl} onChange={e => kalemGuncelle(i, 'birim_fiyat_tl', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
                                             </div>
                                             <div className="md:col-span-2 text-right self-center pt-2">
                                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tutar</div>
@@ -662,7 +705,7 @@ export default function SiparislerSayfasi() {
                     </div>
 
                     <div className="flex gap-3 justify-end pt-4 border-t-2 border-slate-100 mt-2">
-                        <button onClick={() => { setForm(BOSH_FORM); setKalemler([]); setFormAcik(false); }} className="px-6 py-2.5 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold text-slate-600 transition-all">İptal</button>
+                        <button onClick={() => { setForm(BOSH_FORM); setKalemler([]); setFormAcik(false); }} className="px-6 py-2.5 border-2 border-[#1e4a43] hover:border-slate-300 hover:bg-[#0d1117] text-white rounded-xl font-bold text-emerald-300 transition-all">İptal</button>
                         <button onClick={kaydet} disabled={loading} className={`px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 border-b-4 border-emerald-800 text-white rounded-xl font-black transition-all flex items-center gap-2 ${loading ? 'opacity-70 cursor-wait' : ''}`}>
                             {loading ? '...' : '✅ Siparişi Kaydet'}
                         </button>
@@ -675,9 +718,9 @@ export default function SiparislerSayfasi() {
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
                 <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
                     placeholder="Sipariş no, müşteri, kanal ara..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm shadow-sm" />
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm shadow-sm" />
             </div>
-            <div className="flex gap-2 mb-6 flex-wrap items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <div className="flex gap-2 mb-6 flex-wrap items-center bg-[#0d1117] text-white p-2 rounded-xl border border-[#1e4a43]">
                 <FiltreDugmeleri
                     aktifDeger={filtreKanal}
                     onClickSecenegi={setFiltreKanal}
@@ -713,7 +756,7 @@ export default function SiparislerSayfasi() {
             <div className="flex flex-wrap gap-4 items-start">
                 <div className="flex-[1_1_340px] flex flex-col gap-3">
                     {filtreli.length === 0 && (
-                        <div className="text-center py-16 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                        <div className="text-center py-16 bg-[#0d1117] text-white rounded-2xl border-2 border-dashed border-[#1e4a43]">
                             <ShoppingCart size={48} className="text-slate-300 mx-auto mb-3" />
                             <p className="text-slate-400 font-bold m-0">Sipariş bulunamadı.</p>
                         </div>
@@ -731,13 +774,13 @@ export default function SiparislerSayfasi() {
 
                         return (
                             <div key={s.id} onClick={() => detayAc(s)}
-                                className={`bg-white border-2 rounded-xl p-4 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md
+                                className={`bg-[#122b27] border-2 rounded-xl p-4 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md
                                     ${aktifMi ? 'border-emerald-600 ring-2 ring-emerald-600/20' : teslimMi ? 'border-emerald-100 bg-emerald-50/30' : 'border-slate-100'}`}>
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="min-w-0">
                                         <div className="flex gap-1.5 flex-wrap items-center mb-2">
                                             <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md truncate max-w-[100px]">{s.siparis_no}</span>
-                                            <span className="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase tracking-wider">{s.kanal}</span>
+                                            <span className="text-[10px] font-black bg-slate-100 text-emerald-300 px-2 py-0.5 rounded-md uppercase tracking-wider">{s.kanal}</span>
                                             {s.para_birimi && s.para_birimi !== 'TL' && (
                                                 <span className="text-[10px] font-black bg-slate-800 text-amber-400 px-2 py-0.5 rounded-md flex items-center gap-1">
                                                     {PARA_BIRIMLERI.find(p => p.kod === s.para_birimi)?.bayrak} {s.para_birimi}
@@ -753,12 +796,12 @@ export default function SiparislerSayfasi() {
 
                                             {getGecikmeAlarm(s)}
                                         </div>
-                                        <div className="font-black text-slate-800 text-sm truncate">{s.b2_musteriler?.ad_soyad || 'Anonim'}</div>
+                                        <div className="font-black text-white text-sm truncate">{s.b2_musteriler?.ad_soyad || 'Anonim'}</div>
                                         <div className="text-[10px] text-slate-400 font-bold mt-1 flex items-center gap-1">
                                             🕐 {formatTarih(s.created_at)}
                                         </div>
                                     </div>
-                                    <div className="font-black text-slate-800 text-base text-right shrink-0">
+                                    <div className="font-black text-white text-base text-right shrink-0">
                                         <div className="flex items-baseline justify-end gap-0.5">
                                             <span className="text-sm">{PARA_BIRIMLERI.find(p => p.kod === (s.para_birimi || 'TL'))?.simge || '₺'}</span>
                                             {parseFloat(s.toplam_tutar_tl).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -771,11 +814,29 @@ export default function SiparislerSayfasi() {
                     })}
                 </div>
 
+                {/* [K-13 PAGINATION]: Daha Fazla Yükle Butonu */}
+                {dahaFazlaVar && (
+                    <div className="flex justify-center mt-4 mb-2">
+                        <button
+                            onClick={() => yukle(sayfaNo + 1, false)}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-800 text-white border-2 border-emerald-600 rounded-xl font-black text-sm hover:bg-emerald-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-wait"
+                        >
+                            {loading ? '⏳ Yükleniyor...' : `📥 Daha Fazla Yükle (${siparisler.length} / tümü)`}
+                        </button>
+                    </div>
+                )}
+                {!dahaFazlaVar && siparisler.length >= SAYFA_BOYUTU && (
+                    <div className="text-center mt-3 text-xs text-slate-400 font-bold py-2">
+                        ✅ Tüm siparişler yüklendi ({siparisler.length} adet)
+                    </div>
+                )}
+
                 {/* DETAY PANELİ */}
                 {aktifSiparis && (
-                    <div className="flex-[1.4_1_350px] bg-white border-2 border-emerald-600 rounded-2xl p-5 self-start sticky top-4 shadow-[0_10px_40px_rgba(4,120,87,0.1)]">
+                    <div className="flex-[1.4_1_350px] bg-[#122b27] border-2 border-emerald-600 rounded-2xl p-5 self-start sticky top-4 shadow-[0_10px_40px_rgba(4,120,87,0.1)]">
                         <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-slate-100">
-                            <h3 className="font-black text-slate-800 m-0 text-lg flex items-center gap-2">
+                            <h3 className="font-black text-white m-0 text-lg flex items-center gap-2">
                                 <span className="text-emerald-600">📋</span> {aktifSiparis.siparis_no}
                             </h3>
                             <div className="flex gap-2">
@@ -786,7 +847,7 @@ export default function SiparislerSayfasi() {
                                     className={`flex items-center gap-1.5 bg-red-50 border-0 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs transition-colors hover:bg-red-100 ${islemdeId === 'sil_' + aktifSiparis.id ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}>
                                     🗑 {islemdeId === 'sil_' + aktifSiparis.id ? '...' : 'Sil'}
                                 </button>
-                                <button onClick={() => setAktifSiparis(null)} className="flex items-center gap-1.5 bg-slate-100 border-0 text-slate-500 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition-colors hover:bg-slate-200 hover:text-slate-700">
+                                <button onClick={() => setAktifSiparis(null)} className="flex items-center gap-1.5 bg-slate-100 border-0 text-emerald-200 px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition-colors hover:bg-slate-200 hover:text-slate-700">
                                     ✕
                                 </button>
                             </div>
@@ -841,17 +902,17 @@ export default function SiparislerSayfasi() {
 
                         {/* Kalemler */}
                         <div className="mt-6">
-                            <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Sipariş Kalemleri</div>
+                            <div className="text-[11px] font-black text-emerald-200 uppercase tracking-widest mb-3">Sipariş Kalemleri</div>
                             <div className="space-y-1.5">
                                 {aktifSiparis.kalemler?.map((k, i) => (
-                                    <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-300 transition-colors">
+                                    <div key={i} className="flex justify-between items-center p-3 bg-[#0d1117] text-white rounded-xl border border-slate-100 hover:border-slate-300 transition-colors">
                                         <div>
-                                            <div className="font-bold text-slate-800 text-sm mb-0.5">{k.b2_urun_katalogu?.urun_adi}</div>
-                                            <div className="text-[10px] font-bold text-slate-500">
+                                            <div className="font-bold text-white text-sm mb-0.5">{k.b2_urun_katalogu?.urun_adi}</div>
+                                            <div className="text-[10px] font-bold text-emerald-200">
                                                 {k.adet} Adet × ₺{parseFloat(k.birim_fiyat_tl).toFixed(2)}{k.iskonto_pct > 0 ? ` (-%${k.iskonto_pct})` : ''} {k.beden ? `| Beden: ${k.beden}` : ''}
                                             </div>
                                         </div>
-                                        <div className="font-black text-slate-800 text-base">₺{parseFloat(k.tutar_tl).toFixed(2)}</div>
+                                        <div className="font-black text-white text-base">₺{parseFloat(k.tutar_tl).toFixed(2)}</div>
                                     </div>
                                 ))}
                             </div>
@@ -874,11 +935,11 @@ export default function SiparislerSayfasi() {
                             )}
 
                             {/* [KRİTİK EKSİK] Gerçek Maliyet + Termin Tarihi */}
-                            <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                <div className="font-black text-slate-600 text-[11px] uppercase tracking-widest mb-3 flex items-center gap-1.5"><span className="text-emerald-500">💹</span> Karlılık Takibi</div>
+                            <div className="mt-4 p-4 bg-[#0d1117] text-white rounded-xl border border-[#1e4a43]">
+                                <div className="font-black text-emerald-300 text-[11px] uppercase tracking-widest mb-3 flex items-center gap-1.5"><span className="text-emerald-500">💹</span> Karlılık Takibi</div>
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-500 mb-1">GERÇEK MALİYET (₺)</label>
+                                        <label className="block text-[10px] font-black text-emerald-200 mb-1">GERÇEK MALİYET (₺)</label>
                                         <input
                                             type="number" step="0.01" min="0"
                                             defaultValue={aktifSiparis.gercek_maliyet_tl || ''}
@@ -888,11 +949,11 @@ export default function SiparislerSayfasi() {
                                                 await supabase.from('b2_siparisler').update({ gercek_maliyet_tl: val }).eq('id', aktifSiparis.id);
                                                 yukle();
                                             }}
-                                            className="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-sm transition-all"
+                                            className="w-full px-3 py-2 bg-[#122b27] border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-sm transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-500 mb-1">TERMİN TARİHİ</label>
+                                        <label className="block text-[10px] font-black text-emerald-200 mb-1">TERMİN TARİHİ</label>
                                         <input
                                             type="date"
                                             defaultValue={aktifSiparis.termin_tarihi || ''}
@@ -900,7 +961,7 @@ export default function SiparislerSayfasi() {
                                                 await supabase.from('b2_siparisler').update({ termin_tarihi: e.target.value }).eq('id', aktifSiparis.id);
                                                 yukle();
                                             }}
-                                            className="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-sm transition-all"
+                                            className="w-full px-3 py-2 bg-[#122b27] border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-sm transition-all"
                                         />
                                     </div>
                                 </div>
@@ -924,7 +985,7 @@ export default function SiparislerSayfasi() {
                                     return (
                                         <div className={`mt-2 p-2 rounded-lg border flex justify-between items-center
                                             ${isGecti ? 'bg-red-50/50 border-red-200/50' : isYakin ? 'bg-amber-50/50 border-amber-200/50' : 'bg-emerald-50/50 border-emerald-200/50'}`}>
-                                            <span className="text-[10px] font-bold text-slate-500">⏳ Termine Kalan</span>
+                                            <span className="text-[10px] font-bold text-emerald-200">⏳ Termine Kalan</span>
                                             <span className={`text-xs font-black ${isGecti ? 'text-red-600' : isYakin ? 'text-amber-600' : 'text-emerald-600'}`}>
                                                 {isGecti ? `${Math.abs(gun)} Gün GEÇTİ` : gun === 0 ? 'BUGÜN!' : `${gun} Gün`}
                                             </span>

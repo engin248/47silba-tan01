@@ -1,0 +1,58 @@
+﻿   Ôû▓ Next.js 15.3.6
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ┬À clientTraceMetadata
+
+   Creating an optimized production build ...
+node.exe : [@sentry/nextjs] It appears you've configured a `sen
+try.server.config.js` file. Please ensure to put this file's co
+ntent into the `register()` function of a Next.js instrumentati
+on hook instead. To ensure correct functionality of the SDK, `S
+entry.init` must be called inside `instrumentation.ts`. Learn m
+ore about setting up an instrumentation hook in Next.js: https:
+//nextjs.org/docs/app/building-your-application/optimizing/inst
+rumentation. You can safely delete the `sentry.server.config.js
+` file afterward.
+At line:1 char:1
++ & "C:\nvm4w\nodejs/node.exe" "C:\nvm4w\nodejs/node_modules/np
+m/bin/np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([@sentry/nextjs.. 
+   .file afterward.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[@sentry/nextjs] The Sentry SDK has enabled source map generati
+on for your Next.js app. If you don't want to serve Source Maps
+ to your users, either set the `sourcemaps.deleteSourcemapsAfte
+rUpload` option to true, or manually delete the source maps aft
+er the build. In future Sentry SDK versions `sourcemaps.deleteS
+ourcemapsAfterUpload` will default to `true`. If you do not wan
+t to generate and upload sourcemaps, set the `sourcemaps.disabl
+e` option in `withSentryConfig()`.
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strin
+gs (318kiB) impacts deserialization performance (consider using
+ Buffer instead and decode when needed)
+ Ô£ô Compiled successfully in 32.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+unhandledRejection [Error: Cannot find module './8632.js'
+Require stack:
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\.next\server\webpack-ru
+ntime.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\.next\server\pages\_doc
+ument.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\node_modules\next\dist\
+server\require.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\node_modules\next\dist\
+server\load-components.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\node_modules\next\dist\
+build\utils.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\node_modules\next\dist\
+build\worker.js
+- C:\Users\Esisya\Desktop\47_SilBa┼ştan\node_modules\next\dist\
+compiled\jest-worker\processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}

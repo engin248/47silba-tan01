@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bağlantı Yok — Nizam</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a2f 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #e2e8f0;
+        }
+        .kart {
+            text-align: center;
+            padding: 3rem 2.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            max-width: 420px;
+            width: 90%;
+        }
+        .ikon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #a7f3d0;
+            margin-bottom: 0.75rem;
+        }
+        p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 1.75rem;
+        }
+        button {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #047857, #065f46);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(4,120,87,0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(4,120,87,0.5);
+        }
+        .alt-bilgi {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="kart">
+        <span class="ikon">📡</span>
+        <h1>İnternet Bağlantısı Yok</h1>
+        <p>Nizam sistemi çevrimdışı modda çalışıyor.<br>
+        Bağlantı sağlandığında tüm veriler otomatik güncellenir.</p>
+        <button onclick="window.location.reload()">🔄 Tekrar Dene</button>
+        <p class="alt-bilgi">Son bağlantı zamanınız önbelleğe alındı.</p>
+    </div>
+</body>
+</html>

@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { telegramBildirim } from '@/lib/utils';
 
-// Regex Hatası Giderildi: Satır sonu karakterleri küresel olarak ezildi.
-const INTERNAL_API_KEY = (process.env.INTERNAL_API_KEY || 'NIZAM_LOKAL_GIZLI_ANAHTAR_47').replace(/[\r\n]+/g, '').trim();
+// GÜVENLİK DÜZELTME: Hardcoded fallback key kaldırıldı — ENV yoksa boş string kalır, hiçbir istek eşleşmez.
+const INTERNAL_API_KEY = (process.env.INTERNAL_API_KEY || '').replace(/[\r\n]+/g, '').trim();
+
+if (!INTERNAL_API_KEY) {
+    console.error('[AJAN-TETIKLE] KRİTİK: INTERNAL_API_KEY env değişkeni tanımlı değil! Tüm istekler reddedilecek.');
+}
 
 export async function POST(request) {
     try {
@@ -23,8 +27,6 @@ export async function POST(request) {
         }
 
         const { ajanTipi, kameraId, kameraAdi, sebep, image } = body;
-
-        console.log(`[AJAN-TETIKLE] Ajan Tipi: ${ajanTipi} | Kamera: ${kameraAdi} | Neden: ${sebep}`);
 
         // 3. OPERASYONEL VERİ KONTROLÜ
         if (ajanTipi === 'KAMERA_GIZLI_EDGE' && sebep === '2_DK_IDLE') {
@@ -89,8 +91,8 @@ export async function POST(request) {
 
             // HATA 3 GİDERİLDİ: Doğrudan Fotoğraflı Kanıtlı (Proof) Telegram Gönderimi
             try {
-                const tgToken = process.env.TELEGRAM_BOT_TOKEN || process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-                const tgOrta = process.env.TELEGRAM_CHAT_ID || process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID;
+                const tgToken = process.env.TELEGRAM_BOT_TOKEN;
+                const tgOrta = process.env.TELEGRAM_CHAT_ID;
 
                 if (tgToken && tgOrta && image) {
                     // Yalnızca base64 olan kısmı ayıkla
@@ -122,7 +124,7 @@ export async function POST(request) {
             }, { status: 200 });
 
         } else {
-            console.warn(`[AJAN-TETIKLE] Bilinmeyen tetikleyici: Tür=${ajanTipi}, Sebep=${sebep}`);
+
             return NextResponse.json({
                 durum: 'reddedildi',
                 mesaj: 'Tanımsız ajan tipi veya olay tetikleyicisi.',

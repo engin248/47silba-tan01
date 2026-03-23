@@ -1,4 +1,4 @@
-// ─── ROOT LAYOUT — SERVER COMPONENT ──────────────────────────
+﻿// ─── ROOT LAYOUT — SERVER COMPONENT ──────────────────────────
 // 'use client' BURADA YOK — Next.js metadata API çalışsın diye
 // Tüm client mantığı (sidebar, auth, offline, realtime) → ClientLayout.js içinde
 import './globals.css';
@@ -35,11 +35,10 @@ export const viewport = {
     themeColor: '#0f172a',
 };
 
-// ─── ROOT LAYOUT ──────────────────────────────────────────────
 export default function RootLayout({ children }) {
     return (
-        <html lang="tr" suppressHydrationWarning>
-            <body suppressHydrationWarning>
+        <html lang="tr" suppressHydrationWarning translate="no" className="notranslate">
+            <body suppressHydrationWarning className="notranslate">
                 <ClientLayout>
                     {children}
                 </ClientLayout>

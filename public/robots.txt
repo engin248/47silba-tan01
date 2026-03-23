@@ -1,0 +1,50 @@
+# THE ORDER / NIZAM — robots.txt
+# https://mizanet.com
+
+User-agent: *
+
+# API endpoint'leri — crawl yasak
+Disallow: /api/
+
+# Kimlik doğrulama gerektiren sayfalar — crawl yasak
+Disallow: /imalat
+Disallow: /kesim
+Disallow: /modelhane
+Disallow: /muhasebe
+Disallow: /kasa
+Disallow: /ayarlar
+Disallow: /guvenlik
+Disallow: /denetmen
+Disallow: /personel
+Disallow: /arge
+Disallow: /kumas
+Disallow: /kalip
+Disallow: /maliyet
+Disallow: /uretim
+Disallow: /musteriler
+Disallow: /siparisler
+Disallow: /stok
+Disallow: /katalog
+Disallow: /gorevler
+Disallow: /raporlar
+Disallow: /ajanlar
+Disallow: /haberlesme
+Disallow: /tasarim
+Disallow: /kameralar
+Disallow: /karargah
+
+# Kötü amaçlı bot'ları tamamen engelle
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Sitemap
+Sitemap: https://mizanet.com/sitemap.xml

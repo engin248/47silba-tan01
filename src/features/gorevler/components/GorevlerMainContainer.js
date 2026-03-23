@@ -149,8 +149,8 @@ export default function GorevlerMainContainer() {
         await durumGuncelle(id, sutunKey, gorev.baslik);
     };
 
-    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
-    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
+    const inp = { width: '100%', padding: '9px 12px', border: '2px solid #1e4a43', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+    const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5, textTransform: 'uppercase' };
 
     const filtreli = gorevler.filter(g => {
         const oncelikOk = filtreOncelik === 'hepsi' || g.oncelik === filtreOncelik;
@@ -171,7 +171,7 @@ export default function GorevlerMainContainer() {
             draggable={isDraggable && erisim === 'full'}
             onDragStart={isDraggable ? (e) => onDragStart(e, g.id) : undefined}
             style={{
-                background: 'white', border: '2px solid',
+                background: '#122b27', border: '2px solid',
                 borderColor: g.oncelik === 'kritik' ? '#fee2e2' : '#f1f5f9',
                 borderRadius: 12, padding: '0.875rem 1rem',
                 cursor: isDraggable && erisim === 'full' ? 'grab' : 'default',
@@ -186,8 +186,8 @@ export default function GorevlerMainContainer() {
                 <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${ONCELIK_RENK[g.oncelik]}20`, color: ONCELIK_RENK[g.oncelik] }}>{ONCELIK_LABEL[g.oncelik]}</span>
                 {!isDraggable && <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${DURUM_RENK[g.durum]}20`, color: DURUM_RENK[g.durum] }}>{DURUM_LABEL[g.durum]}</span>}
             </div>
-            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginBottom: 4 }}>{g.baslik}</div>
-            {g.aciklama && <p style={{ fontSize: '0.73rem', color: '#64748b', margin: '0 0 6px', lineHeight: 1.5 }}>{g.aciklama}</p>}
+            <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem', marginBottom: 4 }}>{g.baslik}</div>
+            {g.aciklama && <p style={{ fontSize: '0.73rem', color: '#a7f3d0', margin: '0 0 6px', lineHeight: 1.5 }}>{g.aciklama}</p>}
             <div style={{ display: 'flex', gap: 10, fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, marginBottom: 8, flexWrap: 'wrap' }}>
                 {g.atanan_kisi && <span>👤 {g.atanan_kisi}</span>}
                 {g.bitis_tarihi && <span>📅 {formatTarih(g.bitis_tarihi)}</span>}
@@ -214,13 +214,13 @@ export default function GorevlerMainContainer() {
                         <ClipboardList size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'تتبع المهام' : 'Görev Takibi'}</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Sürükle-bırak Kanban Board · Görev ata · Takip et</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>{isAR ? 'تتبع المهام' : 'Görev Takibi'}</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>Sürükle-bırak Kanban Board · Görev ata · Takip et</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     {/* Görünüm Toggle */}
-                    <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: 8, padding: 3, gap: 2 }}>
+                    <div style={{ display: 'flex', background: '#173a34', borderRadius: 8, padding: 3, gap: 2 }}>
                         <button onClick={() => setGorunumModu('kanban')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', background: gorunumModu === 'kanban' ? 'white' : 'transparent', color: gorunumModu === 'kanban' ? '#047857' : '#64748b', boxShadow: gorunumModu === 'kanban' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>
                             <LayoutGrid size={14} /> Kanban
                         </button>
@@ -253,7 +253,7 @@ export default function GorevlerMainContainer() {
                     { label: '🔥 Kritik', val: istatistik.kritik, color: '#dc2626', bg: '#fef2f2' },
                 ].map((s, i) => (
                     <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.75rem' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
                         <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
                     </div>
                 ))}
@@ -267,7 +267,7 @@ export default function GorevlerMainContainer() {
 
             {/* Form */}
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
+                <div style={{ background: '#122b27', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
                     <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>📋 {duzenleId ? 'Görevi Düzenle' : 'Yeni Görev'}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem' }}>
                         <div style={{ gridColumn: '1/-1' }}>
@@ -294,7 +294,7 @@ export default function GorevlerMainContainer() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => { setForm(BOSH); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                        <button onClick={() => { setForm(BOSH); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '9px 18px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
                         <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : duzenleId ? 'Güncelle' : 'Görev Oluştur'}</button>
                     </div>
                 </div>
@@ -351,7 +351,7 @@ export default function GorevlerMainContainer() {
             {gorunumModu === 'liste' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                     {filtreli.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', background: '#0b1d1a', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <ClipboardList size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Görev bulunamadı.</p>
                         </div>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * features/muhasebe/services/muhasebeApi.js
  * M14 Muhasebe & Final Rapor — Supabase Servis Katmanı
  */
@@ -55,11 +55,62 @@ export async function devirKapat(rapor, kullaniciLabel = '') {
         kullanici_adi: kullaniciLabel || 'Muhasebe Yetkilisi',
         eski_veri: { mesaj: (rapor.model_kodu || rapor.id) + ' kilitlendi ve 2. birime devredildi.' },
     }]);
+
     const { error } = await supabase.from('b1_muhasebe_raporlari').update({
         rapor_durumu: 'kilitlendi', devir_durumu: true, onay_tarihi: new Date().toISOString()
     }).eq('id', rapor.id);
     if (error) throw error;
-    telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI!\nBir üretim raporu KİLİTLENDİ.`);
+
+    // ─── STOK OTONOMU (GAMMA AJANI) ───
+    try {
+        // İlgili ürünün kodunu/adını taslaklardan bul (rapor içerisinde model_kodu olmayabilir diye garantiye al)
+        const { data: model } = await supabase.from('b1_model_taslaklari').select('model_kodu, model_adi').eq('id', rapor.order_id).single();
+        if (model?.model_kodu) {
+            let { data: urun } = await supabase.from('b2_urun_katalogu').select('id, stok_adeti').eq('urun_kodu', model.model_kodu).single();
+            let urunId = urun?.id;
+
+            // Katalogda o ürün henüz yoksa otonom olarak (taslak değerlerle) yarat
+            if (!urun) {
+                const birimFiyat = rapor.net_uretilen_adet > 0 ? (rapor.gerceklesen_maliyet_tl / rapor.net_uretilen_adet) : 0;
+                const { data: yeniUrun } = await supabase.from('b2_urun_katalogu').insert([{
+                    urun_kodu: model.model_kodu,
+                    urun_adi: model.model_adi,
+                    durum: 'aktif',
+                    satis_fiyati_tl: birimFiyat * 2, // Örnek olarak x2 net marj algoritması
+                    stok_adeti: 0
+                }]).select().single();
+
+                if (yeniUrun) {
+                    urunId = yeniUrun.id;
+                    urun = { id: yeniUrun.id, stok_adeti: 0 };
+                }
+            }
+
+            // Katalog ID si varsa Depoya Otonom Giriş (Hareket) yap
+            if (urunId && rapor.net_uretilen_adet > 0) {
+                await supabase.from('b2_stok_hareketleri').insert([{
+                    urun_id: urunId,
+                    hareket_tipi: 'giris',
+                    adet: rapor.net_uretilen_adet,
+                    aciklama: `İmalat Devir (Üretim Raporu ID: ${rapor.id?.slice(0, 8) || 'Bilinmiyor'})`
+                }]);
+
+                await supabase.from('b2_urun_katalogu').update({ stok_adeti: (urun?.stok_adeti || 0) + rapor.net_uretilen_adet }).eq('id', urunId);
+
+                // Sisteme gamma ajan logu düş
+                await supabase.from('b0_sistem_loglari').insert([{
+                    tablo_adi: 'b2_stok_hareketleri',
+                    islem_tipi: 'OTOMATIK_STOK_GUNCELLEME',
+                    kullanici_adi: 'SİSTEM (GAMMA AJAN)',
+                    eski_veri: { durum: 'devir_onaylandi', rapor_id: rapor.id, adet: rapor.net_uretilen_adet }
+                }]);
+            }
+        }
+    } catch (e) {
+        console.error('Stok otonomu hatası (Kritik değil ama loglandı):', e);
+    }
+
+    telegramBildirim(`🔒 2. BİRİME DEVİR ONAYLANDI & STOK GÜNCELLENDİ!\nBir üretim raporu KİLİTLENDİ.`);
     return { offline: false };
 }
 

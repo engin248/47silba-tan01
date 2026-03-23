@@ -1,0 +1,1 @@
+ALTER TABLE public.b1_arge_products ADD COLUMN IF NOT EXISTS agent_session_id UUID; ALTER TABLE public.b1_arge_products ADD COLUMN IF NOT EXISTS kaynak_url TEXT;

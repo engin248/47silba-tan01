@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     MessageSquare, Send, Inbox, AlertTriangle, CheckCircle2,
     Clock, User, Lock, ChevronDown, ChevronUp, Reply,
@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { formatTarih, telegramBildirim } from '@/lib/utils';
+import { mesajSifrele, mesajCoz, sifreliMi } from '@/lib/mesajSifrele';
 
 // ── YARDIMCI: SHA-256 hash (Web Crypto API — tarayıcı nativee) ───────────────
 async function sha256(str) {
@@ -70,32 +71,47 @@ const TAM_ARŞİV_GRUPLARI = ['tam', 'yonetim', 'koordinator', 'isletme'];
 const URETIM_BIRIMLERI = ['uretim', 'kesim', 'kalip', 'arge', 'modelhane', 'tasarim'];
 const uretimBirimiMi = (modul) => URETIM_BIRIMLERI.includes(modul);
 
+// 🔐 ŞİFRELİ İÇERİK GÖRÜNTÜLEYICI
+function CozulmusIcerik({ icerik }) {
+    const [metin, setMetin] = useState(/** @type {string|null} */(null));
+    useEffect(() => {
+        let iptal = false;
+        mesajCoz(icerik || '').then(cozulmus => {
+            if (!iptal) setMetin(cozulmus);
+        });
+        return () => { iptal = true; };
+    }, [icerik]);
+    if (metin === null) return <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>🔐 Çözülüyor...</span>;
+    return <>{metin}</>;
+}
+
 export default function HaberlesmeMainContainer() {
+
     const { kullanici } = useAuth();
+    const _kul = /** @type {any} */ (kullanici);
     const { lang } = useLang();
     const isAR = lang === 'ar';
 
     const [sekme, setSekme] = useState('gelen');
-    const [mesajlar, setMesajlar] = useState([]);
+    const [mesajlar, setMesajlar] = useState(/** @type {any[]} */([]));
     const [gizliIdler, setGizliIdler] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [bildirim, setBildirim] = useState({ text: '', type: '' });
     const [form, setForm] = useState(BOŞ_FORM);
     const [gonderiliyor, setGonderiliyor] = useState(false);
-    const [acikMesaj, setAcikMesaj] = useState(null);
+    const [acikMesaj, setAcikMesaj] = useState(/** @type {any} */(null));
     const [yanitMod, setYanitMod] = useState(false);
     const [yanitIcerik, setYanitIcerik] = useState('');
     const [onayNotu, setOnayNotu] = useState('');
     const [filtreOncelik, setFiltreOncelik] = useState('hepsi');
-    const [filtreGizli, setFiltreGizli] = useState(false); // Arşiv: gizlenenleri de göster
+    const [filtreGizli, setFiltreGizli] = useState(false);
     const [okunmamisSayi, setOkunmamisSayi] = useState(0);
-
-    const [aktifModeller, setAktifModeller] = useState([]);
+    const [aktifModeller, setAktifModeller] = useState(/** @type {any[]} */([]));
     const [dinliyor, setDinliyor] = useState(false);
 
-    const kullaniciModul = kullanici?.modul || kullanici?.grup || 'genel';
-    const kullaniciAdi = kullanici?.ad || kullanici?.email || 'Bilinmeyen';
-    const tamArsivYetkisi = TAM_ARŞİV_GRUPLARI.includes(kullanici?.grup);
+    const kullaniciModul = _kul?.modul || _kul?.grup || 'genel';
+    const kullaniciAdi = _kul?.ad || _kul?.email || 'Bilinmeyen';
+    const tamArsivYetkisi = TAM_ARŞİV_GRUPLARI.includes(_kul?.grup);
 
     // ── REALTIME & EKLENTİ YÜKLEME ─────────────────────────────────────────────────────────────
     useEffect(() => {
@@ -210,7 +226,7 @@ export default function HaberlesmeMainContainer() {
         };
         rec.onend = () => { setDinliyor(false); };
 
-        try { rec.start(); } catch (err) { }
+        try { rec.start(); } catch (err) { console.warn('[UYARI] Ses Tanıma API Başlatılamadı:', err); }
     };
 
     // ── MESAJ AÇ + OKUNDU DAMGASI ────────────────────────────────────────────
@@ -258,9 +274,12 @@ export default function HaberlesmeMainContainer() {
             const konuPrefix = form.urun_kodu.trim() ? `[${form.urun_kodu.trim()}] ` : '';
             const sonKonu = konuPrefix + form.konu.trim();
 
+            // 🔐 AES-256-GCM ŞİFRELEME — içerik Supabase'e gitmeden şifrelenir
+            const sifreliIcerik = await mesajSifrele(form.icerik.trim());
+
             const { error } = await supabase.from('b1_ic_mesajlar').insert([{
                 konu: sonKonu,
-                icerik: form.icerik.trim(),
+                icerik: sifreliIcerik,
                 mesaj_hash: hash,             // içerik bütünlüğü damgası
                 gonderen_id: null,                // PIN sistemi UUID üretmiyor — grup bazlı kimlik
                 gonderen_adi: kullaniciAdi,
@@ -419,9 +438,12 @@ export default function HaberlesmeMainContainer() {
             const zamanDamgasi = new Date().toISOString();
             const hash = await sha256(`${yanitIcerik.trim()}|${kullaniciAdi}|${zamanDamgasi}`);
 
+            // 🔐 Yanıt da şifreleniyor
+            const sifreliYanit = await mesajSifrele(yanitIcerik.trim());
+
             const { error } = await supabase.from('b1_ic_mesajlar').insert([{
                 konu: 'RE: ' + acikMesaj.konu,
-                icerik: yanitIcerik.trim(),
+                icerik: sifreliYanit,
                 mesaj_hash: hash,
                 gonderen_id: kullanici.id,
                 gonderen_adi: kullaniciAdi,

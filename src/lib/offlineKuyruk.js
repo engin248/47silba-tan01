@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 // ─── OFFLINE (ÇEVRİMDIŞI) VERİTABANI MOTORU (INDEXED-DB) ───
 // İnternet koptuğunda verileri tarayıcı hafızasına (IndexedDB) kilitler ve
 // İnternet geldiğinde Supabase'e gönderir.
@@ -93,7 +93,6 @@ export async function offlineSenkronizasyonuBaslat() {
         const kuyruk = await bekleyenleriGetir();
         if (!kuyruk || kuyruk.length === 0) return { basarili: 0, basarisiz: 0 };
 
-        console.warn(`[OFFLINE] İnternet geldi. Çevrimdışı bekleyen ${kuyruk.length} işlem Supabase'e gönderiliyor...`);
         let basariliAdet = 0;
         let basarisizAdet = 0;
 

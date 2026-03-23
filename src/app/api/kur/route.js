@@ -1,12 +1,18 @@
-/**
+﻿/**
  * /api/kur — Günlük Döviz Kuru
  * [A-02] TCMB (Merkez Bankası) Canlı Kuru
  * Supabase'e günlük cache yazılır — aynı gün ikincil istek yapılmaz
  */
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { spamKontrol } from '@/lib/ApiZirhi';
 
-export async function GET() {
+export async function GET(request) {
+    // R1 FIX (Müfettiş 19.03.2026): Rate limit zirhi eklendi
+    const ip = request.headers.get('x-forwarded-for') || 'sistem';
+    const { izinVerildi } = spamKontrol(ip);
+    if (!izinVerildi) return NextResponse.json({ usd_tl: 32.5, eur_tl: null, kaynak: 'rate_limit' }, { status: 429 });
+
     try {
         const bugun = new Date().toISOString().slice(0, 10); // "2026-03-10"
 

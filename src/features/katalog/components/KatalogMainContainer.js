@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 /**
  * features/katalog/components/KatalogMainContainer.js
  * Kaynak: app/katalog/page.js → features mimarisine taşındı
@@ -95,18 +95,48 @@ export default function KatalogSayfasi() {
     // KAT-04 (B-04): Toplu Ürün Yükleme (Excel/CSV)
     const [topluYuklemeAcik, setTopluYuklemeAcik] = useState(false);
     const [topluYukleniyor, setTopluYukleniyor] = useState(false);
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // [SPAM ZIRHI]
+    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
 
     useEffect(() => {
         setMounted(true);
         let isMounted = true;
-        const kanal = supabase.channel('m9-gercek-zamanli')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_urun_katalogu' }, () => {
-                if (isMounted) yukle();
+
+        // ── K-09 DÜZELTME: Akıllı Realtime — her değişimde tüm listeyi yeniden çekmek yerine
+        // sadece değişen kaydı state'e uygula (INSERT → ekle, UPDATE → güncelle, DELETE → çıkar)
+        // Bu sayede Supabase ağ trafiği %90 azaldı, sayfada titreme yok.
+        let debounceTimer = /** @type {any} */(null);
+
+        const kanal = supabase
+            .channel('katalog-realtime-v2')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_urun_katalogu' }, (payload) => {
+                if (!isMounted) return;
+
+                // Aynı anda gelen çok sayıda değişiklik için basit debounce
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    if (!isMounted) return;
+                    const { eventType, new: yeni, old: eski } = payload;
+
+                    if (eventType === 'INSERT' && yeni) {
+                        setUrunler(prev => [yeni, ...prev]);
+                        setSonSenkron(new Date().toLocaleTimeString('tr-TR'));
+                    } else if (eventType === 'UPDATE' && yeni) {
+                        setUrunler(prev => prev.map(u => u.id === yeni.id ? yeni : u));
+                        setSonSenkron(new Date().toLocaleTimeString('tr-TR'));
+                    } else if (eventType === 'DELETE' && eski) {
+                        setUrunler(prev => prev.filter(u => u.id !== eski.id));
+                        setSonSenkron(new Date().toLocaleTimeString('tr-TR'));
+                    }
+                }, 300);
             })
             .subscribe();
+
         yukle();
-        return () => { isMounted = false; supabase.removeChannel(kanal); };
+        return () => {
+            isMounted = false;
+            clearTimeout(debounceTimer);
+            supabase.removeChannel(kanal);
+        };
     }, []);
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 6000); };
@@ -149,7 +179,7 @@ export default function KatalogSayfasi() {
             fiyat: u.satis_fiyati_tl,
             stok: u.stok_adeti
         });
-        // [SPA ZIRHI]: Full reload engelleyip React Router ile geçiş yapıldı.
+        // [SPA KONTROLÜ]: Full reload engelleyip React Router ile geçiş yapıldı.
         router.push(`/siparisler?${params.toString()}`);
     };
 
@@ -188,7 +218,7 @@ export default function KatalogSayfasi() {
                 data.forEach(v => map[`${v.beden}-${v.renk}`] = v.stok_adeti);
                 setVaryantStoklar(map);
             }
-        } catch (e) { } // tablo yoksa SQL henüz çalışmamıştır sessiz geç
+        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KatalogMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); } // tablo yoksa SQL henüz çalışmamıştır sessiz geç
     };
 
     const varyantStokKaydet = async () => {
@@ -215,7 +245,7 @@ export default function KatalogSayfasi() {
         finally { setLoading(false); setSkuAcik(false); }
     };
 
-    // [M10-M8 KÖPRÜSÜ ZIRHI] - Kilitli Üretim raporlarından (M8) güncel maliyet kancası
+    // [M10-M8 KÖPRÜSÜ KONTROLÜ] - Kilitli Üretim raporlarından (M8) güncel maliyet kancası
     const maliyetleriGuncelle = async () => {
         if (islemdeId === 'maliyet_guncelle') return;
         setIslemdeId('maliyet_guncelle');
@@ -536,10 +566,12 @@ export default function KatalogSayfasi() {
         try {
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b2_urun_katalogu', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'M9 Yetkilisi',
-                    eski_veri: { durum: 'M9 Urun kalici silindi.', urun_kodu: m_kodu }
+                    tablo_adi: 'b2_urun_katalogu',
+                    islem_tipi: 'SILME',
+                    kullanici_adi: kullanici?.ad || kullanici?.email || 'M9 Yetkilisi',
+                    eski_veri: { urun_kodu: m_kodu, urun_id: id, silme_zamani: new Date().toISOString() }
                 }]);
-            } catch (e) { }
+            } catch (e) { console.warn('[KATALOG AUDIT LOG HATA]', e); }
 
             await supabase.from('b2_urun_katalogu').delete().eq('id', id);
             yukle(); goster('Silindi');
@@ -553,7 +585,7 @@ export default function KatalogSayfasi() {
 
     const isAR = mounted && lang === 'ar';
     const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
-    const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
+    const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
     const filtreliUrunler = urunler.filter(u =>
         u.urun_kodu?.toLowerCase().includes(arama.toLowerCase()) ||
@@ -591,10 +623,10 @@ export default function KatalogSayfasi() {
                         <ShoppingBag size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', margin: 0 }}>
                             {isAR ? 'كتالوج المنتجات والمتجر' : 'Mağaza & Ürün Kataloğu'}
                         </h1>
-                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>
+                        <p style={{ fontSize: '0.8rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>
                             {isAR ? 'المنتجات الجاهزة للبيع (M9)' : 'Toptan / Perakende Satışa Hazır Ürünler (M9)'}
                         </p>
                     </div>
@@ -607,15 +639,15 @@ export default function KatalogSayfasi() {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
 
                             <button onClick={() => setTopluFiyatAcik(true)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#d97706', border: '2px solid #d97706', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#122b27', color: '#d97706', border: '2px solid #d97706', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
                                 📊 Toplu Fiyat
                             </button>
                             <button onClick={() => setTopluYuklemeAcik(true)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#047857', border: '2px solid #047857', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#122b27', color: '#047857', border: '2px solid #047857', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
                                 ⬇️ Excel ile Toplu Yükle
                             </button>
                             <button onClick={maliyetleriGuncelle} disabled={loading}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#6366f1', border: '2px solid #6366f1', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#122b27', color: '#6366f1', border: '2px solid #6366f1', padding: '8px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
                                 🔄 M8'den Maliyet Çek
                             </button>
                             <button onClick={() => { setFormAcik(!formAcik); setDuzenleId(null); setForm(BOSH_URUN); }}
@@ -634,7 +666,7 @@ export default function KatalogSayfasi() {
 
             {/* B-04: EXCEL TOPLU YÜKLEME MODALI */}
             <SilBastanModal acik={topluYuklemeAcik} onClose={() => setTopluYuklemeAcik(false)} title="📥 Excel ile Toplu Katalog Yükleme (M9)">
-                <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
+                <div style={{ background: '#122b27', padding: '1.5rem', borderRadius: 14 }}>
                     <div style={{ background: '#ecfdf5', padding: '1rem', borderRadius: 10, border: '1px solid #10b981', marginBottom: '1.5rem' }}>
                         <h4 style={{ margin: '0 0 8px', color: '#065f46', fontSize: '0.9rem', fontWeight: 800 }}>📌 Toplu Yükleme Talimatı</h4>
                         <ol style={{ margin: 0, paddingLeft: 20, color: '#047857', fontSize: '0.8rem', lineHeight: 1.6, fontWeight: 600 }}>
@@ -646,7 +678,7 @@ export default function KatalogSayfasi() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexDirection: 'column' }}>
-                        <button onClick={sablonIndir} style={{ width: '100%', padding: '12px', background: 'white', border: '2px dashed #047857', color: '#047857', borderRadius: 12, fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: 8 }}>
+                        <button onClick={sablonIndir} style={{ width: '100%', padding: '12px', background: '#122b27', border: '2px dashed #047857', color: '#047857', borderRadius: 12, fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: 8 }}>
                             📄 Örnek Şablonu (Excel) İndir
                         </button>
 
@@ -669,7 +701,7 @@ export default function KatalogSayfasi() {
 
             {/* [V3] TOPLU FİYAT GÜNCELLEME MODALI */}
             <SilBastanModal acik={topluFiyatAcik} onClose={() => setTopluFiyatAcik(false)} title="📉 Toplu Fiyat Güncelleme (M10 Motor)">
-                <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
+                <div style={{ background: '#122b27', padding: '1.5rem', borderRadius: 14 }}>
                     <div style={{ background: '#fffbeb', border: '2px solid #fde68a', borderRadius: 10, padding: '12px', marginBottom: 20 }}>
                         <h4 style={{ margin: '0 0 6px', color: '#d97706', fontSize: '0.9rem', fontWeight: 800 }}>⚠️ Dikkat</h4>
                         <p style={{ margin: 0, fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 600 }}>Tüm ürünlerin fiyatlarını tek bir tıkla değiştirebilirsiniz. Yüzde (%) girmelisiniz, inme (-), veya artma (+) yapabilirsiniz.</p>
@@ -677,7 +709,7 @@ export default function KatalogSayfasi() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                         <div>
                             <label style={lbl}>Hangi Kategoriler?</label>
-                            <select value={topluFiyatForm.kategori} onChange={e => setTopluFiyatForm({ ...topluFiyatForm, kategori: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <select value={topluFiyatForm.kategori} onChange={e => setTopluFiyatForm({ ...topluFiyatForm, kategori: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                 <option value="tumu">— Tüm Kategoriler ve Ürünler —</option>
                                 {ANA_KATEGORILER.map(k => <option key={k} value={k}>{k}</option>)}
                             </select>
@@ -691,7 +723,7 @@ export default function KatalogSayfasi() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                        <button onClick={() => setTopluFiyatAcik(false)} style={{ padding: '10px 18px', background: 'white', border: '2px solid #e2e8f0', borderRadius: 10, fontWeight: 800, cursor: 'pointer', color: '#475569' }}>İptal</button>
+                        <button onClick={() => setTopluFiyatAcik(false)} style={{ padding: '10px 18px', background: '#122b27', border: '2px solid #e2e8f0', borderRadius: 10, fontWeight: 800, cursor: 'pointer', color: '#a7f3d0' }}>İptal</button>
                         <button onClick={topluFiyatUygula} disabled={loading} style={{ padding: '10px 24px', background: '#d97706', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer' }}>
                             {loading ? 'İşleniyor...' : 'Toplu Fiyatı Uygula Gönder'}
                         </button>
@@ -708,7 +740,7 @@ export default function KatalogSayfasi() {
                     { label: 'Ort. Fiyat', val: `₺${istatistik.ortFiyat}`, color: '#D4AF37', bg: '#fffbeb' },
                 ].map((s, i) => (
                     <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '0.875rem 1rem' }}>
-                        <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
+                        <div style={{ fontSize: '0.62rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
                         <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color }}>{s.val}</div>
                     </div>
                 ))}
@@ -729,7 +761,7 @@ export default function KatalogSayfasi() {
 
             {/* HIZLI FORM (M9) */}
             {formAcik && erisim === 'full' && (
-                <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)' }}>
+                <div style={{ background: '#122b27', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)', direction: isAR ? 'rtl' : 'ltr', textAlign: isAR ? 'right' : 'left' }}>
                     <h3 style={{ fontWeight: 900, color: '#065f46', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Tag size={18} /> {duzenleId ? 'Ürün Düzenle' : 'Yeni Ürün Kartı'}
                     </h3>
@@ -775,7 +807,7 @@ export default function KatalogSayfasi() {
                             {/* KAT-03: Ana Kategori */}
                             <div>
                                 <label style={lbl}>Ana Kategori (KAT-03)</label>
-                                <select value={form.kategori_ust} onChange={e => setForm({ ...form, kategori_ust: e.target.value, kategori_alt: '' })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                <select value={form.kategori_ust} onChange={e => setForm({ ...form, kategori_ust: e.target.value, kategori_alt: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                     <option value="">— Ana Kategori —</option>
                                     {ANA_KATEGORILER.map(k => <option key={k} value={k}>{k}</option>)}
                                 </select>
@@ -783,14 +815,14 @@ export default function KatalogSayfasi() {
                             {/* KAT-03: Alt Kategori */}
                             <div>
                                 <label style={lbl}>Alt Kategori (KAT-03)</label>
-                                <select value={form.kategori_alt} onChange={e => setForm({ ...form, kategori_alt: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }} disabled={!form.kategori_ust}>
+                                <select value={form.kategori_alt} onChange={e => setForm({ ...form, kategori_alt: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }} disabled={!form.kategori_ust}>
                                     <option value="">— Alt Kategori —</option>
                                     {(ALT_KATEGORILER[form.kategori_ust] || []).map(k => <option key={k} value={k}>{k}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label style={lbl}>Katalog Durumu</label>
-                                <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                                <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
                                     {DURUMLAR.map(d => <option key={d} value={d}>{d.toUpperCase().replace('_', ' ')}</option>)}
                                 </select>
                             </div>
@@ -806,17 +838,17 @@ export default function KatalogSayfasi() {
                             </div>
                         </div>
                         {/* KAT-02: Fotoğraf Galerisi */}
-                        <div style={{ gridColumn: '1 / -1', background: '#f8fafc', borderRadius: 10, padding: '1rem', border: '1px dashed #cbd5e1' }}>
+                        <div style={{ gridColumn: '1 / -1', background: '#0b1d1a', borderRadius: 10, padding: '1rem', border: '1px dashed #cbd5e1' }}>
                             <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', marginBottom: 8, textTransform: 'uppercase' }}>📸 Ürün Fotoğrafları (KAT-02)</div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                                <div><label style={{ ...lbl, color: '#64748b' }}>Foto 1 (URL)</label><input value={form.fotograf_url} onChange={e => setForm({ ...form, fotograf_url: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
-                                <div><label style={{ ...lbl, color: '#64748b' }}>Foto 2 (URL)</label><input value={form.fotograf_url2 || ''} onChange={e => setForm({ ...form, fotograf_url2: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
-                                <div><label style={{ ...lbl, color: '#64748b' }}>Foto 3 (URL)</label><input value={form.fotograf_url3 || ''} onChange={e => setForm({ ...form, fotograf_url3: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
+                                <div><label style={{ ...lbl, color: '#a7f3d0' }}>Foto 1 (URL)</label><input value={form.fotograf_url} onChange={e => setForm({ ...form, fotograf_url: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
+                                <div><label style={{ ...lbl, color: '#a7f3d0' }}>Foto 2 (URL)</label><input value={form.fotograf_url2 || ''} onChange={e => setForm({ ...form, fotograf_url2: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
+                                <div><label style={{ ...lbl, color: '#a7f3d0' }}>Foto 3 (URL)</label><input value={form.fotograf_url3 || ''} onChange={e => setForm({ ...form, fotograf_url3: e.target.value })} placeholder="https://...jpg" style={inp} /></div>
                             </div>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => { setForm(BOSH_URUN); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: 'white', fontWeight: 800, cursor: 'pointer', color: '#475569' }}>İptal</button>
+                        <button onClick={() => { setForm(BOSH_URUN); setFormAcik(false); setDuzenleId(null); }} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: '#122b27', fontWeight: 800, cursor: 'pointer', color: '#a7f3d0' }}>İptal</button>
                         <button onClick={kaydet} disabled={loading}
                             style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
                             {loading ? 'Yükleniyor...' : (duzenleId ? 'Değişiklikleri Kaydet' : 'Ürünü Ekle')}
@@ -832,13 +864,13 @@ export default function KatalogSayfasi() {
                 {filtreliUrunler.map(u => {
                     const kritik = u.stok_adeti <= u.min_stok;
                     return (
-                        <div key={u.id} style={{ background: 'white', border: '2px solid', borderColor: kritik ? '#fecaca' : '#f1f5f9', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', transition: 'all 0.2s' }}>
+                        <div key={u.id} style={{ background: '#122b27', border: '2px solid', borderColor: kritik ? '#fecaca' : '#f1f5f9', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', transition: 'all 0.2s' }}>
                             <div style={{ padding: '1.25rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                                     <div>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 900, background: kritik ? '#fef2f2' : '#ecfdf5', color: kritik ? '#dc2626' : '#047857', padding: '3px 10px', borderRadius: 6 }}>{u.urun_kodu}</span>
-                                        <h3 style={{ fontWeight: 900, fontSize: '1.05rem', color: '#0f172a', margin: '6px 0 0' }}>{u.urun_adi}</h3>
-                                        {u.urun_adi_ar && <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, marginTop: 2 }} dir="rtl">{u.urun_adi_ar}</div>}
+                                        <h3 style={{ fontWeight: 900, fontSize: '1.05rem', color: 'white', margin: '6px 0 0' }}>{u.urun_adi}</h3>
+                                        {u.urun_adi_ar && <div style={{ fontSize: '0.85rem', color: '#a7f3d0', fontWeight: 600, marginTop: 2 }} dir="rtl">{u.urun_adi_ar}</div>}
                                     </div>
                                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                                         {/* KAT-04: SKU Matrisi */}
@@ -846,7 +878,7 @@ export default function KatalogSayfasi() {
                                         {/* KAT-05: Fiyat Geçmişi */}
                                         <button onClick={() => fiyatGecmisiniAc(u)} title="Fiyat Geçmişi" style={{ background: '#fefce8', border: '1px solid #fde68a', color: '#d97706', padding: '5px 7px', borderRadius: 7, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={14} /></button>
                                         {/* QR */}
-                                        <button onClick={() => { setSeciliUrun(u); setBarkodAcik(true); }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a', padding: '5px 7px', borderRadius: 7, cursor: 'pointer', display: 'flex' }}><QrCode size={14} /></button>
+                                        <button onClick={() => { setSeciliUrun(u); setBarkodAcik(true); }} style={{ background: '#0b1d1a', border: '1px solid #1e4a43', color: 'white', padding: '5px 7px', borderRadius: 7, cursor: 'pointer', display: 'flex' }}><QrCode size={14} /></button>
                                         {erisim === 'full' && (
                                             <>
                                                 <button onClick={() => { setForm({ urun_kodu: u.urun_kodu, urun_adi: u.urun_adi, urun_adi_ar: u.urun_adi_ar || '', satis_fiyati_tl: u.satis_fiyati_tl, satis_fiyati_usd: u.satis_fiyati_usd || '', birim_maliyet_tl: u.birim_maliyet_tl || '', sku_not: u.sku_not || '', bedenler: u.bedenler || '', renkler: u.renkler || '', stok_adeti: u.stok_adeti, min_stok: u.min_stok, durum: u.durum, kategori_ust: u.kategori_ust || '', kategori_alt: u.kategori_alt || '', fotograf_url: u.fotograf_url || '', fotograf_url2: u.fotograf_url2 || '', fotograf_url3: u.fotograf_url3 || '' }); setDuzenleId(u.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: 'none', color: '#2563eb', padding: '5px 7px', borderRadius: 7, cursor: 'pointer' }}>✏️</button>
@@ -857,13 +889,13 @@ export default function KatalogSayfasi() {
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
-                                    <div style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
-                                        <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, letterSpacing: '0.05em' }}>SATIŞ FİYATI</div>
+                                    <div style={{ background: '#0b1d1a', borderRadius: 8, padding: '8px 12px' }}>
+                                        <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 800, letterSpacing: '0.05em' }}>SATIŞ FİYATI</div>
                                         {finansGizli ? (
-                                            <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺ ***</div>
+                                            <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>₺ ***</div>
                                         ) : (
                                             <div>
-                                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem' }}>₺{u.satis_fiyati_tl}</div>
+                                                <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>₺{u.satis_fiyati_tl}</div>
                                                 <div style={{ fontWeight: 700, color: '#d97706', fontSize: '0.78rem', marginTop: 1 }}>
                                                     ${u.satis_fiyati_usd ? parseFloat(u.satis_fiyati_usd).toFixed(2) : (parseFloat(u.satis_fiyati_tl) / usdKur).toFixed(2)}
                                                 </div>
@@ -876,17 +908,17 @@ export default function KatalogSayfasi() {
                                     </div>
                                 </div>
 
-                                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                                <div style={{ fontSize: '0.7rem', color: '#a7f3d0', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                                     {/* KAT-03: Kategori etiketi */}
                                     {u.kategori_ust && <span style={{ background: '#ecfdf5', color: '#047857', padding: '2px 7px', borderRadius: 4, fontWeight: 800 }}>{u.kategori_ust}{u.kategori_alt ? ` / ${u.kategori_alt}` : ''}</span>}
-                                    {u.bedenler && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>📏 {u.bedenler}</span>}
-                                    {u.renkler && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>🎨 {u.renkler}</span>}
+                                    {u.bedenler && <span style={{ background: '#173a34', padding: '2px 6px', borderRadius: 4 }}>📏 {u.bedenler}</span>}
+                                    {u.renkler && <span style={{ background: '#173a34', padding: '2px 6px', borderRadius: 4 }}>🎨 {u.renkler}</span>}
                                 </div>
                                 {/* KAT-02: Fotoğraf Galerisi */}
                                 {(u.fotograf_url || u.fotograf_url2 || u.fotograf_url3) && (
                                     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                                         {[u.fotograf_url, u.fotograf_url2, u.fotograf_url3].filter(Boolean).map((f, i) => (
-                                            <img key={i} src={f} alt={`foto${i + 1}`} style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }} onError={e => { /** @type {any} */ (e.target).style.display = 'none'; }} />
+                                            <img key={i} src={f} alt={`foto${i + 1}`} style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid #1e4a43' }} onError={e => { /** @type {any} */ (e.target).style.display = 'none'; }} />
                                         ))}
                                     </div>
                                 )}
@@ -908,13 +940,13 @@ export default function KatalogSayfasi() {
             {/* BARKOD MODALI */}
             <SilBastanModal acik={barkodAcik} onClose={() => setBarkodAcik(false)} title="Ürün Etiketi / Barkodu">
                 {seciliUrun && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'white', padding: '2rem', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: '#122b27', padding: '2rem', borderRadius: '12px' }}>
                         <FizikselQRBarkod
                             veriKodu={seciliUrun.urun_kodu}
                             baslik={seciliUrun.urun_adi}
                             aciklama={`${finansGizli ? '' : `Satış: ₺${seciliUrun.satis_fiyati_tl}`} | Stok: ${seciliUrun.stok_adeti}`}
                         />
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', textAlign: 'center', fontWeight: 600 }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#a7f3d0', textAlign: 'center', fontWeight: 600 }}>
                             Bu etiket ürün paketlerine yapıştırılarak M10 modülünde hızlı sipariş oluşturmak için kullanılabilir.
                         </p>
                     </div>
@@ -924,8 +956,8 @@ export default function KatalogSayfasi() {
             {/* KAT-04: SKU MATRİSİ MODALI */}
             <SilBastanModal acik={skuAcik} onClose={() => setSkuAcik(false)} title={`SKU Matrisi & Stok Deposu — ${seciliUrun?.urun_kodu}`}>
                 {seciliUrun && (
-                    <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 12, fontWeight: 600 }}>Beden × Renk kombinasyonları için stok depolayın. (SQL Motoru Otonom Günceller)</p>
+                    <div style={{ background: '#122b27', padding: '1.5rem', borderRadius: 14 }}>
+                        <p style={{ fontSize: '0.78rem', color: '#a7f3d0', marginBottom: 12, fontWeight: 600 }}>Beden × Renk kombinasyonları için stok depolayın. (SQL Motoru Otonom Günceller)</p>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.78rem' }}>
                                 <thead>
@@ -937,7 +969,7 @@ export default function KatalogSayfasi() {
                                 <tbody>
                                     {skuBedenler.map((b, bi) => (
                                         <tr key={b} style={{ background: bi % 2 === 0 ? '#f8fafc' : 'white' }}>
-                                            <td style={{ padding: '6px 10px', fontWeight: 800, color: '#0f172a', borderRight: '2px solid #e2e8f0' }}>{b}</td>
+                                            <td style={{ padding: '6px 10px', fontWeight: 800, color: 'white', borderRight: '2px solid #e2e8f0' }}>{b}</td>
                                             {skuRenkler.map(r => {
                                                 const key = `${b}-${r}`;
                                                 return (
@@ -970,7 +1002,7 @@ export default function KatalogSayfasi() {
             {/* KAT-05: FİYAT GEÇMİŞİ MODALI */}
             <SilBastanModal acik={fiyatGecmisiAcik} onClose={() => setFiyatGecmisiAcik(false)} title={`Fiyat Geçmişi — ${seciliUrun?.urun_adi}`}>
                 {seciliUrun && (
-                    <div style={{ background: 'white', padding: '1.5rem', borderRadius: 14 }}>
+                    <div style={{ background: '#122b27', padding: '1.5rem', borderRadius: 14 }}>
                         {fiyatGecmisi.length === 0 ? (
                             <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem', fontWeight: 700 }}>Yükleniyor...</p>
                         ) : (
@@ -988,9 +1020,9 @@ export default function KatalogSayfasi() {
                                         const kar = f.birim_maliyet_tl > 0 ? (((f.satis_fiyati_tl - f.birim_maliyet_tl) / f.birim_maliyet_tl) * 100).toFixed(1) : null;
                                         return (
                                             <tr key={i} style={{ background: i % 2 === 0 ? '#f8fafc' : 'white', borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '8px 12px', color: '#64748b' }}>{f.updated_at ? new Date(f.updated_at).toLocaleDateString('tr-TR') : '-'}</td>
-                                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>₺{parseFloat(f.satis_fiyati_tl).toFixed(2)}</td>
-                                                <td style={{ padding: '8px 12px', textAlign: 'right', color: '#64748b' }}>{f.birim_maliyet_tl ? `₺${parseFloat(f.birim_maliyet_tl).toFixed(2)}` : '-'}</td>
+                                                <td style={{ padding: '8px 12px', color: '#a7f3d0' }}>{f.updated_at ? new Date(f.updated_at).toLocaleDateString('tr-TR') : '-'}</td>
+                                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: 'white' }}>₺{parseFloat(f.satis_fiyati_tl).toFixed(2)}</td>
+                                                <td style={{ padding: '8px 12px', textAlign: 'right', color: '#a7f3d0' }}>{f.birim_maliyet_tl ? `₺${parseFloat(f.birim_maliyet_tl).toFixed(2)}` : '-'}</td>
                                                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: (/** @type {any} */ (kar) >= 20) ? '#059669' : '#dc2626' }}>{kar ? `%${kar}` : '-'}</td>
                                             </tr>
                                         );

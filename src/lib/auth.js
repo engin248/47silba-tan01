@@ -58,11 +58,16 @@ export const ERISIM_MATRISI = {
     '/tasarim': { tam: 'full', uretim: null, genel: null },
 };
 
+/**
+ * @typedef {{ grup: string, label: string, gosterge: string, zaman: number }} Kullanici
+ * @typedef {{ kullanici: Kullanici|null, yukleniyor: boolean, girisYap: (pin:string) => Promise<any>, cikisYap: () => void, sayfaErisim: (href:string) => any }} AuthCtxType
+ */
+
 // ─── AUTH CONTEXT ─────────────────────────────────────────────
-const AuthContext = createContext(null);
+const AuthContext = createContext(/** @type {AuthCtxType|null} */(null));
 
 export function AuthProvider({ children }) {
-    const [kullanici, setKullanici] = useState(null);
+    const [kullanici, setKullanici] = useState(/** @type {Kullanici|null} */(null));
     const [yukleniyor, setYukleniyor] = useState(true);
 
     useEffect(() => {
@@ -92,7 +97,10 @@ export function AuthProvider({ children }) {
                     localStorage.removeItem('sb47_auth');
                 }
             }
-        } catch { localStorage.removeItem('sb47_auth'); }
+        } catch (authHata) { 
+            console.warn('[AUTH] Oturum parse hatası, sıfırlanıyor:', authHata?.message);
+            localStorage.removeItem('sb47_auth'); 
+        }
         setYukleniyor(false);
     }, []);
 
@@ -121,8 +129,9 @@ export function AuthProvider({ children }) {
                 veri = await res.json(); // artık dış scope'a atanıyor
                 grup = veri.grup || null;
             }
-        } catch {
+        } catch (agHata) {
             // Server ulaşılamaz — dinamik PIN fallback
+            console.warn('[AUTH] API ulaşılamaz, fallback devrede:', agHata?.message);
             grup = pindenGrupBul(pin);
         }
 
@@ -212,6 +221,9 @@ export function AuthProvider({ children }) {
     );
 }
 
+/**
+ * @returns {{ kullanici: {grup: string, label: string, gosterge: string, zaman: number} | null, yukleniyor: boolean, girisYap: function, cikisYap: function, sayfaErisim: function }}
+ */
 export function useAuth() {
     const ctx = useContext(AuthContext);
     if (!ctx) throw new Error('useAuth must be used inside AuthProvider');

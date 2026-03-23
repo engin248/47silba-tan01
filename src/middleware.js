@@ -56,13 +56,55 @@ async function jwtDogrula(token, sirri) {
 const PUBLIC_API_ROTALAR = [
     '/api/pin-dogrula',
     '/api/telegram-bildirim',
-    '/api/cron-ajanlar',
+    // [GÜVENLİK A4]: /api/cron-ajanlar PUBLIC listesinden çıkarıldı
+    // Artık x-internal-api-key header'ı zorunlu (aşağıdaki korunanApiRotalar'a eklendi)
+];
+
+// ─── HONEYPOT / WORDPRESS BOT ENGELİ ────────────────────────────
+const HONEYPOT_YOLLARI = [
+    '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
+    '/wordpress', '/backup', '/old', '/new', '/blog',
+    '/.env', '/.git', '/config.php', '/setup-config.php',
 ];
 
 export async function middleware(request) {
     const url = request.nextUrl.pathname;
+
+    // ─── [0] HONEYPOT: WordPress/bot tarama yollarını anında engelle ──
+    const honeypotEslesti = HONEYPOT_YOLLARI.some(hp => url.startsWith(hp));
+    if (honeypotEslesti) {
+        return new NextResponse(null, { status: 403 });
+    }
+
+    // ─── [S1] JWT_SIRRI ENV ALARM GUARD ─────────────────────────
+    // SPF: Bu iki değişken yoksa auth sistemi tamamen çöker → 503 ver
+    const sirriKontrol = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
+    if (!sirriKontrol) {
+        console.error('[NIZAM KRİTİK] JWT_SIRRI ve INTERNAL_API_KEY ENV eksik — sistem kilitlendi!');
+        return new NextResponse(
+            JSON.stringify({ hata: 'Sistem yapılandırma hatası. Yöneticiye başvurun.' }),
+            { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+
+    // ─── 0. SALDIRI YOL ENGELİ (WordPress/CMS Tarama Botu) ────
+    const ENGELLENEN_YOLLAR = [
+        '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
+        '/wordpress', '/wp-json', '/xmlrpc.php', '/wp-cron.php',
+        '/phpmyadmin', '/pma', '/admin/config', '/setup-config.php',
+        '/.env', '/.git', '/.htaccess', '/config.php',
+        '/backup', '/old', '/new', '/blog', '/tmp',
+    ];
+    const saldiriYolu = ENGELLENEN_YOLLAR.some(yol =>
+        url === yol || url.startsWith(yol + '/') || url.startsWith(yol + '.')
+    );
+    if (saldiriYolu) {
+        console.warn(`[GÜVENLİK] Engellenen yol: ${url} | IP: ${ip}`);
+        return new NextResponse(null, { status: 403 });
+    }
 
     // ─── 1. BOT/CRAWLER TESPİTİ ───────────────────────────────
     if (url.startsWith('/api/')) {
@@ -87,6 +129,7 @@ export async function middleware(request) {
         '/api/kumas-ekle',
         '/api/personel-ekle',
         '/api/stok-alarm',
+        '/api/cron-ajanlar', // [A4]: Cron artık x-internal-api-key zorunlu
     ];
     const apiKorumalı = korunanApiRotalar.some(r => url.startsWith(r));
 
@@ -129,7 +172,8 @@ export async function middleware(request) {
         '/imalat', '/kesim', '/modelhane', '/muhasebe', '/kasa',
         '/ayarlar', '/guvenlik', '/denetmen', '/personel', '/arge',
         '/kumas', '/kalip', '/maliyet', '/uretim', '/musteriler',
-        '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar'
+        '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar',
+        '/haberlesme', '/tasarim', '/kameralar', // ← EKLENDİ: daha önce korumasızdı
     ];
 
     const eslesenRota = korunanSayfaRotalar.find(rota => url.startsWith(rota));
@@ -149,25 +193,10 @@ export async function middleware(request) {
             if (payload?.grup) yetkiliMi = true;
         }
 
-        // Fallback: Eski session cookie (geriye dönük uyumluluk)
-        if (!yetkiliMi) {
-            try {
-                if (authCookie?.value) {
-                    const kul = JSON.parse(decodeURIComponent(authCookie.value));
-                    if (kul.grup && (kul.grup === 'tam' || kul.grup === 'uretim' || kul.grup === 'genel')) {
-                        yetkiliMi = true;
-                    }
-                }
-            } catch { }
-        }
-
-        // Ek pin çerezleri (JWT veya geçerli session yoksa bunlar TÜR BELİRTİSİ olarak kullanılır, TEK BAŞINA YETKİ VERMEZ!)
-        // KÖR NOKTA ÇÖZÜMÜ: Daha önce herhangi bir 'sb47_genel_pin=1' çerezi yetkiyi by-pass ediyordu. 
-        // Artık sadece JWT doğrulandıysa yetki geçerli sayılacak, bu blokta "yetkiliMi = true" otomatik atanmayacak.
-        if (!yetkiliMi && (uretimPin?.value || genelPin?.value)) {
-            // SADECE JWT Token veya Auth Session GEÇERLİYSE PIN çerezleri yönlendirmeye kılavuz olur. 
-            // Bypass deliği KAPATILDI.
-        }
+        // ─── GÜVENLİK: Legacy JSON cookie fallback KALDIRILDI ─────────────────
+        // Eski sb47_auth_session cookie'si (imzasız JSON) yetki veremez.
+        // Tek geçerli yetkilendirme: HMAC-SHA256 imzalı JWT token (sb47_jwt_token).
+        // Eski session cookie'si olan kullanıcılar giris sayfasına yönlendirilir.
 
         if (!yetkiliMi) {
             const geriDonusUrl = new URL('/?hata=yetkisiz_erisim_middleware_kalkani', request.url);

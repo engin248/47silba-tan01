@@ -66,7 +66,7 @@ export default function RaporlarMainContainer() {
 
         if (erisebilir) {
 
-            // [AI ZIRHI]: Realtime Websocket (Kriter 20 & 34)
+            // SİSTEM OPTİMİZASYONU: Realtime Websocket (Kriter 20 & 34)
             const kanal = supabase.channel('islem-gercek-zamanli-ai')
                 .on('postgres_changes', { event: '*', schema: 'public' }, () => { yukle(); })
                 .subscribe();
@@ -199,8 +199,8 @@ export default function RaporlarMainContainer() {
                         <PieIcon size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Raporlar & Analiz</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Sistem geneli finansal ve operasyonel raporlar</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>Raporlar & Analiz</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>Sistem geneli finansal ve operasyonel raporlar</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -209,9 +209,9 @@ export default function RaporlarMainContainer() {
                         { label: 'Bu Hafta', onClick: () => { const d = new Date(); const mon = new Date(d); mon.setDate(d.getDate() - d.getDay() + 1); setBaslangic(mon.toISOString().slice(0, 10)); setBitis(d.toISOString().slice(0, 10)); } },
                         { label: 'Bu Ay', onClick: () => { const n = new Date(); setBaslangic(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10)); setBitis(n.toISOString().slice(0, 10)); } },
                     ].map(b => (
-                        <button key={b.label} onClick={b.onClick} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem', color: '#374151' }}>{b.label}</button>
+                        <button key={b.label} onClick={b.onClick} style={{ background: '#173a34', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem', color: '#e2e8f0' }}>{b.label}</button>
                     ))}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'white', border: '2px solid #e5e7eb', borderRadius: 10, padding: '6px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#122b27', border: '2px solid #1e4a43', borderRadius: 10, padding: '6px 12px' }}>
                         <Filter size={14} color="#64748b" />
                         <input type="date" value={baslangic} onChange={e => setBaslangic(e.target.value)}
                             style={{ border: 'none', outline: 'none', fontSize: '0.8rem', fontFamily: 'inherit', cursor: 'pointer' }} />
@@ -225,7 +225,7 @@ export default function RaporlarMainContainer() {
                         PDF / Yazdır
                     </button>
                     <button onClick={() => { setBaslangic(''); setBitis(''); }}
-                        style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        style={{ background: '#173a34', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <RefreshCw size={13} /> Sıfırla
                     </button>
                     <button
@@ -292,7 +292,7 @@ export default function RaporlarMainContainer() {
                         ].map((s, i) => (
                             <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                                    <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</div>
+                                    <div style={{ fontSize: '0.68rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</div>
                                     <s.icon size={14} color={s.color} />
                                 </div>
                                 <div style={{ fontWeight: 900, fontSize: '1.4rem', color: s.color }}>{s.val}</div>
@@ -303,8 +303,8 @@ export default function RaporlarMainContainer() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                         {/* Sipariş Durumu BAR CHART */}
                         {durumSay && Object.keys(durumSay).length > 0 && (
-                            <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 16, padding: '1.25rem' }}>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 16, padding: '1.25rem' }}>
+                                <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <BarChart2 size={16} color="#f97316" /> Sipariş Dağılımı
                                 </div>
                                 <ResponsiveContainer width="100%" height={220}>
@@ -331,8 +331,8 @@ export default function RaporlarMainContainer() {
                             const MAL_RENKLER = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
                             const pieData = Object.entries(malGrup).map(([tip, tutar]) => ({ name: MAL_LABEL[tip] || tip, value: parseFloat(tutar.toFixed(2)) }));
                             return (
-                                <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 16, padding: '1.25rem' }}>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 16, padding: '1.25rem' }}>
+                                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><DollarSign size={16} color="#06b6d4" /> Maliyet Dağılımı</span>
                                         <span style={{ fontWeight: 900, color: '#34d399', fontSize: '0.8rem', background: '#0f172a', padding: '3px 10px', borderRadius: 6 }}>₺{topMal.toFixed(0)}</span>
                                     </div>
@@ -363,24 +363,24 @@ export default function RaporlarMainContainer() {
                         </div>
                     </div>
                     {birimMaliyetler.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', background: '#0b1d1a', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <DollarSign size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Henüz kilitlenmiş muhasebe raporu yok.<br />Muhasebe → Rapor → Kilitle işlemi yapıldıktan sonra burada görünür.</p>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                         {birimMaliyetler.map(bm => (
-                            <div key={bm.id} style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1.125rem 1.25rem', display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '1rem', alignItems: 'center' }}>
+                            <div key={bm.id} style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 14, padding: '1.125rem 1.25rem', display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '1rem', alignItems: 'center' }}>
                                 <div>
                                     <div style={{ display: 'flex', gap: 6, marginBottom: 3 }}>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#fffbeb', color: '#d97706', padding: '2px 8px', borderRadius: 4 }}>{bm.model_kodu}</span>
                                         <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{formatTarih(bm.tarih)}</span>
                                     </div>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>{bm.model_adi}</div>
+                                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem' }}>{bm.model_adi}</div>
                                 </div>
-                                <div style={{ textAlign: 'center', background: '#f8fafc', borderRadius: 10, padding: '8px 14px' }}>
-                                    <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Üretilen Adet</div>
-                                    <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.1rem' }}>{bm.adet}</div>
+                                <div style={{ textAlign: 'center', background: '#0b1d1a', borderRadius: 10, padding: '8px 14px' }}>
+                                    <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase' }}>Üretilen Adet</div>
+                                    <div style={{ fontWeight: 900, color: 'white', fontSize: '1.1rem' }}>{bm.adet}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#fef9c3', borderRadius: 10, padding: '8px 14px' }}>
                                     <div style={{ fontSize: '0.6rem', color: '#92400e', fontWeight: 700, textTransform: 'uppercase' }}>Toplam Maliyet</div>
@@ -415,21 +415,21 @@ export default function RaporlarMainContainer() {
                             { baslik: 'Toplam Personel Maliyeti', buAy: 125000, gecenAy: 110000, p: '+%13', pozitif: false },
                             { baslik: 'Fire & Zayiat Tutarı', buAy: 25000, gecenAy: 32000, p: '-%21', pozitif: true }
                         ].map((m, i) => (
-                            <div key={i} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: '1.25rem' }}>
-                                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: '0.75rem', textTransform: 'uppercase' }}>{m.baslik}</div>
+                            <div key={i} style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 12, padding: '1.25rem' }}>
+                                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#a7f3d0', marginBottom: '0.75rem', textTransform: 'uppercase' }}>{m.baslik}</div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                     <div>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>BU AY</div>
-                                        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>{m.buAy > 1000 ? '₺' + m.buAy.toLocaleString('tr-TR') : m.buAy}</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white' }}>{m.buAy > 1000 ? '₺' + m.buAy.toLocaleString('tr-TR') : m.buAy}</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>GEÇEN AY</div>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#64748b' }}>{m.gecenAy > 1000 ? '₺' + m.gecenAy.toLocaleString('tr-TR') : m.gecenAy}</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#a7f3d0' }}>{m.gecenAy > 1000 ? '₺' + m.gecenAy.toLocaleString('tr-TR') : m.gecenAy}</div>
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: m.pozitif ? '#d1fae5' : '#fee2e2', color: m.pozitif ? '#059669' : '#dc2626' }}>{m.p}</span>
-                                    <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>aylık değişim</span>
+                                    <span style={{ fontSize: '0.65rem', color: '#a7f3d0', fontWeight: 600 }}>aylık değişim</span>
                                 </div>
                             </div>
                         ))}
@@ -455,12 +455,12 @@ export default function RaporlarMainContainer() {
                         ))}
                     </div>
                     {malGrup && (
-                        <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 16, padding: '1.25rem' }}>
-                            <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>Gider Kalemleri Detayı</div>
+                        <div style={{ background: '#122b27', border: '1px solid #1e4a43', borderRadius: 16, padding: '1.25rem' }}>
+                            <div style={{ fontWeight: 800, color: 'white', marginBottom: '1rem' }}>Gider Kalemleri Detayı</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 {Object.entries(malGrup || {}).map(([tip, tutar]) => (
-                                    <div key={tip} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderRadius: 8 }}>
-                                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151' }}>{MAL_LABEL[tip] || tip}</span>
+                                    <div key={tip} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#0b1d1a', borderRadius: 8 }}>
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#e2e8f0' }}>{MAL_LABEL[tip] || tip}</span>
                                         <span style={{ fontWeight: 900, color: MAL_RENK[tip], fontSize: '0.9rem' }}>₺{tutar.toFixed(2)}</span>
                                     </div>
                                 ))}
@@ -474,17 +474,17 @@ export default function RaporlarMainContainer() {
             {aktifSekme === 'siparisler' && (
                 <div>
                     {siparislerListesi.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', background: '#0b1d1a', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <ShoppingCart size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Seçilen tarih aralığında sipariş yok.</p>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                         {siparislerListesi.map(s => (
-                            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'white', border: '1px solid #f1f5f9', borderRadius: 10 }}>
-                                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>{formatTarih(s.created_at)}</div>
+                            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#122b27', border: '1px solid #1e4a43', borderRadius: 10 }}>
+                                <div style={{ fontSize: '0.78rem', color: '#a7f3d0', fontWeight: 600 }}>{formatTarih(s.created_at)}</div>
                                 <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 4, background: `${DURUM_RENK[s.durum] || '#94a3b8'}20`, color: DURUM_RENK[s.durum] || '#94a3b8' }}>{DURUM_LABEL[s.durum] || s.durum}</span>
-                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.9rem' }}>₺{parseFloat(s.toplam_tutar_tl || 0).toFixed(2)}</div>
+                                <div style={{ fontWeight: 900, color: 'white', fontSize: '0.9rem' }}>₺{parseFloat(s.toplam_tutar_tl || 0).toFixed(2)}</div>
                             </div>
                         ))}
                     </div>
@@ -501,17 +501,17 @@ export default function RaporlarMainContainer() {
                         </div>
                     </div>
                     {personelRapor.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
+                        <div style={{ textAlign: 'center', padding: '3rem', background: '#0b1d1a', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <Users size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
                             <p style={{ color: '#94a3b8', fontWeight: 700 }}>Aktif personel bulunamadı.</p>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', overflowX: 'auto' }}>
                         {personelRapor.map(p => (
-                            <div key={p.id} style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center', minWidth: '500px' }}>
+                            <div key={p.id} style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center', minWidth: '500px' }}>
                                 <div>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
-                                    <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: 2 }}>{p.personel_kodu} — {(p.rol || '').replace(/_/g, ' ')}</div>
+                                    <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
+                                    <div style={{ fontSize: '0.68rem', color: '#a7f3d0', fontWeight: 600, marginTop: 2 }}>{p.personel_kodu} — {(p.rol || '').replace(/_/g, ' ')}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#f0fdf4', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#059669', fontWeight: 700 }}>GÜNLÜK</div>
@@ -521,12 +521,12 @@ export default function RaporlarMainContainer() {
                                     <div style={{ fontSize: '0.58rem', color: '#2563eb', fontWeight: 700 }}>AYLIK</div>
                                     <div style={{ fontWeight: 900, color: '#2563eb' }}>₺{p.aylik.toFixed(0)}</div>
                                 </div>
-                                <div style={{ textAlign: 'center', background: '#f8fafc', borderRadius: 10, padding: '8px' }}>
-                                    <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>DEVAM %</div>
+                                <div style={{ textAlign: 'center', background: '#0b1d1a', borderRadius: 10, padding: '8px' }}>
+                                    <div style={{ fontSize: '0.58rem', color: '#a7f3d0', fontWeight: 700 }}>DEVAM %</div>
                                     <div style={{ fontWeight: 900, color: p.devamlilık >= 90 ? '#059669' : p.devamlilık >= 75 ? '#f59e0b' : '#ef4444' }}>%{p.devamlilık}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: p.devam.gelmedi > 2 ? '#fef2f2' : '#f8fafc', borderRadius: 10, padding: '8px' }}>
-                                    <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>GELMEDİ</div>
+                                    <div style={{ fontSize: '0.58rem', color: '#a7f3d0', fontWeight: 700 }}>GELMEDİ</div>
                                     <div style={{ fontWeight: 900, color: p.devam.gelmedi > 0 ? '#ef4444' : '#059669' }}>{p.devam.gelmedi || 0} gün</div>
                                 </div>
                             </div>

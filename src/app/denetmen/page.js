@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useLang } from '@/lib/langContext';
 /**
  * app/denetmen/page.js — GİRİŞ NOKTASI (20 satır)
@@ -17,7 +17,11 @@ export default function DenetmenPage() {
                 ⚠️ Denetmen modülü yüklenirken hata oluştu.
             </p>
         }>
-            <DenetmenMainContainer />
+            <div className="min-h-screen font-sans bg-[#0d1117] text-white">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-6" style={{ animation: 'fadeUp 0.4s ease-out' }} dir={isAR ? 'rtl' : 'ltr'}>
+                    <DenetmenMainContainer />
+                </div>
+            </div>
         </ErrorBoundary>
     );
 }
