@@ -1,7 +1,5 @@
-<<<<<<< HEAD
-// ═══════════════════════════════════════════════════════════
-//  Service Worker — Offline Fallback (K-16)
-//  Strateji: Stale-While-Revalidate (SWR)
+// NIZAM — Service Worker (Offline Fallback / K-16)
+// Strateji: Stale-While-Revalidate (SWR)
 //   • Sayfa açılışında cache'den hızlı servis et
 //   • Arka planda yeni versiyonu indir (güncelle)
 //   • Ağ yoksa cache kopyasını göster, o da yoksa offline.html
@@ -16,7 +14,7 @@ const ONBELLEKLENENLER = [
     '/offline.html',
 ];
 
-// ── INSTALL: Kritik kaynakları cache'le ──────────────────────
+// ── INSTALL: Kritik kaynakları cache'le ─────────────────────
 self.addEventListener('install', (e) => {
     self.skipWaiting();
     e.waitUntil(
@@ -28,7 +26,7 @@ self.addEventListener('install', (e) => {
     );
 });
 
-// ── ACTIVATE: Eski cache versiyonlarını temizle ──────────────
+// ── ACTIVATE: Eski cache versiyonlarını temizle ─────────────
 self.addEventListener('activate', (e) => {
     e.waitUntil(
         caches.keys().then((keyList) =>
@@ -43,7 +41,7 @@ self.addEventListener('activate', (e) => {
 
 // ── FETCH: Stale-While-Revalidate ───────────────────────────
 self.addEventListener('fetch', (e) => {
-    // Sadece GET istekelrini ele al; API, POST vs. dahil etme
+    // Sadece GET isteklerini ele al; API, POST vs. dahil etme
     const { request } = e;
     if (request.method !== 'GET') return;
 
@@ -82,18 +80,4 @@ self.addEventListener('fetch', (e) => {
             return cached || networkFetch;
         })
     );
-=======
-// BOŞ KALIYOR: Eski 'sw.js' için temizleyici. Tüm önbellekleri siler (404 Cache hatası için zorunlu).
-self.addEventListener('install', (e) => {
-    self.skipWaiting();
-});
-
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
-        caches.keys().then((keyList) => {
-            return Promise.all(keyList.map((key) => caches.delete(key)));
-        })
-    );
-    self.registration.unregister();
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 });
