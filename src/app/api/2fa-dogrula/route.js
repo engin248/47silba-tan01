@@ -1,7 +1,7 @@
 // /api/2fa-dogrula/route.js
 // TOTP kodu doğrulama — PIN doğrulandıktan sonra çağrılır
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { totpDogrula } from '@/lib/totp';
 
 // In-memory brute-force koruması (2FA)
@@ -30,13 +30,7 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Geçersiz istek — önce PIN doğrulama gerekli.' }, { status: 400 });
         }
 
-        // Secret'ı Supabase'den al
-        const supabase = createClient(
-            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
-            (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
-        );
-
-        const { data: config } = await supabase
+        const { data: config } = await supabaseAdmin
             .from('b0_sistem_loglari')
             .select('eski_veri')
             .eq('tablo_adi', '2fa_config')
@@ -61,8 +55,7 @@ export async function POST(request) {
             }
             FA2_KILIT.set(ip, mevcut);
 
-            // Log
-            await supabase.from('b0_sistem_loglari').insert([{
+            await supabaseAdmin.from('b0_sistem_loglari').insert([{
                 tablo_adi: '2fa_config',
                 islem_tipi: '2FA_HATALI',
                 kullanici_adi: ip,
@@ -75,8 +68,7 @@ export async function POST(request) {
         // Başarılı — kilidi sıfırla
         FA2_KILIT.delete(ip);
 
-        // Log
-        await supabase.from('b0_sistem_loglari').insert([{
+        await supabaseAdmin.from('b0_sistem_loglari').insert([{
             tablo_adi: '2fa_config',
             islem_tipi: '2FA_BASARILI',
             kullanici_adi: ip,

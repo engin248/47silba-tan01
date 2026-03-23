@@ -1,7 +1,7 @@
 // /api/2fa-kurulum/route.js
 // Koordinatör için TOTP 2FA QR kod kurulumu
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { secretOlustur, qrUrlOlustur } from '@/lib/totp';
 
 export async function POST(request) {
@@ -13,13 +13,7 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Yetkisiz.' }, { status: 401 });
         }
 
-        const supabase = createClient(
-            (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
-            (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
-        );
-
-        // Mevcut secret var mı?
-        const { data: mevcut } = await supabase
+        const { data: mevcut } = await supabaseAdmin
             .from('b0_sistem_loglari')
             .select('eski_veri')
             .eq('tablo_adi', '2fa_config')
@@ -33,7 +27,7 @@ export async function POST(request) {
         } else {
             // Yeni secret üret ve kaydet
             secret = secretOlustur();
-            await supabase.from('b0_sistem_loglari').insert([{
+            await supabaseAdmin.from('b0_sistem_loglari').insert([{
                 tablo_adi: '2fa_config',
                 islem_tipi: 'TOTP_SECRET',
                 kullanici_adi: 'koordinator',

@@ -11,10 +11,9 @@
  * KDF: PBKDF2-SHA256 (100.000 iterasyon)
  */
 
-// Anahtarı base64 veya düz metin olarak destekle
-const MASTER_KEY = process.env.NEXT_PUBLIC_HABERLESME_MASTER_KEY
-    || process.env.HABERLESME_MASTER_KEY
-    || 'NIZAM-47-FALLBACK-KEY-DEV-ONLY';
+// Anahtarı al — NEXT_PUBLIC_ prefix zorunlu (browser Web Crypto API kullanıyor)
+// Key tanımlı değilse şifreleme DEVRE DIŞI — sahte güvenlik yerine dürüst davranış
+const MASTER_KEY = process.env.NEXT_PUBLIC_HABERLESME_MASTER_KEY || null;
 
 /** Hex string → Uint8Array */
 const hexToBytes = (hex) => new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
@@ -27,7 +26,7 @@ async function anahtarTuret(salt) {
     const encoder = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
         'raw',
-        encoder.encode(MASTER_KEY),
+        encoder.encode(MASTER_KEY ?? ''),
         { name: 'PBKDF2' },
         false,
         ['deriveBits', 'deriveKey']
@@ -53,6 +52,7 @@ async function anahtarTuret(salt) {
  */
 export async function mesajSifrele(metin) {
     if (!metin) return metin;
+    if (!MASTER_KEY) return metin; // Key yoksa düz metin — sahte şifreleme yerine dürüst davranış
     try {
         const encoder = new TextEncoder();
         const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -81,6 +81,7 @@ export async function mesajSifrele(metin) {
 export async function mesajCoz(sifreliMetin) {
     if (!sifreliMetin) return sifreliMetin;
     if (!sifreliMetin.startsWith('SFR:')) return sifreliMetin; // Eski/şifresiz mesaj
+    if (!MASTER_KEY) return '[Key tanımlı değil — mesaj çözülemedi]'; // Key yoksa çözme yapma
     try {
         const parcalar = sifreliMetin.split(':');
         if (parcalar.length < 4) return '[ŞİFRELİ — Çözülemedi]';

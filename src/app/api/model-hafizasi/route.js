@@ -12,18 +12,9 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request) {
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !supabaseKey) {
-        return Response.json({ hata: 'Supabase yapılandırması eksik!' }, { status: 500 });
-    }
-
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        supabaseKey
-    );
 
     const { searchParams } = new URL(request.url);
     const model_id = searchParams.get('model_id');
@@ -39,7 +30,7 @@ export async function GET(request) {
 
     try {
         // ── SORGU: Bu modele ait tüm mesajlar ───────────────────────────
-        let query = supabase
+        let query = supabaseAdmin
             .from('b1_ic_mesajlar')
             .select('id, konu, icerik, tip, oncelik, gonderen_adi, gonderen_modul, created_at, urun_kodu, urun_adi, mesaj_hash')
             .order('created_at', { ascending: false })
