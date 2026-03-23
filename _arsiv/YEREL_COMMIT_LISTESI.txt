@@ -1,0 +1,136 @@
+722424c docs: 16 Mart gece nobeti kapaniş ve sistem hafizasi eklendi
+f24e526 fix: kalan uretim zinciri hatalari ve karargah duzeltmeleri
+d15a041 feat(M1_ARGE): Askeri Senato Ekranlari, SQL Optimizasyonu (pgvector) ve Otonom Izciler NIZAM a Eklendi
+5c994e6 fix(scripts): Scriptlerin .env pathleri duzeltildi
+775cac8 feat(ai): 2. Ekip Yargic / Mastermind AI eklendi
+4815e51 feat(scrapers): Olu isci the scraper bot eklendi
+bbd60e0 fix(types): ClientLayout type definitions and hooks
+844756a fix(types): Imalat, Katalog, Raporlar container type conversions and fixes
+76a6124 TS Fixes: kullanici ve altBaslik TypeScript prop cast optimizasyonlari (Musteriler, Siparisler, Katalog, SayfaBasligi)
+1f790d6 UI: Karargah lacivert tema kaldirildi, zumrut acik renk temasi eklendi ve menuler buyutuldu
+0c3d930 UI/Feature: Changed Karargah to Light Theme (Mavi Beyaz) and corrected Sidebar intermediate Green (#02624B)
+1d45660 UI/Feature: Sidebar color changed closer to Mizanet Dark Emerald (#034E3E)
+484189e UI/Feature: Topbar title is now dynamic, reflecting the active module
+13c56dd UI/Feature: Siparisler M1 5-axis blind spot fix (Kalem Notu, Uretime Sevk)
+b9f4bb4 UI/Feature: Haberlesme UX enhancements - Voice dictation & Model selection
+1de130e UI: Moved Haberlesme stats boxes to the top right beside the title
+5cb5e5b UI: Haberlesme title styling and TasarimContext background lightness
+d6448f8 fix(auth): secure pin storage with jssha hashing
+45db4ce feat: add edge watcher implementation details
+81f16dc Merge remote-tracking branch 'origin/main' and resolve ImalatMainContainer translation conflict
+6cb534b fix(imalat): restore missing close tags and input element from previous edit
+3f43ca7 feat: M7-M13 Modulleri 5 eksenli analizleri, M7 Likidite parcalamasi ve M9 Kara Liste engeli koda islendi
+690908b Merge branch 'main' of https://github.com/engin248/47silba-tan01
+9886c49 feat(imalat): implement RTL and Arabic translations for manufacturing site screens
+406a5d1 M5 Maliyet: CSV Veri Zehirlenmesi (Data Poisoning) acigi kapatildi
+ff75e62 M3 Kesim: v2_production_orders tablosu hatasi duzeltildi M4 koprusu onarildi
+9dbc7ee Merge branch 'main' of https://github.com/engin248/47silba-tan01
+35764c6 fix(cameras): update CSP headers to allow tunnel domain with typo (.com.com)
+d031a7f M3: Kalip ve Model duzenleme formundaki INSERT/UPDATE Zombi Bug fix eklendi
+774a17f M14: Crash Recovery ve Mola/Pause sistemi eklendi
+6133637 style: UI adjustments for karargah dashboard typography and background
+01a2959 fix(kameralar): React rendering error (ReferenceError) repaired
+c2444f5 fix(cameras): hardcode tunnel URL in CameraPlayer as well
+6880ce0 fix(cameras): hardcode tunnel URL to bypass vercel env cache completely
+6ddc1e7 fix(cameras): override fallback tunnel default address manually
+3e0919c Merge branch 'main' of https://github.com/engin248/47silba-tan01
+08c6d99 fix(cameras): added absolute ffmpeg bin path to go2rtc yaml
+240a88a fix(layout): textTransform lowercase kaldirildi, genel yazi boyutu duzeltildi
+6b34514 Arapca Ceviri Eksiklikleri Giderildi
+c0df64f fix(M1): Hermes Ajanı (Perplexity) 'Last message must have role user' 500 hatası düzeltildi.
+f1a09fe feat(telegram): Bot'tan haberlesme sekmesine otonom entegrasyon
+6bacaca Upstash Kilitleri Kuruldu
+844de1f style: Panel basligi mizanet.com olarak guncellendi
+9988c49 M1 TS Hata Onarimlari
+9dd3760 Vercel Build Onarimi - Type Duzeltmeleri
+bbdaec5 Merge branch 'main' of https://github.com/engin248/47silba-tan01
+4c163df Sistem Yamasi
+657b323 M1 Hermes Onarim
+7dd7d53 feat: agent emirleri ve son supabase bilesenleri
+8794ce3 fix(UI): next.js build error ve component mimari kalintilarindan dolayi cokertme dongusu temizlendi. yollar revize edildi.
+8de90b4 Maliyet hesaplama zafiyetleri onarildi (Kasap Operasyonu M3-M4-M7)
+2588faa fix(security): sessionStorage ve localStorage uzerindeki btoa() ile acikta duran text-based PIN zafiyeti cozuldu; salt-timestamp-hash hybrid pseudotoken entegre edildi
+53ab373 Merge branch 'main' of https://github.com/engin248/47silba-tan01
+e6a1e07 Merge conflict resolved for Karargah and useKarargah hooks
+a65795e fix(ui): kalıntı SayfaBasligi jsx dosyaları silinerek .bg hatasının kaynağı olan module çözümlenememe loop'u iptal edildi
+8d253de fix(build): API rotalarında eksik environment key'ler nedeniyle Next.js build'inin çökmesi düzeltildi
+2f4d582 fix: M6 Uretim Bandi SayfaBasligi bagimlilik hatasi onarildi
+4ce5e5e C3 fix: gorev.id kullan, sorgu_metni modu duzeldi
+3bcbbcf B1 FIX: Modelhane mkTimeout - her race icin ayri timeout
+f6248c1 EkipC: Telegram throttle, AI analiz, kamera widget
+2be6b7e UI/UX B1-B3: Modelhane timeout fix + Tema renkleri + Jargon temizlik
+7b54a2e fix: Karargah hardcode veriler kaldirildi - gercek Supabase sorgulari, 25 modul linki, gercek ping olcumu
+c283417 feat: Haberlesme, MesajBildirim, ModelHafizasi, NizamBot, tum modul guncellemeleri - 13.03.2026
+05b2ff2 fix: Tunnel hostname kamera.mizanet.com olarak duzeltildi - demirtekstiltheonder DNS yok
+d8b5216 fix: stream-durum URL trim() eklendi, GO2RTC_URL server-side okunuyor
+e0f69d2 fix: Kamera cron job hobby plan icin gunluk yapildi, deploy engeli kaldirildi
+a549b6c feat: Kalici Cloudflare Named Tunnel kuruldu - kamera.demirtekstiltheonder.com
+af124e8 chore: Vercel env degiskeni guncellendi - redeploy tetiklendi
+afb809c fix: CSP guncellendi - go2rtc + Cloudflare Tunnel destegi eklendi, Telegram trim() duzeltmesi
+fa66930 fix(build): Env değişkenleri eksik olduğunda sayfanın çökmesi engellendi
+818136d fix(security): Sentry ayari ve dosya bozulmasi onarimi
+b1aac2b fix(build): Supabase admin build cokme sorunu onarildi
+68d04de fix(kumas): Ekranda verilerin görünmesini engelleyen mounted hydration hatasi cozumu
+ffc23a6 fix(security): Sentry CSP tunnelRoute eklendi
+c007281 fix: Kumas bg null hatasi, CSP Sentry adresi guncellemesi, Gorev atanan_kisi alan onarimi
+7453a94 chore/fix: Sistem temizligi, M1 Ar-Ge eksik yama entegrasyonu ve Siparis Hata Çözümleri
+740e3ad fix: KatalogMainContainer Link import catismasi duzeltildi
+a621d19 fix: useRef import eklendi, build hatasi duzeltildi
+9c31f05 fix(M15-Kamera): camera_id null duzeltildi, gercek ID Supabase'e yaziliyor
+4adc8c5 feat(M1-M2-Kasif): Eksik bilesenleri olustur, Kasif Ajan API ekle
+55fd805 feat(M15-Kamera): useMotionDetection sisteme baglandi, AI Hareket Analiz Motoru canli
+e5ca735 feat(M1-M2-Karargah): Hermes V2 mimarisi, M2 Arge Kuyrugu, Karargah Phase 2
+508c7fc fix(M0-M23): Kalan tum eksik sayfalar (Karargah, Ajanlar, Denetmen, Giris, Gorevler, Raporlar, Tasarim) NIZAM Faz-4 SPA Zırhından geçirildi ve Kök Referans belgeleri (MD) oluşturuldu. FAZ-4 %100 ONAYLANDI.
+1d9cf28 fix(M15-M20): Kameralar, Guvenlik ve Ayarlar Faz-4 NIZAM (IslemdeId Zırhi) ile zırhlandı, Canli Rapor güncellendi
+e353c68 fix(M1): Arge Modulu Faz-4 NIZAM (IslemdeId Anti-Spam Kalkanı) eklendi
+0ac2203 fix(M14): Uretim Modulu Faz-4 NIZAM (IslemdeId DDoS Kalkanı) eklendi
+650fcbd fix(M13): Personel Modulu Faz-4 NIZAM (IslemdeId Spam Kalkanı, B0 Kara Kutu Sızdırmazlık Onayı) eklendi
+6bd156f fix(M10-M12): Katalog ve Musteriler Faz-4 NIZAM (IslemdeId Spam Kalkanı, SPA next/link) uygulandi
+193ef9e fix(M9-M11): Siparisler ve Stok Modulleri Faz-4 NIZAM (IslemdeId Spam Kalkanı, Websocket Daraltma, SPA next/link) uygulandi
+6c68c70 fix(M7-M8): Kasa (Anti-Spam) ve Muhasebe (Websocket Yuku Daraltmasi, IslemdeId Koruma, SPA Gecisler) ile Zirhlandi
+83dbcbf fix(M4-M5-M6): Faz-4 Siber Zirhlama (SPA, Anti-Spam, Websocket Kilitleri, MD Rehberleri, Raporlar) eklendi
+1c688cf fix(M3 Kesim): Kesimhane Arsivi Faz-4 Zirhlamasi (SPA Yonlendirme, Websocket Limitleri, Silme/Is Emri Anti-Spam)
+13b49d2 fix(M3): Kalip ve Serileme Arsivi Faz-4 Zirhlamasi (SPA Yonlendirme, Websocket Limitleri, Silme Anti-Spam)
+98e6709 fix(M2): Kumas Arsivi Faz-4 Zirhlamasi (SPA Yonlendirme, Websocket Limitleri, Silme Islemi Anti-Spam Kilidi eklendi)
+0ec53cf fix: Service Worker agresif cache nedeniyle olusan 404 ve MIME type Hatalari sokulup atildi (Zombie SW Temizleyici Eklendi)
+104427e feat(arge): Hermes 119 Kriterlik Prompt ve 6 Kutulu Föy UI Eklenmesi
+974125e docs: M3 Imalat modulu icin NIZAM Standartlarinda Kök Arsiv (Referans) Dosyasi Olusturuldu
+873b96f refactor(security): Frontend Base64 PIN encryption kaldirildi, token based authorization eklendi
+176bdfc fix(M3): Imalat Faz-3 tahkimati (Anti-Spam, SPA Finans Linki, Render Leak Bloklandi)
+4e98f5b feat: Karargah komuta merkezi katmanli mimari zırhlama, AI ve Kamera widget entegrasyonu
+444d09b feat(security): Titanyum Kasa DB kalkanlari, PGCrypto ve Soft Delete Mimarisi yazildi
+7caa125 fix(M2): Modelhane gereksiz limit kaldirildi ve Faz-2 son pürüzleri duzeltildi
+a06ab99 fix(M2): Modelhane Faz-2 tahkimati; global websocket payload spam engellendi, cift tiklama zafiyeti islemdeId ile zirglandi
+27c7abc fix: Ar-Ge LIMIT degistirilerek istatistikler ve analizler guclendirildi (200, genis)
+f6dcce0 fix: Ar-Ge Ilk yukleme Database Bloat darbogazi engellendi (LIMIT 50 & SELECT optimizasyon)
+22583a3 fix(arge): M1 Ar-Ge gorsel yukleme base64 darboqazi storage zihriyle cozuldu, SQL bucket mühürü eklendi
+31f643e fix: Ar-Ge Websocket bant genişliği optimize edildi, Perplexity anti-spam cooldown eklendi
+8fac223 feat: M1 Ar-Ge Kör Nokta Analizi ve Memori Sızıntısı Zırhlaması (FAZ Onaylandı)
+e320742 feat(camera-agent): Faz-1/4 Cron Ajanlari, Zero-cost SQL Zirhi, Motion Detection ve Telegram Alarm entegrasyonlari onayla tamamlandi.
+a0b9663 feat: Karargah Kamera, Ajan Entegrasyonu & Hata Duzeltmeleri (FAZ-3 Tamamlandi)
+b936183 fix: xlsx paketi eklendi katalog musteriler stok siparisler duzeltildi
+11944a7 fix: kamera sayfasi giris yapan herkese acik
+e947163 fix: 2FA ve kamera ikinci PIN ekrani kaldirildi - temiz giris akisi
+2deb955 feat: kamera sistemi - go2rtc RTSP entegrasyonu + kamera listesi DB'den
+4edb58c fix(security): next 15.2.3 -> 15.3.6 CVE-2025-66478 yamasi (React2Shell)
+69210dd fix(security): next 15.1.7 -> 15.2.3 CVE yamasi
+e81b38d security: supabaseAdmin client + veri-getir API route (RLS hazırlık)
+6a02ce5 fix(deps): package.json gercek npm versiyonlari ile duzeltildi
+5546ba7 build: trigger vercel redeploy [2026-03-10 22:16]
+2df3cf7 deploy: Zero Blind Spot - BildirimZili + WhatsApp teklif + service-worker + lint duzeltmeleri [2026-03-10]
+6f00e43 feat: Zero Blind Spot - WhatsApp teklif, BildirimZili, service-worker, ClientLayout SW kayit duzeltme, lint temizligi
+2031a7e feat: Karargah kurumsal baslik, 4 metrik pencere, NizamTheOrder badge, modul guncellemeleri, telegram-bot IPv4 fix
+d7e5f9c security: Remove .env.vercel.check from tracking - contains API keys
+6e2c9e8 feat: Tam Arapca (AR) dil destegi eklendi - Tum sayfalarda useLang Context, RTL yonu, TR/AR ceviri tablosu. Service Worker v4 guncellendi.
+09b4fbe fix(auth): Remove arbitrary click blocks and proxy sessionStorage globally to unlock all terminals correctly natively
+967dfcb feat: Dashboard layout fix and auto-unlock
+2009463 feat(locales): Arapca dil destegi eklendi
+cd69266 feat(UI): Karargah ana panele kaybolan 12 modul kisayolu geri eklendi
+f310fd7 fix(Auth): Add hardcoded 4747 debug PIN
+9452c98 fix: Vercel env var PIN quote and newline strip
+75608f2 fix(Auth): PIN fallback for Vercel
+cebaa81 fix(M1): ARGE modulu UI temizligi ve Hizli Bot Gorev Cipleri
+2d4848a fix: Supabase API key trim() sorunu global olarak cozuldu (Newline fix)
+f9b87de fix(API): Supabase baglantisi icin trim() eklendi
+d57f747 fix(UI): Vercel CSS duzeltmesi ve Faz 1 Ajan Komuta Merkezi Eklendi
+78f1670 Zod zırhı, Sentry, Telegram alarmları ve son API rotaları eklendi. %100 Final Sürüm.

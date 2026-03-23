@@ -1,0 +1,197 @@
+e18eff6 security: .env.production.verify gitignore eklendi (secret scanner icin)
+7de63d1 feat: ADMIN_PIN (474747) login sistemine eklendi — sistem sahibi tam erisim
+ea418eb fix: public/robots.txt eklendi (SEO + bot engeli)
+80e5818 fix: middleware wp-admin honeypot engeli + adalet_muhuru.png eklendi
+8896281 security: middleware'e WordPress/CMS saldiri yol engeli eklendi (403)
+14b1b3c Revert "fix: tum API route'lara force-dynamic eklendi (Next.js 15 statik analiz)"
+107c255 fix: sweetalert2 package-lock.json eksikligi duzeltildi - build module not found hatasi
+23018d8 fix: tum API route'lara force-dynamic eklendi (Next.js 15 statik analiz)
+8803d1d fix: globals.css unclosed CSS comment duzeltildi (PostCSS Unknown word root cause)
+10379ee fix: globals.css UTF-8 BOM kaldirildi (PostCSS Unknown word hatasi)
+4c501ee fix: 3 kritik hata duzeltildi - PIN guvenligi, kripto alan adi, haberlesme tablo migration
+330cd83 fix: globals.css merge conflict temizlendi
+bca21c6 fix: package.json ve jsconfig.json conflict temizlendi, package-lock.json yenilendi
+adc0713 fix: tum merge conflict islari temizlendi (89 dosya)
+59159a8 ci: vercel yeniden deploy tetiklendi
+eed3f3e security: NEXT_PUBLIC_ADMIN_PIN kaldirildi, merge conflict temizlendi
+f775a1e fix: KarargahMainContainer ve useKarargah merge conflict temizlendi - build kurtarildi
+8bd6a65 Merge branch 'main' of https://github.com/engin248/47silba-tan01
+b4d4e2a refactor: v2_ tablolar b1_ mimarisine tasindi - shadow model koprusu kaldirildi
+6fb091a fix: vercel.json cron saatleri UTC+3 (TR) icin duzeltildi - sabah 08:00, gece 03:00
+8421d7e Merge branch 'main' of https://github.com/engin248/47silba-tan01
+bc65402 fix: cron-ajanlar ve yetki.js merge conflict temizlendi - build kurtarildi
+bf36bfa fix: PUSH_ET.bat proje dizini guncellendi (Esisya/47_sil)
+964ac5f chore: Gecis Kapisi Protokolu (5 eksen dogrulama + izin) GEMINI.md ve rules.md eklendi
+82c3d86 Merge branch 'main' of https://github.com/engin248/47silba-tan01
+64fea3f fix: 4 acik risk duzeltildi - legacy cookie, merge conflict, Upstash, webpack externals
+0c54b92 chore: GEMINI.md ve rules.md - git commit kurallari ve proje dizini guncellendi
+a908e85 fix: SQL dosyalari - RPC kolon isimleri duzeltildi, bildirim_loglari tablosu eklendi
+e962f28 merge: remote commits entegre edildi, zustand ve ajanlar-v2 fix korundu
+00caa2c fix: C5 telegram-bildirim auth katmani ve TS tip duzeltmeleri
+2892056 chore: final env dogrulama - redeploy tetikle
+c2b8cdc fix: JWT_SIRRI guard, legacy cookie kapatma, cron auth, telegram catch, is-emri b1_ canonical, TEST_PIN kaldirildi
+43621ef feat: Haberlesme nav linki eklendi + devam dosyasi
+34d7532 docs: sohbet devam notu - 19 Mart 2026 oturum ozeti
+95625f5 feat(karargah): canli hata alarm paneli + catch blok duzeltmeleri + auth.js tip tanimi
+c7dbe0f feat(karargah): Adalet Muhuru emblemi sol panele eklendi - Divine Justice banner
+c642cf4 feat: AES-256-GCM mesaj sifrelemesi + auth JWT + guvenlik duzeltmeleri [19 Mart 2026]
+3585e05 fix(deps): @upstash/ratelimit 2.0.8 ve @upstash/redis 1.37.0 eklendi - Vercel build hatasi giderildi
+ccee8a9 ci: retry deploy - build check
+6771c9e fix: middleware rota korumasi + merkezi bildirim katmani (haberlesme/tasarim/kameralar)
+ab62495 fix: 3 kritik Karargah hatasi + Haberlesme modulu ana projeye tasindi (alarm, mock ciro, CMD+K, AES-256-GCM)
+fd1cfa7 restore: Albay Burhan Karargah v3 tasarim kurtarildi ve geri yuklendi
+380c6d3 feat(security): Bas Mufettis Nihai Ameliyati. Sessiz tunel loglari ve API Spam Zirhi eklendi.
+a753508 feat(security): Sistem genelinde 20den fazla empty catch blogu kapatildi ve tum B0/API loglari zirhlandi
+ef2248d feat(security): Sessiz hata zırhı eklendi (Personel, Kesimhane, Stok empty catch düzeltmeleri)
+1535d44 Mufettis Onayi: RLS Zirhi, Zombi Korumasi, API Cooldown eklendi
+06ea809 feat(secure): Askeri haberlesme (AES-256) telsizi ve kurucu manifestolar eklendi
+f82926e docs: Kural 12 (Sistem Hafizasi) projenin %100 bitis karariyla guncellendi.
+97b7501 feat(FAZ6): M4 Kasa / E-Fatura / Muhasebe Ajani kodlandi. PROJE %100 BITTI.
+96bb597 feat(FAZ6): Shopify Vitrin Arbitraj Botu (M4 E-Ticaret Senkronizasyonu) yazildi.
+def388a feat(FAZ6): M4 Otonom Hammadde Satin Alma Ajani Kumasci API/Email Koprusu olarak sisteme baglandi.
+93b8d5c chore(Culture): Embedded Patron's 'Zero Initiative' Doctrine directly into Rule #0 and the M1 UI Dashboard
+9d4ec71 feat(FAZ5): PM2 Sunucu Yonetim (Deployment) Mimarisi yazildi. FAZ 5 TAMAMLANDI.
+881374f feat(FAZ5): B2B Mail/WP Webhook'u (Satis Elcisi) uretim bandina eklendi.
+7ae360c feat(FAZ5): Bot 8 Sanal Manken DALL-E 3 Gercek API Entegrasyonu Kodlandi (Mock Resimler İptal).
+0022168 refactor(Language): Removed violent terminology from Sentinel logs to align with Mizanet corporate vision
+ab4d87f docs: Kural 21 (Maliyet ve Finansal Yük Şeffaflığı) anayasaya eklendi.
+54ec958 feat(Karargah): Deployed fully asynchronous M1, M2 and M3 Next.js Dashboard panels
+778160d feat(CORE): 3 Asamali Zincirleme (Pipeline) Otonom Orkestrasyon
+904a746 chore: Added Rule 20 (Non-blocking sequential processing) per Patron mandate
+40cdd47 feat(FAZ3): Otonom SEO Yazar ve Yabanci Toptanci (B2B) Mail Otoritesi Hermania (hermania_seo_mail_ajani.js) muhlurlendi.
+397d439 test(ASAMA3): Sentinel savas simulasyonu (zehirli veri uretimi ve worker kancasi) kodlanarak ASAMA 3 tamamlandi.
+e2bbdfd feat(Phase 3): Deployed Sentinel Simulation Test and Hermania SEO/Mail Operator. ALL PHASES COMPLETE.
+efa629e chore(docs): Annotated 138 Golden Criteria agent as fully complete
+4830cb9 docs: Kural 18 (İş Planı ve Yol Haritasi Onayi Zorunlulugu) eklendi.
+930c5c1 feat(FAZ2): Garbage Collector (filtre_suzgec.js) cop ogutucu ajan eklendi. FAZ 2 TUMUYLE MUHURLENDI.
+a26c081 refactor: Enforced White Hat policy by replacing clandestine supply bots with transparent B2B tracking agent
+0bb335a feat(FAZ2): 138 Altin Kriter ajani (Arap/Avrupa siniflandirmasi ve Iade Risk Filtresi) Sentinel uyumlu sekilde eklendi.
+3c60038 feat(FAZ2): M2 Kar Kilidi finans ajanı (m2_finans_kar_ajani.js) ve V11 SQL Yönetici Yetki Yalıtımı (RLS) tamamlanıp sisteme baglandi.
+ca88c4e feat(Phase 2): Built M2 Profit Lock module and secure RLS schema for financial data
+183bab8 feat(Phase 3): Engineered Bot 8 (Baş Tasarımcı) for AI Generative Design synthesis and initialized B3 Supabase schema
+cf9e16f feat(CORE): Kural 16 Reenkarnasyon (Hata yapanin kellesi alinir, sifir inisiyatifli yeni asker basilir) algoritmasi worker.js uzerine muhlurlandi.
+10f6d15 feat(FAZ1): Meta Reklam Butce Yanigi tahmini ve Hava Durumu Lojistik Ajanlari Sentinel uyarlanarak FAZ 1 TAMI TAMINA BITIRILDI.
+a032c0d feat(FAZ1): Google Lens Ajanina Hırsızlık (Telif/Hukuk) tespiti ve Sentinel Telemetri zirhi lehimlendi.
+499f325 feat(FAZ1): Google Talep ve Zaman Makinesi Ajanlarina Sentinel Zirhi ve 3-5 gunluk e-ticaret (Gelecek Okuma) projeksiyon yetenegi eklendi.
+2316996 feat(FAZ1): Trendyol Satis Ajanina Sentinel zirhi ve Yok Satan Stok tespit alarmi (M3 Uretimi) entegre edildi.
+abf0921 feat(Phase 1): Trendyol Vision Agent enhanced with Competitor Flash Sale / Night Dumping detection
+d70ad04 feat(Phase 1): Instagram Agent engineered with Fabric Flaw extraction and Influencer ROI Prediction metrics
+fc8735c feat(C2): Asama 2 Sentinel Zirhi tamamlandi. Worker entegrasyonu ve Tiktok Bot telemetri/infaz kalkanlari devreye alindi.
+4b5d9d9 feat(C2): Asama 1 Muhimmatlari (Worker ve SQL) muhurlendi.
+ad8c187 feat(C2): Sentinel Guard, 2-Job Concurrency Worker, and Live Karargah UI Panel completed
+79f8355 feat(Queue): Vercel API Routes Fire-And-Forget mimaresine gecirildi. Scraper Worker yaratildi ve UI State guncellendi.
+8715d1e feat(Core): Redis Kuyruk, AI Sivi Sogutma (Worker), Shard Logger ve Anti-Translate React Zirhi eklendi.
+3fe9c51 fix(SQL): Supabase Linter uyarilari dogrultusunda search_path guvenlik acigi (V6_M2_KUMAS_VE_FIRSAT_RADARI) kapatildi.
+316614d feat(M1/M2): Karargah manuel arama motoru ve M2 Fizibilite (Kumaş/Maliyet) Zırhı entegre edildi. Webpack onarımı yapıldı ve search_path güvenliği sağlandı.
+720507b feat(ui): uygulanan analizlere gore M2 ve M3 taktiksel dark mod ve izgarali listeleme revizeleri yapildi
+4270393 chore: M1 Dehset Motoru (138 Kriter) ve saha botlarinin mantigi muhurlendi
+0f1aeb5 feat(karargah): connected new mockups to actual DB hook correctly
+bf991bb feat(m2): connected valid Supabase table to M2 Upcycle/Firsat tab
+2d42d8f feat(m2): added Upcycle (Ölü Stok Radarı) UI and database schema
+0da6e72 docs: finalized rigorous analysis for remaining modules (M9 to M16) ending with full security architecture
+1b885cb docs: added deep analysis for Cost, Accounting, and Cash operations (M7, M8, M12)
+0861f7c docs: added deep analysis for M5 Kesim and M6 Imalat (Production Line)
+10d1d1a fix(karargah): ui data dependencies wired up correctly
+4f3d8ae docs: added Upcycle / Fırsat Kumaş (Deadstock) radar sub-module to M2 Fabric Analysis
+e6bfd48 update(ui): refactored notification button dependency triggers to use user ID
+b5a87fe fix(ui): karargah flickering and build errors resolved
+194a954 Fix duplicate exports & missing data connections
+3189aa3 docs: oturum kapanisi - nerede kaldik notu
+f400d7c docs: 4 sayfa analizi ayri temiz dosyalara cikarildi (ARGE, Karargah, Kumas, Kalip)
+3b95e83 arch: 18 kriter tam liste, hafiza gereksinimleri, browser-use plan
+46f8340 arch: Browser Agent mimarisi - Playwright+AI gercek tarayici ile okuma
+fe151d5 arch: BEYAZ SISTEM karari - scraper kaldirilacak, manuel giris mimarisine gecis
+abf3210 docs: baslat workflow guncellendi + SESSION_HANDOFF eksiksiz
+2c0ac29 docs: SESSION_HANDOFF - bir sonraki oturum icin ozet ve devam gorevleri
+9ee0ff3 feat: AR-GE Istihbarat Paneli + SerpAPI + DeepSeek
+f204fd6 fix: kritik sonsuz dongü - gun45Once dis scope, pin fire-and-forget, Mufettis karti, sidebar 290px
+3cf1a53 fix: MesajBildirimButonu copte boolean sorgu hatasi + animasyon optimizasyonu + kasaApi/argeApi pagination
+685299f feat: K-17 /api/health, K-13 Kasa pagination, K-20 ARIA toplu (NavItem/nav/hamburger) — tum eksikler kapatildi
+598b243 chore(GOREV-10): console.log/warn/info/debug temizligi — 18 dosya
+f772f88 final: Kahin AI Perplexity sonar modeliyle calisacak (kalici karar)
+9784737 feat(GOREV-05/08/09): Offline SW + kopyala butonu + Maliyet pagination 50 kayit
+f16c308 fix(GOREV-05/K-16): Offline fallback — sw.js SWR stratejisi, offline.html, ClientLayout zombie killer kaldirip gercek SW kaydi eklendi
+b8f61f1 fix: Kahin AI Gemini yerine Perplexity API kullaniyor (sonar model)
+f2d13e0 feat(GOREV-04/K-07): Siparis anomali tespiti — 24s 3+ musteri kontrolu, uyari yazimi
+8469c79 fix(GOREV-03/K-09): Katalog realtime akilli payload guncelleme — INSERT/UPDATE/DELETE ayri islem, debounce eklendi
+d8f5d2b fix: ai-kahin-ajan Google GenAI SDK ile yeniden yazildi, birim+aktif kaldirildi
+c539810 feat(GOREV-01): Ar-Ge Daha Fazla Yukle butonu eklendi (K-13 pagination tamamlandi)
+74824be fix(GOREV-01/02): Ar-Ge pagination (K-13) + AjanlarMainContainer/ArgeMainContainer lint hatalari duzeltildi
+94ece64 fix: Gemini API v1beta yerine v1 endpoint kullaniyor
+3fcddba fix: aktif kolonu da kaldirildi - b1_personel tablosu sade yapi
+06d57e5 fix: birim referansi kaldirildi, Supabase catch duzeltildi
+691a668 fix(ai-kahin-ajan): @google/genai SDK hatası giderildi — fetch() yöntemine gecildi, aktif filtre ve hata logu eklendi
+ebeed3b fix: Gemini model adi gemini-1.5-flash-latest yapildi (2.0-flash 404 veriyordu)
+cff573b fix: ai-kahin-ajan birim kolonu kaldirildi, native Gemini fetch, vercel.json cron temizlendi
+60aa505 feat(orkestrator): 3-Worker Paralel AI Sistemi — ajan-orkestrator, worker-ajan, AjanOrchestrator UI, sekme entegrasyonu
+a760960 chore: vercel production redeploy tetikle [10:36]
+004c41b feat(K-13/K-19/K-12): Siparis pagination, Imalat race-condition kilidi, Katalog RTL form duzeltmesi
+2131f96 fix(K-08/K-14/K-15): Ajanlar global subscription daraltildi, Siparis+Katalog audit logları guclendirildi
+e5d09e6 fix: PUBLIC_API_ROTALAR erken gecis eklendi, kamera ve AI endpointleri public yapildi
+682f9b5 fix: kamera-sayac API public erisime ac, 503 duzeltme
+f9fef08 fix(DB): Guncel fiyat korumasi ve test araclari eklendi
+d9f0ab7 M4 Kamera Entegrasyonu, Linter Onarımları ve M5 Test Modülleri Tamamlandı
+35a6d8e fix(ui): ArGe, Modelhane ve Ajanlar sayfasındaki Arapça (RTL) girdi alanlarındaki karakter içe çökme ve imleç kayma (Ltr-Rtl) sorunları izole flex yapısı ve dir='auto' ile düzeltildi.
+bc4e3c3 chore: 5 eksenli dogrulama raporu eklendi, son kontroller saglandi
+d031691 Performans (Otonom Node Cluster) ve UI/UX AR (RTL Zırhi) eklendi
+1ff069a perf(Karargah): Ciro ve maliyet hesaplamalari frontend db yigini yerine /api/kasa-ozet backend uc noktasina tasinarak agir yuk giderildi.
+12bf84f fix(Muhasebe/Mimari): M8 Muhasebe ve uretim raporlari arasindaki model/isim (ID cakismasi) uyuşmazligi giderildi. Ölü useMuhasebe.js modülü yakilarak sayfa gosterimi optimize edildi.
+a67637a feat: AI Batch Optimization and Hybrid Boss Armor
+eb234b0 fix(UI): Kamera stream zorunlu kapali (hardcoded) durumu aktife cevrildi
+6a0bfd3 Son güncellemeler ve denetim onarimlari
+024168b feat(Kasa Otonomu): M10 Siparisler modulunde 'Teslim Edildi' durumuna gecen siparislerin satisi otonom olarak M12 Kasa hesabina 'Satis Tahsilati' (gelir) olarak yansitildi. Oflayn kuyruk eklendi.
+b6df6c4 feat(Stok): M8 Muhasebe 'Devir' onayi alan imalat raporlari, otomatik olarak M11 Depo-Stok hareketlerine gonderilmeye baslandi
+1c43b83 chore: M5 Stres Testi Modülü eklendi, Terminal yetki köprüsü, Karargah siyah kalıntıların temizliği, Sistem stabilizasyonu
+f10b927 feat(UI): Stok, Finans ve Uretim Otonomu algoritmalari Ajan Komuta merkezine kart olarak eklendi
+0110f3f feat(UI): Ajan Komuta merkezindeki kartlara 'Konum', 'Yetenekler' ve 'Gorev Ver' detaylari eklendi
+86fd5db feat(Scraper): Olu isci botu VPS sunucu (PM2, Cron, Headless) uyumlu hale getirildi ve Vercel HTTP webhook eklendi
+bea8102 docs: E2E markdown link fix
+30e6a9a feat(AI): Evrensel Ajan Komuta Merkezi UI component'i Karargah ve Ajanlar sayfalarina eklendi ve test edildi
+c958c53 fix(UI): SSR hydration ve SPA router donmalarini onlemek icin sonsuz SİSTEME BAĞLANILIYOR ekrani bypass edildi
+65edddb fix: Kullanici session dustugunde veya localStorage bozuldugunda olusan sonsuz (Sisteme Baglaniliyor) loading ekrani giderildi
+7fb21ca fix: Vercel ENOENT (_document) build cokuslerine sebep olan yari yapilandirilmis sentry yapilari kaldirildi
+531a450 fix: Cache/Zombi hatalarina sebep olan service-worker.js silindi
+58b3866 fix: Vercel/Tarayici cache inadi kirildi (v3.6 Force Reload)
+bf88e54 feat_and_fix: M5-M8 Bug, Vercel Edge, Kasa
+7af19ea chore: grup 2 denetim ve guncellemeler
+3ebd5f8 feat: Ajanlar UI güncellemeleri, Kör Nokta tespitleri ve Grup 4 optimizasyonları
+bb7cf57 fix(M5&System): 405/503 infinite loop fixed, M4 Kiosk Terminal UI added with Supabase SQL integrations
+363c9eb chore: remove noise.png layout and fix missing supabase b0_herm_ai_kararlar schema issue
+6af2f07 chore: fix webpack chunk 500 err aborted caused by sentry wrapper
+a6a7463 chore: fix nextjs build errors, remove stream polling, handle telegram GET route
+35ebb15 fix(kesimhane): Fire orani 5% sabit standardina cekildi, form otomatik hesaplamasi iptal edildi ve Yargic alarmi >5% olarak revize edildi
+c1f944d fix(kesimhane): Sinsi fire zarar hesabi iptal edildi, gercek kumas mt kaybi TL bazinda hesaplandi. Yargic icin %4+ fire durumunda kok neden alarmi eklendi (Kumas fiyatlari artik b1_kumas_arsivi'nden dinamik cekiliyor).
+072f3e3 feat(system): Alpha, Beta ve Gamma ekipleri tarafindan sistem geneli hatalarin onarimi, Upstash Redis entegrasyonu ve otonom stok baglantisi
+acfcda0 fix: ArgeMainContainer debounce import methodu guncellendi (lodash/debounce yerine named import)
+d440ef2 fix: ArgeMainContainer eksik M1_AramaMotoru import u eklendi
+64470e5 fix: PWA sw background zombie cache temizligi icin koklu cozum saglandi
+526e77c fix: b1_sistem_uyarilari tablosunda created_at yanlis kolon kullanimi olusturma olarak duzeltildi
+511686f fix: 10 kritik hata - stream-durum 503, stok suton, guvenlik, ajan mimari
+544b570 fix: b1_sistem_uyarilari kolon adi duzeltildi (olusturma->created_at), realtime subscription daraltildi, lint hatalari giderildi
+e3fa2c0 fix: middleware stream-durum JWT korumasindan cikti - public endpoint olmali
+dcc16a5 chore: force Vercel redeploy — production MIME/polling fix
+3c606f1 fix: kameralar stream-durum polling kaldiridi - production 503 dongusu kesildi
+5bc0485 fix: KumasMainContainer Rules of Hooks hatasi + uretim redirect Server Component
+96465d8 fix: stream-durum 503 -> 200 duzeltildi, production konsol hatasi giderildi
+5e79a2c fix: 10 kritik hata - stream-durum 503, stok suton, guvenlik, ajan mimari
+fcc4c59 monitor: izle.ps1 eklendi, sistem izleme scripti 1 saatlik devreye alindi
+f2d3266 feat: 7 yeni algoritma API + UI entegrasyonlari tamamlandi (FireRadar, YirticiBot, SabikaKaydi, Kumbaraci, AtilSermaye, Muneccim, SistemHafizasi)
+2993d16 fix: Agresif cache buster kaldırıldı (MIME/404 kök sorunu) + Yargıç ve Köprü API entegrasyonu tamamlandı
+a456f48 fix: ARGE - Ajan1/Ajan2 dogru tabloya baglandi, perplexity-arama rotasi olusturuldu, widget gercek veri gosteriyor
+fd9613f fix(api): stream-durum force-dynamic ve timeout koruması güncellendi
+2abbb9a Ar-Ge Paneli Son Onarimlar ve Ajan Iyilestirmeleri
+40d7f62 style(tasarim): stüdyo sayfasindaki kafa karistirici cift sayfa görünümü sağlayan iframe kaldirildi
+65f05d1 fix(canli-onarim): arge, karargah ve kameralar modullerindeki otonom fetch hatalarina (405, 503) sebep olan kod bloklari ve surekli istek atan fonksiyonlar kökünden temizlendi
+fc13d33 fix(sentry): adblocker tarafindan engellenen monitoring tuneli sys-health olarak degistirildi
+007ab70 fix(canli-onarim): 400, 405 ve 503 numarali tum api baglanti, supabase schema ve sw sorunlari temizlendi
+1c2da78 Enhancement: Added programmatic robust Cache/ServiceWorker Buster to client
+767f9b3 Fix: Final schema updates and stability patches
+551a3af chore(build): .next cache temizlendi, MIME type CSS/JS hatalarini cozen taze build tetiklendi
+2e2295d fix(core): JS dosyalarındaki TypeScript syntax parse hataları TSDoc silinerek çözüldü ve Telegram altyapısındaki sessiz DB hataları kalıcı onarıldı
+a2272fb fix: ArgeMainContainer.js içerisindeki bozuk TSDoc parantezleri ve render hataları izole edildi
+6707040 Fix: Karargah Supabase columns strict match from live DB
+28f9d4e Son hata düzeltmeleri (Karargah 400 & Telegram 405)
+c9e9d10 Fix: Karargah Supabase 400 Bad Request queries & Telegram API parser crash
+af69c5a Fix: KarargahMainContainer infinite loop memory leak on supabase realtime
+ced342e M1 AR-GE Sayfası Tam Sistem Denetimi - 38 Sorun Raporlandı
+5c77332 Init without secrets
