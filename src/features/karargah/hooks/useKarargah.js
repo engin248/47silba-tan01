@@ -132,13 +132,13 @@ export function useKarargah() {
                 if (ALARM_AKTIF) {
                     const { data: uyarilar } = await supabase
                         .from('b1_sistem_uyarilari')
-                        .select('id, mesaj, tip, onem, created_at, neden, potansiyel_zarar')
-                        .eq('okundu', false).order('created_at', { ascending: false }).limit(10);
+                        .select('id, mesaj, uyari_tipi, created_at, neden, potansiyel_zarar')
+                        .order('created_at', { ascending: false }).limit(10);
                     if (uyarilar && uyarilar.length > 0) {
                         setAlarms(uyarilar.map(u => ({
                             id: u.id, text: u.mesaj || 'Sistem uyarısı',
                             neden: u.neden || 'Detay mevcut değil.',
-                            zarar: u.potansiyel_zarar || 0, tip: u.tip || 'uyari',
+                            zarar: u.potansiyel_zarar || 0, tip: u.uyari_tipi || 'uyari',
                         })));
                     } else { setAlarms([]); }
                 }

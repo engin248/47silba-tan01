@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { spamKontrol } from '@/lib/ApiZirhi';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {
