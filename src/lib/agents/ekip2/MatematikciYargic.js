@@ -20,15 +20,12 @@
  * DURUM: Arka plan (Backend) Motoru. Arayüz (UI) içermez.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// NİZAM Veritabanı (M1 Ar-Ge Tabloları)
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://sandbox.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-admin-key'
-);
+// supabaseAdmin singleton — fake-admin-key kaldırıldı
+const supabase = supabaseAdmin;
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'api-key-tanimsiz';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 export class Ekip2_MatematikciYargic {
     constructor() {
@@ -42,12 +39,10 @@ export class Ekip2_MatematikciYargic {
 
         // 1. Ekip 1'in getirdiği ham ürünleri çek (Sadece strateji tablosunda karar verilmemiş olanlar)
         const { data: hamUrunler, error } = await supabase
-            .from('products')
-            .select(`
-                id, product_name, category, price_range,
-                strategy ( product_id )
-            `)
-            .limit(10); // Döngüsel yığılma olmaması için limitli çekim
+            .from('b1_arge_trendler')
+            .select('id, urun_adi, kategori, fiyat, durum')
+            .eq('durum', 'ham_veri')
+            .limit(10);
 
         if (error || !hamUrunler || hamUrunler.length === 0) {
 
@@ -55,10 +50,16 @@ export class Ekip2_MatematikciYargic {
         }
 
         // Filtre: Daha önce stratejisi belirlenmişleri atla (Inner Join kontrolü)
-        const islenecekUrunler = hamUrunler.filter(u => u.strategy === null || u.strategy.length === 0);
+        const islenecekUrunler = hamUrunler.filter(u => u.durum === 'ham_veri');
 
         for (const urun of islenecekUrunler) {
-            await this.matematikselAlgoritmaVeKarar(urun);
+            // urun_adi, kategori, fiyat alanlarını product_name, category, price_range olarak eşle
+            await this.matematikselAlgoritmaVeKarar({
+                id: urun.id,
+                product_name: urun.urun_adi,
+                category: urun.kategori,
+                price_range: urun.fiyat
+            });
         }
 
     }
@@ -140,15 +141,11 @@ export class Ekip2_MatematikciYargic {
 
         // 5. VERİTABANI (SUPABASE) INSERT/UPDATE SÜREÇLERİ
         try {
-            // A. b1_arge_trend_data (Trend Puanları) Tablosu
-            await supabase.from('trend_data').insert({
-                product_id: urun.id,
-                sales_growth: llmAnaliz.satis_buyumesi,
-                social_growth: llmAnaliz.sosyal_medya_hacmi,
-                competitor_usage: llmAnaliz.rakip_rekabet_orani,
-                season_score: llmAnaliz.sezon_uyumu,
-                trend_score: trend_score
-            });
+            // A. trend skorunu b1_arge_trendler'de güncelle
+            await supabase.from('b1_arge_trendler').update({
+                trend_skoru: trend_score,
+                durum: 'analiz_edildi'
+            }).eq('id', urun.id);
 
             // B. b1_arge_cost_analysis (Maliyet) Tablosu
             const uretim_toplam_tl = (llmAnaliz.kumas_maliyeti_tl || 0) + (llmAnaliz.iscilik_maliyeti_tl || 0);
@@ -167,13 +164,13 @@ export class Ekip2_MatematikciYargic {
                 trend_life: trend_score >= 75 ? 'Mega Trend / 2 Yıl' : 'Mikro Trend / 3 Ay'
             });
 
-            // D. EN KRİTİK GÖREV: b1_arge_strategy (Fırsat Skoru ve Karar) Tablosu
-            await supabase.from('strategy').insert({
-                product_id: urun.id,
+            // D. b1_arge_strategy tablosuna nihai karar
+            await supabase.from('b1_arge_strategy').upsert({
+                urun_id: urun.id,
                 opportunity_score: opportunity_score,
-                decision: decision,
-                production_quantity: decision === 'TEST ÜRETİMİ' ? 150 : 0
-            });
+                karar: decision,
+                uretim_adedi: decision === 'TEST ÜRETİMİ' ? 150 : 0
+            }, { onConflict: 'urun_id' });
 
         } catch (dbError) {
             console.error(`     [HATA] Veritabanına mühür basılamadı:`, dbError.message);
