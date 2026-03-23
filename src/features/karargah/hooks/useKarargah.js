@@ -106,13 +106,13 @@ export function useKarargah() {
                 setAiOutputs([{ mesaj: 'Sahadan henüz sinyal yok. Ajanlar uykuda...', ajan: 'Sistem', tur: 'dikkat' }]);
             }
 
-            // AR-GE ürün istatistikleri
-            const { data: argeData } = await supabase.from('b1_arge_products').select('ai_satis_karari, trend_skoru, urun_adi, artis_yuzdesi');
+            // AR-GE istatistikleri (b1_arge_trendler — RLS-safe, anık panel tablosu)
+            const { data: argeData } = await supabase.from('b1_arge_trendler').select('durum, talep_skoru, baslik, artis_yuzdesi').limit(100);
             let toplamUrun = 0, cokSatarSayisi = 0, ortalamaSkor = 0, enYuksekTrend = null;
             if (argeData && argeData.length > 0) {
                 toplamUrun = argeData.length;
-                cokSatarSayisi = argeData.filter(u => u.ai_satis_karari === 'ÇOK_SATAR' || u.ai_satis_karari === 'BİNGO').length;
-                ortalamaSkor = Math.round(argeData.reduce((acc, curr) => acc + (curr.trend_skoru || 0), 0) / toplamUrun);
+                cokSatarSayisi = argeData.filter(u => u.durum === 'onaylandi' || u.durum === 'uretimde').length;
+                ortalamaSkor = Math.round(argeData.reduce((acc, curr) => acc + (curr.talep_skoru || 0), 0) / toplamUrun);
                 enYuksekTrend = [...argeData].sort((a, b) => (b.artis_yuzdesi || 0) - (a.artis_yuzdesi || 0))[0];
             }
 
@@ -160,7 +160,7 @@ export function useKarargah() {
 
             setHazineDurumu([
                 { baslik: 'Onaylanan Fırsat', deger: `${cokSatarSayisi} Adet (Çok Satar)` },
-                { baslik: 'Zirve Trend Zıplaması', deger: enYuksekTrend ? enYuksekTrend.urun_adi.substring(0, 18) + '...' : 'Henüz Yok' },
+                { baslik: 'Zirve Trend Zıplaması', deger: enYuksekTrend ? enYuksekTrend.baslik?.substring(0, 18) + '...' : 'Henüz Yok' },
             ]);
 
             setStats({ ciro, ciroArtis: 12, maliyet, personel: ortalamaSkor, fire: 0, yukleniyor: false });
@@ -176,7 +176,7 @@ export function useKarargah() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, () => { if (!document.hidden) veriCek(); })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_agent_loglari' }, () => { if (!document.hidden) veriCek(); })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_products' }, () => { if (!document.hidden) veriCek(); })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, () => { if (!document.hidden) veriCek(); })
             .subscribe();
         return () => { supabase.removeChannel(kanal); };
     }, [veriCek]);

@@ -10,11 +10,6 @@ export async function GET(request) {
         const { izinVerildi } = spamKontrol(ip);
         if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPİT EDİLDİ - ATEŞ KES!' }, { status: 429 });
 
-        const authHeader = request.headers.get('authorization');
-        if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`) {
-            return NextResponse.json({ error: 'YETKİSİZ ERİŞİM! (KASA KAPALI)' }, { status: 403 });
-        }
-
         const bugun = new Date();
         bugun.setHours(0, 0, 0, 0);
         const bugunISO = bugun.toISOString();
