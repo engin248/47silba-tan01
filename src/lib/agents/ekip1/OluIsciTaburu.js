@@ -11,13 +11,10 @@
  * npm install puppeteer cheerio @supabase/supabase-js
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// YALNIZCA VERİTABANINA YAZMA YETKİSİ OLAN BAĞLANTI
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://sandbox.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-key'
-);
+// supabaseAdmin singleton — fake-key/fallback kaldırıldı
+const supabase = supabaseAdmin;
 
 // ── Puppeteer dynamic import (VPS'te çalışır, Vercel'de null döner) ──────────
 async function getPuppeteer() {
@@ -90,13 +87,15 @@ export class Ekip1_OluIsciTaburu {
                 }
             });
 
-            console.log(`[AJAN 1] İşlem Tamamlandı. ${toplananUrunler.length} adet ham kayıt çıkarıldı.`);
+            console.log(`[AJAN 1] ${toplananUrunler.length} adet ham kayıt çıkarıldı.`);
 
             for (let urun of toplananUrunler) {
-                await supabase.from('products').insert({
-                    product_name: urun.product_name,
-                    category: urun.category,
-                    price_range: urun.price_range
+                await supabase.from('b1_arge_trendler').insert({
+                    urun_adi: urun.product_name,
+                    kategori: urun.category,
+                    fiyat: urun.price_range,
+                    platform: urun.platform,
+                    durum: 'ham_veri'
                 });
             }
             return toplananUrunler;
@@ -109,21 +108,45 @@ export class Ekip1_OluIsciTaburu {
     }
 
     // =========================================================================
-    // AJAN 2: SOSYAL TARAYICI (Instagram / TikTok Hashtag Volümü)
+    // AJAN 2: SOSYAL TARAYICI (SerpAPI Google Trends — gerçek veri)
     // =========================================================================
     async ajan2_sosyalHacimKazi(hashtag = 'kargopantolon') {
-        console.log(`[AJAN 2] Görev Başladı: #${hashtag} TikTok/IG Hacim Taraması.`);
+        console.log(`[AJAN 2] Görev Başladı: #${hashtag} Google Trends sorgusu.`);
 
-        let viral_volume = Math.floor(Math.random() * 500000) + 10000;
-        console.log(`[AJAN 2] Bulunan Hacim: ${viral_volume} gönderi/izlenme.`);
+        const serpApiKey = process.env.SERPAPI_API_KEY;
+        if (!serpApiKey) {
+            console.warn('[AJAN 2] SERPAPI_API_KEY tanımlı değil — veri çekilemiyor.');
+            return { hata: 'SERPAPI_API_KEY eksik' };
+        }
 
-        await supabase.from('trend_data').insert({
-            product_id: null,
-            social_growth: viral_volume,
-            notes: `#${hashtag} ham büyüme verisi`
-        });
-        return viral_volume;
+        try {
+            const apiUrl = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(hashtag)}&api_key=${serpApiKey}`;
+            const res = await fetch(apiUrl);
+            if (!res.ok) throw new Error(`SerpAPI HTTP ${res.status}`);
+            const veriler = await res.json();
+
+            const zaman_serisi = veriler?.interest_over_time?.timeline_data || [];
+            const values = zaman_serisi.flatMap(d => d.values?.map(v => v.extracted_value) || []);
+            const ortalama = values.length > 0
+                ? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
+                : 0;
+
+            console.log(`[AJAN 2] #${hashtag} trend skoru: ${ortalama}/100`);
+
+            await supabase.from('b1_arge_trendler').insert({
+                arama_terimi: hashtag,
+                trend_skoru: ortalama,
+                platform: 'Google Trends',
+                durum: 'ham_veri'
+            });
+
+            return { hashtag, trend_skoru: ortalama };
+        } catch (err) {
+            console.error('[AJAN 2] SerpAPI hatası:', err.message);
+            return { hata: err.message };
+        }
     }
+
 
     // =========================================================================
     // AJAN 3: RAKİP KİMLİK KAZIYICI (Zara / H&M Yeni Koleksiyon)
