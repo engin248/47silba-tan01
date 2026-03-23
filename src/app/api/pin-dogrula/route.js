@@ -4,6 +4,8 @@
 // Katman 3: JWT session token (8 saat süre, imzalı, HttpOnly cookie)
 
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+
 
 // ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
 // Upstash env varları yoksa in-memory fallback (geliştirme ortamı)
@@ -152,25 +154,8 @@ export async function POST(request) {
         // Hatalı deneme kaydet
         if (!ratelimit) bellekHataliDeneme(ip);
 
-        // Sisteme log yaz — fire-and-forget
-        try {
-            const { createClient } = await import('@supabase/supabase-js');
-            const sb = createClient(
-                (process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
-                (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
-            );
-            if (process.env.NEXT_PUBLIC_SUPABASE_URL && sb) {
-                void (async () => {
-                    try {
-                        await sb.from('b0_sistem_loglari').insert([{
-                            olay: 'PIN_HATALI_GIRIS',
-                            detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
-                            seviye: 'uyari',
-                        }]);
-                    } catch { }
-                })();
-            }
-        } catch { /* Log başarısız olsa bile sistemi engelleme */ }
+        // Hatalı girişi logla — fire-and-forget
+        (async () => { try { await supabaseAdmin.from('b0_sistem_loglari').insert([{ olay: 'PIN_HATALI_GIRIS', detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`, seviye: 'uyari' }]); } catch { } })();
 
         return NextResponse.json(
             { basarili: false, grup: null, mesaj: 'Yanlış PIN.' },
@@ -182,22 +167,7 @@ export async function POST(request) {
     const token = await jwtOlustur(grup);
 
     // Başarılı girişi logla — fire-and-forget
-    try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const sb = createClient(
-            (process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
-            (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
-        );
-        void (async () => {
-            try {
-                await sb.from('b0_sistem_loglari').insert([{
-                    olay: 'PIN_BASARILI_GIRIS',
-                    detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
-                    seviye: 'bilgi',
-                }]);
-            } catch { }
-        })();
-    } catch { /* Log başarısız olsa bile sistemi engelleme */ }
+    (async () => { try { await supabaseAdmin.from('b0_sistem_loglari').insert([{ olay: 'PIN_BASARILI_GIRIS', detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`, seviye: 'bilgi' }]); } catch { } })();
 
     // ─── GÜVENLİK: HttpOnly Set-Cookie (XSS koruması) ───────────────
     // Token JSON body'de değil, HttpOnly cookie olarak döner.

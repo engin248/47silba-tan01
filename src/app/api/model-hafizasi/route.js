@@ -15,13 +15,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request) {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !(process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')) {
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !supabaseKey) {
         return Response.json({ hata: 'Supabase yapılandırması eksik!' }, { status: 500 });
     }
 
     const supabase = createClient(
-        (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'),
-        (process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key')
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        supabaseKey
     );
 
     const { searchParams } = new URL(request.url);

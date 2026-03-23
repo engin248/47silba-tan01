@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { spamKontrol } from '@/lib/ApiZirhi';
+
 
 // Edge Node (İşletmedeki PC/Raspberry) cihazlarının buluta (Buraya) veri atacağı güvenli uç.
 export async function POST(req) {
@@ -28,13 +28,6 @@ export async function POST(req) {
         if (!kamera_ip || !olay_tipi) {
             return NextResponse.json({ error: 'Eksik parametreler (kamera_ip veya olay_tipi şarttır)' }, { status: 400 });
         }
-
-        // Supabase b1_kamera_olaylari tablosuna at (Service Role Key Kullanıyoruz)
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const supabaseAdmin = supabaseUrl && supabaseServiceKey
-            ? createClient(supabaseUrl, supabaseServiceKey)
-            : supabase;
 
         const { data, error } = await supabaseAdmin
             .from('b1_kamera_olaylari')

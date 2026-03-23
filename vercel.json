@@ -10,10 +10,6 @@
         {
             "path": "/api/cron-ajanlar?gorev=gece_yedekleme_ve_temizlik",
             "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron-ajanlar?gorev=kamera_durum_kontrol_ajan",
-            "schedule": "0 5 * * *"
         }
     ]
 }

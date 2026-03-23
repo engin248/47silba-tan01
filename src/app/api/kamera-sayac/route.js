@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(req) {
-    if (!supabaseUrl || !supabaseKey) {
+    const { supabaseBagliMi } = await import('@/lib/supabase');
+    if (!supabaseBagliMi) {
         return NextResponse.json({ success: false, error: 'Supabase yapılandırma hatası.' }, { status: 500 });
     }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     try {
         const payload = await req.json();
