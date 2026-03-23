@@ -19,8 +19,9 @@ import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer'; // İnsan hareketini taklit eden gezgin
 
 // Supabase Bağlantısı (NİZAM Ana Veritabanı) Dışarıdan yetki ile bağlanır.
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xxxxxxxxxxxx.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'gizli-admin-key';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// NOT: Bu arşiv dosyasıdır. Aktif versiyon: scripts/scrapers/oluisci.js
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export class OluIsciScraper {
