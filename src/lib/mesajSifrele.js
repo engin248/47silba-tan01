@@ -12,7 +12,8 @@
  */
 
 // Anahtarı base64 veya düz metin olarak destekle
-const MASTER_KEY = process.env.HABERLESME_MASTER_KEY
+const MASTER_KEY = process.env.NEXT_PUBLIC_HABERLESME_MASTER_KEY
+    || process.env.HABERLESME_MASTER_KEY
     || 'NIZAM-47-FALLBACK-KEY-DEV-ONLY';
 
 /** Hex string → Uint8Array */
