@@ -6,7 +6,7 @@ const nextConfig = {
         const isDev = process.env.NODE_ENV === 'development';
 
         // CORS başlıkları — sadece kendi domain'imize izin ver
-        const origin = isDev ? '*' : 'https://mizannet.com';
+        const origin = isDev ? '*' : 'https://mizanet.com';
         const corsHeaders = [
             { key: 'Access-Control-Allow-Credentials', value: 'true' },
             { key: 'Access-Control-Allow-Origin', value: origin },
