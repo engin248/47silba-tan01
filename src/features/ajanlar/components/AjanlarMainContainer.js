@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useRef } from 'react';
 import { Bot, Plus, Play, Square, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle, Settings, Database, Globe, Cpu, FileText, Trash2, RefreshCw, Zap, Send, ToggleLeft, ToggleRight, Lock } from 'lucide-react';
@@ -373,7 +373,7 @@ export default function AjanlarMainContainer() {
                     { label: 'Hata', val: istatistik.hata, renk: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
                 ].map((k, i) => (
                     <div key={i} className={`${k.bg} border-2 ${k.border} rounded-xl p-3.5 text-center`}>
-                        <div className="text-[10px] text-emerald-200 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
+                        <div className="text-sm text-emerald-200 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
                         <div className={`font-black text-2xl md:text-3xl leading-none ${k.renk}`}>{k.val}</div>
                     </div>
                 ))}
@@ -391,7 +391,7 @@ export default function AjanlarMainContainer() {
                         ${sekme === s.key ? 'bg-[#122b27] text-indigo-600 shadow-sm' : 'bg-transparent text-emerald-200 hover:text-slate-700 hover:bg-slate-200/50'}
                     `}>
                         {s.label}
-                        <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">{s.desc}</span>
+                        <span className="block text-sm font-semibold text-slate-400 mt-0.5">{s.desc}</span>
                     </button>
                 ))}
             </div>

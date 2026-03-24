@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Trash2, Edit2, Search, X } from 'lucide-react';
@@ -407,7 +407,7 @@ export default function MuhasebeMainContainer() {
                     { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-white', bgClass: 'bg-[#0d1117] text-white border-[#1e4a43]' },
                 ].map((s, i) => (
                     <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
-                        <div className="text-[10px] text-emerald-200 font-black uppercase mb-1 tracking-widest">{s.label}</div>
+                        <div className="text-sm text-emerald-200 font-black uppercase mb-1 tracking-widest">{s.label}</div>
                         <div className={`font-black text-2xl ${s.colorClass}`}>{s.val}</div>
                     </div>
                 ))}
@@ -471,15 +471,15 @@ export default function MuhasebeMainContainer() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
+                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
                                 <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
                             </div>
                             <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
+                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
                                 <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
                             </div>
                             <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sapma</div>
+                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Sapma</div>
                                 <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{/** @type {any} */ (fark) > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({/** @type {any} */ (pct) > 0 ? '+' : ''}{pct}%)</div>
                             </div>
                         </div>
@@ -495,7 +495,7 @@ export default function MuhasebeMainContainer() {
                     <div className="text-xs text-slate-400 font-bold mt-1">Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
                 </div>
                 <div className="text-center bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                    <div className="text-[10px] text-slate-400 font-black tracking-widest uppercase mb-1">Kilitli Rapor</div>
+                    <div className="text-sm text-slate-400 font-black tracking-widest uppercase mb-1">Kilitli Rapor</div>
                     <div className="font-black text-emerald-400 text-3xl leading-none">{istatistik.kilitli}</div>
                 </div>
             </div>
@@ -524,10 +524,10 @@ export default function MuhasebeMainContainer() {
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
                                             <div className="flex gap-2 mb-2">
-                                                <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                <span className="text-sm font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase tracking-wider">
                                                     {r.model_kodu || r.id?.slice(0, 8) || 'Rapor'}
                                                 </span>
-                                                <span className="text-[10px] font-black px-2 py-0.5 rounded tracking-wider uppercase" style={{ background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
+                                                <span className="text-sm font-black px-2 py-0.5 rounded tracking-wider uppercase" style={{ background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
                                                     {DURUM_LABEL[r.rapor_durumu]}
                                                 </span>
                                             </div>
@@ -554,7 +554,7 @@ export default function MuhasebeMainContainer() {
                                             ) : (
                                                 <div onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => zeyilnameAc(r)}
-                                                        className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider transition-colors">
+                                                        className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-lg font-black text-sm uppercase tracking-wider transition-colors">
                                                         ➕ Zeyilname (Ek)
                                                     </button>
                                                 </div>
@@ -563,11 +563,11 @@ export default function MuhasebeMainContainer() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 mt-2">
                                         <div className="bg-[#0d1117] text-white rounded-xl p-2.5 border border-slate-100">
-                                            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
+                                            <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
                                             <div className="font-black text-slate-700 text-sm">₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
                                         <div className={`rounded-xl p-2.5 border ${pct > 10 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                                            <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${pct > 10 ? 'text-red-500' : 'text-emerald-600'}`}>Gerçek Toplam</div>
+                                            <div className={`text-sm font-black uppercase tracking-widest mb-1 ${pct > 10 ? 'text-red-500' : 'text-emerald-600'}`}>Gerçek Toplam</div>
                                             <div className={`font-black text-sm ${pct > 10 ? 'text-red-600' : 'text-emerald-700'}`}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
                                         </div>
                                     </div>
@@ -595,7 +595,7 @@ export default function MuhasebeMainContainer() {
                                 { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, colorClass: 'text-red-500' },
                             ].map((m, i) => (
                                 <div key={i} className="bg-[#0d1117] text-white border border-slate-100 rounded-xl p-3">
-                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
+                                    <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
                                     <div className={`font-black text-base ${m.colorClass}`}>{m.val}</div>
                                 </div>
                             ))}
@@ -619,7 +619,7 @@ export default function MuhasebeMainContainer() {
 
                             return (
                                 <div className="mb-6 bg-[#0d1117] text-white p-5 border-2 border-[#1e4a43] rounded-2xl">
-                                    <div className="font-black text-emerald-300 text-[11px] mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+                                    <div className="font-black text-emerald-300 text-sm mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
 
                                     {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
                                     <div className="flex h-5 rounded-lg overflow-hidden mb-4 shadow-inner">
@@ -634,7 +634,7 @@ export default function MuhasebeMainContainer() {
                                             return (
                                                 <div key={tip} className="text-xs text-emerald-300 font-bold bg-[#122b27] px-3 py-1.5 rounded-lg border border-[#1e4a43] shadow-sm flex items-center gap-2">
                                                     <span className={`inline-block w-2.5 h-2.5 rounded-full ${mRenkBg[tip] || mRenkBg.diger}`} />
-                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-[10px]">(%{yuzdeUi})</span>
+                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-sm">(%{yuzdeUi})</span>
                                                 </div>
                                             );
                                         })}
@@ -711,13 +711,13 @@ export default function MuhasebeMainContainer() {
                             {!duzenleModal.zeyilname_modu ? (
                                 <>
                                     <div>
-                                        <label className="block text-[11px] font-black text-emerald-200 mb-2 uppercase tracking-widest">Zayiat Adet</label>
+                                        <label className="block text-sm font-black text-emerald-200 mb-2 uppercase tracking-widest">Zayiat Adet</label>
                                         <input type="number" min="0" value={duzenleForm.zayiat_adet}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, zayiat_adet: e.target.value })}
                                             className="w-full px-4 py-3 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all" />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-black text-emerald-200 mb-2 uppercase tracking-widest">Bütçelenen Hedef Maliyet Kapasitesi</label>
+                                        <label className="block text-sm font-black text-emerald-200 mb-2 uppercase tracking-widest">Bütçelenen Hedef Maliyet Kapasitesi</label>
                                         <div className="relative">
                                             <input type="number" min="0" step="100" value={duzenleForm.hedeflenen_maliyet_tl}
                                                 onChange={e => setDuzenleForm({ ...duzenleForm, hedeflenen_maliyet_tl: e.target.value })}
@@ -728,19 +728,19 @@ export default function MuhasebeMainContainer() {
                                 </>
                             ) : (
                                 <div className="bg-amber-50 border-2 border-amber-200 p-4 rounded-xl">
-                                    <label className="block text-[11px] font-black text-amber-800 mb-2 uppercase tracking-widest">Ek Maliyet Farkı (Zeyilname)</label>
+                                    <label className="block text-sm font-black text-amber-800 mb-2 uppercase tracking-widest">Ek Maliyet Farkı (Zeyilname)</label>
                                     <div className="relative">
                                         <input type="number" min="0" step="10" value={duzenleForm.ek_maliyet_tl}
                                             onChange={e => setDuzenleForm({ ...duzenleForm, ek_maliyet_tl: e.target.value })} placeholder="Fason fiyat farkı, kargo vb.."
                                             className="w-full pl-10 pr-4 py-3 bg-[#122b27] border-2 border-amber-300 rounded-xl font-black text-amber-900 outline-none focus:border-amber-500 transition-all placeholder:text-amber-300 placeholder:font-medium" />
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-600">₺</span>
                                     </div>
-                                    <p className="text-[10px] font-bold text-amber-700/70 mt-3 leading-relaxed">Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
+                                    <p className="text-sm font-bold text-amber-700/70 mt-3 leading-relaxed">Devri yapılmış ve kilidi açılmayan rapordaki maliyet sızıntısını legal şekilde ekler.</p>
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-[11px] font-black text-emerald-200 mb-2 uppercase tracking-widest">Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
+                                <label className="block text-sm font-black text-emerald-200 mb-2 uppercase tracking-widest">Notlar / Zayiat Nedeni / {duzenleModal.zeyilname_modu ? 'Fatura/İtiraz Özeti' : ''}</label>
                                 <textarea rows={3} maxLength={300} value={duzenleForm.notlar}
                                     onChange={e => setDuzenleForm({ ...duzenleForm, notlar: e.target.value })}
                                     placeholder="İç not, açıklama..." className="w-full px-4 py-3 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all resize-y custom-scrollbar" />

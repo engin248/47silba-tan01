@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
 import {
     Layers, Plus, Search, AlertTriangle, CheckCircle2, Package, Scissors,
@@ -91,9 +91,9 @@ export default function KumasMainContainer() {
                         { label: 'Yüksek MOQ', val: '5', desc: 'Minimum Sipariş Riski', color: 'text-amber-400' }
                     ].map((s, i) => (
                         <div key={i} className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 flex flex-col justify-between shadow-md">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${s.color}`}>{s.label}</span>
+                            <span className={`text-sm font-bold uppercase tracking-wider ${s.color}`}>{s.label}</span>
                             <div className="text-2xl font-black text-white mt-2 border-b border-[#30363d] pb-2">{s.val}</div>
-                            <div className="text-[10px] text-[#8b949e] font-semibold mt-2">{s.desc}</div>
+                            <div className="text-sm text-[#8b949e] font-semibold mt-2">{s.desc}</div>
                         </div>
                     ))}
                 </div>
@@ -109,16 +109,16 @@ export default function KumasMainContainer() {
                             </h2>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                            {m1Talepleri.length === 0 && <p className="text-[#8b949e] text-[10px] text-center mt-4">Henüz onaylanmış yeni bir M1 Karar talebi yok.</p>}
+                            {m1Talepleri.length === 0 && <p className="text-[#8b949e] text-sm text-center mt-4">Henüz onaylanmış yeni bir M1 Karar talebi yok.</p>}
                             {m1Talepleri.map(talep => (
                                 <div key={talep.id} className="bg-[#0d1117] border border-amber-500/30 p-3 rounded-lg flex flex-col gap-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] text-amber-400 font-bold uppercase">YENİ MODEL (AŞAMA 2)</span>
-                                        <span className="text-[10px] text-emerald-400 font-bold border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10">M1 ONAYLI</span>
+                                        <span className="text-sm text-amber-400 font-bold uppercase">YENİ MODEL (AŞAMA 2)</span>
+                                        <span className="text-sm text-emerald-400 font-bold border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10">M1 ONAYLI</span>
                                     </div>
                                     <h3 className="text-sm font-bold text-white">{talep.baslik}</h3>
                                     {talep.aciklama && (
-                                        <div className="text-[10px] text-[#8b949e] border-l-2 border-amber-500/50 pl-2 bg-[#21262d] p-2 rounded italic">
+                                        <div className="text-sm text-[#8b949e] border-l-2 border-amber-500/50 pl-2 bg-[#21262d] p-2 rounded italic">
                                             {talep.aciklama.substring(0, 100)}...
                                         </div>
                                     )}
@@ -127,7 +127,7 @@ export default function KumasMainContainer() {
                                             setSeciliTalep(talep);
                                             setFizibiliteModalAcik(true);
                                         }}
-                                        className="w-full text-[10px] font-bold text-center py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded mt-2 text-white transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
+                                        className="w-full text-sm font-bold text-center py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded mt-2 text-white transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
                                     >
                                         <Scale size={12} /> BİZ KAÇA MAL EDERİZ? (FİZİBİLİTE)
                                     </button>
@@ -169,20 +169,20 @@ export default function KumasMainContainer() {
                                                                 {f.fotograf_urls && f.fotograf_urls[0] ? (
                                                                     <img src={f.fotograf_urls[0]} alt="Kumas" className="w-full h-full object-cover opacity-80" />
                                                                 ) : (
-                                                                    <span className="text-[10px] text-[#8b949e]">FOTOĞRAF</span>
+                                                                    <span className="text-sm text-[#8b949e]">FOTOĞRAF</span>
                                                                 )}
                                                             </div>
                                                             <div className="flex-1">
                                                                 <div className="flex justify-between items-start">
                                                                     <h4 className="font-bold text-white text-sm">{f.ad} {f.kondisyon_notu ? `(${f.kondisyon_notu})` : ''}</h4>
-                                                                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">
+                                                                    <span className="text-sm bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">
                                                                         %{aiVeri.beklenen_marj_yuzdesi || 65} TAHMİNİ MARJ
                                                                     </span>
                                                                 </div>
-                                                                <p className="text-[11px] text-[#8b949e] mt-1 mb-2">
+                                                                <p className="text-sm text-[#8b949e] mt-1 mb-2">
                                                                     M1 Trend Eşleşmesi: {aiVeri.model_tavsiyesi || "Sistem eşleşme arıyor..."}. Stok: {f.stok_miktar} {f.stok_birimi}
                                                                 </p>
-                                                                <button className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-md transition-colors w-full">
+                                                                <button className="text-sm font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-md transition-colors w-full">
                                                                     MODEL UYARLA VE M3'E YOLLA
                                                                 </button>
                                                             </div>
@@ -204,9 +204,9 @@ export default function KumasMainContainer() {
                                                 {/* GÖRSEL ALANI (ARŞİV) */}
                                                 <div className="h-40 bg-[#0b121a] relative flex items-center justify-center border-b border-[#21262d]">
                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d1117] to-transparent z-10"></div>
-                                                    <span className="text-[10px] text-[#8b949e] font-black tracking-widest uppercase">GÖRSEL EKLENMEDİ</span>
+                                                    <span className="text-sm text-[#8b949e] font-black tracking-widest uppercase">GÖRSEL EKLENMEDİ</span>
                                                     {k.durum === 'riskli' && (
-                                                        <div className="absolute top-2 right-2 z-20 bg-rose-500/90 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-[0_0_10px_rgba(244,63,94,0.5)]">
+                                                        <div className="absolute top-2 right-2 z-20 bg-rose-500/90 text-white text-xs font-black uppercase px-2 py-0.5 rounded shadow-[0_0_10px_rgba(244,63,94,0.5)]">
                                                             RİSK
                                                         </div>
                                                     )}
@@ -214,35 +214,35 @@ export default function KumasMainContainer() {
 
                                                 <div className={`p-4 flex flex-col flex-1 bg-[#0d1117]`}>
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-[9px] font-black uppercase bg-[#21262d] text-emerald-400 px-2 py-0.5 rounded border border-[#30363d]">{k.kodu}</span>
+                                                        <span className="text-xs font-black uppercase bg-[#21262d] text-emerald-400 px-2 py-0.5 rounded border border-[#30363d]">{k.kodu}</span>
                                                     </div>
                                                     <h3 className="text-sm font-bold text-white tracking-wide">{k.ad}</h3>
-                                                    <p className="text-[10px] text-[#8b949e] mt-1 mb-4 border-l-2 border-[#30363d] pl-2">{k.kompozisyon}</p>
+                                                    <p className="text-sm text-[#8b949e] mt-1 mb-4 border-l-2 border-[#30363d] pl-2">{k.kompozisyon}</p>
 
                                                     <div className="grid grid-cols-2 gap-3 mb-4 bg-[#161b22] p-3 rounded-lg border border-[#21262d]">
                                                         <div className="flex flex-col gap-1 border-r border-[#30363d]">
-                                                            <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-wider">Maliyet</span>
-                                                            <span className="text-lg font-mono text-white">₺{k.birimFiyat.toFixed(2)}<span className="text-[10px] text-gray-500">/mt</span></span>
+                                                            <span className="text-xs text-[#8b949e] font-bold uppercase tracking-wider">Maliyet</span>
+                                                            <span className="text-lg font-mono text-white">₺{k.birimFiyat.toFixed(2)}<span className="text-sm text-gray-500">/mt</span></span>
                                                         </div>
                                                         <div className="flex flex-col gap-1 pl-2">
-                                                            <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-wider">M11 Stok</span>
+                                                            <span className="text-xs text-[#8b949e] font-bold uppercase tracking-wider">M11 Stok</span>
                                                             <span className={`text-lg font-mono font-bold ${k.stok <= k.minStok ? 'text-rose-400' : 'text-emerald-400'}`}>
-                                                                {k.stok}<span className="text-[10px] text-gray-500">mt</span>
+                                                                {k.stok}<span className="text-sm text-gray-500">mt</span>
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest border-t border-[#30363d] pt-3 mb-4">
+                                                    <div className="flex justify-between items-center text-sm font-bold uppercase tracking-widest border-t border-[#30363d] pt-3 mb-4">
                                                         <span className="text-[#8b949e]">Alternatif:</span>
                                                         <span className={k.alternatifVar ? 'text-[#c9d1d9]' : 'text-rose-400'}>{k.tedarikci}</span>
                                                     </div>
 
                                                     <div className="flex gap-2 mt-auto">
-                                                        <button className="flex-1 text-[10px] font-bold text-[#c9d1d9] bg-[#21262d] hover:bg-[#30363d] py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 uppercase tracking-widest border border-[#30363d]">
+                                                        <button className="flex-1 text-sm font-bold text-[#c9d1d9] bg-[#21262d] hover:bg-[#30363d] py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 uppercase tracking-widest border border-[#30363d]">
                                                             <Eye size={14} /> KARTELA
                                                         </button>
                                                         <Link href="/kalip" className="flex-1">
-                                                            <button className="w-full text-[10px] font-black text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 py-2.5 rounded-lg transition-colors border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] uppercase tracking-widest flex items-center justify-center gap-1">
+                                                            <button className="w-full text-sm font-black text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 py-2.5 rounded-lg transition-colors border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] uppercase tracking-widest flex items-center justify-center gap-1">
                                                                 M3'E AT
                                                             </button>
                                                         </Link>
@@ -278,11 +278,11 @@ export default function KumasMainContainer() {
                         <div className="p-6">
                             <div className="bg-[#161b22] border border-[#30363d] p-3 rounded-xl mb-6 flex justify-between items-center">
                                 <div>
-                                    <div className="text-[10px] text-[#8b949e] font-bold uppercase mb-1">AR-GE'NİN BULDUĞU HEDEF (BİNGO)</div>
+                                    <div className="text-sm text-[#8b949e] font-bold uppercase mb-1">AR-GE'NİN BULDUĞU HEDEF (BİNGO)</div>
                                     <div className="text-sm font-black text-white">{seciliTalep.baslik}</div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-[10px] text-amber-500 font-bold uppercase mb-1">Rakip Pazar Satış Fiyatı</div>
+                                    <div className="text-sm text-amber-500 font-bold uppercase mb-1">Rakip Pazar Satış Fiyatı</div>
                                     <input
                                         type="number"
                                         value={maliyetForm.rakipSatis}
@@ -295,22 +295,22 @@ export default function KumasMainContainer() {
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-[#8b949e] uppercase mb-1">Bulunan Kartela Metre Fiyatı (₺)</label>
+                                        <label className="block text-sm font-bold text-[#8b949e] uppercase mb-1">Bulunan Kartela Metre Fiyatı (₺)</label>
                                         <input type="number" placeholder="Örn: 85" value={maliyetForm.kumasFiyat} onChange={e => setMaliyetForm({ ...maliyetForm, kumasFiyat: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-white outline-none focus:border-emerald-500" />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-[#8b949e] uppercase mb-1">Takıma Kaç Metre Gider?</label>
+                                        <label className="block text-sm font-bold text-[#8b949e] uppercase mb-1">Takıma Kaç Metre Gider?</label>
                                         <input type="number" placeholder="Örn: 2.5" value={maliyetForm.kumasMiktar} onChange={e => setMaliyetForm({ ...maliyetForm, kumasMiktar: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-white outline-none focus:border-emerald-500" />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-[#8b949e] uppercase mb-1">Toplam İşçilik/Aksesuar (₺)</label>
+                                        <label className="block text-sm font-bold text-[#8b949e] uppercase mb-1">Toplam İşçilik/Aksesuar (₺)</label>
                                         <input type="number" placeholder="Örn: 75" value={maliyetForm.iscilik} onChange={e => setMaliyetForm({ ...maliyetForm, iscilik: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-white outline-none focus:border-emerald-500" />
                                     </div>
 
                                     <div className={`p-4 rounded-xl border-2 flex flex-col justify-center items-center h-[66px] transition-colors ${toplamMaliyet > 0 ? (karlilikUygun ? 'bg-emerald-500/10 border-emerald-500/50' : 'bg-rose-500/10 border-rose-500/50') : 'bg-[#161b22] border-[#30363d]'}`}>
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-[#8b949e] mb-1">BİZİM MALİYETİMİZ</div>
+                                        <div className="text-sm font-bold uppercase tracking-widest text-[#8b949e] mb-1">BİZİM MALİYETİMİZ</div>
                                         <div className="text-xl font-black font-mono text-white">₺ {toplamMaliyet.toFixed(2)}</div>
                                     </div>
                                 </div>
@@ -325,12 +325,12 @@ export default function KumasMainContainer() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-[10px] text-[#8b949e] uppercase font-bold">Adet Başı Net Kâr</div>
+                                        <div className="text-sm text-[#8b949e] uppercase font-bold">Adet Başı Net Kâr</div>
                                         <div className={`text-xl font-black font-mono ${karlilikUygun ? 'text-white' : 'text-rose-400'}`}>₺ {karMarjiTutar.toFixed(2)}</div>
                                         {karlilikUygun ? (
-                                            <div className="text-[10px] text-emerald-400 font-bold uppercase mt-1">✓ Fizibilite Onaylandı</div>
+                                            <div className="text-sm text-emerald-400 font-bold uppercase mt-1">✓ Fizibilite Onaylandı</div>
                                         ) : (
-                                            <div className="text-[10px] text-rose-500 font-bold uppercase mt-1">⚠ Zarar Kes (Uzak Dur)</div>
+                                            <div className="text-sm text-rose-500 font-bold uppercase mt-1">⚠ Zarar Kes (Uzak Dur)</div>
                                         )}
                                     </div>
                                 </div>

@@ -90,13 +90,13 @@ function YeniBlokForm({ onEkle, onIptal }) {
     return (
         <div className="bg-slate-50 border-2 border-fuchsia-200 rounded-xl p-3 space-y-2">
             <div>
-                <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Blok Tipi</span>
+                <span className="text-sm font-black text-slate-500 uppercase block mb-1">Blok Tipi</span>
                 <div className="grid grid-cols-2 gap-1">
                     {BLOK_TIPLERI.map(b => (
                         <button key={b.tip} onClick={() => setTip(b.tip)}
                             className={`p-1.5 rounded-lg text-left border-2 transition-all ${tip === b.tip ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-slate-200 bg-white'}`}>
                             <span className="text-sm">{b.ikon}</span>
-                            <span className="text-[10px] font-bold text-slate-700 ml-1">{b.isim}</span>
+                            <span className="text-sm font-bold text-slate-700 ml-1">{b.isim}</span>
                         </button>
                     ))}
                 </div>
@@ -107,26 +107,26 @@ function YeniBlokForm({ onEkle, onIptal }) {
                     {(tip === 'bilgi_kutusu' || tip === 'duyuru') && (
                         <div className="flex gap-2">
                             <div className="flex-1">
-                                <span className="text-[10px] font-bold text-slate-500 block mb-1">İkon/Emoji</span>
+                                <span className="text-sm font-bold text-slate-500 block mb-1">İkon/Emoji</span>
                                 <input value={ikon} onChange={e => setIkon(e.target.value)}
                                     className="w-full border-2 border-slate-200 rounded-lg p-1.5 text-sm text-center" maxLength={4} />
                             </div>
                             <div className="flex-1">
-                                <span className="text-[10px] font-bold text-slate-500 block mb-1">Renk</span>
+                                <span className="text-sm font-bold text-slate-500 block mb-1">Renk</span>
                                 <input type="color" value={renk} onChange={e => setRenk(e.target.value)}
                                     className="w-full h-9 rounded-lg border-2 border-slate-200 cursor-pointer p-0.5" />
                             </div>
                         </div>
                     )}
                     <div>
-                        <span className="text-[10px] font-bold text-slate-500 block mb-1">Başlık/Metin</span>
+                        <span className="text-sm font-bold text-slate-500 block mb-1">Başlık/Metin</span>
                         <input value={baslik} onChange={e => setBaslik(e.target.value)}
                             placeholder={tip === 'baslik' ? 'Sayfa başlığı...' : tip === 'bilgi_kutusu' ? 'Değer (ör: 1.240)' : 'Başlık...'}
                             className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm font-bold" />
                     </div>
                     {(tip === 'paragraf' || tip === 'bilgi_kutusu') && (
                         <div>
-                            <span className="text-[10px] font-bold text-slate-500 block mb-1">{tip === 'bilgi_kutusu' ? 'Alt Başlık' : 'İçerik'}</span>
+                            <span className="text-sm font-bold text-slate-500 block mb-1">{tip === 'bilgi_kutusu' ? 'Alt Başlık' : 'İçerik'}</span>
                             <textarea value={icerik} onChange={e => setIcerik(e.target.value)}
                                 placeholder={tip === 'bilgi_kutusu' ? 'Birim / Açıklama' : 'Metin içeriği...'}
                                 className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm resize-none" rows={3} />
@@ -316,28 +316,28 @@ export default function TasarimMainContainer() {
                         <div className="space-y-4">
                             {/* RENKLER */}
                             <div>
-                                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">🎨 Renkler</h2>
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">🎨 Renkler</h2>
                                 <div className="space-y-2 mb-3">
                                     {[{ label: 'Vurgu (Ana) Rengi', key: 'ana_renk' }, { label: 'Başlık Rengi', key: 'ikincil_renk' }, { label: 'Sayfa Arkaplanı', key: 'arkaplan_renk' }, { label: 'Kart Arkaplanı', key: 'kutu_arka_plan' }].map(r => (
                                         <label key={r.key} className="flex items-center justify-between">
                                             <span className="text-xs font-bold text-slate-600">{r.label}</span>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-[9px] font-mono text-slate-400">{ayarlar[r.key]}</span>
+                                                <span className="text-xs font-mono text-slate-400">{ayarlar[r.key]}</span>
                                                 <input type="color" value={ayarlar[r.key]} onChange={e => setAyarlar({ ...ayarlar, [r.key]: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer border-2 border-slate-200 p-0.5" />
                                             </div>
                                         </label>
                                     ))}
                                 </div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">— Hazır Paletler —</span>
+                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-2">— Hazır Paletler —</span>
                                 {PALET_KATEGORILER.map(kat => (
                                     <div key={kat.baslik} className="mb-2">
-                                        <span className="text-[10px] font-bold text-slate-500 block mb-1">{kat.baslik}</span>
+                                        <span className="text-sm font-bold text-slate-500 block mb-1">{kat.baslik}</span>
                                         <div className="grid grid-cols-3 gap-1">
                                             {kat.renkler.map(p => (
                                                 <button key={p.isim} onClick={() => setAyarlar({ ...ayarlar, ana_renk: p.ana, ikincil_renk: p.ik, arkaplan_renk: p.ark })} title={p.isim}
                                                     className={`flex items-center gap-1 p-1.5 rounded-lg border-2 transition-all ${ayarlar.ana_renk === p.ana ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-slate-100 hover:border-slate-300'}`}>
                                                     <div className="w-4 h-4 rounded-full flex-shrink-0 border border-slate-200" style={{ backgroundColor: p.ana }} />
-                                                    <span className="text-[9px] font-bold text-slate-600 truncate">{p.isim}</span>
+                                                    <span className="text-xs font-bold text-slate-600 truncate">{p.isim}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -349,14 +349,14 @@ export default function TasarimMainContainer() {
 
                             {/* YAZI TİPİ */}
                             <div>
-                                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">🔤 Yazı Tipi</h2>
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">🔤 Yazı Tipi</h2>
                                 <div className="space-y-1">
                                     {FONTLAR.map(f => (
                                         <button key={f.deger} onClick={() => setAyarlar({ ...ayarlar, yazi_tipi: f.deger })}
                                             className={`w-full p-2 rounded-lg border-2 text-left transition-all ${ayarlar.yazi_tipi === f.deger ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-slate-200 hover:border-slate-300 bg-white'}`}
                                             style={{ fontFamily: f.deger }}>
-                                            <div className="flex justify-between"><span className="font-black text-slate-800 text-xs">{f.isim}</span><span className="text-[9px] text-slate-400">{f.aciklama}</span></div>
-                                            <div className="text-slate-500 text-[11px]">AaBbCc 123 · ÇŞÜĞİÖ</div>
+                                            <div className="flex justify-between"><span className="font-black text-slate-800 text-xs">{f.isim}</span><span className="text-xs text-slate-400">{f.aciklama}</span></div>
+                                            <div className="text-slate-500 text-sm">AaBbCc 123 · ÇŞÜĞİÖ</div>
                                         </button>
                                     ))}
                                 </div>
@@ -366,23 +366,23 @@ export default function TasarimMainContainer() {
 
                             {/* KÖŞE & GÖLGE */}
                             <div>
-                                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">📐 Köşe &amp; Gölge</h2>
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">📐 Köşe &amp; Gölge</h2>
                                 <div className="mb-2">
-                                    <span className="text-[10px] font-bold text-slate-500 block mb-1">Köşe Keskinliği</span>
+                                    <span className="text-sm font-bold text-slate-500 block mb-1">Köşe Keskinliği</span>
                                     <div className="flex gap-1 flex-wrap">
                                         {[{ d: '0px', n: 'Dik' }, { d: '4px', n: '4px' }, { d: '8px', n: '8px' }, { d: '12px', n: '12px' }, { d: '16px', n: 'Yvr' }, { d: '24px', n: 'Tam' }].map(r => (
                                             <button key={r.d} onClick={() => setAyarlar({ ...ayarlar, kose_radius: r.d })}
-                                                className={`flex-1 min-w-[44px] py-1.5 text-[9px] font-black transition-all border-2 ${ayarlar.kose_radius === r.d ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 text-slate-500 bg-white'}`}
+                                                className={`flex-1 min-w-[44px] py-1.5 text-xs font-black transition-all border-2 ${ayarlar.kose_radius === r.d ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 text-slate-500 bg-white'}`}
                                                 style={{ borderRadius: r.d }}>{r.n}</button>
                                         ))}
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold text-slate-500 block mb-1">Gölge</span>
+                                    <span className="text-sm font-bold text-slate-500 block mb-1">Gölge</span>
                                     <div className="flex gap-1">
                                         {[{ d: 'yok', n: 'Yok' }, { d: 'hafif', n: 'Hafif' }, { d: 'yumusak', n: 'Yum.' }, { d: 'sert', n: 'Sert' }, { d: 'derin', n: 'Derin' }].map(g => (
                                             <button key={g.d} onClick={() => setAyarlar({ ...ayarlar, golge_stili: g.d })}
-                                                className={`flex-1 py-1.5 text-[9px] font-black rounded-lg border-2 transition-all ${ayarlar.golge_stili === g.d ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 text-slate-500 bg-white'}`}>{g.n}</button>
+                                                className={`flex-1 py-1.5 text-xs font-black rounded-lg border-2 transition-all ${ayarlar.golge_stili === g.d ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 text-slate-500 bg-white'}`}>{g.n}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -394,14 +394,14 @@ export default function TasarimMainContainer() {
                     {aktifSekme === 'icerik' && (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between mb-1">
-                                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">📝 Sayfa Blokları</h2>
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">📝 Sayfa Blokları</h2>
                                 <button onClick={() => setYeniBlokAc(true)}
-                                    className="flex items-center gap-1 bg-fuchsia-600 text-white px-2 py-1 rounded-lg text-[10px] font-black hover:bg-fuchsia-700">
+                                    className="flex items-center gap-1 bg-fuchsia-600 text-white px-2 py-1 rounded-lg text-sm font-black hover:bg-fuchsia-700">
                                     <Plus size={12} /> Yeni Blok
                                 </button>
                             </div>
 
-                            <p className="text-[10px] text-slate-400 font-bold leading-tight">
+                            <p className="text-sm text-slate-400 font-bold leading-tight">
                                 Bu sayfaya özel metin, bilgi kutusu veya duyuru ekle. Kaydedince sayfada görünür.
                             </p>
 
@@ -411,14 +411,14 @@ export default function TasarimMainContainer() {
                                 <div className="text-center py-6 text-slate-400">
                                     <Box size={32} className="mx-auto mb-2 opacity-40" />
                                     <p className="text-xs font-bold">Henüz blok eklenmedi</p>
-                                    <p className="text-[10px]">&quot;Yeni Blok&quot; ile başla</p>
+                                    <p className="text-sm">&quot;Yeni Blok&quot; ile başla</p>
                                 </div>
                             )}
 
                             {bloklar.map((blok, i) => (
                                 <div key={blok.id || i} className="border-2 border-slate-200 rounded-xl overflow-hidden">
                                     <div className="flex items-center justify-between px-2 py-1 bg-slate-50 border-b border-slate-200">
-                                        <span className="text-[10px] font-black text-slate-500">{BLOK_TIPLERI.find(b => b.tip === blok.tip)?.isim || blok.tip}</span>
+                                        <span className="text-sm font-black text-slate-500">{BLOK_TIPLERI.find(b => b.tip === blok.tip)?.isim || blok.tip}</span>
                                         <button onClick={() => blokSil(blok.id)} className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={12} /></button>
                                     </div>
                                     <div className="p-2">

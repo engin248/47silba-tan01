@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import {
     Activity, ShieldCheck, Zap, Bot, Camera, ArrowRight, PlayCircle,
     AlertCircle, ServerCrash, Send, CheckCircle, MessageSquare,
@@ -219,7 +219,7 @@ export function KarargahMainContainer() {
 
             {/* Bildirim */}
             {mesaj.text && (
-                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 py-2 px-6 font-mono text-xs font-bold uppercase tracking-widest border ${mesaj.type === 'error' ? 'bg-red-950/90 text-red-300 border-red-500/60' : 'bg-green-950/90 text-green-300 border-green-500/60'}`}>
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 py-2 px-6 font-mono text-sm font-bold uppercase tracking-widest border ${mesaj.type === 'error' ? 'bg-red-950/90 text-red-300 border-red-500/60' : 'bg-green-950/90 text-green-300 border-green-500/60'}`}>
                     {mesaj.type === 'error' ? '⚠ HATA: ' : '✓ '}{mesaj.text}
                 </div>
             )}
@@ -251,16 +251,16 @@ export function KarargahMainContainer() {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-green-400">MİZANET SİBER KARARGAH</span>
+                        <span className="text-sm font-bold uppercase tracking-[0.3em] text-green-400">MİZANET SİBER KARARGAH</span>
                     </div>
                     <span className="text-green-900/60">|</span>
-                    <span className="text-[9px] text-green-700 uppercase tracking-widest">OPERATIONAL</span>
+                    <span className="text-xs text-green-700 uppercase tracking-widest">OPERATIONAL</span>
                 </div>
-                <div className="flex items-center gap-6 text-[9px] text-green-700 uppercase tracking-widest">
+                <div className="flex items-center gap-6 text-xs text-green-700 uppercase tracking-widest">
                     <span>KULLANICI: <span className="text-green-400">{_kul?.ad || 'KOMUTAN'}</span></span>
                     <span className="text-green-400 font-bold tabular-nums">{saat}</span>
                     <span className={`flex items-center gap-1 ${ping !== null && ping < 200 ? 'text-green-400' : 'text-yellow-600'}`}>
-                        <Radio size={8} /> PING: {ping === null ? '---' : `${ping}ms`}
+                        <Radio size={10} /> PING: {ping === null ? '---' : `${ping}ms`}
                     </span>
                 </div>
             </div>
@@ -274,16 +274,16 @@ export function KarargahMainContainer() {
                         <div className="absolute inset-0 opacity-20"
                             style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,255,65,0.05) 40px, rgba(0,255,65,0.05) 41px)' }} />
                         <div className="absolute inset-0 flex flex-col justify-center pl-6 z-10">
-                            <div className="text-[8px] text-green-700 uppercase tracking-[0.4em] mb-1">Demir Tekstil — THE ORDER</div>
-                            <div className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] leading-tight">
+                            <div className="text-xs text-green-700 uppercase tracking-[0.4em] mb-1">Demir Tekstil — THE ORDER</div>
+                            <div className="text-base font-bold text-green-400 uppercase tracking-[0.25em] leading-tight">
                                 MİZANET<br />
-                                <span className="text-[9px] text-green-600">SİBER KARARGAH</span>
+                                <span className="text-sm text-green-600">SİBER KARARGAH</span>
                             </div>
                             <div className="mt-2 flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                                <span className="text-[8px] text-green-600 uppercase tracking-[0.3em]">OPERASYONEL</span>
+                                <span className="text-xs text-green-600 uppercase tracking-[0.3em]">OPERASYONEL</span>
                             </div>
-                            <div className="mt-1 text-[7px] text-green-900 uppercase tracking-widest">Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım</div>
+                            <div className="mt-1 text-sm text-green-900 uppercase tracking-widest">Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım</div>
                         </div>
                         <div className="absolute right-0 top-0 bottom-0 w-40 flex items-center justify-center">
                             <div className="relative">
@@ -320,7 +320,7 @@ export function KarargahMainContainer() {
                                             m.renk === 'red' ? 'border-t-red-900/30 border-r-red-900/30' :
                                                 m.renk === 'yellow' ? 'border-t-yellow-900/30 border-r-yellow-900/30' :
                                                     'border-t-orange-900/30 border-r-orange-900/30'}`} />
-                                    <div className={`flex items-center gap-1 mb-2 text-[9px] uppercase tracking-widest font-bold
+                                    <div className={`flex items-center gap-1 mb-2 text-xs uppercase tracking-widest font-bold
                                         ${m.renk === 'green' ? 'text-green-700' :
                                             m.renk === 'red' ? 'text-red-700' :
                                                 m.renk === 'yellow' ? 'text-yellow-700' :
@@ -344,14 +344,14 @@ export function KarargahMainContainer() {
                         <div className="border border-green-900/50 bg-black/50 p-4">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-1 h-4 bg-green-500" />
-                                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-green-600">GÖREV MERKEZİ / CMD</span>
+                                <span className="text-xs font-bold uppercase tracking-[0.25em] text-green-600">GÖREV MERKEZİ / CMD</span>
                             </div>
                             <div className="flex gap-2 mb-4">
                                 <input value={commandText} onChange={(e) => setCommandText(e.target.value)} placeholder="komut gir..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono" />
                                 <button onClick={hizliGorevAtama} className="bg-green-900/30 hover:bg-green-800/40 text-green-300 text-xs px-4 py-2 border border-green-800/50 hover:border-green-500/60 font-bold uppercase tracking-wider transition-colors">GÖNDER</button>
                             </div>
                             <div className="border-t border-green-900/40 pt-4">
-                                <div className="flex items-center justify-between mb-2 text-[9px] uppercase tracking-widest">
+                                <div className="flex items-center justify-between mb-2 text-xs uppercase tracking-widest">
                                     <span className="text-green-700">PROJEKSİYON SİMÜLATÖRÜ</span>
                                     <span className="text-green-400 font-bold">{simulasyon > 0 ? '+' : ''}{simulasyon}%</span>
                                 </div>
@@ -362,7 +362,7 @@ export function KarargahMainContainer() {
                         <div className="border border-green-900/50 bg-black/50 p-4">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-1 h-4 bg-yellow-500" />
-                                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-yellow-600">DİJİTAL DANIŞMAN / AI</span>
+                                <span className="text-xs font-bold uppercase tracking-[0.25em] text-yellow-600">DİJİTAL DANIŞMAN / AI</span>
                             </div>
                             <div className="flex gap-2 mb-3">
                                 <input value={aiSorgu} onChange={(e) => setAiSorgu(e.target.value)} placeholder="analiz isteği..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono" />
@@ -372,7 +372,7 @@ export function KarargahMainContainer() {
                             </div>
                             {aiSonuc && (
                                 <div className="bg-black/60 border border-green-900/40 p-3 max-h-20 overflow-y-auto">
-                                    <p className="text-[10px] text-green-300 leading-relaxed font-mono whitespace-pre-wrap">{aiSonuc}</p>
+                                    <p className="text-sm text-green-300 leading-relaxed font-mono whitespace-pre-wrap">{aiSonuc}</p>
                                 </div>
                             )}
                         </div>
@@ -384,13 +384,13 @@ export function KarargahMainContainer() {
                             <div key={gIdx} className="border border-green-950/60 bg-black/30 p-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className="h-px flex-1 bg-green-950/60" />
-                                    <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${grup.renk}`}>{grup.baslik}</span>
+                                    <span className={`text-xs font-bold uppercase tracking-[0.2em] ${grup.renk}`}>{grup.baslik}</span>
                                     <div className="h-px flex-1 bg-green-950/60" />
                                 </div>
                                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                                     {grup.moduller.map((mod, i) => (
                                         <Link href={mod.link} key={i}>
-                                            <div className={`border text-[10px] font-bold text-center py-2 px-1 uppercase tracking-wider transition-all duration-200 cursor-pointer ${grup.sinif}`}>
+                                            <div className={`border text-sm font-bold text-center py-2.5 px-2 uppercase tracking-wider transition-all duration-200 cursor-pointer ${grup.sinif}`}>
                                                 {mod.name}
                                             </div>
                                         </Link>
@@ -408,12 +408,12 @@ export function KarargahMainContainer() {
                     <div className="border border-green-900/50 bg-black/50 p-4">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-1 h-4 bg-red-500 animate-pulse" />
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-red-500">DURUM RADARI</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">DURUM RADARI</span>
                         </div>
                         {alarms.length === 0 ? (
                             <div className="border border-green-900/40 bg-green-950/20 p-3 text-center">
                                 <CheckCircle size={14} className="text-green-500 mx-auto mb-1" />
-                                <span className="text-[9px] text-green-600 uppercase tracking-widest">SİSTEM NORMAL</span>
+                                <span className="text-xs text-green-600 uppercase tracking-widest">SİSTEM NORMAL</span>
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -421,11 +421,11 @@ export function KarargahMainContainer() {
                                     <div key={al.id} className="border border-red-900/60 bg-red-950/20 p-3">
                                         <div className="flex items-start gap-2 mb-2">
                                             <AlertTriangle size={10} className="text-red-400 mt-0.5 flex-shrink-0" />
-                                            <p className="text-[10px] text-red-300 leading-relaxed">{al.text}</p>
+                                            <p className="text-sm text-red-300 leading-relaxed">{al.text}</p>
                                         </div>
-                                        <button onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })} className="text-[8px] text-red-600 hover:text-red-400 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors">
+                                        <button onClick={() => setAiNedenModal({ acik: true, metin: al.neden, zarar: al.zarar })} className="text-xs text-red-600 hover:text-red-400 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors">
                                             <span>ETKİ ANALİZİ</span>
-                                            <ArrowRight size={8} />
+                                            <ArrowRight size={10} />
                                         </button>
                                     </div>
                                 ))}
@@ -442,10 +442,10 @@ export function KarargahMainContainer() {
                                     {kameraStreamDurum === 'aktif' && <div className="absolute inset-0 bg-green-500/10 animate-pulse" />}
                                 </div>
                                 <div>
-                                    <div className={`text-[9px] font-bold uppercase tracking-widest ${kameraStreamDurum === 'aktif' ? 'text-green-400' : 'text-green-800'}`}>
+                                    <div className={`text-xs font-bold uppercase tracking-widest ${kameraStreamDurum === 'aktif' ? 'text-green-400' : 'text-green-800'}`}>
                                         {kameraStreamDurum === 'aktif' ? '◉ GÖRÜŞ AKTİF' : '◎ GÖRÜŞ KAPALI'}
                                     </div>
-                                    <div className="text-[8px] text-green-900 mt-0.5">
+                                    <div className="text-sm text-green-900 mt-0.5">
                                         {kameraStreamDurum === 'aktif' ? 'AI tarama modunda' : 'go2rtc devreye girmeli'}
                                     </div>
                                 </div>
@@ -458,9 +458,9 @@ export function KarargahMainContainer() {
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-1 h-4 bg-green-500" />
-                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-600">AJAN EKOSİSTEMİ</span>
+                                <span className="text-xs font-bold uppercase tracking-[0.2em] text-green-600">AJAN EKOSİSTEMİ</span>
                             </div>
-                            <span className="text-[8px] text-green-500 flex items-center gap-1">
+                            <span className="text-xs text-green-500 flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
                                 OTONOM
                             </span>
@@ -472,14 +472,14 @@ export function KarargahMainContainer() {
                             ].map((a, i) => (
                                 <div key={i} className="border border-green-950/60 p-2 flex items-center justify-between">
                                     <div>
-                                        <div className="text-[9px] font-bold text-green-400 uppercase">{a.isim}</div>
-                                        <div className="text-[8px] text-green-800 mt-0.5">{a.detay}</div>
+                                        <div className="text-xs font-bold text-green-400 uppercase">{a.isim}</div>
+                                        <div className="text-xs text-green-800 mt-0.5">{a.detay}</div>
                                     </div>
-                                    <span className="text-[8px] text-green-700 font-bold">{a.stat}</span>
+                                    <span className="text-xs text-green-700 font-bold">{a.stat}</span>
                                 </div>
                             ))}
                         </div>
-                        <Link href="/arge" className="block mt-3 text-center text-[8px] text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
+                        <Link href="/arge" className="block mt-3 text-center text-xs text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
                             DETAY PANELE GEÇ →
                         </Link>
                     </div>
@@ -489,27 +489,27 @@ export function KarargahMainContainer() {
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-1 h-4 bg-yellow-500" />
-                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-yellow-600">İLETİŞİM</span>
+                                <span className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-600">İLETİŞİM</span>
                             </div>
                             {mesajSayisi > 0 && (
-                                <span className="text-[8px] text-red-400 border border-red-800/50 px-1.5 py-0.5">{mesajSayisi} OKUNMADI</span>
+                                <span className="text-xs text-red-400 border border-red-800/50 px-1.5 py-0.5">{mesajSayisi} OKUNMADI</span>
                             )}
                         </div>
                         <div className="space-y-2">
                             {mesajYukleniyor ? (
-                                <div className="text-[9px] text-green-800 text-center py-3 uppercase tracking-widest animate-pulse">VERİ ÇEKİLİYOR...</div>
+                                <div className="text-xs text-green-800 text-center py-3 uppercase tracking-widest animate-pulse">VERİ ÇEKİLİYOR...</div>
                             ) : sonMesajlar.length === 0 ? (
-                                <div className="text-[9px] text-green-900 text-center py-3 uppercase tracking-widest">— SESSİZLİK —</div>
+                                <div className="text-xs text-green-900 text-center py-3 uppercase tracking-widest">— SESSİZLİK —</div>
                             ) : sonMesajlar.map(m => (
                                 <Link key={m.id} href="/haberlesme" className="block border border-green-950/50 hover:border-green-800/50 p-2 transition-colors">
-                                    <div className="text-[9px] font-bold text-green-300 truncate mb-0.5">
+                                    <div className="text-xs font-bold text-green-300 truncate mb-0.5">
                                         {m.oncelik === 'kritik' ? '🔴' : m.oncelik === 'acil' ? '🟡' : '🟢'} {m.konu}
                                     </div>
-                                    <div className="text-[8px] text-green-800">{m.gonderen_adi}</div>
+                                    <div className="text-xs text-green-800">{m.gonderen_adi}</div>
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/haberlesme" className="block mt-3 text-center text-[8px] text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
+                        <Link href="/haberlesme" className="block mt-3 text-center text-xs text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
                             TÜMÜNÜ GÖR →
                         </Link>
                     </div>
@@ -518,33 +518,33 @@ export function KarargahMainContainer() {
                     <div className="border border-green-900/50 bg-black/50 p-4">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-1 h-4 bg-green-500" />
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-600">SİSTEM NÖBETÇİSİ</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-green-600">SİSTEM NÖBETÇİSİ</span>
                         </div>
                         <div className="flex items-center gap-3 border border-green-950/50 p-2 mb-3">
                             <Bot size={14} className={botDurum === 'aktif' ? 'text-green-400' : 'text-green-900'} />
                             <div>
-                                <div className="text-[9px] font-bold text-green-300">@Lumora_47bot</div>
-                                <div className="text-[8px] text-green-800">
+                                <div className="text-xs font-bold text-green-300">@Lumora_47bot</div>
+                                <div className="text-xs text-green-800">
                                     {botDurum === 'aktif' ? '◉ AKTİF DİNLİYOR' : '◎ KAPASİTE KONTROLÜ'}
                                 </div>
                             </div>
                         </div>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                             {botYukleniyor ? (
-                                <div className="text-[8px] text-green-800 text-center py-2 uppercase tracking-widest animate-pulse">NIZAMBOT SORGULANYOR...</div>
+                                <div className="text-xs text-green-800 text-center py-2 uppercase tracking-widest animate-pulse">NIZAMBOT SORGULANYOR...</div>
                             ) : botLoglar.length === 0 ? (
-                                <div className="text-[8px] text-green-900 text-center py-2 uppercase tracking-widest">HAREKET YOK</div>
+                                <div className="text-xs text-green-900 text-center py-2 uppercase tracking-widest">HAREKET YOK</div>
                             ) : botLoglar.map((log, i) => (
                                 <div key={i} className="border-b border-green-950/40 pb-1 mb-1 last:border-0 last:pb-0 last:mb-0">
                                     <div className="flex items-center justify-between">
-                                        <span className={`text-[8px] font-bold ${log.sonuc === 'basarili' ? 'text-green-600' : 'text-red-600'}`}>
+                                        <span className={`text-xs font-bold ${log.sonuc === 'basarili' ? 'text-green-600' : 'text-red-600'}`}>
                                             {log.sonuc === 'basarili' ? '✓ İLETİLDİ' : '✗ HATA'}
                                         </span>
-                                        <span className="text-[7px] text-green-900">
+                                        <span className="text-sm text-green-900">
                                             {new Date(log.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
-                                    <p className="text-[8px] text-green-800 truncate mt-0.5">{log.mesaj || log.islem_tipi}</p>
+                                    <p className="text-xs text-green-800 truncate mt-0.5">{log.mesaj || log.islem_tipi}</p>
                                 </div>
                             ))}
                         </div>
@@ -552,20 +552,20 @@ export function KarargahMainContainer() {
 
                     {/* GİZLENEN MESAJLAR */}
                     <div className="border border-green-900/50 bg-black/50 p-4">
-                        <button onClick={() => setIzPanelAcik(v => !v)} className="w-full flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.15em] text-green-700 mb-1">
+                        <button onClick={() => setIzPanelAcik(v => !v)} className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-[0.15em] text-green-700 mb-1">
                             <span>MESAJ İZLERİ [{gizlenIzleri.length}]</span>
-                            <span className="text-[7px] text-green-900">45 GÜN KURALI</span>
+                            <span className="text-sm text-green-900">45 GÜN KURALI</span>
                         </button>
                         {izPanelAcik && (
                             <div className="space-y-1 mt-3 max-h-32 overflow-y-auto">
                                 {gizlenIzleri.length === 0 ? (
-                                    <div className="text-[8px] text-green-900 text-center py-2">GİZLENEN İZ YOK</div>
+                                    <div className="text-xs text-green-900 text-center py-2">GİZLENEN İZ YOK</div>
                                 ) : gizlenIzleri.map((g, i) => {
                                     const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar;
                                     return (
                                         <div key={i} className="border border-green-950/40 p-2">
-                                            <div className="text-[8px] font-bold text-green-400 truncate">{b1?.konu || '—'}</div>
-                                            <div className="text-[7px] text-green-800">GİZLEYEN: {g.kullanici_adi}</div>
+                                            <div className="text-xs font-bold text-green-400 truncate">{b1?.konu || '—'}</div>
+                                            <div className="text-sm text-green-800">GİZLEYEN: {g.kullanici_adi}</div>
                                         </div>
                                     );
                                 })}
@@ -578,14 +578,14 @@ export function KarargahMainContainer() {
 
             {/* Alt durum çubuğu */}
             <div className="fixed bottom-0 left-0 right-0 border-t border-green-900/40 bg-black/80 px-6 py-2 flex items-center justify-between z-20">
-                <div className="flex items-center gap-4 text-[8px] uppercase tracking-widest">
+                <div className="flex items-center gap-4 text-xs uppercase tracking-widest">
                     <span className="text-green-700">SİSTEM: <span className="text-green-400">AKTİF</span></span>
                     <span className="text-green-900">|</span>
                     <span className="text-green-700">VERİTABANI: <span className="text-green-400">BAĞLI</span></span>
                     <span className="text-green-900">|</span>
                     <span className="text-green-700">AJAN: <span className={botDurum === 'aktif' ? 'text-green-400' : 'text-yellow-500'}>{botDurum.toUpperCase()}</span></span>
                 </div>
-                <div className="text-[8px] text-green-900 uppercase tracking-widest">mizanet.com — THE ORDER / NİZAM</div>
+                <div className="text-xs text-green-900 uppercase tracking-widest">mizanet.com — THE ORDER / NİZAM</div>
             </div>
         </div>
     );

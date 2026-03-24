@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { Camera, FileText, CheckCircle2, PlaySquare, PlusCircle, Save, Trash2, Edit, Mic, Video, Users, DollarSign, Clock, AlertTriangle, ShieldCheck, Play, Activity, CheckSquare, UploadCloud, Receipt, BarChart3, Database } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -456,7 +456,7 @@ export default function ImalatMainContainer() {
                                         <span className="bg-red-100 text-red-700 font-black px-3 py-1 rounded text-sm shrink-0">MAX: {model.material_cost || 0}₺</span>
                                     </div>
                                     <p className="text-sm text-gray-600 font-medium">{model.description}</p>
-                                    <div className="text-[10px] text-gray-400 font-bold uppercase mt-2 pt-2 border-t">ID: {model.id}</div>
+                                    <div className="text-sm text-gray-400 font-bold uppercase mt-2 pt-2 border-t">ID: {model.id}</div>
                                 </div>
                             ))}
                         </div>
@@ -499,7 +499,7 @@ export default function ImalatMainContainer() {
                             <input type="number" className="form-input w-full font-bold text-orange-600 mb-6 border-2 border-orange-200 h-12" placeholder="Üretime Başlanacak Adet" value={uretimAdeti} onChange={e => setUretimAdeti(e.target.value)} />
 
                             <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6 relative">
-                                <span className="absolute -top-3 left-4 bg-red-600 text-white text-[10px] px-2 py-1 font-black rounded uppercase tracking-wider">Mecburi İşlem</span>
+                                <span className="absolute -top-3 left-4 bg-red-600 text-white text-sm px-2 py-1 font-black rounded uppercase tracking-wider">Mecburi İşlem</span>
                                 <h3 className="font-black text-slate-800 mb-2 flex items-center gap-2"><Video className="text-red-500" /> KENDİ MODELHANEMİZDE İLK DİKİM VİDEOSU</h3>
                                 <p className="text-xs text-gray-600 font-medium mb-4">"Böyle anladım" yalanını bitirmek için, ilk numune atölyemizde VİDEO eşliğinde dikilir ve fasona izlemesi şart koşulur.</p>
 
@@ -534,7 +534,7 @@ export default function ImalatMainContainer() {
                                 {islemAdimlari.length === 0 && <p className="text-center text-gray-400 text-sm font-bold mt-10">{isAR ? 'لم تتم إضافة خطوات للإنتاج بعد' : 'Henüz fasona verilecek bir işlem sırası eklenmedi.'}</p>}
                                 {islemAdimlari.map((a, i) => (
                                     <div key={a.id} className="flex justify-between items-center border border-slate-200 p-2 text-sm bg-white shadow-sm mb-2 rounded">
-                                        <span className="font-bold text-slate-700"><span className={`bg-slate-800 text-white px-2 py-1 rounded m${isAR ? 'l' : 'r'}-2 text-[10px]`}>{isAR ? `خطوة` : `ADIM`} {i + 1}</span>{a.islem_adi}</span>
+                                        <span className="font-bold text-slate-700"><span className={`bg-slate-800 text-white px-2 py-1 rounded m${isAR ? 'l' : 'r'}-2 text-sm`}>{isAR ? `خطوة` : `ADIM`} {i + 1}</span>{a.islem_adi}</span>
                                         <div className="flex items-center gap-3">
                                             <span className="text-orange-600 font-black">{a.ideal_sure_dk} {isAR ? 'دقيقة' : 'dk limit'}</span>
                                             <button onClick={() => adimSil(a.id)} className="text-red-400 hover:text-red-700 p-1"><Trash2 size={16} /></button>
@@ -584,18 +584,18 @@ export default function ImalatMainContainer() {
                                     {sahadakiIsler.filter(i => i.status === kolon.key).map(is => (
                                         <div key={is.id} className={`bg-white rounded-xl p-3 mb-2 shadow-sm border border-${kolon.renk}-100`}>
                                             <div className="font-black text-xs text-slate-800">{is.production_orders?.order_code || (isAR ? 'الطلب' : 'Sipariş')}</div>
-                                            <div className="text-[10px] font-bold text-slate-500 mb-2">{is.production_orders?.b1_model_taslaklari?.model_kodu || '—'}</div>
+                                            <div className="text-sm font-bold text-slate-500 mb-2">{is.production_orders?.b1_model_taslaklari?.model_kodu || '—'}</div>
                                             {kolon.key === 'assigned' && (
-                                                <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className={`mt-1 font-black text-[10px] bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors w-full ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                                <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBaslat(is.id)} className={`mt-1 font-black text-sm bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors w-full ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                     {islemdeId === is.id ? '...' : (isAR ? '▶ ابدأ' : '▶ Başlat')}
                                                 </button>
                                             )}
                                             {kolon.key === 'in_progress' && (
                                                 <div className="flex gap-2 mt-1">
-                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className={`flex-1 font-black text-[10px] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiIsiBitir(is.id)} className={`flex-1 font-black text-sm bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                         {islemdeId === is.id ? '...' : (isAR ? '✓ إنهاء' : '✓ Bitir')}
                                                     </button>
-                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className={`flex-1 font-black text-[10px] bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                                    <button disabled={islemdeId === is.id} onClick={() => sahadakiArizayiBildir(is.id)} className={`flex-1 font-black text-sm bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-2 py-1.5 rounded-lg transition-colors ${islemdeId === is.id ? 'opacity-50 cursor-wait' : ''}`}>
                                                         {islemdeId === is.id ? '...' : (isAR ? '⚠ عطل' : '⚠ Arıza')}
                                                     </button>
                                                 </div>
@@ -603,7 +603,7 @@ export default function ImalatMainContainer() {
                                         </div>
                                     ))}
                                     {sahadakiIsler.filter(i => i.status === kolon.key).length === 0 && (
-                                        <div className="text-center p-4 text-slate-400 text-[10px] font-bold uppercase">{isAR ? 'فارغ' : 'Görev Yok'}</div>
+                                        <div className="text-center p-4 text-slate-400 text-sm font-bold uppercase">{isAR ? 'فارغ' : 'Görev Yok'}</div>
                                     )}
                                 </div>
                             ))}
@@ -680,7 +680,7 @@ export default function ImalatMainContainer() {
                                                 <tr key={p.id} className="border-b bg-white hover:bg-slate-50">
                                                     <td className="p-3">
                                                         <div className="font-black text-sm text-slate-800 truncate max-w-[150px]">{p.ad_soyad || p.full_name || 'Usta'}</div>
-                                                        <div className="text-[10px] font-bold text-gray-400 mt-1">{p.gorev || p.unvan || '—'}</div>
+                                                        <div className="text-sm font-bold text-gray-400 mt-1">{p.gorev || p.unvan || '—'}</div>
                                                     </td>
                                                     <td className="p-3 text-center">
                                                         <span className={`px-2 py-1 font-black rounded text-sm ${(p.fp_yield || 0) >= 1.0 ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>% {Number((p.fp_yield || 0) * 100).toFixed(0)}</span>
@@ -718,7 +718,7 @@ export default function ImalatMainContainer() {
 
                         {onayBekleyenIsler.map(is => (
                             <div key={is.id} className="bg-white border-2 border-purple-300 rounded-2xl p-6 shadow-md relative overflow-hidden">
-                                <div className={`absolute top-0 right-0 bg-yellow-400 text-slate-800 px-5 py-1 text-[10px] font-black rounded-b${isAR ? 'r' : 'l'}-xl uppercase tracking-widest shadow-sm`}>{isAR ? 'بانتظار موافقة المفتش' : 'Müfettiş Onayı Bekliyor'}</div>
+                                <div className={`absolute top-0 right-0 bg-yellow-400 text-slate-800 px-5 py-1 text-sm font-black rounded-b${isAR ? 'r' : 'l'}-xl uppercase tracking-widest shadow-sm`}>{isAR ? 'بانتظار موافقة المفتش' : 'Müfettiş Onayı Bekliyor'}</div>
 
                                 <div className="flex justify-between items-start mb-6 border-b pb-4">
                                     <div>
@@ -736,7 +736,7 @@ export default function ImalatMainContainer() {
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'تجاوز حد التكلفة؟' : 'Maliyet Sınırı Delindi mi?'}</span>
                                         <div className="font-black text-2xl text-emerald-600">{isAR ? 'آمن' : 'GÜVENLİ'}</div>
-                                        <span className="text-[10px] font-bold text-emerald-500">{isAR ? 'الهدف' : 'Hedef'}: {is.production_orders?.b1_model_taslaklari?.numune_maliyeti || 0}₺</span>
+                                        <span className="text-sm font-bold text-emerald-500">{isAR ? 'الهدف' : 'Hedef'}: {is.production_orders?.b1_model_taslaklari?.numune_maliyeti || 0}₺</span>
                                     </div>
                                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{isAR ? 'نقاط الجودة (الأخطاء)' : 'Kalite Skoru (Hata)'}</span>

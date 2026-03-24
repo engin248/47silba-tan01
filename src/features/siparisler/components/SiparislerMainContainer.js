@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/siparisler/components/SiparislerMainContainer.js
  * Kaynak: app/siparisler/page.js → features mimarisine taşındı
@@ -406,7 +406,7 @@ export default function SiparislerSayfasi() {
                                     ${iptalEdildi ? 'bg-red-200 text-red-500' : tamamlandi ? 'bg-emerald-600 text-white' : aktif ? 'bg-sky-500 text-white border-4 border-sky-500/30' : 'bg-slate-200 text-slate-400'}`}>
                                     {iptalEdildi ? '✗' : tamamlandi ? '✓' : adim.emoji}
                                 </div>
-                                <div className={`text-[10px] font-black mt-1.5 whitespace-nowrap ${tamamlandi ? 'text-emerald-600' : aktif ? 'text-sky-500' : 'text-slate-400'}`}>
+                                <div className={`text-sm font-black mt-1.5 whitespace-nowrap ${tamamlandi ? 'text-emerald-600' : aktif ? 'text-sky-500' : 'text-slate-400'}`}>
                                     {adim.label}
                                 </div>
                             </div>
@@ -417,7 +417,7 @@ export default function SiparislerSayfasi() {
                     );
                 })}
                 {iptalEdildi && (
-                    <span className="text-[11px] font-black text-red-500 ml-2 whitespace-nowrap">
+                    <span className="text-sm font-black text-red-500 ml-2 whitespace-nowrap">
                         {durum === 'iptal' ? '❌ İptal Edildi' : '↩️ İade Edildi'}
                     </span>
                 )}
@@ -431,7 +431,7 @@ export default function SiparislerSayfasi() {
         const gecenSaat = (Date.now() - new Date(s.created_at).getTime()) / (1000 * 60 * 60);
         const limit = s.acil ? 24 : 48;
         if (gecenSaat > limit) {
-            return <span className="text-[10px] font-black bg-red-500 text-white px-2 py-0.5 rounded ml-1.5 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse">🔥 {Math.floor(gecenSaat - limit)} SAAT GECİKTİ!</span>;
+            return <span className="text-sm font-black bg-red-500 text-white px-2 py-0.5 rounded ml-1.5 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse">🔥 {Math.floor(gecenSaat - limit)} SAAT GECİKTİ!</span>;
         }
         return null;
     };
@@ -532,13 +532,13 @@ export default function SiparislerSayfasi() {
                         return (
                             <div className={`flex justify-between items-center p-4 rounded-xl border ${bg} ${border} relative z-10`}>
                                 <div>
-                                    <div className={`text-[11px] font-black uppercase tracking-widest ${yazi}`}>
+                                    <div className={`text-sm font-black uppercase tracking-widest ${yazi}`}>
                                         Son 7G: {son7.length} Sipariş | Önceki: {onceki7.length} Sipariş
                                     </div>
                                     <div className={`text-2xl font-black mt-1 ${yazi}`}>
                                         {yon === 'up' ? '+' : ''}{ivme.toFixed(1)}% <span className="text-sm">{label}</span>
                                     </div>
-                                    <div className={`text-[10px] font-bold mt-1 ${textLight}`}>
+                                    <div className={`text-sm font-bold mt-1 ${textLight}`}>
                                         Son 7G ₺{son7Ciro.toFixed(0)} <span className="mx-1">/</span> Önceki ₺{onceki7Ciro.toFixed(0)}
                                     </div>
                                 </div>
@@ -578,24 +578,24 @@ export default function SiparislerSayfasi() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                         <div>
-                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Sipariş No *</label>
+                            <label className="block text-sm font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Sipariş No *</label>
                             <input maxLength={50} value={form.siparis_no} onChange={e => setForm({ ...form, siparis_no: e.target.value })} className="w-full px-3 py-2.5 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all text-sm" />
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Müşteri</label>
+                            <label className="block text-sm font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Müşteri</label>
                             <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 <option value="">— Perakende / Anonim —</option>
                                 {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Kanal *</label>
+                            <label className="block text-sm font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Kanal *</label>
                             <select value={form.kanal} onChange={e => setForm({ ...form, kanal: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 {KANALLAR.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Ödeme Yöntemi</label>
+                            <label className="block text-sm font-black text-emerald-700 mb-1.5 uppercase tracking-widest">Ödeme Yöntemi</label>
                             <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} className="w-full px-3 py-2.5 bg-emerald-50 border-2 border-emerald-300 rounded-xl font-bold text-emerald-900 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 <option value="nakit">💵 Nakit / Peşin</option>
                                 <option value="kredi_karti">💳 Kredi Kartı</option>
@@ -604,14 +604,14 @@ export default function SiparislerSayfasi() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Para Birimi</label>
+                            <label className="block text-sm font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Para Birimi</label>
                             <select value={form.para_birimi} onChange={e => setForm({ ...form, para_birimi: e.target.value })} className="w-full px-3 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all text-sm cursor-pointer">
                                 {PARA_BIRIMLERI.map(p => <option key={p.kod} value={p.kod}>{p.bayrak} {p.kod} ({p.simge})</option>)}
                             </select>
                         </div>
                         {/* SIP-03: Termin Tarihi zorunlu */}
                         <div>
-                            <label className="block text-[11px] font-black text-red-600 mb-1.5 uppercase tracking-widest">📅 Termin Tarihi (SIP-03) *</label>
+                            <label className="block text-sm font-black text-red-600 mb-1.5 uppercase tracking-widest">📅 Termin Tarihi (SIP-03) *</label>
                             <input type='date' value={form.termin_tarihi || ''} onChange={e => setForm({ ...form, termin_tarihi: e.target.value })} min={new Date().toISOString().slice(0, 10)}
                                 className={`w-full px-3 py-2.5 bg-[#122b27] border-2 rounded-xl font-bold outline-none transition-all text-sm ${form.termin_tarihi ? 'border-emerald-500 text-slate-700' : 'border-red-400 text-red-700'}`} />
                         </div>
@@ -624,14 +624,14 @@ export default function SiparislerSayfasi() {
                             </Link>
                         </div>
                         <div className="md:col-span-2 lg:col-span-3">
-                            <label className="block text-[11px] font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Notlar</label>
+                            <label className="block text-sm font-black text-emerald-200 mb-1.5 uppercase tracking-widest">Notlar</label>
                             <textarea maxLength={300} rows={1} value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })}
                                 className="w-full px-3 py-2.5 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-[#122b27] transition-all text-sm resize-none custom-scrollbar" />
                         </div>
                         <div className="md:col-span-1 lg:col-span-1 flex items-end">
                             <label className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 cursor-pointer transition-all ${form.acil ? 'bg-red-50 border-red-500 text-red-700' : 'bg-[#0d1117] text-white border-[#1e4a43] text-emerald-200 hover:bg-slate-100'}`}>
                                 <input type="checkbox" checked={form.acil} onChange={e => setForm({ ...form, acil: e.target.checked })} className="w-4 h-4 cursor-pointer accent-red-600" />
-                                <span className="text-[11px] font-black tracking-wide">🚨 ACİL SİPARİŞ</span>
+                                <span className="text-sm font-black tracking-wide">🚨 ACİL SİPARİŞ</span>
                             </label>
                         </div>
                     </div>
@@ -664,32 +664,32 @@ export default function SiparislerSayfasi() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-3">
                                             <div className="md:col-span-4">
-                                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Ürün</label>
+                                                <label className="block text-xs font-black text-slate-400 mb-1 uppercase tracking-widest">Ürün</label>
                                                 <select value={k.urun_id} onChange={e => kalemGuncelle(i, 'urun_id', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs cursor-pointer truncate">
                                                     <option value="">— Katalogdan Seç —</option>
                                                     {urunler.map(u => <option key={u.id} value={u.id}>{u.urun_kodu} | ₺{(parseFloat(u.satis_fiyati_tl) || 0).toFixed(0)}</option>)}
                                                 </select>
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Beden</label>
+                                                <label className="block text-xs font-black text-slate-400 mb-1 uppercase tracking-widest">Beden</label>
                                                 <input maxLength={20} value={k.beden} onChange={e => kalemGuncelle(i, 'beden', e.target.value)} placeholder="Örn: M, XL" className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Adet</label>
+                                                <label className="block text-xs font-black text-slate-400 mb-1 uppercase tracking-widest">Adet</label>
                                                 <input type="number" min="1" value={k.adet} onChange={e => kalemGuncelle(i, 'adet', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs text-center" />
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Birim Fiyat</label>
+                                                <label className="block text-xs font-black text-slate-400 mb-1 uppercase tracking-widest">Birim Fiyat</label>
                                                 <input type="number" step="0.01" value={k.birim_fiyat_tl} onChange={e => kalemGuncelle(i, 'birim_fiyat_tl', e.target.value)} className="w-full px-2.5 py-2 bg-[#0d1117] text-white border-2 border-[#1e4a43] rounded-lg font-bold text-slate-700 outline-none focus:border-emerald-500 text-xs" />
                                             </div>
                                             <div className="md:col-span-2 text-right self-center pt-2">
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tutar</div>
+                                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-0.5">Tutar</div>
                                                 <div className="font-black text-emerald-600 text-[15px]">₺{kalemTutar.toFixed(2)}</div>
                                             </div>
                                         </div>
 
                                         <div className="flex gap-2 items-center bg-sky-50 p-2 rounded-lg border border-sky-100">
-                                            <span className="text-[9px] text-sky-700 font-bold whitespace-nowrap bg-sky-200/50 px-2 py-1 rounded">TERZİ/KALIP NOTU:</span>
+                                            <span className="text-xs text-sky-700 font-bold whitespace-nowrap bg-sky-200/50 px-2 py-1 rounded">TERZİ/KALIP NOTU:</span>
                                             <input
                                                 maxLength={100}
                                                 value={k.kalem_notu || ''}
@@ -779,25 +779,25 @@ export default function SiparislerSayfasi() {
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="min-w-0">
                                         <div className="flex gap-1.5 flex-wrap items-center mb-2">
-                                            <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md truncate max-w-[100px]">{s.siparis_no}</span>
-                                            <span className="text-[10px] font-black bg-slate-100 text-emerald-300 px-2 py-0.5 rounded-md uppercase tracking-wider">{s.kanal}</span>
+                                            <span className="text-sm font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md truncate max-w-[100px]">{s.siparis_no}</span>
+                                            <span className="text-sm font-black bg-slate-100 text-emerald-300 px-2 py-0.5 rounded-md uppercase tracking-wider">{s.kanal}</span>
                                             {s.para_birimi && s.para_birimi !== 'TL' && (
-                                                <span className="text-[10px] font-black bg-slate-800 text-amber-400 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                                <span className="text-sm font-black bg-slate-800 text-amber-400 px-2 py-0.5 rounded-md flex items-center gap-1">
                                                     {PARA_BIRIMLERI.find(p => p.kod === s.para_birimi)?.bayrak} {s.para_birimi}
                                                 </span>
                                             )}
-                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md" style={{ background: `${DURUM_RENK[s.durum]}20`, color: DURUM_RENK[s.durum] }}>{DURUM_LABEL[s.durum]}</span>
-                                            {s.acil && <span className="text-[10px] font-black bg-red-100 text-red-600 px-2 py-0.5 rounded-md border border-red-200 shadow-sm">🚨 ACİL</span>}
+                                            <span className="text-sm font-black px-2 py-0.5 rounded-md" style={{ background: `${DURUM_RENK[s.durum]}20`, color: DURUM_RENK[s.durum] }}>{DURUM_LABEL[s.durum]}</span>
+                                            {s.acil && <span className="text-sm font-black bg-red-100 text-red-600 px-2 py-0.5 rounded-md border border-red-200 shadow-sm">🚨 ACİL</span>}
 
                                             {/* [FAZ 3] Karlılık Badge */}
-                                            {karlilik === 'karli' && <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-100/50 text-emerald-600">🟢 +₺{karZarar?.toFixed(0)}</span>}
-                                            {karlilik === 'zarari' && <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-red-100/50 text-red-600">🔴 {karZarar?.toFixed(0)}₺</span>}
-                                            {karlilik === 'bilinmiyor' && <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-slate-100/50 text-slate-400">⚪ Mrj. Yok</span>}
+                                            {karlilik === 'karli' && <span className="text-sm font-black px-2 py-0.5 rounded-md bg-emerald-100/50 text-emerald-600">🟢 +₺{karZarar?.toFixed(0)}</span>}
+                                            {karlilik === 'zarari' && <span className="text-sm font-black px-2 py-0.5 rounded-md bg-red-100/50 text-red-600">🔴 {karZarar?.toFixed(0)}₺</span>}
+                                            {karlilik === 'bilinmiyor' && <span className="text-sm font-black px-2 py-0.5 rounded-md bg-slate-100/50 text-slate-400">⚪ Mrj. Yok</span>}
 
                                             {getGecikmeAlarm(s)}
                                         </div>
                                         <div className="font-black text-white text-sm truncate">{s.b2_musteriler?.ad_soyad || 'Anonim'}</div>
-                                        <div className="text-[10px] text-slate-400 font-bold mt-1 flex items-center gap-1">
+                                        <div className="text-sm text-slate-400 font-bold mt-1 flex items-center gap-1">
                                             🕐 {formatTarih(s.created_at)}
                                         </div>
                                     </div>
@@ -806,7 +806,7 @@ export default function SiparislerSayfasi() {
                                             <span className="text-sm">{PARA_BIRIMLERI.find(p => p.kod === (s.para_birimi || 'TL'))?.simge || '₺'}</span>
                                             {parseFloat(s.toplam_tutar_tl).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </div>
-                                        {s.para_birimi && s.para_birimi !== 'TL' && <div className="text-[10px] text-slate-400 font-bold uppercase">{s.para_birimi}</div>}
+                                        {s.para_birimi && s.para_birimi !== 'TL' && <div className="text-sm text-slate-400 font-bold uppercase">{s.para_birimi}</div>}
                                     </div>
                                 </div>
                             </div>
@@ -902,13 +902,13 @@ export default function SiparislerSayfasi() {
 
                         {/* Kalemler */}
                         <div className="mt-6">
-                            <div className="text-[11px] font-black text-emerald-200 uppercase tracking-widest mb-3">Sipariş Kalemleri</div>
+                            <div className="text-sm font-black text-emerald-200 uppercase tracking-widest mb-3">Sipariş Kalemleri</div>
                             <div className="space-y-1.5">
                                 {aktifSiparis.kalemler?.map((k, i) => (
                                     <div key={i} className="flex justify-between items-center p-3 bg-[#0d1117] text-white rounded-xl border border-slate-100 hover:border-slate-300 transition-colors">
                                         <div>
                                             <div className="font-bold text-white text-sm mb-0.5">{k.b2_urun_katalogu?.urun_adi}</div>
-                                            <div className="text-[10px] font-bold text-emerald-200">
+                                            <div className="text-sm font-bold text-emerald-200">
                                                 {k.adet} Adet × ₺{parseFloat(k.birim_fiyat_tl).toFixed(2)}{k.iskonto_pct > 0 ? ` (-%${k.iskonto_pct})` : ''} {k.beden ? `| Beden: ${k.beden}` : ''}
                                             </div>
                                         </div>
@@ -922,7 +922,7 @@ export default function SiparislerSayfasi() {
                             </div>
 
                             {aktifSiparis.kargo_takip_no && (
-                                <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl mt-3 text-[11px] font-bold text-orange-700 flex items-center gap-2 shadow-sm">
+                                <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl mt-3 text-sm font-bold text-orange-700 flex items-center gap-2 shadow-sm">
                                     <Truck size={16} /> Kargo Takip: {aktifSiparis.kargo_takip_no}
                                 </div>
                             )}
@@ -936,10 +936,10 @@ export default function SiparislerSayfasi() {
 
                             {/* [KRİTİK EKSİK] Gerçek Maliyet + Termin Tarihi */}
                             <div className="mt-4 p-4 bg-[#0d1117] text-white rounded-xl border border-[#1e4a43]">
-                                <div className="font-black text-emerald-300 text-[11px] uppercase tracking-widest mb-3 flex items-center gap-1.5"><span className="text-emerald-500">💹</span> Karlılık Takibi</div>
+                                <div className="font-black text-emerald-300 text-sm uppercase tracking-widest mb-3 flex items-center gap-1.5"><span className="text-emerald-500">💹</span> Karlılık Takibi</div>
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                        <label className="block text-[10px] font-black text-emerald-200 mb-1">GERÇEK MALİYET (₺)</label>
+                                        <label className="block text-sm font-black text-emerald-200 mb-1">GERÇEK MALİYET (₺)</label>
                                         <input
                                             type="number" step="0.01" min="0"
                                             defaultValue={aktifSiparis.gercek_maliyet_tl || ''}
@@ -953,7 +953,7 @@ export default function SiparislerSayfasi() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-emerald-200 mb-1">TERMİN TARİHİ</label>
+                                        <label className="block text-sm font-black text-emerald-200 mb-1">TERMİN TARİHİ</label>
                                         <input
                                             type="date"
                                             defaultValue={aktifSiparis.termin_tarihi || ''}
@@ -972,7 +972,7 @@ export default function SiparislerSayfasi() {
                                     const isKarli = kar >= 0;
                                     return (
                                         <div className={`p-2.5 rounded-lg flex justify-between items-center ${isKarli ? 'bg-emerald-50 border border-emerald-100' : 'bg-red-50 border border-red-100'}`}>
-                                            <span className={`text-[11px] font-black ${isKarli ? 'text-emerald-700' : 'text-red-700'}`}>{isKarli ? '🟢 KAR' : '🔴 ZARAR'}</span>
+                                            <span className={`text-sm font-black ${isKarli ? 'text-emerald-700' : 'text-red-700'}`}>{isKarli ? '🟢 KAR' : '🔴 ZARAR'}</span>
                                             <span className={`text-base font-black ${isKarli ? 'text-emerald-600' : 'text-red-600'}`}>₺{Math.abs(kar).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs opacity-75">(%{marj})</span></span>
                                         </div>
                                     );
@@ -985,7 +985,7 @@ export default function SiparislerSayfasi() {
                                     return (
                                         <div className={`mt-2 p-2 rounded-lg border flex justify-between items-center
                                             ${isGecti ? 'bg-red-50/50 border-red-200/50' : isYakin ? 'bg-amber-50/50 border-amber-200/50' : 'bg-emerald-50/50 border-emerald-200/50'}`}>
-                                            <span className="text-[10px] font-bold text-emerald-200">⏳ Termine Kalan</span>
+                                            <span className="text-sm font-bold text-emerald-200">⏳ Termine Kalan</span>
                                             <span className={`text-xs font-black ${isGecti ? 'text-red-600' : isYakin ? 'text-amber-600' : 'text-emerald-600'}`}>
                                                 {isGecti ? `${Math.abs(gun)} Gün GEÇTİ` : gun === 0 ? 'BUGÜN!' : `${gun} Gün`}
                                             </span>

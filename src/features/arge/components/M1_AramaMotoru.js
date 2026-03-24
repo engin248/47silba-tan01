@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { Search, Zap, Globe, Tag, CheckCircle2, AlertTriangle, PackageSearch } from 'lucide-react';
 import { useState } from 'react';
 
@@ -35,7 +35,7 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                 <div>
                     <span className="text-white font-black text-base tracking-wide flex items-center gap-2">
                         {isAR ? 'محرك البحث عن الاتجاهات (Hermes V2)' : 'Hermes V2 — Ajan İstihbarat Ağı'}
-                        <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] uppercase rounded border border-amber-500/20">C2M Core</span>
+                        <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-xs uppercase rounded border border-amber-500/20">C2M Core</span>
                     </span>
                     <div className="text-xs text-slate-400 font-bold mt-0.5">
                         {isAR ? 'Perplexity Sonar · تحليل السوق' : 'Açık Kaynak İstihbarat · Pazar ve Rakip Taraması'}
@@ -47,21 +47,21 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
             <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => setFiltreler(f => ({ ...f, medyaAlgisi: !f.medyaAlgisi }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${filtreler.medyaAlgisi ? 'bg-emerald-900/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black uppercase transition-all border ${filtreler.medyaAlgisi ? 'bg-emerald-900/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
                 >
                     <CheckCircle2 size={12} className={filtreler.medyaAlgisi ? 'text-emerald-400' : ''} />
                     Sosyal Medya Onayı
                 </button>
                 <button
                     onClick={() => setFiltreler(f => ({ ...f, rakipHata: !f.rakipHata }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${filtreler.rakipHata ? 'bg-amber-900/40 border-amber-500/50 text-amber-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black uppercase transition-all border ${filtreler.rakipHata ? 'bg-amber-900/40 border-amber-500/50 text-amber-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
                 >
                     <AlertTriangle size={12} className={filtreler.rakipHata ? 'text-amber-400' : ''} />
                     Rakip Kök Hata (Şikayet)
                 </button>
                 <button
                     onClick={() => setFiltreler(f => ({ ...f, m2Stok: !f.m2Stok }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${filtreler.m2Stok ? 'bg-blue-900/40 border-blue-500/50 text-blue-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black uppercase transition-all border ${filtreler.m2Stok ? 'bg-blue-900/40 border-blue-500/50 text-blue-300' : 'bg-slate-800/80 border-slate-700 text-slate-500 hover:border-slate-500'}`}
                 >
                     <PackageSearch size={12} className={filtreler.m2Stok ? 'text-blue-400' : ''} />
                     M2 Kumaş Deposu Uyumu
@@ -118,7 +118,7 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                     <button
                         key={i}
                         onClick={() => setAiSorgu(sorgu)}
-                        className="bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-emerald-400 hover:border-emerald-600/50 px-3 py-1.5 rounded-full text-[10px] font-black flex items-center gap-1.5 transition-colors uppercase"
+                        className="bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-emerald-400 hover:border-emerald-600/50 px-3 py-1.5 rounded-full text-sm font-black flex items-center gap-1.5 transition-colors uppercase"
                     >
                         <Tag size={10} />
                         {sorgu}

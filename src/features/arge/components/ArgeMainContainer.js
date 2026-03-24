@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect } from 'react';
 import {
     TrendingUp, Plus, CheckCircle2, XCircle, Clock, AlertTriangle,
@@ -121,7 +121,7 @@ export default function ArgeMainContainer() {
                             <h1 className="text-2xl font-black text-white tracking-tight uppercase flex items-center gap-3">
                                 M1: GÖLGE İSTİHBARAT VE KARAR CENDERESİ
                             </h1>
-                            <p className="text-[11px] font-mono text-emerald-400 mt-1 uppercase tracking-widest">
+                            <p className="text-sm font-mono text-emerald-400 mt-1 uppercase tracking-widest">
                                 93 Kriterlik Radar Aktif. Sosyal Sinyaller Dinleniyor.
                             </p>
                         </div>
@@ -134,15 +134,15 @@ export default function ArgeMainContainer() {
                     <div className="xl:col-span-1 space-y-6">
                         {/* A BLOK: KPI */}
                         <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-5">
-                            <h3 className="text-[10px] font-black text-[#8b949e] tracking-widest uppercase mb-4">Ajan Saha Özeti</h3>
+                            <h3 className="text-sm font-black text-[#8b949e] tracking-widest uppercase mb-4">Ajan Saha Özeti</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <div className="text-[10px] text-gray-500">Son 24 Saatte Taranan</div>
+                                    <div className="text-sm text-gray-500">Son 24 Saatte Taranan</div>
                                     <div className="text-2xl font-black text-white">{products.length} <span className="text-xs text-blue-400">Ürün</span></div>
                                 </div>
                                 <div className="h-px bg-[#21262d]"></div>
                                 <div>
-                                    <div className="text-[10px] text-gray-500">M1 Zırhından Geçen (Bingo)</div>
+                                    <div className="text-sm text-gray-500">M1 Zırhından Geçen (Bingo)</div>
                                     <div className="text-2xl font-black text-emerald-400">{products.filter(p => p.satar_satmaz_skoru >= 85).length} <span className="text-xs text-emerald-600">Fırsat</span></div>
                                 </div>
                             </div>
@@ -151,16 +151,16 @@ export default function ArgeMainContainer() {
                         {/* H BLOK: AJAN LOG */}
                         <div className="bg-[#161b22] border border-[#21262d] rounded-xl flex flex-col h-[400px]">
                             <div className="p-4 border-b border-[#21262d]">
-                                <h2 className="text-[10px] font-black tracking-widest text-[#c9d1d9] uppercase flex items-center gap-2">
+                                <h2 className="text-sm font-black tracking-widest text-[#c9d1d9] uppercase flex items-center gap-2">
                                     <Network size={14} className="text-blue-500" /> M1 MOTOR LOGLARI
                                 </h2>
                             </div>
                             <div className="flex-1 overflow-y-auto p-4 space-y-3 styled-scroll">
                                 {agentLoglari.map((log) => (
-                                    <div key={log.id} className="text-[10px] bg-[#0d1117] border border-[#30363d] p-3 rounded-lg text-[#8b949e]">
+                                    <div key={log.id} className="text-sm bg-[#0d1117] border border-[#30363d] p-3 rounded-lg text-[#8b949e]">
                                         <div className="flex justify-between mb-2">
                                             <span className="text-blue-400 font-mono font-bold">[{log.islem_tipi}]</span>
-                                            <span className="text-[9px] opacity-70">{new Date(log.created_at).toLocaleTimeString('tr-TR')}</span>
+                                            <span className="text-xs opacity-70">{new Date(log.created_at).toLocaleTimeString('tr-TR')}</span>
                                         </div>
                                         <div className="text-white">{log.mesaj}</div>
                                     </div>
@@ -204,7 +204,7 @@ export default function ArgeMainContainer() {
                                             <div>
                                                 {/* E BLOK: ERKEN TESPİT ETİKETİ */}
                                                 {(p.viral_izlenme_hizi > 50000 && p.satici_sayisi < 5) && (
-                                                    <span className="inline-block bg-purple-500/20 text-purple-400 border border-purple-500/50 px-2 py-0.5 rounded text-[9px] font-black tracking-widest uppercase mb-2">
+                                                    <span className="inline-block bg-purple-500/20 text-purple-400 border border-purple-500/50 px-2 py-0.5 rounded text-xs font-black tracking-widest uppercase mb-2">
                                                         ⚡ ERKEN TREND TESPİTİ (REKABET DÜŞÜK)
                                                     </span>
                                                 )}
@@ -214,11 +214,11 @@ export default function ArgeMainContainer() {
 
                                             {/* D BLOK: OTOMATİK SKOR PANELİ */}
                                             <div className="text-right">
-                                                <div className="text-[10px] text-[#8b949e] font-bold uppercase tracking-widest mb-1">M1 Karar Skoru</div>
+                                                <div className="text-sm text-[#8b949e] font-bold uppercase tracking-widest mb-1">M1 Karar Skoru</div>
                                                 <div className={`text-3xl font-black text-${riskRenk}-400`}>
                                                     %{skor}
                                                 </div>
-                                                <div className={`text-[9px] font-black tracking-widest uppercase text-${riskRenk}-400 mt-1`}>
+                                                <div className={`text-xs font-black tracking-widest uppercase text-${riskRenk}-400 mt-1`}>
                                                     {tavsiye}
                                                 </div>
                                             </div>
@@ -227,23 +227,23 @@ export default function ArgeMainContainer() {
                                         {/* C BLOK: SOSYAL + PAZAR YERİ EŞLEŞME METRİKLERİ */}
                                         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 bg-[#0d1117] rounded-lg p-3 border border-[#30363d]">
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] text-gray-500 font-bold uppercase">Sepet Deltası (Talep)</span>
+                                                <span className="text-xs text-gray-500 font-bold uppercase">Sepet Deltası (Talep)</span>
                                                 <span className="text-sm font-mono text-emerald-400 font-bold">+{p.sepet_deltasi || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] text-gray-500 font-bold uppercase">Yorum İvmesi</span>
+                                                <span className="text-xs text-gray-500 font-bold uppercase">Yorum İvmesi</span>
                                                 <span className="text-sm font-mono text-blue-400 font-bold">+{p.yorum_deltasi || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] text-gray-500 font-bold uppercase">Viral Kopma Hızı</span>
+                                                <span className="text-xs text-gray-500 font-bold uppercase">Viral Kopma Hızı</span>
                                                 <span className="text-sm font-mono text-purple-400 font-bold">{p.viral_izlenme_hizi || 0} /G</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] text-gray-500 font-bold uppercase">Rakip Satıcı</span>
+                                                <span className="text-xs text-gray-500 font-bold uppercase">Rakip Satıcı</span>
                                                 <span className="text-sm font-mono text-amber-400 font-bold">{p.satici_sayisi || 0} Kişi</span>
                                             </div>
                                             <div className="flex flex-col border-l border-[#30363d] pl-3">
-                                                <span className="text-[9px] text-gray-500 font-bold uppercase">Yorum Zehri / Risk</span>
+                                                <span className="text-xs text-gray-500 font-bold uppercase">Yorum Zehri / Risk</span>
                                                 <span className={`text-xs font-black uppercase mt-0.5 ${p.iade_risk_sinyali?.includes('YÜKSEK') ? 'text-rose-500' : 'text-emerald-500'}`}>
                                                     {p.iade_risk_sinyali || 'TEMİZ'}
                                                 </span>
@@ -252,23 +252,23 @@ export default function ArgeMainContainer() {
 
                                         {/* G BLOK: KARAR PANELİ (ÖLÜMCÜL NOKTA) */}
                                         <div className="mt-4 flex flex-col md:flex-row justify-between items-center bg-[#161b22] border-t border-[#30363d] pt-4">
-                                            <div className="text-[10px] text-gray-500 mb-3 md:mb-0">
+                                            <div className="text-sm text-gray-500 mb-3 md:mb-0">
                                                 Ajan Raporu Düştü: {new Date(p.created_at).toLocaleString('tr-TR')}
                                             </div>
 
                                             <div className="flex gap-2 w-full md:w-auto">
                                                 {/* İPTAL ET */}
-                                                <button onClick={() => kararVer(p.id, 'iptal')} className="flex-1 md:flex-none px-4 py-2 rounded border border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[10px] font-black tracking-widest uppercase transition-all">
+                                                <button onClick={() => kararVer(p.id, 'iptal')} className="flex-1 md:flex-none px-4 py-2 rounded border border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-black tracking-widest uppercase transition-all">
                                                     ÇÖPE AT (İPTAL)
                                                 </button>
 
                                                 {/* BEKLET */}
-                                                <button onClick={() => kararVer(p.id, 'inceleniyor')} className="flex-1 md:flex-none px-4 py-2 rounded border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[10px] font-black tracking-widest uppercase transition-all">
+                                                <button onClick={() => kararVer(p.id, 'inceleniyor')} className="flex-1 md:flex-none px-4 py-2 rounded border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-sm font-black tracking-widest uppercase transition-all">
                                                     RADARDA BEKLET
                                                 </button>
 
                                                 {/* ÜRETİME SOK */}
-                                                <button onClick={() => kararVer(p.id, 'uretim_onay')} className="flex-1 md:flex-none px-6 py-2 rounded border border-emerald-500 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-widest uppercase shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2">
+                                                <button onClick={() => kararVer(p.id, 'uretim_onay')} className="flex-1 md:flex-none px-6 py-2 rounded border border-emerald-500 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black tracking-widest uppercase shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2">
                                                     <CheckCircle2 size={14} /> ÜRETİME SEVK ET (M2)
                                                 </button>
                                             </div>

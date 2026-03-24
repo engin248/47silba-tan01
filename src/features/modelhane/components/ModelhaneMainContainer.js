@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
 import {
     Shirt, Plus, Search, AlertTriangle, CheckCircle2, Factory, Scissors,
@@ -68,12 +68,12 @@ export default function ModelhaneMainContainer() {
                         return (
                             <div key={i} className="bg-[#161b22] border border-[#21262d] flex flex-col justify-between rounded-xl p-4 shadow-md">
                                 <div className="flex justify-between items-start mb-2">
-                                    <span className={`text-[9px] font-bold uppercase tracking-wider ${s.color}`}>{s.label}</span>
+                                    <span className={`text-xs font-bold uppercase tracking-wider ${s.color}`}>{s.label}</span>
                                     <Icon size={14} className={s.color} />
                                 </div>
                                 <div>
                                     <div className="text-2xl font-black text-white mt-1 border-b border-[#30363d] pb-1">{s.val}</div>
-                                    <div className="text-[10px] text-[#8b949e] font-semibold mt-2">{s.desc}</div>
+                                    <div className="text-sm text-[#8b949e] font-semibold mt-2">{s.desc}</div>
                                 </div>
                             </div>
                         )
@@ -91,19 +91,19 @@ export default function ModelhaneMainContainer() {
                             </h2>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                            {m3Talepleri.length === 0 && <p className="text-[#8b949e] text-[10px] text-center mt-4">Şu an M3 Kalıphane'den gelen bir onay yok.</p>}
+                            {m3Talepleri.length === 0 && <p className="text-[#8b949e] text-sm text-center mt-4">Şu an M3 Kalıphane'den gelen bir onay yok.</p>}
                             {m3Talepleri.map(talep => (
                                 <div key={talep.id} className="bg-[#0d1117] border border-blue-500/30 p-3 rounded-lg flex flex-col gap-2 shadow-lg">
-                                    <div className="text-[10px] text-blue-400 font-bold uppercase flex justify-between">
+                                    <div className="text-sm text-blue-400 font-bold uppercase flex justify-between">
                                         <span>NUMUNE DİKİM EMRİ</span>
-                                        <span className="bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded text-[9px]">M3 ONAYLI</span>
+                                        <span className="bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded text-xs">M3 ONAYLI</span>
                                     </div>
                                     <h3 className="text-sm font-bold text-white">{talep.b1_model_taslaklari?.model_adi || 'Bilinmiyor'}</h3>
-                                    <div className="text-[11px] text-[#8b949e] bg-[#21262d] p-1.5 rounded flex justify-between items-center">
+                                    <div className="text-sm text-[#8b949e] bg-[#21262d] p-1.5 rounded flex justify-between items-center">
                                         <span>Kod: <span className="text-white font-bold">{talep.b1_model_taslaklari?.model_kodu || '-'}</span></span>
                                         <span className="text-purple-400 font-bold py-0.5 px-2 bg-purple-500/10 border border-purple-500/20 rounded">Kalıp: {talep.kalip_adi}</span>
                                     </div>
-                                    <p className="text-[10px] text-[#8b949e] mb-1">Bedenler: <span className="text-emerald-400 font-mono tracking-wider">{(talep.bedenler || []).join(', ')}</span></p>
+                                    <p className="text-sm text-[#8b949e] mb-1">Bedenler: <span className="text-emerald-400 font-mono tracking-wider">{(talep.bedenler || []).join(', ')}</span></p>
                                     <button
                                         onClick={async () => {
                                             const Swal = (await import('sweetalert2')).default;
@@ -176,7 +176,7 @@ export default function ModelhaneMainContainer() {
                                             }
 
                                         }}
-                                        className="w-full text-[10px] font-bold py-2 bg-purple-600 hover:bg-purple-500 transition-colors border border-purple-400/50 hover:border-purple-300 rounded-lg text-white shadow-[0_0_10px_rgba(147,51,234,0.3)] hover:shadow-purple-500/50 active:scale-[0.98]">
+                                        className="w-full text-sm font-bold py-2 bg-purple-600 hover:bg-purple-500 transition-colors border border-purple-400/50 hover:border-purple-300 rounded-lg text-white shadow-[0_0_10px_rgba(147,51,234,0.3)] hover:shadow-purple-500/50 active:scale-[0.98]">
                                         DİKİME BAŞLA (SAYAÇ)
                                     </button>
                                 </div>
@@ -214,24 +214,24 @@ export default function ModelhaneMainContainer() {
                                             {/* Model Kimliği */}
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-[9px] font-black uppercase bg-[#21262d] text-white px-2 py-0.5 rounded border border-[#30363d]">{k.model_kodu}</span>
-                                                    {isRiskli && <span className="text-[9px] font-black uppercase bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.4)] animate-pulse">RAPOR: KRİTİK RİSK (REDDEDİLDİ)</span>}
+                                                    <span className="text-xs font-black uppercase bg-[#21262d] text-white px-2 py-0.5 rounded border border-[#30363d]">{k.model_kodu}</span>
+                                                    {isRiskli && <span className="text-xs font-black uppercase bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.4)] animate-pulse">RAPOR: KRİTİK RİSK (REDDEDİLDİ)</span>}
                                                 </div>
                                                 <h3 className="text-sm font-bold text-white tracking-wide">{k.model_adi}</h3>
-                                                <p className="text-[11px] text-[#8b949e] mt-2 mb-1 font-mono">{k.aciklama}</p>
+                                                <p className="text-sm text-[#8b949e] mt-2 mb-1 font-mono">{k.aciklama}</p>
                                             </div>
 
                                             {/* Analiz Matrixi (AŞAMA 4: Teknik 5 Soru) */}
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 border-l border-[#21262d] pl-4 shrink-0">
                                                 <div className="flex flex-col gap-1 justify-center bg-[#0d1117] px-2 rounded">
-                                                    <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-wider">İşçilik Süresi (Bant Başına)</span>
+                                                    <span className="text-xs text-[#8b949e] font-bold uppercase tracking-wider">İşçilik Süresi (Bant Başına)</span>
                                                     <span className="text-[15px] font-mono font-bold text-white flex items-center gap-1">
                                                         <Clock size={12} className="text-purple-400" /> {iscilikSuresiText}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1 justify-center">
-                                                    <span className="text-[9px] text-[#8b949e] font-bold uppercase tracking-wider">Özel Makine</span>
-                                                    <span className={`text-[12px] font-mono font-bold ${ozelMakineRef ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                    <span className="text-xs text-[#8b949e] font-bold uppercase tracking-wider">Özel Makine</span>
+                                                    <span className={`text-sm font-mono font-bold ${ozelMakineRef ? 'text-rose-400' : 'text-emerald-400'}`}>
                                                         {ozelMakineRef ? 'Evet (Risk)' : 'Gerekmez'}
                                                     </span>
                                                 </div>
@@ -240,11 +240,11 @@ export default function ModelhaneMainContainer() {
                                             {/* Aksiyon Barı */}
                                             <div className="flex flex-col justify-center items-end gap-2 shrink-0 border-l border-[#21262d] pl-4 flex-1 md:flex-none">
                                                 {isRiskli ? (
-                                                    <button onClick={() => durumGuncelle(k.id, 'taslak')} className="text-[10px] w-full md:w-auto font-bold text-center text-white bg-rose-600/80 hover:bg-rose-500 border border-rose-500/50 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-md shadow-rose-500/20">
+                                                    <button onClick={() => durumGuncelle(k.id, 'taslak')} className="text-sm w-full md:w-auto font-bold text-center text-white bg-rose-600/80 hover:bg-rose-500 border border-rose-500/50 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-md shadow-rose-500/20">
                                                         M1 BEYİNE GERİ GÖNDER (İPTAL)
                                                     </button>
                                                 ) : (
-                                                    <button onClick={() => durumGuncelle(k.id, 'uretime_hazir')} className="text-[10px] font-bold text-center text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2 rounded-lg transition-colors border border-emerald-500/20 border-b-emerald-500/50 flex items-center justify-center gap-1 w-full md:w-auto">
+                                                    <button onClick={() => durumGuncelle(k.id, 'uretime_hazir')} className="text-sm font-bold text-center text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2 rounded-lg transition-colors border border-emerald-500/20 border-b-emerald-500/50 flex items-center justify-center gap-1 w-full md:w-auto">
                                                         M5 KESİM SÜRECİNİ BAŞLAT <ChevronRight size={14} />
                                                     </button>
                                                 )}

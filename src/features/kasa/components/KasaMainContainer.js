@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { DollarSign, Lock, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Clock, CheckCircle } from 'lucide-react';
@@ -282,27 +282,27 @@ export default function KasaMainContainer() {
             {/* ÖZET KUTULARI */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 shadow-sm">
-                    <div className="text-[10px] font-black text-emerald-700 uppercase mb-1">NAKİT TAHSİLAT</div>
+                    <div className="text-sm font-black text-emerald-700 uppercase mb-1">NAKİT TAHSİLAT</div>
                     <div className="text-2xl font-black text-emerald-600 tracking-tight">₺{nakitTahsilat.toFixed(2)}</div>
                 </div>
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
-                    <div className="text-[10px] font-black text-blue-800 uppercase mb-1">BANKA / EFT / POS</div>
+                    <div className="text-sm font-black text-blue-800 uppercase mb-1">BANKA / EFT / POS</div>
                     <div className="text-2xl font-black text-blue-600 tracking-tight">₺{bankaEftPos.toFixed(2)}</div>
                 </div>
                 <div className="bg-violet-50 border-2 border-violet-200 rounded-2xl p-4 shadow-sm">
-                    <div className="text-[10px] font-black text-violet-800 uppercase mb-1">ÇEK & SENET</div>
+                    <div className="text-sm font-black text-violet-800 uppercase mb-1">ÇEK & SENET</div>
                     <div className="text-2xl font-black text-violet-600 tracking-tight">₺{evrakCekSenet.toFixed(2)}</div>
                 </div>
                 <div className={`border-2 rounded-2xl p-4 shadow-sm ${netBakiye >= 0 ? 'bg-slate-900 border-emerald-500/50' : 'bg-red-900 border-red-500/50'}`}>
-                    <div className="text-[10px] font-black text-slate-400 uppercase mb-1">NET TL BAKİYE</div>
+                    <div className="text-sm font-black text-slate-400 uppercase mb-1">NET TL BAKİYE</div>
                     <div className={`text-2xl font-black tracking-tight ${netBakiye >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
                 </div>
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 shadow-sm">
-                    <div className="text-[10px] font-black text-amber-800 uppercase mb-1">Bekleyen İşlem</div>
+                    <div className="text-sm font-black text-amber-800 uppercase mb-1">Bekleyen İşlem</div>
                     <div className="text-2xl font-black text-amber-600 tracking-tight">₺{bekleyen.toFixed(2)}</div>
                 </div>
                 <div className={`border-2 rounded-2xl p-4 shadow-sm ${vadesi.length > 0 ? 'bg-red-50 border-red-200' : 'bg-[#0d1117] text-white border-[#1e4a43]'}`}>
-                    <div className={`text-[10px] font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-emerald-200'}`}>Vadesi Geçen</div>
+                    <div className={`text-sm font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-emerald-200'}`}>Vadesi Geçen</div>
                     <div className={`text-2xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-white'}`}>{vadesi.length} Adet</div>
                 </div>
             </div>
@@ -311,7 +311,7 @@ export default function KasaMainContainer() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
                     <div>
-                        <div className="text-[10px] font-black text-emerald-200 uppercase mb-1 tracking-widest">GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
+                        <div className="text-sm font-black text-emerald-200 uppercase mb-1 tracking-widest">GÜNLÜK KASA KAPANIŞ ÖZETİ</div>
                         <div className="text-xl font-black text-white mb-1">Bugün Tahsilat: <span className="text-emerald-600">₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</span></div>
                         <div className="text-xs font-bold text-slate-400">Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
                     </div>
@@ -320,7 +320,7 @@ export default function KasaMainContainer() {
 
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
                     <div>
-                        <div className="text-[10px] font-black text-red-600 uppercase mb-1 tracking-widest">MÜŞTERİ BORÇ RİSKİ</div>
+                        <div className="text-sm font-black text-red-600 uppercase mb-1 tracking-widest">MÜŞTERİ BORÇ RİSKİ</div>
                         <div className="text-xl font-black text-white mb-1">Açık / Riskliler: <span className="text-red-600">{(musteriler.filter(m => m.bakiye && m.bakiye > 10000)).length} Müşteri</span></div>
                         <div className="text-xs font-bold text-slate-400">Bakiye riski &gt; 10.000 TL olan cari hesaplar.</div>
                     </div>
@@ -390,7 +390,7 @@ export default function KasaMainContainer() {
 
             {/* FİLTRELER */}
             <div className="flex flex-wrap items-center gap-2 mb-4 bg-[#0d1117] text-white p-2 rounded-xl border border-[#1e4a43]">
-                <span className="text-[10px] font-black text-emerald-200 mr-1 uppercase">TİP:</span>
+                <span className="text-sm font-black text-emerald-200 mr-1 uppercase">TİP:</span>
                 {['hepsi', ...HAREKET_TIPLERI].map(t => (
                     <button key={t} onClick={() => setFiltreTip(t)}
                         style={{ backgroundColor: filtreTip === t ? (TIP_RENK[t] || '#334155') : 'transparent', color: filtreTip === t ? 'white' : '#475569', borderColor: filtreTip === t ? 'transparent' : '#cbd5e1' }}
@@ -399,7 +399,7 @@ export default function KasaMainContainer() {
                     </button>
                 ))}
                 <div className="w-[2px] h-6 bg-slate-200 mx-2" />
-                <span className="text-[10px] font-black text-emerald-200 mr-1 uppercase">ONAY:</span>
+                <span className="text-sm font-black text-emerald-200 mr-1 uppercase">ONAY:</span>
                 {['hepsi', 'bekliyor', 'onaylandi', 'iptal'].map(o => (
                     <button key={o} onClick={() => setFiltreOnay(o)}
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg border-2 transition-all ${filtreOnay === o ? 'bg-slate-700 text-white border-transparent' : 'bg-transparent text-emerald-300 border-[#1e4a43]'}`}>
@@ -430,10 +430,10 @@ export default function KasaMainContainer() {
                             <div className="flex-1 min-w-0">
                                 <div className="font-black text-white text-lg truncate whitespace-normal mb-1">{h.aciklama}</div>
                                 <div className="flex gap-2 flex-wrap items-center">
-                                    <span style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="text-[10px] font-black px-2.5 py-1 rounded uppercase tracking-wider">
+                                    <span style={{ backgroundColor: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', color: TIP_RENK[h.hareket_tipi] || '#64748b' }} className="text-sm font-black px-2.5 py-1 rounded uppercase tracking-wider">
                                         {h.hareket_tipi?.replace('_', ' ')}
                                     </span>
-                                    <span className="text-[10px] font-black px-2.5 py-1 rounded bg-slate-100 text-emerald-300 uppercase tracking-wider">
+                                    <span className="text-sm font-black px-2.5 py-1 rounded bg-slate-100 text-emerald-300 uppercase tracking-wider">
                                         {h.odeme_yontemi?.replace('_', ' ')}
                                     </span>
                                     {h.b2_musteriler?.ad_soyad && (
@@ -456,12 +456,12 @@ export default function KasaMainContainer() {
                                 ₺{parseFloat(h.tutar_tl || 0).toFixed(2)}
                             </div>
                             <div className="flex flex-col gap-1 w-[110px]">
-                                <span className={`text-[10px] font-black w-full text-center px-2 py-1.5 rounded-lg border ${h.onay_durumu === 'onaylandi' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : h.onay_durumu === 'iptal' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                                <span className={`text-sm font-black w-full text-center px-2 py-1.5 rounded-lg border ${h.onay_durumu === 'onaylandi' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : h.onay_durumu === 'iptal' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
                                     {h.onay_durumu === 'onaylandi' ? '✅ ONAYLI' : h.onay_durumu === 'iptal' ? '❌ İPTAL' : '⏳ BEKLİYOR'}
                                 </span>
                                 {h.onay_durumu === 'bekliyor' && (
                                     <button disabled={islemdeId === h.id} onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
-                                        className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors ${islemdeId === h.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                        className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors ${islemdeId === h.id ? 'opacity-50 cursor-wait' : ''}`}>
                                         <CheckCircle size={10} /> {islemdeId === h.id ? '...' : 'TASDİK ET'}
                                     </button>
                                 )}

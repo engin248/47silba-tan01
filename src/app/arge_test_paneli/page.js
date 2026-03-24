@@ -147,7 +147,7 @@ export default function ArgeTestPaneli() {
                                     {/* 1. PANEL: GÜNÜN TRENDLERİ & ÜRÜN BİLGİSİ */}
                                     <div className="lg:col-span-3 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-800 pb-4 lg:pb-0 lg:pr-6">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="bg-[#1D4ED8]/20 text-[#1D4ED8] border border-[#1D4ED8]/50 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                            <span className="bg-[#1D4ED8]/20 text-[#1D4ED8] border border-[#1D4ED8]/50 px-2 py-0.5 rounded text-sm font-black uppercase tracking-widest">
                                                 {item.platform || 'Genel Ağ'}
                                             </span>
                                         </div>
@@ -161,7 +161,7 @@ export default function ArgeTestPaneli() {
 
                                     {/* 2. PANEL: TEST ÜRETİMİ FIRSATLARI (SKOR) */}
                                     <div className="lg:col-span-2 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-slate-800 pb-4 lg:pb-0">
-                                        <span className="text-[10px] text-[#B8860B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+                                        <span className="text-sm text-[#B8860B] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
                                             <TrendingUp size={12} /> Altın Fırsat Skoru
                                         </span>
                                         <div className="text-5xl font-black text-[#B8860B] drop-shadow-[0_0_10px_rgba(184,134,11,0.5)]">
@@ -171,17 +171,17 @@ export default function ArgeTestPaneli() {
 
                                     {/* 3. PANEL: RİSK UYARILARI */}
                                     <div className="lg:col-span-4 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-800 pb-4 lg:pb-0 lg:px-6">
-                                        <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1 mb-2">
+                                        <h3 className="text-sm text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1 mb-2">
                                             <AlertTriangle size={12} className={item.risk_level === 'Yüksek' ? 'text-red-500' : 'text-amber-500'} />
                                             Risk Uyarıları ({item.risk_level})
                                         </h3>
                                         <div className="space-y-2">
                                             <div className="bg-black/50 border border-slate-800 rounded p-2">
-                                                <div className="text-[9px] font-bold text-slate-400 uppercase">Tedarik Kırmızı Bayrak</div>
+                                                <div className="text-xs font-bold text-slate-400 uppercase">Tedarik Kırmızı Bayrak</div>
                                                 <div className="text-xs text-slate-300">{item.supply_risk || 'Risk Saptanmadı'}</div>
                                             </div>
                                             <div className="bg-black/50 border border-slate-800 rounded p-2">
-                                                <div className="text-[9px] font-bold text-slate-400 uppercase">Zaman/Üretim Kırmızı Bayrak</div>
+                                                <div className="text-xs font-bold text-slate-400 uppercase">Zaman/Üretim Kırmızı Bayrak</div>
                                                 <div className="text-xs text-slate-300">{item.time_risk || 'Hesaplanıyor...'}</div>
                                             </div>
                                         </div>
@@ -191,13 +191,13 @@ export default function ArgeTestPaneli() {
                                     <div className="lg:col-span-3 flex flex-col justify-between pl-0 lg:pl-6">
                                         <div className="grid grid-cols-2 gap-2 mb-4">
                                             <div className="bg-[#047857]/10 border border-[#047857]/30 p-2 rounded-lg">
-                                                <div className="text-[9px] text-[#047857] font-bold uppercase mb-1 flex items-center gap-1">
+                                                <div className="text-xs text-[#047857] font-bold uppercase mb-1 flex items-center gap-1">
                                                     <Calculator size={10} /> Tahmini Kâr
                                                 </div>
                                                 <div className="text-sm font-black text-emerald-400">₺ {fnFormat(item.estimated_profit)}</div>
                                             </div>
                                             <div className="bg-rose-900/10 border border-rose-900/30 p-2 rounded-lg">
-                                                <div className="text-[9px] text-rose-500 font-bold uppercase mb-1 flex items-center gap-1">
+                                                <div className="text-xs text-rose-500 font-bold uppercase mb-1 flex items-center gap-1">
                                                     <Factory size={10} /> Fason Maliyet
                                                 </div>
                                                 <div className="text-sm font-black text-rose-400">₺ {fnFormat(item.outsource_cost)}</div>
@@ -213,7 +213,7 @@ export default function ArgeTestPaneli() {
                                             <button
                                                 onClick={() => patronOnayla(item.id)}
                                                 disabled={onaylananId === item.id}
-                                                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#047857] to-[#065f46] hover:from-[#B8860B] hover:to-[#8B6508] border border-[#047857] hover:border-[#B8860B] text-white py-3 rounded-lg flex items-center justify-center gap-2 font-black text-[11px] tracking-widest uppercase transition-all shadow-lg"
+                                                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#047857] to-[#065f46] hover:from-[#B8860B] hover:to-[#8B6508] border border-[#047857] hover:border-[#B8860B] text-white py-3 rounded-lg flex items-center justify-center gap-2 font-black text-sm tracking-widest uppercase transition-all shadow-lg"
                                             >
                                                 {onaylananId === item.id ? (
                                                     <Activity className="animate-spin text-white" size={16} />
