@@ -66,10 +66,10 @@ export async function GET() {
     try {
         const { data, error } = await supabaseAdmin
             .from('b1_sistem_uyarilari')
-            .select('oncelik')
-            .eq('oncelik', 'kritik')
+            .select('seviye')
+            .eq('seviye', 'kritik')
             .gte('created_at', new Date(Date.now() - 3600000).toISOString());
-        sonuclar.uyarilar = { durum: 'ok', kritik_uyari: data?.length || 0 };
+        sonuclar.uyarilar = { durum: error ? 'hata' : 'ok', kritik_uyari: data?.length || 0 };
     } catch { sonuclar.uyarilar = { durum: 'atlandi' }; }
 
     const sure = Date.now() - basla;
