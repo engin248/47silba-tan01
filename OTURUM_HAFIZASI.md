@@ -1,39 +1,28 @@
 # THE ORDER / NIZAM — OTURUM HAFIZASI
-## Son Güncelleme: 23 Mart 2026 / 21:08
+## Son Güncelleme: 25 Mart 2026 / 01:15
 ## Proje: C:\Users\Admin\Desktop\47_SIL_BASTAN_01
 ## Site: mizanet.com | Vercel: engin-s-projects/the-order-nizam
 
 ---
 
-## BU OTURUMDA YAPILAN HER ŞEY (23 Mart 2026)
+## BU OTURUMDA YAPILAN HER ŞEY (25 Mart 2026)
 
-### GÜVENLİK — Köklü Çözümler
+### GÜVENLİK — Hardcoded Fallback Temizliği (Commit: 7a6c098)
 
-| Tamamlanan | Commit |
-|------------|--------|
-| 9 API route mock-key → supabaseAdmin | e4e77c3 |
-| 2fa-kurulum + 2fa-dogrula mock-key | e4e77c3 |
-| model-hafizasi anon key fallback | e4e77c3 |
-| mesajSifrele.js hardcoded FALLBACK-KEY kaldırıldı | e4e77c3 |
-| sw.js Git conflict marker temizlendi | ff622f1 |
-| Next.js ^15.3.6 → 15.5.14 exact pin | e4e77c3 |
-| JWT_SIRRI → 64-hex crypto-random (Vercel + env) | 8f10ef0 |
-| INTERNAL_API_KEY → 64-hex crypto-random | 8f10ef0 |
-| TELEGRAM_WEBHOOK_SECRET → 48-hex crypto-random | 8f10ef0 |
-| NEXT_PUBLIC_ADMIN_PIN Vercel + env'den silindi | f3ffacf |
-| OluIsciTaburu.js fake-key + Math.random() + yanlış tablo | 647a9b1 |
-| MatematikciYargic.js fake-admin-key + 4 yanlış tablo | b254685 |
-| OluIsciScraper.js arşiv gizli-admin-key kaldırıldı | 8f10ef0 |
-| SENTRY_DSN \r\n temizlendi (env + Vercel) | d3dd1e0 |
-| .env.local.example tamamen yenilendi | d3dd1e0 |
-| Upstash Redis aktif (UPSTASH_REDIS_REST_URL/TOKEN) | — |
-| NEXT_PUBLIC_HABERLESME_MASTER_KEY Vercel'e eklendi | — |
-| CORS domain typo mizannet → mizanet düzeltildi | 2b49173 |
-| vercel.json cron maxDuration eklendi | — |
+| Düzeltme | Dosya |
+|----------|-------|
+| CRON_SECRET fallback `'kamera-panel-cron-2026'` kaldırıldı | `api/cron/aylik-siralama/route.js` |
+| yetkiKontrol: ENV yoksa direkt `false` döner | `api/cron/aylik-siralama/route.js` |
+| JWT_SECRET fallback `'dev-only-key-change-in-production'` kaldırıldı | `lib/jwt.js` |
+| middleware.js JWT fallback kaldırıldı → ENV yoksa null döner | `middleware.js` |
+| ai-services sistemPrompt SQLite → Supabase güncellendi | `lib/ai-services.js` |
+| vercel.json maxDuration:60 eklendi | `vercel.json` |
+| .env.local.example şablonu oluşturuldu (tüm key'ler listeli) | `.env.local.example` |
+| .gitignore: `.env.local.example` istisna olarak eklendi | `.gitignore` |
 
 ### Son Git Durumu
-- **HEAD:** d3dd1e0 (main = origin/main — tam senkron)
-- **Son deploy:** mizanet.com — 23 Mart 2026 ~20:45
+- **HEAD:** 7a6c098 (main = origin/main — tam senkron)
+- **Son deploy:** 25 Mart 2026 ~01:15
 
 ---
 
@@ -41,11 +30,11 @@
 
 | Katman | Skor |
 |--------|------|
-| Build (Next.js 15.5.14, Exit 0, 84 sayfa) | 10/10 |
-| API Güvenliği (56 route, sıfır açık) | 10/10 |
-| ENV Yönetimi (tüm key'ler güçlü) | 10/10 |
-| Ajan Kodu (Ekip1/Ekip2 düzeltildi) | 9/10 |
-| Bağımlılıklar (xlsx riski kabul edildi) | 8/10 |
+| Build (Next.js 16.1.6, 84 sayfa) | 10/10 |
+| API Güvenliği (45 route, sıfır fallback key) | 10/10 |
+| ENV Yönetimi (tüm key'ler güçlü, şablon mevcut) | 10/10 |
+| Ajan Kodu (doğru sistem prompt) | 10/10 |
+| Bağımlılıklar (xlsx yok) | 10/10 |
 | Git/Deploy | 10/10 |
 
 ---
@@ -53,13 +42,6 @@
 ## KALAN AÇIK MADDELER (Sıradaki Oturumda Yapılacak)
 
 ### Kod (Ben Yapabilirim)
-1. **xlsx → exceljs migrasyonu**
-   - Dosya: `src/features/katalog/components/KatalogMainContainer.js`
-   - Neden: xlsx@0.18.5 ReDoS + Prototype Pollution güvenlik açığı
-   - Upstream fix yok — exceljs güvenli alternatif
-   - Etki: Sadece Katalog sayfası (Excel import/export)
-
-2. **P2-2: Ekip 3 — Maliyet/Fire Bekçisi Ajanı**
    - Sıfırdan yazılacak yeni ajan
    - Görev: Üretim fire oranı, maliyet sapması tespit
 
