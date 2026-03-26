@@ -41,5 +41,38 @@ export function maliyetKanaliKur(onChange) {
     return supabase.channel('maliyet-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'b1_maliyet_kayitlari' }, onChange).subscribe();
 }
 
+// [ML-05] Dönemsel Maliyet Trendi — Son 12 Ay
+export async function maliyetTrendiGetir() {
+    const baslangic = new Date();
+    baslangic.setMonth(baslangic.getMonth() - 11);
+    baslangic.setDate(1);
+    baslangic.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+        .from('b1_maliyet_kayitlari')
+        .select('created_at, tutar_tl, maliyet_tipi')
+        .gte('created_at', baslangic.toISOString())
+        .order('created_at', { ascending: true });
+
+    if (error || !data?.length) return [];
+
+    // Aylık gruplama
+    const aylikMap = {};
+    data.forEach(k => {
+        const tarih = new Date(k.created_at);
+        const ayKey = `${tarih.getFullYear()}-${String(tarih.getMonth() + 1).padStart(2, '0')}`;
+        if (!aylikMap[ayKey]) aylikMap[ayKey] = { ay: ayKey, toplam: 0, personel: 0, isletme: 0, sarf: 0, fire: 0 };
+        const tutar = parseFloat(k.tutar_tl || 0);
+        aylikMap[ayKey].toplam += tutar;
+        if (k.maliyet_tipi === 'personel_iscilik') aylikMap[ayKey].personel += tutar;
+        else if (k.maliyet_tipi === 'isletme_gideri') aylikMap[ayKey].isletme += tutar;
+        else if (k.maliyet_tipi === 'sarf_malzeme') aylikMap[ayKey].sarf += tutar;
+        else if (k.maliyet_tipi === 'fire_kaybi') aylikMap[ayKey].fire += tutar;
+    });
+
+    return Object.values(aylikMap).sort((a, b) => a.ay.localeCompare(b.ay));
+}
+
 export const KALEM_TIPLERI = ['personel_iscilik', 'isletme_gideri', 'sarf_malzeme', 'fire_kaybi'];
 export const BOSH_FORM = { order_id: '', maliyet_tipi: 'personel_iscilik', kalem_aciklama: '', tutar_tl: '', miktar: '', birim: 'adet' };
+

@@ -1,4 +1,5 @@
 'use client';
+// @ts-nocheck
 import { useState } from 'react';
 import { CheckCircle2, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -13,7 +14,26 @@ const BOSH_FORM = {
     fire_orani: '',
     zorluk_derecesi: 5,
     ek_notlar: '',
+    // [MH-01] Metraj hesabı
+    urun_eni_cm: '150',  // kumaş eni (cm) — standart 150cm
+    urun_boyu_cm: '',    // ürün boyu (cm)
+    model_adeti: '1',    // kaç adet üretilecek
 };
+
+// [MH-01] Metraj Hesap Formülü
+// Net metraj = (ürün boyu cm / 100) * (1 + fire/100) * adet
+// SAM tahmini = zorluk_derecesi * 8 dakika (empirik)
+function metrajHesapla(form) {
+    const boy = parseFloat(form.urun_boyu_cm) || 0;
+    const fire = parseFloat(form.fire_orani) || 0;
+    const adet = parseInt(form.model_adeti) || 1;
+    if (boy <= 0) return null;
+    const netMetraj = ((boy / 100) * (1 + fire / 100) * adet).toFixed(2);
+    const toplamKg = (parseFloat(netMetraj) * (parseFloat(form.urun_eni_cm) / 100) * (parseFloat(form.gercek_gramaj) || 0) / 1000).toFixed(2);
+    const sam = (parseFloat(form.zorluk_derecesi) * 8).toFixed(0);
+    return { netMetraj, toplamKg, sam };
+}
+
 
 export default function M2_FizikselMuhendislikFormu({ onKaydet, islemde }) {
     const [form, setForm] = useState(BOSH_FORM);
@@ -154,46 +174,93 @@ export default function M2_FizikselMuhendislikFormu({ onKaydet, islemde }) {
                             style={{ ...inputStil(false), resize: 'vertical', fontFamily: 'inherit' }}
                         />
                     </div>
-                </div>
 
-                {/* DUVAR 3 — Kilidi Aç Butonu */}
-                <div style={{ marginTop: '1.25rem', borderTop: '2px dashed #d1fae5', paddingTop: '1rem' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, marginBottom: 8 }}>
-                        🧱 DUVAR 3 — M3 (Finans/Satınalma) Kapısı
+                    {/* [MH-01] Metraj Hesabı */}
+                    <div style={{ gridColumn: '1 / -1', background: '#f0fdf4', border: '2px solid #bbf7d0', borderRadius: 10, padding: '1rem', marginTop: 4 }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#047857', marginBottom: 10, textTransform: 'uppercase' }}>
+                            📏 MH-01 — Metraj & SAM Hesabı (Otomatik)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#065f46', marginBottom: 4 }}>Ürün Boyu (cm) *</label>
+                                <input type="number" min="30" max="200" value={form.urun_boyu_cm}
+                                    onChange={e => setForm({ ...form, urun_boyu_cm: e.target.value })}
+                                    placeholder="Örn: 90" style={{ ...inputStil(false), border: '1.5px solid #6ee7b7' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#065f46', marginBottom: 4 }}>Kumaş Eni (cm)</label>
+                                <input type="number" min="90" max="300" value={form.urun_eni_cm}
+                                    onChange={e => setForm({ ...form, urun_eni_cm: e.target.value })}
+                                    placeholder="150" style={{ ...inputStil(false), border: '1.5px solid #6ee7b7' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#065f46', marginBottom: 4 }}>Üretim Adeti</label>
+                                <input type="number" min="1" value={form.model_adeti}
+                                    onChange={e => setForm({ ...form, model_adeti: e.target.value })}
+                                    placeholder="1" style={{ ...inputStil(false), border: '1.5px solid #6ee7b7' }} />
+                            </div>
+                        </div>
+                        {(() => {
+                            const h = metrajHesapla(form);
+                            if (!h) return <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 8 }}>Ürün boyunu girin → Metraj otomatik hesaplanır</div>;
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                                    <div style={{ background: '#047857', color: 'white', borderRadius: 8, padding: '0.625rem', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.8 }}>NET METRAJ</div>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{h.netMetraj} m</div>
+                                    </div>
+                                    <div style={{ background: '#1d4ed8', color: 'white', borderRadius: 8, padding: '0.625rem', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.8 }}>TOPLAM KG</div>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{h.toplamKg} kg</div>
+                                    </div>
+                                    <div style={{ background: '#7c3aed', color: 'white', borderRadius: 8, padding: '0.625rem', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.8 }}>SAM (dk/adet)</div>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{h.sam} dk</div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
-                    <button
-                        onClick={handleKaydet}
-                        disabled={!zorunluDolu || islemde}
-                        style={{
-                            width: '100%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                            background: zorunluDolu && !islemde ? '#047857' : '#e2e8f0',
-                            color: zorunluDolu && !islemde ? 'white' : '#94a3b8',
-                            border: 'none',
-                            padding: '12px 20px',
-                            borderRadius: 10,
-                            fontWeight: 900,
-                            fontSize: '0.875rem',
-                            cursor: zorunluDolu && !islemde ? 'pointer' : 'not-allowed',
-                            transition: 'all 0.2s',
-                        }}
-                    >
-                        {islemde ? (
-                            <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> İşleniyor...</>
-                        ) : zorunluDolu ? (
-                            <><CheckCircle2 size={16} /> Kilidi Aç — M3'e (Finans/Satınalma) Gönder <ArrowRight size={14} /></>
-                        ) : (
-                            <><Lock size={16} /> Tüm Zorunlu Alanları Doldurun</>
+
+
+                    {/* DUVAR 3 — Kilidi Aç Butonu */}
+                    <div style={{ marginTop: '1.25rem', borderTop: '2px dashed #d1fae5', paddingTop: '1rem' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, marginBottom: 8 }}>
+                            🧱 DUVAR 3 — M3 (Finans/Satınalma) Kapısı
+                        </div>
+                        <button
+                            onClick={handleKaydet}
+                            disabled={!zorunluDolu || islemde}
+                            style={{
+                                width: '100%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                background: zorunluDolu && !islemde ? '#047857' : '#e2e8f0',
+                                color: zorunluDolu && !islemde ? 'white' : '#94a3b8',
+                                border: 'none',
+                                padding: '12px 20px',
+                                borderRadius: 10,
+                                fontWeight: 900,
+                                fontSize: '0.875rem',
+                                cursor: zorunluDolu && !islemde ? 'pointer' : 'not-allowed',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            {islemde ? (
+                                <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> İşleniyor...</>
+                            ) : zorunluDolu ? (
+                                <><CheckCircle2 size={16} /> Kilidi Aç — M3'e (Finans/Satınalma) Gönder <ArrowRight size={14} /></>
+                            ) : (
+                                <><Lock size={16} /> Tüm Zorunlu Alanları Doldurun</>
+                            )}
+                        </button>
+                        {!zorunluDolu && (
+                            <p style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 6, textAlign: 'center', fontWeight: 600 }}>
+                                Kumaş Cinsi + Gramaj + Fire Oranı zorunludur
+                            </p>
                         )}
-                    </button>
-                    {!zorunluDolu && (
-                        <p style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 6, textAlign: 'center', fontWeight: 600 }}>
-                            Kumaş Cinsi + Gramaj + Fire Oranı zorunludur
-                        </p>
-                    )}
+                    </div>
                 </div>
+                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
             </div>
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-        </div>
-    );
+            );
 }

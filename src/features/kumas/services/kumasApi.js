@@ -113,12 +113,36 @@ export async function kumasSil(tablo, id) {
     telegramBildirim(`📂 ARŞİVE KALDIRILDI\nTablo: ${tablo} | ID: ${id}`);
 }
 
+// [KU-05] Kumaş Minimum Stok Alarmı
+export async function kumasStokAlarmKontrol() {
+    const { data, error } = await supabase
+        .from('b1_kumas_arsivi')
+        .select('id, kumas_kodu, kumas_adi, stok_mt, min_stok_mt, tedarikci_adi')
+        .eq('aktif', true)
+        .not('stok_mt', 'is', null)
+        .not('min_stok_mt', 'is', null);
+
+    if (error || !data?.length) return { kritikSayisi: 0, kritikler: [] };
+
+    const kritikler = data.filter(k => parseFloat(k.stok_mt || 0) < parseFloat(k.min_stok_mt || 0));
+
+    if (kritikler.length > 0) {
+        const liste = kritikler.slice(0, 5).map(k =>
+            `• ${k.kumas_kodu} — ${k.stok_mt}m (Min: ${k.min_stok_mt}m)`
+        ).join('\n');
+        telegramBildirim(`⚠️ KUMAŞ STOK ALARMI!\n${kritikler.length} kumaş kritik seviyede:\n${liste}`);
+    }
+
+    return { kritikSayisi: kritikler.length, kritikler };
+}
+
 // ─── REALTIME ─────────────────────────────────────────────────────
 export function kumasKanaliKur(onChange) {
     return supabase.channel('kumas-realtime')
         .on('postgres_changes', { event: '*', schema: 'public' }, onChange)
         .subscribe();
 }
+
 
 // ─── SABİTLER ─────────────────────────────────────────────────────
 export const KUMAS_TIPLERI = ['dokuma', 'orgu', 'denim', 'keten', 'ipek', 'sentetik', 'pamuk', 'polar', 'kase', 'viskon', 'diger'];

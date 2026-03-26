@@ -17,6 +17,7 @@ const BOSH_FORM = { order_id: '', maliyet_tipi: 'hammadde_kumas', kalem_aciklama
 const SEKMELER = [
     { id: 'giris', label: '📋 Maliyet Girişi', desc: 'Kalem ekle / düzenle' },
     { id: 'analiz', label: '📊 Sipariş Analizi', desc: 'Birim maliyet hesabı' },
+    { id: 'trend', label: '📈 Dönemsel Trend', desc: 'Aylık maliyet grafiği' },
     { id: 'satis', label: '💰 Satış Fiyatı', desc: 'Kar marjı & öneri' },
 ];
 
@@ -543,7 +544,51 @@ export default function MaliyetMainContainer() {
                     </div>
                 )}
 
-                {/* SEKME 3: SATIŞ FİYATI */}
+                {/* [ML-05] SEKME 3: DÖNEMSEL MALİYET TRENDİ */}
+                {sekme === 'trend' && (
+                    <div>
+                        <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 14, padding: '1.25rem', marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#a7f3d0', textTransform: 'uppercase', marginBottom: '1rem' }}>
+                                📈 [ML-05] Dönemsel Maliyet Trendi — Son 12 Ay
+                            </div>
+                            {(() => {
+                                // Client-side aylık gruplama — maliyetler state'inden
+                                const aylikMap = {};
+                                maliyetler.forEach(k => {
+                                    const t = new Date(k.created_at);
+                                    const ayKey = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`;
+                                    if (!aylikMap[ayKey]) aylikMap[ayKey] = { ay: ayKey, toplam: 0 };
+                                    aylikMap[ayKey].toplam += parseFloat(k.tutar_tl || 0);
+                                });
+                                const aylar = Object.values(aylikMap).sort((a, b) => a.ay.localeCompare(b.ay)).slice(-12);
+                                if (aylar.length === 0) return (
+                                    <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontWeight: 700 }}>Henüz maliyet verisi yok.</div>
+                                );
+                                const maxToplam = Math.max(...aylar.map(a => a.toplam));
+                                return (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {aylar.map((a, i) => {
+                                            const pct = maxToplam > 0 ? (a.toplam / maxToplam * 100) : 0;
+                                            const [yil, ay] = a.ay.split('-');
+                                            const ayAd = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'][parseInt(ay)];
+                                            return (
+                                                <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 120px', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#a7f3d0', textAlign: 'right' }}>{ayAd} {yil}</div>
+                                                    <div style={{ height: 22, background: '#0b1d1a', borderRadius: 4, overflow: 'hidden' }}>
+                                                        <div style={{ height: '100%', width: `${pct}%`, background: pct > 75 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#10b981', borderRadius: 4, transition: 'width 0.5s' }} />
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'white', textAlign: 'right' }}>₺{a.toplam.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                )}
+
+
                 {sekme === 'satis' && (
                     <div>
                         <div style={{ background: '#122b27', border: '2px solid #e2e8f0', borderRadius: 14, padding: '1.25rem', marginBottom: '1.25rem' }}>
