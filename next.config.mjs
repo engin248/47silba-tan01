@@ -90,6 +90,11 @@ export default withSentryConfig(nextConfig, {
     widenClientFileUpload: true,
     hideSourceMaps: true,
     disableLogger: true,
-    automaticVercelMonitors: true,
     tunnelRoute: '/monitoring',
+    // Güvenlik: Build sonrası sourcemap dosyaları sunucudan sil
+    // Kaynak kod tarayıcıda okunamaz hale gelir
+    sourcemaps: {
+        deleteSourcemapsAfterUpload: true,
+    },
 });
+
