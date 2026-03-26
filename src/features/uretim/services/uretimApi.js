@@ -114,3 +114,37 @@ export async function devirYap(orderId, maliyetler) {
     }]);
     if (error) throw error;
 }
+
+/** [UR-01] Termin Alarm Kontrolü — geciken aktif iş emirlerini tespit et + Telegram bildir */
+export async function terminAlarmKontrol() {
+    const bugun = new Date().toISOString().split('T')[0];
+    const { data: gecikenler, error } = await supabase
+        .from('production_orders')
+        .select('id, siparis_no, planned_end_date, status, b1_model_taslaklari:model_id(model_kodu, model_adi)')
+        .lt('planned_end_date', bugun)
+        .in('status', ['pending', 'in_progress'])
+        .order('planned_end_date', { ascending: true });
+
+    if (error || !gecikenler?.length) return { gecikenSayisi: 0, gecikenler: [] };
+
+    // Telegram bildirimi (fire-and-forget)
+    try {
+        const liste = gecikenler.slice(0, 5).map(g => {
+            const model = Array.isArray(g.b1_model_taslaklari) ? g.b1_model_taslaklari[0] : g.b1_model_taslaklari;
+            const gunFark = Math.ceil((Number(new Date(bugun)) - Number(new Date(g.planned_end_date))) / (1000 * 60 * 60 * 24));
+            return `• ${model?.model_kodu || '?'} — ${gunFark} GÜN GECİKMİŞ`;
+        }).join('\n');
+
+        await fetch('/api/telegram-bildirim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mesaj: `⚠️ TERMİN ALARMI!\n${gecikenler.length} iş emri gecikiyor:\n${liste}`,
+                kategori: 'uretim_alarm'
+            })
+        });
+    } catch { /* Telegram hatası üretimi bloke etmez */ }
+
+    return { gecikenSayisi: gecikenler.length, gecikenler };
+}
+

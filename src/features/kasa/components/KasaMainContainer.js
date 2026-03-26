@@ -307,7 +307,40 @@ export default function KasaMainContainer() {
                 </div>
             </div>
 
-            {/* GÜNLÜK KAPANIŞ VE BORÇ RAPORU VİDGETLERİ */}
+            {/* [KK-01] ÖDEME YÖNTEMİ DAĞILIMI */}
+            {(() => {
+                const dagil = [
+                    { yontem: 'Nakit', toplam: nakitTahsilat, renk: '#10b981', ikon: '💵' },
+                    { yontem: 'Banka/EFT', toplam: bankaEftPos, renk: '#3b82f6', ikon: '🏦' },
+                    { yontem: 'Çek/Senet', toplam: evrakCekSenet, renk: '#8b5cf6', ikon: '📄' },
+                ].filter(d => d.toplam > 0);
+                const toplamDagil = dagil.reduce((t, d) => t + d.toplam, 0);
+                if (toplamDagil === 0) return null;
+                return (
+                    <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm">
+                        <div className="text-sm font-black text-emerald-200 uppercase mb-3 tracking-widest">💳 Ödeme Yöntemi Dağılımı</div>
+                        <div className="flex gap-4 flex-wrap">
+                            {dagil.map((d, i) => {
+                                const yuzde = ((d.toplam / toplamDagil) * 100).toFixed(1);
+                                return (
+                                    <div key={i} className="flex-1 min-w-[120px]">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-xs font-black text-white">{d.ikon} {d.yontem}</span>
+                                            <span className="text-xs font-bold text-slate-400">%{yuzde}</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                            <div style={{ width: `${yuzde}%`, backgroundColor: d.renk }} className="h-full rounded-full transition-all duration-500" />
+                                        </div>
+                                        <div className="text-sm font-black mt-1" style={{ color: d.renk }}>₺{d.toplam.toFixed(2)}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })()}
+
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
                     <div>

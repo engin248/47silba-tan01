@@ -1,8 +1,10 @@
 ﻿'use client';
+// @ts-nocheck
 /**
  * features/kasa/hooks/useKasa.js
  * M6 Kasa — Nakit Akış Yönetimi
  */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
@@ -62,11 +64,25 @@ export function useKasa(kullanici) {
     });
 
     const bakiye = kasaBakiyeHesapla(hareketler);
+
+    // [KK-01] Ödeme yöntemi dağılımı — gerçek DB verisi
+    const odemeYontemi = ['nakit', 'kart', 'eft', 'havale', 'diger'];
+    const odemeYontemiDagilimi = odemeYontemi.map(yontem => {
+        const hareketler_filtreli = hareketler.filter(h => h.odeme_yontemi === yontem);
+        const toplam = hareketler_filtreli.reduce((t, h) => t + parseFloat(h.tutar_tl || 0), 0);
+        return { yontem, toplam, adet: hareketler_filtreli.length };
+    }).filter(y => y.adet > 0);
+
+    const toplamIslemTutari = hareketler.reduce((t, h) => t + parseFloat(h.tutar_tl || 0), 0);
+
     const istatistik = {
         bakiye,
         toplamGelir: hareketler.filter(h => h.hareket_tipi === 'gelir').reduce((t, h) => t + parseFloat(h.tutar_tl || 0), 0),
         toplamGider: hareketler.filter(h => h.hareket_tipi === 'gider').reduce((t, h) => t + parseFloat(h.tutar_tl || 0), 0),
+        odemeYontemiDagilimi,
+        toplamIslemTutari,
     };
+
 
     return { hareketler, filtreliHareketler, loading, mesaj, formAcik, setFormAcik, form, setForm, filtre, setFiltre, aramaMetni, setAramaMetni, istatistik, kaydet, sil };
 }
