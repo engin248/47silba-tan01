@@ -1,68 +1,55 @@
-# MÜŞTERİLER CRM (M10) — Sayfa Analizi
+# MÜŞTERİLER & CARİ HESAP (M10) — Detaylı Sayfa Analizi
 **Rota:** `/musteriler` | **Dosya:** `src/features/musteriler/components/MusterilerMainContainer.js`  
-**Görev:** Müşteri kayıtları, segmentasyon, kara liste, risk limiti, iletişim geçmişi takibi.
+**Toplam:** 527 satır  
+**Görev:** Şirketin ticarı muhataplarının kaydı, risk limiti kontrolü, iletişim loglarının tutulması.
 
 ---
 
-## ✅ MEVCUT NE VAR (koddan doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 3 müşteri tipi (bireysel, toptan, mağaza) | VAR | satır 17 |
-| Kara liste sistemi | VAR | satır 195-210 |
-| Risk limiti alanı | VAR | satır 368-369 |
-| A/B/C segmenti rozeti | VAR | satır 445-449 |
-| İletişim geçmişi timeline (B-05) | VAR | satır 141-153 |
-| Manuel not ekleme (timeline'a) | VAR | satır 155-172 |
-| Arapça isim desteği | VAR | satır 346-348 |
-| Sipariş geçmişi linki | VAR | satır 461-465 |
-| Çevrimdışı çalışma | VAR | satır 104-111 |
-| Drawer/Offcanvas form (sayfa yenilemeden açılır) | VAR | satır 326-389 |
-| Realtime | VAR | satır 54-56 |
-| E-posta doğrulama | VAR | satır 85 |
-| Mükerrer kodu önleme | VAR | satır 125-128 |
-| dil değiştirme (TR/AR) | VAR | satır 281-284 |
+| `b2_musteriler` tablosu | VAR | satır 69 |
+| Timeline (B-05 Müşteri İletişim Geçmişi) | VAR | satır 140-150 |
+| `b0_sistem_loglari` üzerinden log tarama | VAR | satır 146 |
+| 3 Kategori (Bireysel, Toptan, Mağaza) | VAR | satır 17 |
+| Kara Liste & Risk Limiti Özelliği | VAR | satır 22 |
+| Çift Tıklama / Spam koruması | VAR | satır 79-80 |
+| Çevrimdışı (Offline) Kuyruk Kaydı | VAR | satır 104-106 |
+| Mükerrer `musteri_kodu` engeli | VAR | satır 116 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **Segment otomatik hesaplanmıyor** → Müşteri tipi A/B/C formu var (satır 22, 187) ama form'da gösterilmiyor — `BOSH_FORM`'da `segment: 'B'` sabit, otomatik hesaplanmıyor
-  - "3 ayda en az X sipariş verene A, Y-Z arası verene B" gibi kural yok
-- [ ] **Risk limiti uyarısı yok** → `risk_limiti` kaydediliyor ama sipariş alırken "Bu müşterinin toplam borcu limit üzerinde" uyarısı verilmiyor
-- [ ] **Toplam alışveriş tutarı görünmüyor** → Müşteri kartında "Bu müşteri şimdiye kadar toplam ₺X siparişi vardır" bilgisi yok
-- [ ] **Son sipariş tarihi yok** → "Bu müşteriden son sipariş ne zaman alınmıştı?" görünmüyor
-- [ ] **Timeline yalnızca b0_sistem_loglari'ndan okuyuyor** → satır 146-151: sistem loglarından filtreliyor ama sipariş geçmişi timeline'a dahil değil
-- [ ] **Vergi no kullanılmıyor** → Form'da `vergi_no` var ama faturalama işlemlerinde kullanılmıyor
+### 1. CARİ HESAPLAR (BORÇ / ALACAK) SIFIR (YOK)
+
+**Açıklama:** Müşteri sayfasında en kritik metrik müşterinin şirkete olan borcu veya şirketin müşteriye olan borcudur.
+Şu anda Musteriler sayfasında sadece Müşterinin Adı, Telefonu, Adresi yani **Telefon Rehberi (Adres Defteri)** modülü var. 
+Satın alınan siparişler (M9) ve kasaya giren nakitler (M6) toplanıp `Güncel Bakiye: 25.000 ₺ (Alacaklı)` gibi bir veri üretilmiyor. 
+
+### 2. SİPARİŞ GEÇMİŞİ LİSTESİ YOK
+
+Müşteri iletişim geçmişi (`timeline`) `b0_sistem_loglari` tablosundan "metin içinde telefon numarası veya ad geçiyor mu" diye `contains` ile taranıyor (Zayıf bir veritabanı taraması). Ancak bu müşterinin geçmişte aldığı Siparişler (M9) tablosu taranıp liste olarak "Son Siparişleri" altında gösterilmiyor.
+
+### 3. RİSK LİMİTİ ÇALIŞMIYOR
+
+`risk_limiti` adında bir sütun var ancak, açık borcu (cari hesabı) hesaplanmadığı için, sipariş girerken "Bu müşteri 50.000 TL risk limitini aştı, siparişi durdur" güvenlik kalkanı işletilemiyor. Data ölü/işlevsiz olarak veritabanında duruyor.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Müşteri → Sipariş | VAR ✅ | Sipariş formunda müşteri listesi |
-| Müşteri → Timeline | VAR ✅ | `b0_sistem_loglari` ile not takibi |
-| Müşteri → Risk Limiti uyarısı | YOK | Sipariş alırken toplam borç kontrolü |
-| Müşteri → Segment otomasyonu | YOK | Segment elle belirleniyor, otomatik değil |
-| Müşteri → Kasa (bakiye) | YOK | Müşteriden kaç TL tahsilat yapıldı? |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] `BOSH_FORM`'da (satır 22) `segment: 'B'` tanımlı ama form UI'da segment alanı yok → segment her zaman 'B' kalabilir
-- [ ] Sipariş geçmişi linki (satır 461): `/siparisler?musteri_kodu=X` → ama Siparişler sayfası bu URL parametresini işlemiyor (kod kontrol edildi)
-- [ ] Timeline sorgusu (satır 146-151): `b0_sistem_loglari` içinde `musteri_kodu` ile `contains` sorgusu yapıyor — bu sorgu JSON kolonunu JSONB olarak düzgün çekiyor mu?
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Kasa Hareketi | Müşteri Cari | YOK | Ödeme yapıldığında bakiye düşmüyor |
+| Sipariş (M9) | Müşteri Cari | YOK | Sipariş faturalandığında bakiye artmıyor |
+| Sipariş Geçmişi | Müşteri Profili | YOK | Siparişler log gibi müşteriye gösterilmiyor |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Müşteri puanlama ve ödül sistemi (sadakat programı)
-- [ ] Müşteri başına ciro grafiği (aylık bazda)
-- [ ] Otomatik segment belirleme (sipariş hacmine göre A/B/C)
-- [ ] E-posta pazarlama entegrasyonu (kampanya maili)
-- [ ] WhatsApp iletişim entegrasyonu (doğrudan mesaj)
-- [ ] Müşteri portalı erişim linki (siparişlerini görsünler)
-- [ ] Kredi/borç takip sistemi (bakiye ekstresi)
+- [ ] **Müşteri B2B Portalı** → Müşterilerin kendi şifreleriyle girip borcunu ekstresini gördüğü mini panel.
+- [ ] **WhatsApp Bot Maili** → Risk limitine %90 yaklaşan tahsilat gecikmeleri için otomatik hatırlatma mesajı.
+- [ ] **Segmentasyon AI** → Son 6 aydır sipariş geçmeyen (Uyumuş) müşterileri belirten churn tespiti.

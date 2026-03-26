@@ -1,67 +1,90 @@
-# STOK & DEPO YÖNETİMİ (M11) — Sayfa Analizi
+# STOK DEPO KARARGAHI (M11) — Detaylı Sayfa Analizi
 **Rota:** `/stok` | **Dosya:** `src/features/stok/components/StokMainContainer.js`  
-**Görev:** Üretilen ürünlerin depo stok hareketlerini kayıt altına al, kritik stok uyarısı ver.
+**Toplam:** 458 satır  
+**Görev:** Bitmiş ürün stok takibi, hareket kaydı (giriş/çıkış/iade/fire), alarm sistemi, net stok hesabı.
 
 ---
 
-## ✅ MEVCUT NE VAR (koddan doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 4 hareket tipi (giris/cikis/iade/fire) | VAR | satır 330-334 |
-| Net stok hesabı (giris+iade - cikis-fire) | VAR | satır 73-83 |
-| Kritik stok alarm bandı (kırmızı, pulse) | VAR | satır 210-243 |
-| Telegram'a Bildir butonu | VAR | satır 232-236 |
-| API üzerinden stok hareketi (`/api/stok-hareket-ekle`) | VAR | satır 123-133 |
-| Kritik ürün uyarısı otomatik Telegram | VAR | satır 139-148 |
-| FIFO politikası etiketi | VAR | satır 290-302 |
-| CSV Sayım Formu export (STK-04) | VAR | satır 299 |
-| Hareket logu (Son 200 hareket) | VAR | satır 65, 403-453 |
-| Silme → b0_sistem_loglari kaydı | VAR | satır 170-175 |
-| Arapça dil desteği | VAR | satır 190, 375 |
-| Çevrimdışı çalışma | VAR | satır 112-119 |
-| Realtime (WebSocket) | VAR | satır 47-51 |
-| Raf konumu desteği | VAR | satır 108 |
-| /api/stok-alarm endpoint manuel tetikleme | VAR | satır 233, 276 |
+| `b2_urun_katalogu` ve `b2_stok_hareketleri` tabloları | VAR | satır 64-65 |
+| Net stok hesabı (başlangıç + giriş - çıkış) | VAR | satır 72-83 |
+| 4 Hareket tipi (giris/cikis/iade/fire) | VAR | satır 19 |
+| `/api/stok-hareket-ekle` API route | VAR | satır 123 |
+| Zod siber kalkanı (422 → hata) | VAR | satır 131 |
+| Rate limit 429 koruması | VAR | satır 130 |
+| Düşük stok alarm (min_stok eşiğinde) | VAR | satır 144-147 |
+| Telegram ile kritik stok alarmı | VAR | satır 146 |
+| Silme → b0_sistem_loglari + Telegram | VAR | satır 170-175 |
+| silmeYetkiDogrula PIN koruması | VAR | satır 162-165 |
+| Çift tıklama koruması | VAR | satır 37, 97 |
+| Offline guard (çevrimdışı kuyruğa al) | VAR | satır 112-120 |
+| Realtime WebSocket (b2_stok_hareketleri) | VAR | satır 47-51 |
+| Arama filtresi | VAR | satır 36 |
+| Raf konumu girişi | VAR | satır 108 |
+| Arapça RTL | VAR | satır 190 |
+| `sayfaErisim('/stok')` yetki kontrolü | VAR | satır 23 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **Net stok ve `stok_adeti` çift sayma riski** → satır 82-83: `const baslangicStok = u.stok_adeti || 0;` + hareketler toplanıyor — ama `stok_adeti` alanı zaten Manuel güncelleniyor → fazla say olabilir
-- [ ] **Tarih bazlı stok grafiği yok** → "Son 30 günde stok nasıl değişti?" görselleştirme yok
-- [ ] **Depo konumu haritası yok** → Raf konumu metni var ama depo planı/görsel yok
-- [ ] **Stok yaşlandırma analizi yok** → "Bu ürün X gündür hareket görmüyor" uyarısı yok
-- [ ] **Çok depo desteği yok** → Tüm stok tek bir depo altında; farklı lokasyon yok
-- [ ] **Tedarikçi bağlantısı yok** → Stok girişinde "Bu ürün hangi tedarikçiden geldi?" kaydedilmiyor
+### 1. NET STOK HESABI — ÇİFT SAYIM SORUNU
+
+**Sorun (satır 80-82):**
+```js
+const baslangicStok = u.stok_adeti || 0;
+return { ...u, net_stok: baslangicStok + totalGiris - totalCikis };
+```
+`stok_adeti` kaydın yapıldığı anki başlangıç değeri + sonraki tüm hareketler.
+
+**Problem:** İmalat tamamlandığında `b2_stok_hareketleri`'ne hareket yazılıyor (İmalat M4 → stok girişi). Ama `stok_adeti` de sıfır değil. İlk yükleme anında `stok_adeti = 100` girilmişse + hareketten de 100 adet geliyorsa net_stok = 200 görünür. Çift sayım riski.
+
+**Doğrusu:** Ya `stok_adeti` başlangıç olarak `net_stok` ile eşitlenmeli ve yalnızca hareketler sayılmalı, ya da `stok_adeti` her zaman 0 başlanmalıydı.
+
+### 2. KATALOG STOKi vs HAREKET STOKi — İKİ AYRI TABLO
+
+Karargah sayfasında (useKarargah.js satır 170-171):
+```js
+supabase.from('b2_urun_katalogu').select('id', { count: 'exact' })
+    .lte('stok_adeti', 10).eq('durum', 'aktif')
+```
+Stok düşük alarm **Katalog** tablosundaki `stok_adeti` kolonuna bakıyor.
+
+Ama gerçek net stok **Stok** sayfasında =  `stok_adeti + hareketler` hesaplanıyor.
+
+Bu iki değer farklı → Karargah'ta yanlış alarm üretilebilir.
+
+### 3. HAREKET SONRASI `b2_urun_katalogu.stok_adeti` GÜNCELLENMMIYOR
+
+`/api/stok-hareket-ekle` çağrıldığında hareket `b2_stok_hareketleri`'ne yazılıyor. Ama `b2_urun_katalogu.stok_adeti` kolonu güncelleniyor mu? API'nin içeriği incelenmedi. Eğer güncellenmiyor ise Katalog sayfasındaki stok sayısı her zaman başlangıç değerinde kalıyor.
+
+### 4. KASAYLAi BAĞLANTI YOK
+
+Satış yapıldığında (çıkış hareketi) kasaya para girmiyor. Stok çıkışı ≠ kasa girişi. İki sistem bağımsız.
+
+### 5. ÜRÜN KODU DROPDOWN — B2_URUN_KATALOGu'NEi BAĞLI
+
+Hareket formunda ürün seçimi doğrudan `b2_urun_katalogu`'nden geliyor (satır 64). Bu tablo Katalog sayfasıyla aynı kaynak. Katalog'a eklenen ürün Stok'ta görünüyor — doğru entegrasyon.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Sipariş → Stok | VAR ✅ | Sipariş onayında `b2_stok_hareketleri` güncelleniyor |
-| İmalat → Stok (Üretim tamamında) | VAR ✅ | `production_orders` completed → stok ekleniyor |
-| Stok → Karargah | YOK | Kritik stok kartı Karargah'ta görünmüyor |
-| Stok → Tedarikçi | YOK | "Kritik stok → tedarikçiye otomatik teklif talebi" |
-| Stok → Muhasebe | YOK | Stok değeri (adet × birim maliyet) muhasebe raporuna gitmiyor |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] `b2_urun_katalogu` sorgusu (satır 64): `.select('id, urun_kodu, urun_adi, ..., b2_stok_hareketleri(adet, hareket_tipi)')` — tüm hareketleri birden çekiyor. 10.000+ hareket varsa bu sorgu timeout verir
-- [ ] Net stok hesabı `stok_adeti` ile hareketleri birleştiriyor (satır 82-83) — bu ikili sayım riski taşıyor; ya `stok_adeti` ya da hareketler esas alınmalı
-- [ ] Hareket silme işlemi stok miktarını geri almıyor — sadece log kaydı yapıyor
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Stok çıkışı → Kasa | YOK | Satış → para girişi yok |
+| Stok → Karargah alarm | YANLIŞ TABLO | stok_adeti vs net_stok |
+| İmalat devri → Stok otomatik | KISMI | İmalat harekete yazıyor ama çift sayım riski |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Barkod okuyucu ile stok giriş/çıkış (telefon kamerası ile QR tarama)
-- [ ] Çok depo yönetimi (A Deposu, B Deposu ayrı sayımları)
-- [ ] Tedarik zinciri entegrasyonu (sağlayıcıya otomatik sipariş maili)
-- [ ] Stok devir hızı analizi (yavaş hareket eden ürünler listesi)
-- [ ] IoT entegrasyonu (akıllı raf sensörleri ile otomatik sayım)
-- [ ] Periyodik sayım yönetimi (ERP standartlarında dönem sonu sayımı)
+- [ ] **Barkod tarama entegrasyonu** → Depodan çıkış barkod okutarak
+- [ ] **Otomatik satış-kasa köprüsü** → Stok çıkışı = Kasa girişi
+- [ ] **FIFO stok yönetimi** → İlk giren ilk çıkar otomasyonu
+- [ ] **Raf yönetimi görsel haritası** → Depo yerleşim planı
+- [ ] **Otomatik sipariş tetikleme** → Düşük stokta tedarikçiye otomatik talep

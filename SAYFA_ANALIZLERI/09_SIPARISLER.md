@@ -1,72 +1,69 @@
-# SİPARİŞLER (M9) — Sayfa Analizi
+# SİPARİŞLER & YURTİÇİ/DIŞI LOJİSTİK (M9) — Detaylı Sayfa Analizi
 **Rota:** `/siparisler` | **Dosya:** `src/features/siparisler/components/SiparislerMainContainer.js`  
-**Görev:** Gelen siparişleri al, onayla, üretim sürecine gönder, kargola, teslimi kaydet, kasa'ya devret.
+**Toplam:** 1022 satır  
+**Görev:** Trendyol, Amazon vb. kanallardan gelen siparişleri alıp/manuel girmek, faturalarını basmak, kargo takip etmek, HermAI ile e-Ticareti akıllandırmak.
 
 ---
 
-## ✅ MEVCUT NE VAR (kodda doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 7 sipariş durumu (beklemede→teslim→iptal→iade) | VAR | satır 28 |
-| 5 kanal (Trendyol, Amazon, mağaza, toptan, diğer) | VAR | satır 27 |
-| 3 para birimi (TL, USD, EUR) | VAR | satır 31-35 |
-| Ürün kalemi ekleme (çoklu ürün) | VAR | satır 139-151 |
-| Onaylandı → Stok otomatik düş | VAR | satır 233-251 |
-| İptal/İade → Stok geri ekle | VAR | satır 289-306 |
-| Teslim → Kasa tahsilat otomatik oluştur | VAR | satır 255-280 |
-| %10 iskonto kalkanı (yetkisiz iskontoya blok) | VAR | satır 163-167 |
-| Gecikme alarmı (%24 saat acil, 48 saat normal) | VAR | satır 428-437 |
-| 5 adımlı sipariş stepper görünümü | VAR | satır 385-426 |
-| Fatura yazdır | VAR | satır 21 import |
-| AI (HermAI) entegrasyonu | VAR | satır 22-24 |
-| Son 7 gün vs önceki 7 gün ciro karşılaştırması | VAR | satır 508-548 |
-| Kargo takip numarası | VAR | satır 55-56 |
-| Termin tarihi zorunluluğu | VAR | satır 612-617 |
-| Sayfalı yükleme (50'şer) | VAR | satır 62 |
-| Dijital adalet kilidi (onaylı sipariş silinemez) | VAR | satır 336-339 |
-| Çevrimdışı kuyruk | VAR | satır 267-269 |
+| `b2_siparisler` tablosu | VAR | satır 119 |
+| 5 Satış Kanalı (trendyol/amazon/magaza/toptan) | VAR | satır 27 |
+| 7 Durum Enum (bekliyor..kargoda..iptal) | VAR | satır 28 |
+| HermAI Asistan Desteği (fatura notu, satış analizi) | VAR | satır 43, 810 |
+| Çoklu Para Birimi ($, €, ₺) | VAR | satır 31 |
+| Fatura Yazdır Butonu (`faturaYazdir` utils) | VAR | satır 21, 570 |
+| Sayfalama Koruması (K-13 Pagination) 50 Kayıt | VAR | satır 62, 118 |
+| WebSocket Visibility "SIFIR MALİYET" Optimizasyonu | VAR | satır 83 |
+| Ürün Ekleme (Ayrı bir form satırı dizisi - Kalemler) | VAR | satır 49, 139 |
+| Kargo Numarası Pop-up Modal State | VAR | satır 55, 630 |
+| Çift Tıklama Koruması | VAR | satır 58 |
+| Çevrimdışı (Offline) Kuyruk Desteği | VAR | satır 8, 203 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **Kanal performans grafiği hardcoded** → satır 556-558: Mağaza %45, Toptan %35, E-Ticaret %20 sabit yazılmış, gerçek kanal bazlı hesaplama yapılmıyor
-- [ ] **Karlılık badge'i `gercek_maliyet_tl` gerektirir** → satır 766-770: `s.gercek_maliyet_tl > 0` kontrolü var ama bu alan Supabase'de `b2_siparisler` tablosunda yok — her sipariş "⚪ Mrj. Yok" gösteriyor
-- [ ] **Müşteri sipariş geçmişi filtreleme** → URL'de `?musteri_kodu=` parametresi alınıyor (satır 461) ama bu parametrenin uygulandığına dair filtre kodu görülmüyor
-- [ ] **Üretim aşaması bağlantısı** → Sipariş `hazirlaniyor` durumunda ama hangi üretim bandında olduğu bilgisi yok
-- [ ] **Ödeme takibi** → Çek/senet ödeme yöntemiyle gelen siparişlerde ödeme alındı mı? Takip yok
-- [ ] **Toptan sipariş fiyatlandırması** → Toptan müşteriye otomatik indirim oranı yok; her seferinde manuel yapılıyor
+### 1. SİPARİŞ NUMARASI ARDIŞIK DEĞİL (TIMESTAMP BAZLI)
+
+**Sorun (satır 137):**
+```js
+const siparisNoUret = () => `SIP-${Date.now().toString().slice(-8)}`;
+```
+Müşteri faturası/irsaliyesi için sipariş numarasının her yıl (örn: "26-SIP-0001", "26-SIP-0002" gibi) ardışık bir ID (sequence) takip etmesi gerekir (Muhasebe standardı). Burada `Date.now()` (o anın zaman damgası) alınıyor ve son 8 rakamı kullanılıyor. Bu hem fatura takibini imkansızlaştırır hem de çok çok küçük de olsa aynı mikrosaniyede çakışma riski taşır. Müşteri, faturasında "SIP-90875322" gibi anlamsız bir kod görecek.
+
+### 2. KASA & CARİ HESAP TAKİBİ YOK (EN BÜYÜK AÇIK)
+
+Bir müşteri "20.000 TL" lik toptan sipariş geçtiğinde:
+- Sipariş formunda "odeme_yontemi: 'nakit'" vs. seçiliyor ama `b2_kasa_hareketleri`ne yazılıyor mu? (M6 Kasa sayfasında M9_Sipariş ID yoktu!)
+- Sipariş onaya düştüğünde müşteri avans verdi mi? Faturanın ne kadarı ödendi kime ödendi? Kasa ve Sipariş bağımsız iki harita gibi ilerliyor. Cari tablo yok.
+
+### 3. STOKTAN İNDİRİM (REZERVASYON) OTOMATİĞİ YOK (VEYA KOPUK)
+
+Siparişler `b2_urun_katalogu` üzerinden (ürün fiyatını otomatik alarak) kalem ekliyor:
+```js
+const urun = urunler.find(u => u.id === val);
+if (urun) yeni[i].birim_fiyat_tl = parseFloat(urun.satis_fiyati_tl);
+```
+Fakat sipariş "Onaylandı" yapılınca Kataloğun (`b2_urun_katalogu.stok_adeti`) stoğu ve `b2_stok_hareketleri` anlık düşmüyor. Sipariş ayrı bir form mantığında kalıyor. B2 Stok modülü, İmalattan gelen artıları sayarken, Satıştan çıkan eksileri sistemle entegre etmiyor.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Sipariş → Stok | VAR ✅ | Onay ve iade durumlarında otomatik stok hareketi |
-| Sipariş → Kasa | VAR ✅ | Teslimde otomatik kasa kaydı |
-| Sipariş → Katalog | VAR ✅ | `b2_urun_katalogu` listeniyor |
-| Sipariş → İmalat | YOK | `hazirlaniyor` durumunda İmalat sayfasına otomatik üretim emri gitmiyor |
-| Sipariş → Müşteri Puanı | YOK | Teslim edilince müşteri segmenti (A/B/C) güncellenmesi |
-| Trendyol/Amazon API | YOK | Kanal olarak seçilse de gerçek entegrasyon yok (manuel giriş) |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] `SiparislerMainContainer.js` satır 347: `String('b2_siparisler').replace(/['\"]/ / g, '')` — regex boşluk hatası (` / g` yerine `/g` olmalı)
-- [ ] `gercek_maliyet_tl` sütunu `b2_siparisler` tablosunda tanımlanmamış → karlılık badge'i hiçbir zaman çalışmaz
-- [ ] Kanal performans kartı (satır 556-558) tamamen hardcoded %45/%35/%20 — gerçek veri değil
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Sipariş Tutarı | Kasa (M6) | YOK | Faturasından ne tahsil edildi takip edilemez |
+| Sipariş Kalemleri | Katalog/Stok (M11) | YOK | Ürünler "Satıldı" diye fiziki stoktan düşmüyor (Rezerv yok) |
+| Üretim | Sipariş | YOK | M9'da stoğu biten ürünler "M3 Kalıphane/M4 İmalata" otomatik üretim emri olarak iletilmiyor (Dinamik ERP eksikliği) |
+| Trendyol / Amazon | Sipariş (M9) | YOK/BEKLEMEDE | API yazılmamış. Manuel form girişi var. |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Trendyol API entegrasyonu (sipariş otomatik çekilsin)
-- [ ] Müşteri portalı (müşteri sipariş durumunu kendisi görsün)
-- [ ] SMS/WhatsApp: "Siparişiniz kargoya verildi" otomatik mesaj
-- [ ] Kargo firması API bağlantısı (takip numarası otomatik gelsin)
-- [ ] Toplu sipariş işleme (Excel'den sipariş yükle)
-- [ ] Sipariş bazlı kar/zarar anlık gösterimi
-- [ ] Ön sipariş / rezervasyon sistemi
+- [ ] **Seri No / Barkod Tarama** → Siparişi paketlerken ürün barkodu okutup kutuya ekleme.
+- [ ] **Kargo Entegrasyonu** → MNG/Yurtiçi/Aras/PTT Web API ile kargo fişi/barkodu yazdırma, kargoda durumunu bot'un kendisinin güncellemesi.
+- [ ] **e-Fatura GİB Bağlantısı** → Fatura Yazdır butonunun ötesi, UBL-TR belgesini doğrudan e-Mikro vb.ye gönderme.

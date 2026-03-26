@@ -1,46 +1,50 @@
-# MALİYET YÖNETİMİ (M7) — Sayfa Analizi
+# MALİYET & FİNANS ANALİZİ (M7) — Detaylı Sayfa Analizi
 **Rota:** `/maliyet` | **Dosya:** `src/features/maliyet/components/MaliyetMainContainer.js`  
-**Görev:** Üretim maliyet kalemleri, sipariş bazlı maliyet analizi, satış fiyatı önerisi motoru.
+**Toplam:** 684 satır  
+**Görev:** Üretim (İmalat) emirlerine bağlanan maliyet kalemlerini girmek, hesaplamak, satış fiyatı/kâr marjı önermek.
 
 ---
 
-## ✅ MEVCUT NE VAR (koddan doğrulandı — önceki oturumda incelendi)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 5 maliyet tipi (kumaş/işçilik/aksesuar/fason/genel) | VAR | |
-| CSV toplu yükleme | VAR | |
-| Otomatik satış fiyatı önerisi (%X marj) | VAR | |
-| Sipariş bazlı maliyet özeti | VAR | |
-| Onay mekanizması (hesaplandi/onaylandi/kilitli) | VAR | |
-| Muhasebe köprüsü (M8) | VAR | |
-| Bütçe vs Gerçekleşen karşılaştırma | VAR | |
+| `b1_maliyet_kayitlari` tablosu | VAR | satır 66 |
+| Maliyetin `production_orders`'a bağlanması | VAR | satır 73-85 |
+| 7 Maliyet Tipi (işçilik, kumaş, işletme, fire, sarf...) | VAR | satır 12 |
+| Tutar / Fiyat Doğrulayıcı Zırh (Miktar * Fiyat) | VAR | satır 137-145 |
+| Offline Kuyruk Desteği | VAR | satır 149 |
+| Realtime WebSocket (Visibility algılamalı PWA) | VAR | satır 104 |
+| Sayfalama (Pagination - 50 kayıt) | VAR | satır 46 |
+| Kar Marjı % ve Satış Fiyatı Sekmesi | VAR | satır 17-22, 40 |
+| Cihaz/Oturum PIN Kontrolü (Yetki) | VAR | satır 96 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **Kumaş fiyat değişimi otomasyonu yok** → Kumaş birim fiyatı değiştiğinde ilgili ürün maliyetleri otomatik güncellenmez
-- [ ] **GÜG payı dinamik değil** → %15 GÜG sabit; gerçek genel gider verisi (kira, elektrik) sisteme giremiyor
-- [ ] **Ortalama birim maliyet geçmişi yok** → Bir ürünün maliyeti 3 ayda nasıl değişti? Grafik yok
-- [ ] **Maliyet onay zinciri 1 kişi** → m7 onayı tek yetkili; alternatif onay yolu yok
+### 1. MALİYETLER MANUEL GİRİLİYOR (OTOMATİK TOPLAMA YOK!)
+
+**Sorun:** M2 Kumaş modülünde fizibiliteden gelen kumaş fiyatı VE M4 Modelhane/M5 Kesim/İmalat modüllerinde harcanan işçilik süresi buraya OTOMATİK DÜŞMÜYOR. 
+Kullanıcı M7 formunda `order_id` seçip, `maliyet_tipi: 'hammadde_kumas'` diyerek tutarı tekrar **elle** giriyor (Form BOSH_FORM'dan manuel dolduruluyor). 
+**Büyük ERP Hiyerarşi Kopukluğu:** Önceki aşamaların hesapladığı harcamalar merkeze veri olarak yazılmıyor, maliyet formuna insan eliyle yeniden dolduruluyor. 
+
+### 2. SIVI/ZAMAN BAZLI MALİYET HESABI YOK
+
+`birim: adet` ve `birim_fiyat` var. Ancak bir işçinin süresi (dakika) üzerinden maliyet hesaplaması arka planda yok.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Maliyet → Muhasebe | VAR ✅ | Kilitlendi → M8'e geçiyor |
-| Maliyet → Katalog | VAR ✅ | "M8'den maliyet çek" ile katalog güncelleniyor |
-| Maliyet → Kasa | YOK | Maliyet ödemeleri kasa'ya otomatik gitmiyor |
-| Maliyet → Tedarikçi | YOK | Kumaş alışlarında tedarikçi faturası maliyete eklenmiyor |
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| M2/M4/M5 Kesim | M7 Maliyet | YOK | Sarfiyatlar ve paralar otomatik listeye inmiyor |
+| M7 Hedef Kâr | M12 Katalog | YOK | Önerilen satış fiyatı Ürün Kataloğuna aktarılmıyor |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] ABC maliyet analizi (hangi ürün en fazla maliyete yol açıyor?)
-- [ ] Sezon bazlı maliyet karşılaştırması
-- [ ] Tedarikçi fatura otomatik import
-- [ ] Döviz bazlı maliyet takibi (USD kumaş için)
+- [ ] **BOM (Bill of Materials) Otomasyonu** → Model M3'ten çıkarken ürün ağacı çıkar, maliyet otomatik hesaplanır.
+- [ ] **ABC (Faaliyet Tabanlı Maliyetleme)** → Fabrika kira ve elektriğinin üretim süresine göre havuzdan otomatik emirlere dağıtılması.

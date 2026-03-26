@@ -1,61 +1,60 @@
-# KUMAŞ & MALZEME KÜTÜPHANESİ (M2) — Sayfa Analizi
+# KUMAŞ — MALZEME & KUMAŞ KÜTÜPHANESİ (M2) — Detaylı Sayfa Analizi
 **Rota:** `/kumas` | **Dosya:** `src/features/kumas/components/KumasMainContainer.js`  
-**Görev:** Kumaş arşivi, aksesuar deposu, ölü stok radarı, M1'den gelen AR-GE talepleri ve fizibilite analizi.
+**Toplam:** 357 satır  
+**Görev:** Kumaş kütüphanesi yönetimi, M1'den gelen taleplerin maliyet/fizibilite onayı, Ölü stok fırsat radarı.
 
 ---
 
-## ✅ MEVCUT NE VAR (koddan doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 5 sekme (kumaş / aksesuar / fırsat / M1 talepler / risk) | VAR | satır 33-34 |
-| Kumaş listesi (b2_urun_katalogu veya ayrı tablo) | VAR | `useKumas` hook'undan |
-| Kritik stok kontrolü (mt < min_stok) | VAR | satır 43 |
-| Tedarikçi bilgisi | VAR | satır 42 |
-| M1'den gelen talepler paneli | VAR | satır 104-136 |
-| Fizibilite modal (kar marjı hesabı) | VAR | satır 263-353 |
-| %40 kârlılık eşiği kuralı | VAR | satır 31 |
-| Ölü stok (is_firsat) radar | VAR | satır 157-198 |
-| M3'e aktar butonu | VAR | satır 343-344 |
-| AI trend eşleşme sonucu gösterimi | VAR | satır 165 |
+| 5 Sekme (Kumaş, Aksesuar, Fırsat, M1, Risk) | VAR | satır 33 |
+| Reddedilme Kriteri: Kar marjı < %40 | VAR | satır 31 |
+| Maliyet-Fizibilite Formu (kumasFiyat, miktar, iscilik, rakipSatis) | VAR | satır 21-27 |
+| M1 Talepleri listesi (Aşama 2 kontrol) | VAR | satır 113-134 |
+| Fırsat Radarı (Upcycle / Ölü Stok yapay zeka eşleşme) | VAR | satır 158-198 |
+| `is_firsat = true` sorgusu ile beklenen kârlılık gösterimi | VAR | satır 164-191 |
+| Kumaş listesi ve Min. Stok risk durumu (`14 Tek tedarikçi RİSK` vs) | VAR | satır 87-98, 201-252 |
+| Arama çubuğu | VAR | satır 152 |
+| `useKumas` hook'u ile veri çekimi | VAR | satır 13-16 |
+| Fizibilite Onayı → `m3eAktar` fonksiyonu tetikleyici | VAR | satır 343 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **KPI kartları hardcoded** → satır 88-92: "Aktif Kod: 412", "Tek Tedarikçi: 14", "Sürekli Kumaş: 158", "Yüksek MOQ: 5" — tamamı sabit yazılmış, gerçek veritabanı yok
-- [ ] **Arama çalışmıyor** → satır 153: `<input>` var ama `onChange` handler'ı eksik — yazılan arama metni state'e bağlanmamış
-- [ ] **Kumaş fotoğrafı yok** → satır 207: "GÖRSEL EKLENMEDİ" placeholder her ürünün üstünde — fotoğrafsız kütüphane
-- [ ] **Kartela butonu işlevsiz** → satır 241-243: "KARTELA" butonu onClick yok, `button` etiketinde hiçbir handler yok
-- [ ] **Aksesuar deposu sekmesi boş** → sekme var ama aksesuar verisi çekme kodu görülmüyor
+### 1. `kumaslar` TABLOSUNDA `min_stok_mt` HATASI
+
+M2 listesinde risk hesabı (satır 43) `parseFloat(k.stok_mt) < parseFloat(k.min_stok_mt)` olarak yapılıyor. Ancak stok düşüm mekanizması (Kesim modülündeki bug nedeniyle) çalışmıyor. `stok_mt` hiç değişmiyor, dolayısıyla buradaki risk hesabı körleşmiş durumda.
+
+### 2. M1 → M2 → M3 KÖPRÜSÜ (FİZİBİLİTE VERİSİ KAYBOLUYOR MU?)
+
+**Satır 343:**
+```js
+m3eAktar({ ...seciliTalep, maliyet: toplamMaliyet, kar_marji: karMarjiYuzde });
+```
+M2 kârlılığı hesaplıyor ve M3'e yolluyor. Ama Kalıphane bunu kendi tablosuna kaydediyor mu yoksa "talep" statüsünde mi bırakıyor, Kalıphane incelendiğinde netlecek. İmalat onayında bu ₺ maliyet verisi M7'ye gitmezse tekrar girmek gerekir.
+
+### 3. FIRSAT RADARI GERÇEK APİ İLE ÇALIŞMIYOR MU?
+
+Satır 179: `%${aiVeri.beklenen_marj_yuzdesi || 65} TAHMİNİ MARJ`
+Buradaki AI eşleşmesi M1'den mi geliyor yoksa `useKumas` içinde bir `Supabase RPC` ile mi üretiliyor? Eğer Supabase Python scraperları çalışmıyorsa bu veriler tamamen "hardcoded fallback" değerleridir.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| M1 → M2 Talepler | VAR ✅ | AR-GE onaylı ürünler M2'ye talep olarak geliyor |
-| M2 → M3 (Fizibilite sonrası) | VAR ✅ | `m3eAktar()` fonk. var |
-| M2 → Stok | YOK | Kumaş kullanımı stok hareketlerine otomatik gitmiyor |
-| M2 → Maliyet | YOK | Kumaş birim maliyeti değişince M7'ye yansıtılmıyor |
-| Tedarikçi → Otomatik Sipariş | YOK | Kritik kumaş stokunda tedarikçiye bildirim yok |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] **Arama input'u bağlantısız** → satır 153: placeholder var ama `value` ve `onChange` yok — arama çalışmıyor
-- [ ] **Kartela butonu onClick yok** → satır 241-243: işlevsiz
-- [ ] **`rakipSatis: '499.90'`** → satır 25: Rakip satış fiyatı fizibilite formunda her zaman ₺499.90 başlıyor — bu sabit değer kullanıcıyı yanıltabilir
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Kumaş Stok | Karargah | KISMEN | Kesim'den veri gelmiyor |
+| M2 Fizibilite | M7 Maliyet | BİLİNMİYOR | `toplamMaliyet` veritabanında saklanıp M7'ye aktarılmalı |
+| AI Trend Raporu | M2 Önerme | KOPUK | M1 scraperları bozuk |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Kumaş fotoğraf galerisi (Supabase Storage)
-- [ ] Renk kartela sistemi (dijital pantone renk eşleştirme)
-- [ ] Tedarikçi portalı (fiyat teklifleri dijital ortamda)
-- [ ] Kumaş performans veritabanı (yıkama, dayanıklılık testleri)
-- [ ] Sürdürülebilirlik sertifikaları (GOTS, Oeko-Tex)
-- [ ] Otomatik tedarik siparişi (eşik aşılınca PDF teklif maili)
+- [ ] **Tedarikçi Performans Puanlaması** → Malı geciktiren tedarikçiyi listeden düşür.
+- [ ] **Barkod/QR ile Kumaş Girişi** → İrsaliye okutarak otomatik stok ekleme.
+- [ ] **Renk Spektrofotometre Entegrasyonu** → Gelen kumaş partisinin renk tonu sapmasını kaydetme.

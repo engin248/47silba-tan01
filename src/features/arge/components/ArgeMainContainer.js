@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import {
     TrendingUp, Plus, CheckCircle2, XCircle, Clock, AlertTriangle,
-    Bot, Search, BarChart3, Tag, Layers, Zap, Activity, Network, ShieldAlert
+    Bot, Search, BarChart3, Tag, Layers, Zap, Activity, Network, ShieldAlert, PieChart as PieChartIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, PieChart, Pie, Cell } from 'recharts';
 
 export default function ArgeMainContainer() {
     const { kullanici, yukleniyor } = useAuth();
@@ -86,6 +87,22 @@ export default function ArgeMainContainer() {
                     mesaj: `Koordinatör kararı uygulandı. Ürün referans ID: ${id}`,
                     sonuc: yeniDurum === 'uretim_onay' ? 'basarili' : 'uyari'
                 }]);
+
+                // [AR-04] Modelhane otomatik yönlendirme
+                if (yeniDurum === 'uretim_onay') {
+                    const p = products.find(prd => prd.id === id);
+                    if (p) {
+                        try {
+                            await supabase.from('b1_model_taslaklari').insert([{
+                                model_kodu: p.model_kodu || ('MDL-' + id.substring(0, 5).toUpperCase()),
+                                model_adi: p.isim_orjinal || p.isim || 'ARGE Taslak',
+                                durum: 'taslak',
+                            }]);
+                        } catch (e) {
+                            console.error('Modelhane aktarım hatası:', e);
+                        }
+                    }
+                }
             }
         } catch (err) { console.error(err); }
     };
@@ -132,21 +149,100 @@ export default function ArgeMainContainer() {
 
                     {/* SOL BÖLGE: ŞEF LOG VE CANLI RADAR (A & H BLOKLARI) */}
                     <div className="xl:col-span-1 space-y-6">
-                        {/* A BLOK: KPI */}
+                        {/* A BLOK: KPI & Son 24 Saat Yükselenler [AR-01] */}
                         <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-5">
-                            <h3 className="text-sm font-black text-[#8b949e] tracking-widest uppercase mb-4">Ajan Saha Özeti</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="text-sm text-gray-500">Son 24 Saatte Taranan</div>
-                                    <div className="text-2xl font-black text-white">{products.length} <span className="text-xs text-blue-400">Ürün</span></div>
+                            <h3 className="text-sm font-black text-[#8b949e] tracking-widest uppercase mb-4 flex items-center gap-2">
+                                <Activity size={16} className="text-emerald-500" /> Ajan Saha Özeti
+                            </h3>
+                            <div className="space-y-4 mb-5">
+                                <div className="flex justify-between items-center">
+                                    <div className="text-sm text-gray-500">Son 24h Taranan</div>
+                                    <div className="text-xl font-black text-white">{products.length}</div>
                                 </div>
                                 <div className="h-px bg-[#21262d]"></div>
-                                <div>
-                                    <div className="text-sm text-gray-500">M1 Zırhından Geçen (Bingo)</div>
-                                    <div className="text-2xl font-black text-emerald-400">{products.filter(p => p.satar_satmaz_skoru >= 85).length} <span className="text-xs text-emerald-600">Fırsat</span></div>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-sm text-gray-500">M1 Zırhından Geçen</div>
+                                    <div className="text-xl font-black text-emerald-400">{products.filter(p => p.satar_satmaz_skoru >= 85).length}</div>
                                 </div>
                             </div>
+
+                            <h4 className="text-xs font-bold text-[#8b949e] uppercase mb-3 border-t border-[#21262d] pt-4 flex items-center gap-1">
+                                <TrendingUp size={14} className="text-blue-500" /> [AR-01] Top Yükselenler
+                            </h4>
+                            <div className="space-y-3">
+                                {products.filter(p => p.satar_satmaz_skoru >= 85).slice(0, 3).map((tp, idx) => (
+                                    <div key={idx} className="flex justify-between items-center bg-[#0d1117] p-2.5 rounded-lg border border-[#30363d]">
+                                        <div className="truncate text-[0.7rem] font-bold text-gray-300 w-2/3 uppercase">{tp.isim_orjinal || tp.isim || 'Ürün'}</div>
+                                        <div className="text-[0.7rem] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">%{tp.satar_satmaz_skoru}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+
+                        {/* B BLOK: TREND RADAR GRAFİK [AR-02] */}
+                        <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4">
+                            <h3 className="text-sm font-black text-[#8b949e] tracking-widest uppercase mb-2 flex items-center gap-2">
+                                <Zap size={16} className="text-amber-500" /> [AR-02] Trend Radar
+                            </h3>
+                            <div className="h-[220px] w-full">
+                                {products.length > 0 ? (() => {
+                                    const cats = {};
+                                    products.forEach(p => {
+                                        const k = p.kategori || 'DİĞER';
+                                        if (!cats[k]) cats[k] = { kat: k, toplam: 0, adet: 0 };
+                                        cats[k].toplam += (p.satar_satmaz_skoru || 50);
+                                        cats[k].adet++;
+                                    });
+                                    const radarData = Object.values(cats).map(c => ({
+                                        subject: c.kat.substring(0, 10),
+                                        A: Math.round(c.toplam / c.adet),
+                                        fullMark: 100
+                                    })).slice(0, 6);
+
+                                    return (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
+                                                <PolarGrid stroke="#30363d" />
+                                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#8b949e', fontSize: 10 }} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                                <Radar name="Skor" dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.4} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    );
+                                })() : <div className="text-xs text-gray-500 text-center pt-10">Veri bekleniyor...</div>}
+                            </div>
+                        </div>
+
+                        {/* F BLOK: KATEGORİ HARİTASI [AR-03] */}
+                        <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4">
+                            <h3 className="text-sm font-black text-[#8b949e] tracking-widest uppercase mb-2 flex items-center gap-2">
+                                <PieChartIcon size={16} className="text-purple-500" /> [AR-03] Kategori Haritası
+                            </h3>
+                            <div className="h-[200px] w-full">
+                                {products.length > 0 ? (() => {
+                                    const cats = {};
+                                    products.forEach(p => {
+                                        const k = p.kategori || 'DİĞER';
+                                        cats[k] = (cats[k] || 0) + 1;
+                                    });
+                                    const pieData = Object.keys(cats).map(k => ({ name: k, value: cats[k] }));
+                                    const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+                                    return (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} fill="#8884d8" paddingAngle={5} dataKey="value">
+                                                    {pieData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    );
+                                })() : <div className="text-xs text-gray-500 text-center pt-10">Veri bekleniyor...</div>}
+                            </div>
+                        </div>
+
 
                         {/* H BLOK: AJAN LOG */}
                         <div className="bg-[#161b22] border border-[#21262d] rounded-xl flex flex-col h-[400px]">

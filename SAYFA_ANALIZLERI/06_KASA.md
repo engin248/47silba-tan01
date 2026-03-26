@@ -1,69 +1,62 @@
-# KASA (M6) — Sayfa Analizi
+# KASA & FİNANS YÖNETİMİ (M6) — Detaylı Sayfa Analizi
 **Rota:** `/kasa` | **Dosya:** `src/features/kasa/components/KasaMainContainer.js`  
-**Görev:** Şirketin tüm nakit akışını yönet. Tahsilat, ödeme, çek, senet, avans kayıt ve onay.
+**Toplam:** 524 satır  
+**Görev:** Şirket içi tüm para giriş/çıkışını (Tahsilat, Senet, Çek, İade, Personel Avansı vb.) takip eden ve onay mekanizması barındıran çekirdek finans modülü.
 
 ---
 
-## ✅ MEVCUT NE VAR (kodda doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 6 hareket tipi (tahsilat, iade, çek, senet, avans, diğer) | VAR | satır 43 |
-| 6 ödeme yöntemi (nakit, EFT, kredi kartı, çek, senet, diğer) | VAR | satır 44 |
-| Müşteri bağlantısı | VAR | satır 119-120 |
-| Personel bağlantısı (avans köprüsü M13) | VAR | satır 70, 52 |
-| Realtime WebSocket (b2_kasa_hareketleri) | VAR | satır 90 |
-| Sekme kapatınca WS koparma (maliyet tasarrufu) | VAR | satır 87-99 |
-| 10sn timeout DDoS kalkanı | VAR | satır 116 |
-| Onay mekanizması | VAR | |
-| Çift tıklama koruması | VAR | satır 77 |
-| Pagination (50'şer yükleme) | VAR | satır 78 |
-| CSV export | VAR | satır 13-41 |
-| Vade tarihi takibi | VAR | satır 50 |
-| Çevrimdışı kuyruk | VAR | import satır 2 |
+| `b2_kasa_hareketleri` tablosu | VAR | satır 119 |
+| CSV Dışa Aktar (kasaCsvIndir) | VAR | satır 13-41 |
+| 6 Hareket Tipi (tahsilat/iade/cek/senet/avans/diger) | VAR | satır 43 |
+| 6 Ödeme Yöntemi (nakit/eft/kredi_karti/cek/senet/diger) | VAR | satır 44 |
+| Onay Akışı (bekliyor → onaylandi/reddedildi) | VAR | satır 149 |
+| Personel Avans girişinde personel ID bağlama | VAR | satır 52, 148 |
+| Müşteri ID bağlama | VAR | satır 147 |
+| Realtime WebSocket (Visibility algılamalı PWA) | VAR | satır 89 |
+| Filtreleme (Tip ve Onay Durumuna göre) | VAR | satır 75-76 |
+| Kilit koruması (islemdeId çift tık engeli) | VAR | satır 77 |
+| Onay Yetkisi Kontrolü (Sadece 'tam' gruplular) | VAR | satır 82 |
+| Tutar Valitasyon (Maks 10 Milyon, >0) | VAR | satır 137 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **KPI ₺0 sorunu** → `b2_kasa_hareketleri` tablosunda gerçek veri yok veya RLS kısıtlı (Karargah da ₺0 gösteriyor)
-- [ ] **Açık vade takibi** → Vade tarihi alanı var ama:
-  - Vadesi geçmiş tahsilatları listeleyen bir sekme/uyarı yok
-  - Toplam açık alacak hesabı yok
-- [ ] **Günlük/Aylık kasa özeti** → "Bu gün ne kadar para girdi, ne kadar çıktı?" anlık bakiye görünümü yok
-- [ ] **Çek/Senet takibi** → Çek tutulma tarihi, bankaya verilmesi gereken tarih takibi yok
-  - `cek` ve `senet` hareket tipi var ama özel takip paneli yok
-- [ ] **Toplam nakit pozisyonu** → "Elimizde şu an kaç TL nakit var?" sorusu cevaplanmıyor
-- [ ] **Avans geri ödeme takibi** → Personele verilen avans kasa'da görünüyor ama geri ödendi mi? Takip yok
+### 1. KASA TOPLAM BAKİYE GÖSTERGESİ YOK (GÖRSELDE ve HESAPLAMADA)
+
+Kasa sayfası listeyi gösteriyor, hareketleri CSV indiriyor ama **Kasa Bakiyesi (Toplam İçerdeki Para)** hesaplanmıyor. Sayfanın en üstünde "Toplam Nakit: XXX TL, Toplam Çek: YYY TL" gibi bir KPI panosunun veritabanından kümülatif çekiliyor olması gerekirdi. Rakamlar sadece kayıt bazlı duruyor, toplanmıyor.
+
+### 2. AVANS VE PERSONEL MAAŞ/PRİM DÜŞÜMÜ
+
+Kasa sayfasında "Avans" verildiğinde işlem `personel_id`'ye bağlanıyor (Satır 148), çok güzel. Ancak bu avans, Personel (M13) tablosunda `b1_personel` hesabından "Avans Borcu" olarak düşüyor mu? Avans verildiğinde Personel Modülünün bakiyesinin otomatik tetiklenmesi gerekir.
+
+### 3. FATURA/MAKBUZ DOSYA YÜKLEMESİ (STORAGE) YOK
+
+EFT veya Nakit işlemlerde, makbuzun veya faturanın fotoğrafının eklendiği bir Supabase Storage fotoğraf yükleme alanı yok. Bir kasa hareketinin tek kanıtı `aciklama` kolonundaki metin. Kurumsal sistemlerde her ödemenin bir "Fiş Numarası" veya "Fiş Fotoğrafı" olmalıdır.
+
+### 4. SİPARİŞLE (M9) DİREKT BAĞLANTI EKSİK
+
+Kasa hareketi bir müşteriye bağlanabiliyor (`musteri_id`). Ancak spesifik olarak **hangi siparişe istinaden** (`siparis_id` eksik) bu tutarın tahsil edildiği yazılamıyor. Böylece bir siparişin "Kalan Borcu" kümülatif olarak müşteri bazlı hesaplanmak zorunda kalıyor, sipariş bazlı maliyet-kâr denetimi zorlaşıyor.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Sipariş → Kasa | VAR ✅ | Sipariş tesliminde otomatik tahsilat kasa'ya yazılıyor |
-| Personel → Kasa | VAR ✅ | Avans köprüsü çalışıyor |
-| Muhasebe → Kasa | YOK | Kasa hareketleri muhasebe raporuna aktarılmıyor |
-| Karargah → Kasa | YOK | KPI'daki kasa verisi ₺0 gösteriyor (tablo boş) |
-| Banka hesabı | YOK | EFT/Havale hareketleri hangi banka hesabında? |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] `b2_kasa_hareketleri` tablosu Supabase'de boş — gerçek veri girilmemiş
-- [ ] Onaylanmış ve bekleyen hareketlerin toplam ayrımı istatistik kartlarında gösterilmiyor
-- [ ] CSV export fonksiyonu `vade_tarihi` kolonu için `b2_musteriler?.ad_soyad` referansı var (satır 27) ama müşteri join her zaman yüklü olmayabilir
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Kasa Avans | Personel (M13) | BİLİNMİYOR | Personel tablosunda borç olarak yazılıyor mu kontrolü |
+| Kasa Tahsilat | Sipariş (M9) | YOK | Sipariş ID eksik, sadece Müşteriye bağlanıyor |
+| Kasa Hareketi | Dosya / Belge | YOK | Fiş, e-Fatura PDF, Makbuz fotoğraf yüklemesi |
+| Tüm Hareketler | Karargah | KISMI | Karargahtaki kasa özeti ile buradaki toplamların senkronu |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Çek portföy yönetimi (tüm çeklerin bankaya sunulacağı takvim)
-- [ ] Banka hesabı bağlantısı (EFT → hangi banka hesabına geldi)
-- [ ] Döviz kasa (USD, EUR hareketleri ayrı bakiye)
-- [ ] Kasa limitli uyarı ("Nakit ₺X'in altına düştü")
-- [ ] Mal karşılığı ödeme kaydı
-- [ ] e-Dönüşüm bağlantısı (e-fatura, e-irsaliye)
-- [ ] Günlük kasa kapanış raporu (Z-raporu benzeri)
+- [ ] **Banka API Entegrasyonu (Açık Bankacılık)** → Şirket hesabına düşen EFT'lerin kasa tablosuna otomatik onay bekleyen olarak yansıması.
+- [ ] **Döviz / Parite Desteği** → USD/EUR ile ödeme alma, o günün TCMB kuruyla tl karşılığının yazılması.
+- [ ] **Kasa Gruplandırma** → Şube kasası, merkez kasa, çekmecedeki nakit alt kırılımları.

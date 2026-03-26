@@ -1,61 +1,50 @@
-# PERSONEL YÖNETİMİ (M13) — Sayfa Analizi
+# İNSAN KAYNAKLARI VE PUANTAJ (M13) — Detaylı Sayfa Analizi
 **Rota:** `/personel` | **Dosya:** `src/features/personel/components/PersonelMainContainer.js`  
-**Görev:** Personel kaydı, devam takibi, prim hesaplama, kasa avans köprüsü.
+**Toplam:** 819 satır  
+**Görev:** Şirket çalışanlarının kaydı, avans takibi, günlük devam (puantaj) durumu, prim ve saatlik/dakikalık maaş hesaplarının yapılması.
 
 ---
 
-## ✅ MEVCUT NE VAR (koddan doğrulandı)
+## ✅ MEVCUT NE VAR (koddan satır satır doğrulandı)
 
 | Bileşen | Durum | Kod Referansı |
 |---------|-------|---------------|
-| 10 rol niteliği sistemi (duz_makinaci → koordinatör) | VAR | satır 18-24 |
-| 3 durum (aktif/izinli/çıktı) | VAR | satır 25-26 |
-| Personel CRUD (ekle/düzenle/sil) | VAR | |
-| Rol ve arama filtresi | VAR | satır 47 |
-| 3 Sekme (liste / prim / devam) | VAR | satır 48 |
-| Devam takibi (calisti/izin/gecikti/devamsizlik) | VAR | satır 51 |
-| Kasa avans köprüsü (M13-M7) | VAR | satır 112-116 |
-| Sistem ayarları (dakika başı ücret, prim oranı) | VAR | satır 54, 80-95 |
-| b1_sistem_ayarlari tablosundan konfigürasyon | VAR | satır 82 |
-| Günlük çalışma dakikası (480 dk = 8 saat) | VAR | satır 30 |
-| Çevrimdışı çalışma | VAR | |
-| Arapça isim desteği | VAR | satır 29 |
+| `b1_personel` ve `b1_personel_devam` tabloları | VAR | satır 109, asekme === 'devam' |
+| Avans Çekimi (`b2_kasa_hareketleri` onaylı) | VAR | satır 112-117 |
+| 10 Farklı Rol (Düz makinacı, ütücü vb.) | VAR | satır 18-24 |
+| Sistem Ayarları Bağımlılığı (Maaş/Prim için) | VAR | satır 82-90 |
+| Mükerrer `personel_kodu` engeli Zırhı | VAR | satır 143 |
+| Realtime Websocket | VAR | satır 65 |
+| İzin Bakiyesi/Günlük Çalışma (480 dk) Tanımları | VAR | satır 30 |
 
 ---
 
-## ❌ EKSİK BİLGİ AKIŞLARI
+## ❌ EKSİK BİLGİ AKIŞLARI — DETAYLI
 
-- [ ] **Prim hesabı gerçek üretim verisine bağlı değil** → İmalat(M4)'taki FPY skoru personel primini etkilemiyor; prim manuel veya sabit konfigürehesaplanıyor
-- [ ] **İzin bakiyesi takibi eksik** → `yillik_izin_hakki = 15` (satır 54) var ama kullanılan izin günü sayımı otomatik değil
-- [ ] **Devam analizleri grafiği yok** → "Bu ay en çok devamsızlık yapan kim?" görselleştirme yok
-- [ ] **SGK/bordro modülü yok** → Aylık maaş hesabı yapılabiliyor ama yasal bildirim (SGK, MUHSGK) yok
-- [ ] **Fazla mesai takibi eksik** → 480 dk'yı aşan çalışma saatleri kaydedilemiyor
+### 1. HAKEDİŞ VE MAAŞ FİŞİ (BORDRO YAZIMI) YOK
+
+**Sorun:** Sistemde "Maaş = Saatlik ücret * Gün" formülünü ekranda gösteren kısımlar var (Örn. `aylik: gunluk * 22`). Ancak her ayın 1'inde bu hesaplanan toplam maaşın (Devamsızlık ve Avanslar düşülerek) dondurulup "Bu ay X TL borçlandık" diye bir `b1_personel_maaslari` cetveline yazılması gerekir. Eğer bu geçmiş olarak dondurulmazsa, ayarları veya devamsızlıkları ileride sildiğinizde geçmiş ayların maaşları da bozulur (Düşünülmemiş).
+
+### 2. AVANS TOPLAMI OTOMATİK DÜŞÜLMÜYOR
+
+M6 (Kasa) üzerinden verilen Onaylı Avanslar `b2_kasa_hareketleri` tablosundan (satır 112) okunup ekranda personelin kartına yazılıyor ama gün sonu/ay sonu hakediş hesabında "netEleGecen = (Maaş + Prim) - ÇekilenAvans" matematiksel işlemi backend tablosunda birikecek şekilde ayarlanmamış. Formül sadece FrontEnd'de UI gösterişinden ibaret kalmış.
+
+### 3. PRİM HESAPLAMA MOTORU TETİKLENMİYOR
+
+Personel sayfasındaki "Ayarlar (M23)" tablosundan Prim Oranı % si çekiliyor (`b1_sistem_ayarlari`). Ancak üretim (İmalat M4) modülünde süresinden önce bitirilen bir malın (vicdan motorunun) kârından çıkan paranın Personel kartına aktarıldığı mekanizma çalışmıyor. Prim sadece "ayarlardan gelen % oranı" olarak okunuyor.
 
 ---
 
 ## ❌ EKSİK ENTEGRASYONLAR
 
-| Entegrasyon | Mevcut | Olmayan |
-|-------------|--------|---------|
-| Personel → Kasa (Avans) | VAR ✅ | b2_kasa_hareketleri avans köprüsü |
-| Personel → İmalat (FPY) | VAR ✅ | Sahadaki personel listesi İmalat'tan geliyor |
-| Personel → Prim Motoru | KISMI | Prim hesabı var ama üretim verisine bağlı değil |
-| Personel → Muhasebe | YOK | İşçilik maliyeteri muhasebe raporuna otomatik gitmiyor |
-
----
-
-## ❌ MEVCUT KOD SORUNLARI
-
-- [ ] Satır 65-67: Personel'deki Realtime `.on('postgres_changes', { event: '*', schema: 'public' })` — şema bazında tüm tabloları dinliyor; bu gereksiz trafik yaratır, sadece `b1_personel` dinlenmeli
-- [ ] `b1_sistem_ayarlari` tablosundan `deger` kolonunu JSON parse ediyor (satır 86) — bu tablo ve ilgili JSON yapısı Supabase'de var mı? 400 hatası alınıyor olabilir
+| Kaynak | Hedef | Durum | Sorun |
+|--------|-------|-------|-------|
+| Personel Maaşı | Kasa (M6) | YOK | Maaş ödendiğinde kasa eksi yazmıyor |
+| Ay Sonu Kapanışı | Muhasebe (M8) | YOK | Sabit gider olarak maaşlar devredilmiyor |
 
 ---
 
 ## 🔮 3-5 YIL SONRA LAZIM OLACAKLAR
 
-- [ ] Dijital bordro sistemi (maaş + prim + avans mahsuplaşması)
-- [ ] SGK entegrasyonu (aylık bildirim otomasyonu)
-- [ ] Yüz tanıma ile devam takibi
-- [ ] Performans değerlendirme sistemi (360 derece)
-- [ ] Kariyer gelişim planı (terfi kriterleri)
-- [ ] Eğitim kayıt sistemi (kurs takibi)
+- [ ] **RFID / Yüz Tanıma PDKS cihazı** → Turnikeden parmak izi ile geçildiğinde `b1_personel_devam` tablosuna API ile otomatik giriş (Manuel girişi öldürür).
+- [ ] **E-Devlet Bordro Çıktısı** → SGK e-bildirge için hazır XML çıktısı.
