@@ -74,11 +74,56 @@ export async function siparisKaydet(form, kalemler) {
 // ── Durum Güncelle ─────────────────────────────────────────────────────────────
 export async function durumGuncelle(id, durum, ekstraBilgi = {}) {
     // Mükerrer işlem engeli (U Kriteri)
-    const { data: mevcut } = await supabase.from('b2_siparisler').select('durum, siparis_no, toplam_tutar_tl').eq('id', id).single();
+    const { data: mevcut } = await supabase.from('b2_siparisler').select('durum, siparis_no, toplam_tutar_tl, musteri_id, kanal, notlar').eq('id', id).single();
     if (mevcut?.durum === durum) throw new Error(`Sipariş zaten "${durum}" durumunda — mükerrer engellendi.`);
 
     const { error } = await supabase.from('b2_siparisler').update({ durum, ...ekstraBilgi }).eq('id', id);
     if (error) throw error;
+
+    // ── [SI-02] ONAY → OTOMATİK ÜRETİM EMRİ ────────────────────────────────
+    if (durum === 'onaylandi') {
+        try {
+            const { data: kalemler } = await supabase
+                .from('b2_siparis_kalemleri')
+                .select('urun_id, adet, beden, renk, b2_urun_katalogu:urun_id(urun_kodu, urun_adi)')
+                .eq('siparis_id', id);
+
+            if (kalemler && kalemler.length > 0) {
+                const uretimEmirleri = kalemler.map(k => {
+                    const urun = Array.isArray(k.b2_urun_katalogu) ? k.b2_urun_katalogu[0] : k.b2_urun_katalogu;
+                    return {
+                        siparis_id: id,
+                        siparis_no: mevcut?.siparis_no,
+                        urun_id: k.urun_id,
+                        urun_kodu: urun?.urun_kodu || null,
+                        urun_adi: urun?.urun_adi || null,
+                        miktar: k.adet,
+                        beden: k.beden || null,
+                        renk: k.renk || null,
+                        status: 'pending',
+                        oncelik: 'normal',
+                        aciklama: `[OTONOM] Sipariş onayından otomatik oluşturuldu — Kanal: ${mevcut?.kanal || 'bilinmiyor'}`,
+                        created_at: new Date().toISOString(),
+                    };
+                });
+
+                const { error: uretimErr } = await supabase.from('production_orders').insert(uretimEmirleri);
+
+                if (!uretimErr) {
+                    await supabase.from('b0_sistem_loglari').insert([{
+                        tablo_adi: 'production_orders', islem_tipi: 'OTOMATIK_URETIM_EMRI',
+                        kullanici_adi: 'SİSTEM (DELTA AJAN)',
+                        eski_veri: { siparis_no: mevcut?.siparis_no, kalem_sayisi: kalemler.length }
+                    }]);
+                    telegramBildirim(`✅ SİPARİŞ ONAYLANDI \nSipariş No: ${mevcut?.siparis_no}\n${kalemler.length} kalem → ÜRETİM EMRİ oluşturuldu.`);
+                } else {
+                    console.error('[SI-02] Üretim emri hatası:', uretimErr);
+                }
+            }
+        } catch (uretimHata) {
+            console.error('[SI-02] Otomatik üretim emri exception:', uretimHata);
+        }
+    }
 
     if (durum === 'teslim') {
         await stokDus(id);

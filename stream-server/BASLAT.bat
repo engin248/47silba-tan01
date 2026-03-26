@@ -38,11 +38,7 @@ echo ============================================
 
 cd /d "%~dp0"
 start "go2rtc" /b go2rtc.exe -config go2rtc.yaml
-<<<<<<< HEAD
 start "cloudflared" /b "%~dp0cloudflared.exe" tunnel --config "%~dp0tunnel-config.yml" run d3d1c0ab-135f-4934-87be-b5b459a292e7
-=======
-start "cloudflared" /b "C:\Users\Admin\CUsersAdminDesktop47_SIL_BASTAN_01\stream-server\cloudflared.exe" tunnel --config tunnel-config.yml run d3d1c0ab-135f-4934-87be-b5b459a292e7
->>>>>>> 00caa2c7edc776b4729700b66de9c773e83bf552
 
 echo.
 echo [*] KAMERA YAYIN SISTEMI (LOCAL VE CLOUD) BASLATILDI.

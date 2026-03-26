@@ -96,6 +96,8 @@ export function KarargahMainContainer() {
     const simulasyon = _hook.simulasyon;
     const setSimulasyon = _hook.setSimulasyon;
     const mesaj = /** @type {any} */ (_hook.mesaj ?? {});
+    const aiOutputs = /** @type {any[]} */ (_hook.aiOutputs ?? []);
+
 
     const [botLoglar, setBotLoglar] = useState(/** @type {any[]} */([]));;
     const [botDurum, setBotDurum] = useState('kontrol');
@@ -301,33 +303,31 @@ export function KarargahMainContainer() {
                         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500/40 to-transparent" />
                     </div>
 
-                    {/* METRİK PANELLER */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* METRİK PANELLER — KG-03/04/05/06/07 */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                         {[
-                            { baslik: 'GÜNLÜK CİRO', deger: isAdmin ? `₺ ${fm(stats.ciro)}` : '▓▓▓▓▓▓', renk: 'green', link: '/raporlar', ikon: <Target size={12} /> },
-                            { baslik: 'TOPLAM MALİYET', deger: isAdmin ? `₺ ${fm(stats.maliyet)}` : '▓▓▓▓▓▓', renk: 'red', link: '/maliyet', ikon: <Database size={12} /> },
-                            { baslik: 'PERSONEL GİDER', deger: isAdmin ? `₺ ${fm(stats.personel)}` : '▓▓▓▓▓▓', renk: 'yellow', link: '/personel', ikon: <Shield size={12} /> },
-                            { baslik: 'FIRE/ZAYİAT', deger: `%${stats.fire}`, renk: 'orange', link: '/maliyet', ikon: <AlertTriangle size={12} /> },
+                            { baslik: 'GÜNLÜK CİRO', deger: isAdmin ? `₺ ${fm(stats.ciro)}` : '▓▓▓▓▓▓', renk: 'green', link: '/raporlar', ikon: <Target size={11} /> },
+                            { baslik: 'TOPLAM MALİYET', deger: isAdmin ? `₺ ${fm(stats.maliyet)}` : '▓▓▓▓▓▓', renk: 'red', link: '/maliyet', ikon: <Database size={11} /> },
+                            { baslik: 'PERSONEL GİDER', deger: isAdmin ? `₺ ${fm(stats.personel)}` : '▓▓▓▓', renk: 'yellow', link: '/personel', ikon: <Shield size={11} /> },
+                            { baslik: 'FIRE/ZAYİAT', deger: `%${stats.fire}`, renk: 'orange', link: '/maliyet', ikon: <AlertTriangle size={11} /> },
+                            { baslik: 'BEKLEyen SİP.', deger: `${stats.bekleyenSiparis} adet`, renk: stats.bekleyenSiparis > 5 ? 'orange' : 'green', link: '/siparisler', ikon: <Shield size={11} /> },
+                            { baslik: 'AKTİF ÜRETİM', deger: `${stats.aktifUretim} emir`, renk: stats.aktifUretim > 0 ? 'green' : 'yellow', link: '/uretim', ikon: <Database size={11} /> },
+                            { baslik: 'STOK ALARM', deger: `${stats.stokAlarm} ürün`, renk: stats.stokAlarm > 0 ? 'red' : 'green', link: '/stok', ikon: <AlertTriangle size={11} /> },
                         ].map((m, i) => (
                             <Link key={i} href={m.link} className="group block">
-                                <div className={`border bg-black/60 p-4 relative overflow-hidden transition-all duration-300
+                                <div className={`border bg-black/60 p-3 relative overflow-hidden transition-all duration-300
                                     ${m.renk === 'green' ? 'border-green-900/60 group-hover:border-green-500/80' :
                                         m.renk === 'red' ? 'border-red-900/60 group-hover:border-red-500/60' :
                                             m.renk === 'yellow' ? 'border-yellow-900/40 group-hover:border-yellow-500/50' :
                                                 'border-orange-900/40 group-hover:border-orange-500/40'}`}>
-                                    <div className={`absolute top-0 right-0 w-0 h-0 border-t-[16px] border-r-[16px] border-l-transparent
-                                        ${m.renk === 'green' ? 'border-t-green-900/40 border-r-green-900/40' :
-                                            m.renk === 'red' ? 'border-t-red-900/30 border-r-red-900/30' :
-                                                m.renk === 'yellow' ? 'border-t-yellow-900/30 border-r-yellow-900/30' :
-                                                    'border-t-orange-900/30 border-r-orange-900/30'}`} />
-                                    <div className={`flex items-center gap-1 mb-2 text-xs uppercase tracking-widest font-bold
+                                    <div className={`flex items-center gap-1 mb-1 text-[10px] uppercase tracking-widest font-bold
                                         ${m.renk === 'green' ? 'text-green-700' :
                                             m.renk === 'red' ? 'text-red-700' :
                                                 m.renk === 'yellow' ? 'text-yellow-700' :
                                                     'text-orange-700'}`}>
                                         {m.ikon} {m.baslik}
                                     </div>
-                                    <div className={`text-xl font-bold tabular-nums
+                                    <div className={`text-base font-bold tabular-nums
                                         ${m.renk === 'green' ? 'text-green-300' :
                                             m.renk === 'red' ? 'text-red-300' :
                                                 m.renk === 'yellow' ? 'text-yellow-300' :
@@ -338,6 +338,7 @@ export function KarargahMainContainer() {
                             </Link>
                         ))}
                     </div>
+
 
                     {/* GÖREV & AI PANEL */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -466,18 +467,22 @@ export function KarargahMainContainer() {
                             </span>
                         </div>
                         <div className="space-y-2">
-                            {[
-                                { isim: 'VERİ MADENCİLERİ', detay: 'Derin web taranıyor...', stat: '24/s' },
-                                { isim: 'ANALİSTLER', detay: 'Modeller güncel', stat: '18ms' },
-                            ].map((a, i) => (
-                                <div key={i} className="border border-green-950/60 p-2 flex items-center justify-between">
+                            {/* KG-08: Gerçek b1_agent_loglari'ndan besleniyor */}
+                            {aiOutputs.length > 0 ? aiOutputs.slice(0, 3).map((a, i) => (
+                                <div key={i} className={`border p-2 flex items-center justify-between ${a.tur === 'hata' ? 'border-red-950/60' : a.tur === 'trend' ? 'border-green-950/60' : 'border-yellow-950/60'}`}>
                                     <div>
-                                        <div className="text-xs font-bold text-green-400 uppercase">{a.isim}</div>
-                                        <div className="text-xs text-green-800 mt-0.5">{a.detay}</div>
+                                        <div className={`text-xs font-bold uppercase ${a.tur === 'hata' ? 'text-red-400' : a.tur === 'trend' ? 'text-green-400' : 'text-yellow-500'}`}>{a.ajan}</div>
+                                        <div className="text-xs text-green-800 mt-0.5 truncate max-w-[140px]">{a.mesaj}</div>
                                     </div>
-                                    <span className="text-xs text-green-700 font-bold">{a.stat}</span>
+                                    <span className={`text-xs font-bold ${a.tur === 'hata' ? 'text-red-700' : a.tur === 'trend' ? 'text-green-700' : 'text-yellow-700'}`}>
+                                        {a.tur === 'hata' ? '⚠' : a.tur === 'trend' ? '↑' : '→'}
+                                    </span>
                                 </div>
-                            ))}
+                            )) : (
+                                <div className="border border-green-950/60 p-2 text-center">
+                                    <div className="text-xs text-green-800 uppercase tracking-widest">Ajan sinyali bekleniyor...</div>
+                                </div>
+                            )}
                         </div>
                         <Link href="/arge" className="block mt-3 text-center text-xs text-green-800 hover:text-green-500 uppercase tracking-[0.2em] transition-colors">
                             DETAY PANELE GEÇ →
@@ -587,7 +592,7 @@ export function KarargahMainContainer() {
                 </div>
                 <div className="text-xs text-green-900 uppercase tracking-widest">mizanet.com — THE ORDER / NİZAM</div>
             </div>
-        </div>
+        </div >
     );
 }
 

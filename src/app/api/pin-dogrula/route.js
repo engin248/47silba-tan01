@@ -8,8 +8,11 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 
 // ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
-// Upstash env varları yoksa in-memory fallback (geliştirme ortamı)
+// [NIZAM FIX] Upstash free tier 'evalsha' iznini reddediyor → 500 crash.
+// Çözüm: in-memory rate limit kullan. Paid plan olursa aşağıdaki bloğu aç.
 let ratelimit = null;
+/*
+// Paid plan için aşağıdaki bloğu aktifleştir:
 try {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         const { Ratelimit } = await import('@upstash/ratelimit');
@@ -20,14 +23,14 @@ try {
         });
         ratelimit = new Ratelimit({
             redis,
-            limiter: Ratelimit.slidingWindow(5, '15m'), // 15 dakikada 5 deneme
+            limiter: Ratelimit.slidingWindow(5, '15m'),
             analytics: false,
             prefix: 'pin_giris',
         });
-    } else {
-        console.warn('[PIN][GÜVENLİK] UPSTASH_REDIS_REST_URL veya TOKEN eksik. In-memory rate limit aktif — serverless ortamda bruteforce koruması zayıf!');
     }
-} catch (upstashHata) { console.warn('[PIN] Upstash import edilemedi, in-memory fallback aktif:', upstashHata.message); }
+} catch (upstashHata) { console.warn('[PIN] Upstash hatası, in-memory aktif:', upstashHata.message); }
+*/
+
 
 // In-memory fallback (Upstash olmadığında)
 const BELLEK_KILIT = new Map();
@@ -90,125 +93,148 @@ async function jwtOlustur(grup) {
         const imza = btoa(String.fromCharCode(...new Uint8Array(imzaBuffer)))
             .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         return `${veri}.${imza}`;
-    } catch {
+    } catch (cryptoHata) {
+        console.error('[JWT] Crypto hatası:', cryptoHata);
         throw new Error('JWT imzalama başarısız: Crypto API kullanılamıyor.');
     }
 }
 
 // ── ANA HANDLER ────────────────────────────────────────────────────
 export async function POST(request) {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        || request.headers.get('x-real-ip')
-        || 'bilinmeyen';
-
-    // ── Rate Limit Kontrolü ──
-    if (ratelimit) {
-        const { success } = await ratelimit.limit(`ip:${ip}`);
-        if (!success) {
-            return NextResponse.json(
-                { hata: 'Çok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
-                { status: 429 }
-            );
-        }
-    } else {
-        // In-memory fallback
-        const durum = belleKileKontrol(ip);
-        if (!durum.izinli) {
-            return NextResponse.json(
-                { hata: `Çok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
-                { status: 429 }
-            );
-        }
-    }
-
-    // ── İstek Gövdesi ──
-    let pin, tip;
     try {
-        const body = await request.json();
-        pin = body?.pin?.trim();
-        tip = body?.tip || 'uretim'; // 'uretim' | 'genel' | 'tam'
-    } catch {
-        return NextResponse.json({ hata: 'Geçersiz istek formatı.' }, { status: 400 });
-    }
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'bilinmeyen';
 
-    if (!pin || pin.length < 4) {
-        return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
-    }
+        // ── Rate Limit Kontrolü ──
+        if (ratelimit) {
+            const { success } = await ratelimit.limit(`ip:${ip}`);
+            if (!success) {
+                return NextResponse.json(
+                    { hata: 'Çok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
+                    { status: 429 }
+                );
+            }
+        } else {
+            // In-memory fallback
+            const durum = belleKileKontrol(ip);
+            if (!durum.izinli) {
+                return NextResponse.json(
+                    { hata: `Çok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+                    { status: 429 }
+                );
+            }
+        }
 
-    // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
-    const temizle = (v) => v?.replace(/['"\r\n]/g, '').trim();
+        // ── İstek Gövdesi ──
+        let pin, tip;
+        try {
+            const body = await request.json();
+            pin = body?.pin?.trim();
+            tip = body?.tip || 'uretim'; // 'uretim' | 'genel' | 'tam'
+        } catch {
+            return NextResponse.json({ hata: 'Geçersiz istek formatı.' }, { status: 400 });
+        }
 
-    const YETKI_SIRASI = [
-        { pin: temizle(process.env.ADMIN_PIN), grup: 'tam' },        // Sistem sahibi — 474747
-        { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },  // Koordinatör — 4747
-        // TEST_COORDINATOR_PIN production'dan kaldırıldı (Müfettiş G2 FIX 19.03.2026)
-        { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
-        { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
-    ];
+        if (!pin || pin.length < 4) {
+            return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
+        }
 
+        // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
+        const temizle = (v) => v?.replace(/['"\\r\\n]/g, '').trim();
 
-    const eslesen = YETKI_SIRASI.find(({ pin: p }) => p && p !== 'undefined' && p === pin);
-    const grup = eslesen ? eslesen.grup : null;
+        const YETKI_SIRASI = [
+            { pin: temizle(process.env.ADMIN_PIN), grup: 'tam' },        // Sistem sahibi — 474747
+            { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },  // Koordinatör — 4747
+            // TEST_COORDINATOR_PIN production'dan kaldırıldı (Müfettiş G2 FIX 19.03.2026)
+            { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
+            { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
+        ];
 
-    if (!grup) {
-        // Hatalı deneme kaydet
-        if (!ratelimit) bellekHataliDeneme(ip);
+        const eslesen = YETKI_SIRASI.find(({ pin: p }) => p && p !== 'undefined' && p === pin);
+        const grup = eslesen ? eslesen.grup : null;
 
-        // Hatalı girişi logla — fire-and-forget
-        (async () => { try { await supabaseAdmin.from('b0_sistem_loglari').insert([{ olay: 'PIN_HATALI_GIRIS', detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`, seviye: 'uyari' }]); } catch { } })();
+        if (!grup) {
+            // Hatalı deneme kaydet
+            if (!ratelimit) bellekHataliDeneme(ip);
 
+            // Hatalı girişi logla — fire-and-forget
+            (async () => {
+                try {
+                    await supabaseAdmin.from('b0_sistem_loglari').insert([{
+                        olay: 'PIN_HATALI_GIRIS',
+                        detay: `IP: ${ip} | İstek tipi: ${tip} | Saat: ${new Date().toISOString()}`,
+                        seviye: 'uyari'
+                    }]);
+                } catch { }
+            })();
+
+            return NextResponse.json(
+                { basarili: false, grup: null, mesaj: 'Yanlış PIN.' },
+                { status: 401 }
+            );
+        }
+
+        // ── Başarılı Giriş — JWT Token Oluştur ──
+        const token = await jwtOlustur(grup);
+
+        // Başarılı girişi logla — fire-and-forget
+        (async () => {
+            try {
+                await supabaseAdmin.from('b0_sistem_loglari').insert([{
+                    olay: 'PIN_BASARILI_GIRIS',
+                    detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
+                    seviye: 'bilgi'
+                }]);
+            } catch { }
+        })();
+
+        // ─── GÜVENLİK: HttpOnly Set-Cookie (XSS koruması) ───────────────
+        const isProd = process.env.NODE_ENV === 'production';
+        const cookieMaxAge = 8 * 3600; // 8 saat
+
+        const response = NextResponse.json(
+            { basarili: true, grup, tokenSuresi: cookieMaxAge },
+            { status: 200 }
+        );
+
+        // 1. JWT Token cookie — HttpOnly + Secure + SameSite=Strict
+        response.cookies.set('sb47_jwt_token', token, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: cookieMaxAge,
+        });
+
+        // 2. Auth session cookie — Middleware sayfa koruması için
+        const sessionData = JSON.stringify({ grup, zaman: Date.now() });
+        response.cookies.set('sb47_auth_session', sessionData, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: cookieMaxAge,
+        });
+
+        // 3. Grup bazlı yardımcı cookie'ler (middleware fallback)
+        if (grup === 'uretim') {
+            response.cookies.set('sb47_uretim_pin', '1', {
+                httpOnly: true, secure: isProd, sameSite: 'strict', path: '/', maxAge: cookieMaxAge,
+            });
+        } else if (grup === 'genel') {
+            response.cookies.set('sb47_genel_pin', '1', {
+                httpOnly: true, secure: isProd, sameSite: 'strict', path: '/', maxAge: cookieMaxAge,
+            });
+        }
+
+        return response;
+
+    } catch (globalHata) {
+        console.error('[PIN-DOGRULA KRİTİK HATA]', globalHata?.message, globalHata?.stack);
         return NextResponse.json(
-            { basarili: false, grup: null, mesaj: 'Yanlış PIN.' },
-            { status: 401 }
+            { hata: 'Sunucu hatası: ' + (globalHata?.message || 'bilinmeyen') },
+            { status: 500 }
         );
     }
-
-    // ── Başarılı Giriş — JWT Token Oluştur ──
-    const token = await jwtOlustur(grup);
-
-    // Başarılı girişi logla — fire-and-forget
-    (async () => { try { await supabaseAdmin.from('b0_sistem_loglari').insert([{ olay: 'PIN_BASARILI_GIRIS', detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`, seviye: 'bilgi' }]); } catch { } })();
-
-    // ─── GÜVENLİK: HttpOnly Set-Cookie (XSS koruması) ───────────────
-    // Token JSON body'de değil, HttpOnly cookie olarak döner.
-    // JavaScript bu cookie'ye erişemez → XSS ile token çalınamaz.
-    const isProd = process.env.NODE_ENV === 'production';
-    const cookieMaxAge = 8 * 3600; // 8 saat
-
-    const response = NextResponse.json(
-        { basarili: true, grup, tokenSuresi: cookieMaxAge },
-        { status: 200 }
-    );
-
-    // 1. JWT Token cookie — HttpOnly + Secure + SameSite=Strict
-    response.cookies.set('sb47_jwt_token', token, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: cookieMaxAge,
-    });
-
-    // 2. Auth session cookie — Middleware sayfa koruması için
-    const sessionData = JSON.stringify({ grup, zaman: Date.now() });
-    response.cookies.set('sb47_auth_session', sessionData, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: cookieMaxAge,
-    });
-
-    // 3. Grup bazlı yardımcı cookie'ler (middleware fallback)
-    if (grup === 'uretim') {
-        response.cookies.set('sb47_uretim_pin', '1', {
-            httpOnly: true, secure: isProd, sameSite: 'strict', path: '/', maxAge: cookieMaxAge,
-        });
-    } else if (grup === 'genel') {
-        response.cookies.set('sb47_genel_pin', '1', {
-            httpOnly: true, secure: isProd, sameSite: 'strict', path: '/', maxAge: cookieMaxAge,
-        });
-    }
-
-    return response;
 }

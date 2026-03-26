@@ -83,6 +83,7 @@ const nextConfig = {
 };
 
 // Sentry wrapper — App Router ile aktif
+// SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT → Vercel env vars'da tanımlı
 export default withSentryConfig(nextConfig, {
     org: process.env.SENTRY_ORG,
     project: process.env.SENTRY_PROJECT,
@@ -91,11 +92,5 @@ export default withSentryConfig(nextConfig, {
     hideSourceMaps: true,         // Kullanıcıya sourcemap gösterme
     disableLogger: true,
     tunnelRoute: '/monitoring',
-    // AUTH_TOKEN yapılandırılana kadar upload pipeline tamamen kapalı
-    // Bu ayar kırmızı uyarıyı tamamen siler
-    // hideSourceMaps:true zaten kaynak kodu korumaya yeterli
-    sourcemaps: {
-        disable: true,
-    },
 });
 
