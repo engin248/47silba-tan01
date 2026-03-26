@@ -1,4 +1,5 @@
 'use client';
+// @ts-nocheck
 /**
  * features/uretim/components/IsEmriListesi.js
  * İş Emirleri UI Bileşeni — Listeleme, arama, filtre, toplu işlem, düzenleme, silme
@@ -7,6 +8,37 @@ import { Trash2, Factory } from 'lucide-react';
 
 export const ST_RENK = { pending: '#f59e0b', in_progress: '#3b82f6', completed: '#10b981', cancelled: '#ef4444' };
 export const ST_LABEL = { pending: 'Bekliyor', in_progress: 'Üretimde', completed: 'Tamamlandı', cancelled: 'İptal' };
+
+// [UR-02] Aşama bazlı ilerleme — status'a göre hangi aşamada
+const URETIM_ASAMA = ['Kesim', 'İmalat', 'Kalite', 'Sevk'];
+function asamaIndexHesapla(status) {
+    if (status === 'completed') return 4;
+    if (status === 'in_progress') return 2;
+    if (status === 'pending') return 0;
+    return -1; // cancelled
+}
+
+function AsamaBarWidget({ status }) {
+    if (status === 'cancelled') return null;
+    const aktifIndex = asamaIndexHesapla(status);
+    return (
+        <div style={{ display: 'flex', gap: 2, marginTop: 6, alignItems: 'center' }}>
+            {URETIM_ASAMA.map((ad, i) => {
+                const tamamlandi = i < aktifIndex;
+                const aktif = i === aktifIndex - 1 || (status === 'in_progress' && i === 1);
+                return (
+                    <div key={i} style={{ flex: 1 }}>
+                        <div style={{ height: 4, borderRadius: 2, background: tamamlandi ? '#10b981' : aktif ? '#3b82f6' : '#1e293b', transition: 'background 0.3s' }} />
+                        {i === 0 || i === URETIM_ASAMA.length - 1 ? (
+                            <div style={{ fontSize: '0.55rem', color: tamamlandi ? '#10b981' : aktif ? '#3b82f6' : '#64748b', fontWeight: 700, marginTop: 2, textAlign: i === 0 ? 'left' : 'right' }}>{ad}</div>
+                        ) : null}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 
 export default function IsEmriListesi({
     orders, modeller, loading, formAcik, setFormAcik, formOrder, setFormOrder,
@@ -111,15 +143,17 @@ export default function IsEmriListesi({
                             </div>
                         </div>
                     </div>
+                    {/* [UR-02] Aşama Progress Bar */ }
+                    < AsamaBarWidget status = { o.status } />
+                </div>
                 ))}
 
-                {orders.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16 }}>
-                        <Factory size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
-                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>İş emri yok. "Yeni İş Emri" ile başlayın.</p>
-                    </div>
-                )}
-            </div>
+            {orders.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16 }}>
+                    <Factory size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
+                    <p style={{ color: '#94a3b8', fontWeight: 700 }}>İş emri yok. "Yeni İş Emri" ile başlayın.</p>
+                </div>
+            )}
         </div>
     );
 }
