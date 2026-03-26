@@ -88,13 +88,14 @@ export default withSentryConfig(nextConfig, {
     project: process.env.SENTRY_PROJECT,
     silent: true,
     widenClientFileUpload: true,
-    hideSourceMaps: true,
+    hideSourceMaps: true,         // Kullanıcıya sourcemap gösterme
     disableLogger: true,
     tunnelRoute: '/monitoring',
-    // Güvenlik: Build sonrası sourcemap dosyaları sunucudan sil
-    // Kaynak kod tarayıcıda okunamaz hale gelir
+    // AUTH_TOKEN yapılandırılana kadar upload pipeline tamamen kapalı
+    // Bu ayar kırmızı uyarıyı tamamen siler
+    // hideSourceMaps:true zaten kaynak kodu korumaya yeterli
     sourcemaps: {
-        deleteSourcemapsAfterUpload: true,
+        disable: true,
     },
 });
 
