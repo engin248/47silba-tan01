@@ -206,8 +206,15 @@ export default function KalipMainContainer() {
         const boy = parseFloat(formKalip.pastal_boyu_cm) / 100;
         const en = parseFloat(formKalip.pastal_eni_cm) / 100;
         const fire = parseFloat(formKalip.fire_orani_yuzde) / 100;
-        if (boy && en) return ((boy * en) * (1 + fire)).toFixed(3);
-        return '—';
+        if (boy && en) {
+            const m2 = (boy * en) * (1 + fire);
+            const total = m2 * (formKalip.bedenler.length || 1);
+            return {
+                tekil: m2.toFixed(3),
+                toplam: total.toFixed(3)
+            };
+        }
+        return { tekil: '—', toplam: '—' };
     };
 
     const toggleBeden = (b) => setFormKalip(p => ({ ...p, bedenler: p.bedenler.includes(b) ? p.bedenler.filter(x => x !== b) : [...p.bedenler, b] }));
@@ -347,8 +354,10 @@ export default function KalipMainContainer() {
                             <div><label className="block text-sm font-black text-[#8b949e] mb-1 uppercase tracking-widest">Fire Oranı (%)</label><input type="number" className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-xs text-white focus:border-amber-500 outline-none font-mono" value={formKalip.fire_orani_yuzde} onChange={e => setFormKalip({ ...formKalip, fire_orani_yuzde: e.target.value })} placeholder="5" /></div>
 
                             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 flex flex-col justify-center text-center">
-                                <span className="text-xs font-black uppercase text-amber-500 tracking-widest mb-1">M7 Çarpanı (Tahmini m²)</span>
-                                <span className="text-2xl font-black font-mono text-amber-400">{metrajHesap()}</span>
+                                <span className="text-[0.65rem] font-black uppercase text-amber-500 tracking-widest mb-1 leading-tight">Tekil / Toplam İhtiyaç (m²)</span>
+                                <div className="text-xl font-black font-mono text-amber-400">
+                                    {metrajHesap().tekil} <span className="text-xs text-amber-500/50">/</span> {metrajHesap().toplam}
+                                </div>
                             </div>
 
                             <div className="lg:col-span-4">
@@ -362,8 +371,16 @@ export default function KalipMainContainer() {
                                 </div>
                             </div>
                             <div className="lg:col-span-4">
-                                <label className="block text-sm font-black text-[#8b949e] mb-1 uppercase tracking-widest">DXF/PDF Dijital Kalıp (İsteğe Bağlı)</label>
-                                <input className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-xs text-blue-400 font-mono focus:border-amber-500 outline-none" value={formKalip.kalip_dosya_url} onChange={e => setFormKalip({ ...formKalip, kalip_dosya_url: e.target.value })} placeholder="URL veya Dosya Yolu..." />
+                                <label className="block text-sm font-black text-[#8b949e] mb-1 uppercase tracking-widest">[KA-01 / KA-06] Dijital Kalıp / Çizim Resmi (URL)</label>
+                                <div className="flex gap-2">
+                                    <input className="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-xs text-blue-400 font-mono focus:border-amber-500 outline-none" value={formKalip.kalip_dosya_url} onChange={e => setFormKalip({ ...formKalip, kalip_dosya_url: e.target.value })} placeholder="Resim linki (.jpg/.png) veya DXF/PDF belgesi url'si..." />
+                                    <button type="button" onClick={() => alert('Sistem Depolama Modülü hazırlığında. Şimdilik dış link (.jpg/.png vb.) kullanınız.')} className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] rounded-lg border border-[#30363d] text-xs font-black uppercase transition-colors whitespace-nowrap">📸 Dosya Seç</button>
+                                </div>
+                                {formKalip.kalip_dosya_url && (formKalip.kalip_dosya_url.includes('.png') || formKalip.kalip_dosya_url.includes('.jpg') || formKalip.kalip_dosya_url.includes('.jpeg')) && (
+                                    <div className="mt-3 border border-[#30363d] rounded-lg overflow-hidden h-[120px] w-[180px] bg-[#0d1117] relative flex items-center justify-center">
+                                        <img src={formKalip.kalip_dosya_url} alt="Kalıp Önizleme" className="max-w-full max-h-full object-contain opacity-80" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="flex gap-3 justify-end mt-6 border-t border-[#30363d] pt-4 relative z-10">
@@ -434,14 +451,25 @@ export default function KalipMainContainer() {
                                         <div className="flex flex-wrap gap-4 text-sm font-bold text-[#8b949e] uppercase tracking-widest items-center">
                                             <span className="flex items-center gap-1"><Ruler size={12} className="text-amber-500" /> {k.pastal_boyu_cm}cm × {k.pastal_eni_cm}cm</span>
                                             <span className="flex items-center gap-1"><Scissors size={12} className="text-rose-400" /> Fire: %{k.fire_orani_yuzde}</span>
-                                            {k.kalip_dosya_url && <a href={k.kalip_dosya_url} target="_blank" className="text-blue-400 font-mono lowercase hover:underline ml-2">dosya_indir ↗</a>}
                                         </div>
+                                        {/* KA-06 Gorsel Render */}
+                                        {k.kalip_dosya_url && (
+                                            <div className="mt-3">
+                                                {(k.kalip_dosya_url.includes('.png') || k.kalip_dosya_url.includes('.jpg') || k.kalip_dosya_url.includes('.jpeg')) ? (
+                                                    <a href={k.kalip_dosya_url} target="_blank" className="block max-w-[150px] border border-[#30363d] rounded-lg overflow-hidden relative">
+                                                        <img src={k.kalip_dosya_url} alt="Çizim" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity" />
+                                                    </a>
+                                                ) : (
+                                                    <a href={k.kalip_dosya_url} target="_blank" className="text-blue-400 font-mono text-xs hover:underline bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] inline-flex items-center gap-2">🔗 PDF/DXF Dosyayı Aç</a>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="shrink-0 flex gap-4 w-full md:w-auto mt-4 md:mt-0 items-center justify-between md:justify-end">
                                         <div className="bg-[#0d1117] border border-amber-500/30 rounded-lg p-3 text-center min-w-[120px]">
-                                            <div className="text-xs font-black text-amber-500/70 uppercase tracking-widest mb-1">Hesap (m²)</div>
-                                            <div className="text-xl font-black font-mono text-amber-500 leading-none">{metraj}</div>
+                                            <div className="text-[0.65rem] font-black text-amber-500/70 uppercase tracking-widest mb-1">Gereken (m²)</div>
+                                            <div className="text-xl font-black font-mono text-amber-500 leading-none">{(metraj * (k.bedenler?.length || 1)).toFixed(3)}</div>
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             <button onClick={() => { setFormKalip({ id: k.id, model_id: k.model_id || '', kalip_adi: k.kalip_adi, bedenler: k.bedenler || [], pastal_boyu_cm: String(k.pastal_boyu_cm || ''), pastal_eni_cm: String(k.pastal_eni_cm || ''), fire_orani_yuzde: String(k.fire_orani_yuzde || '5'), versiyon: k.versiyon || 'v1.0', kalip_dosya_url: k.kalip_dosya_url || '' }); setSekme('kaliplar'); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-[#21262d] hover:bg-[#30363d] text-white p-2 rounded-lg transition-colors"><Settings size={14} /></button>
