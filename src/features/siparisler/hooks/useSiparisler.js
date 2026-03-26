@@ -1,4 +1,5 @@
 ﻿'use client';
+// @ts-nocheck
 /**
  * features/siparisler/hooks/useSiparisler.js
  * M10 Siparişler — Tüm State & İş Mantığı
@@ -154,7 +155,21 @@ export function useSiparisler(kullanici) {
         bekleyen: siparisler.filter(s => s.durum === 'beklemede').length,
         kargoda: siparisler.filter(s => s.durum === 'kargoda').length,
         gelir: siparisler.filter(s => s.durum === 'teslim').reduce((s, o) => s + parseFloat(o.toplam_tutar_tl || 0), 0),
+        // [KG-09] Kanal dağılımı — gerçek DB verisinden, hardcode değil
+        kanalDagilimi: (() => {
+            const kanalMap = {};
+            siparisler.forEach(s => {
+                const k = s.kanal || 'diger';
+                if (!kanalMap[k]) kanalMap[k] = { kanal: k, adet: 0, tutar: 0 };
+                kanalMap[k].adet++;
+                kanalMap[k].tutar += parseFloat(s.toplam_tutar_tl || 0);
+            });
+            return Object.values(kanalMap)
+                .sort((a, b) => b.adet - a.adet)
+                .map(k => ({ ...k, yuzde: siparisler.length > 0 ? ((k.adet / siparisler.length) * 100).toFixed(1) : 0 }));
+        })(),
     };
+
 
     const formSifirla = () => { setForm({ ...BOSH_FORM, siparis_no: siparisNoUret() }); setFormAcik(f => !f); };
 
