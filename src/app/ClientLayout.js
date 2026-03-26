@@ -17,6 +17,7 @@ import { TasarimProvider } from '@/lib/TasarimContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BildirimZili from '@/lib/components/ui/BildirimZili';
 import MesajBildirimButonu from '@/components/MesajBildirimButonu';
+import NizamVoiceAgent from '@/components/NizamVoiceAgent';
 
 // ─── NAV YAPISI ───────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -348,6 +349,9 @@ function LayoutInner({ children }) {
 
             {/* MESAJ BİLDİRİM BUTONU — tüm sayfalarda sabit, okunmamış varsa kırmızı */}
             <MesajBildirimButonu />
+
+            {/* KÜRESEL SESLİ KOMUT ASİSTANI (GÖLGE) */}
+            <NizamVoiceAgent />
 
             <style>{`
                 .badge-birim1 { background: #1e3a5f; color: #60a5fa; }
