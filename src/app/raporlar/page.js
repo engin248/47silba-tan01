@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
 
-const formatTarih = (iso) => { if (!iso) return 'ÃÃÃ¶'; const d = new Date(iso); return d.toLocaleDateString('tr-TR'); };
+const formatTarih = (iso) => { if (!iso) return '&#x20BA;&#x20BA; const d = new Date(iso); return d.toLocaleDateString('tr-TR'); };
 
 // CSV Export yardââmcââ fonksiyonu
 const csvIndir = (baslik, satirlar, dosyaAdi) => {
@@ -128,17 +128,17 @@ export default function RaporlarSayfasi() {
             const { data: devamList } = await supabase.from('b1_personel_devam').select('personel_id,durum,tarih').limit(1000);
             const devamGrup = {};
             (devamList || []).forEach(d => {
-                if (!devamGrup[d.personel_id]) devamGrup[d.personel_id] = { calisti: 0, izinli: 0, hastalik: 0, gelmedi: 0 };
+                if (!devamGrup[d.personel_id]) devamGrup[d.personel_id] = { calisti: 0, izinli: 0, hastalik: 0, GELMEDIi: 0 };
                 devamGrup[d.personel_id][d.durum] = (devamGrup[d.personel_id][d.durum] || 0) + 1;
             });
             const pRapor = (pList || []).map(p => {
                 const s = parseFloat(p.saatlik_ucret_tl || 0);
                 const dk = parseInt(p.gunluk_calisma_dk || 480);
                 const gunluk = s * dk / 60;
-                const devam = devamGrup[p.id] || { calisti: 0, izinli: 0, hastalik: 0, gelmedi: 0 };
+                const devam = devamGrup[p.id] || { calisti: 0, izinli: 0, hastalik: 0, GELMEDIi: 0 };
                 const toplamKayit = Object.values(devam).reduce((a, b) => a + b, 0);
-                const devamlilââk = toplamKayit > 0 ? Math.round((devam.calisti / toplamKayit) * 100) : 100;
-                return { ...p, gunluk, aylik: gunluk * 22, devam, devamlilââk };
+                const devamOrani = toplamKayit > 0 ? Math.round((devam.calisti / toplamKayit) * 100) : 100;
+                return { ...p, gunluk, aylik: gunluk * 22, devam, devamOrani };
             });
             setPersonelRapor(pRapor);
 
@@ -164,11 +164,11 @@ export default function RaporlarSayfasi() {
     const MAL_RENK = { personel_iscilik: '#3b82f6', isletme_gideri: '#f59e0b', sarf_malzeme: '#10b981', fire_kaybi: '#ef4444' };
 
     const SEKMELER = [
-        { id: 'genel', label: 'Â­ÅÃ´Ã¨ Genel âÃ»zet' },
-        { id: 'birim_maliyet', label: 'Â­ÅÃâ Birim Maliyet' },
-        { id: 'pl', label: 'Â­ÅÃ´Ãª Kar & Zarar' },
-        { id: 'siparisler', label: 'Â­ÅÃ¸Ä±Â´Â©Ã Sipariâ¼Åler' },
-        { id: 'personel', label: 'Â­ÅÃ¦Ã Personel' },
+        { id: 'genel', label: 'Â­Å&#x20BA; Genel â&#x20BA;zet' },
+        { id: 'birim_maliyet', label: 'Â­Å&#x20BA; Birim Maliyet' },
+        { id: 'pl', label: 'Â­Å&#x20BA; Kar & Zarar' },
+        { id: 'siparisler', label: 'Â­Å&#x20BA;Â´Â©&#x20BA; Sipariâ¼Åler' },
+        { id: 'personel', label: 'Â­Å&#x20BA; Personel' },
     ];
 
     if (!yetkiliMi) {
@@ -176,7 +176,7 @@ export default function RaporlarSayfasi() {
             <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
                 <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKââSââZ GââRâââ¼Å ENGELLENDââ</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Tââm â¼Åirket raporlarââ ve bilanâÄolarââ KarargâÃ³h tarafâândan gizlenmiâ¼Åtir. GâÃrâântââlemek iâÄin âÂ£retim PââN giriâ¼Åi zorunludur.</p>
+                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Tââm â¼Åirket raporlarââ ve bilanâÄolarââ Karargâ&#x20BA;h tarafâândan gizlenmiâ¼Åtir. Gâ&#x20BA;râântââlemek iâÄin âÂ£retim PââN giriâ¼Åi zorunludur.</p>
             </div>
         );
     }
@@ -199,7 +199,7 @@ export default function RaporlarSayfasi() {
                         <Filter size={14} color="#64748b" />
                         <input type="date" value={baslangic} onChange={e => setBaslangic(e.target.value)}
                             style={{ border: 'none', outline: 'none', fontSize: '0.8rem', fontFamily: 'inherit', cursor: 'pointer' }} />
-                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>ÃÃÃ¶</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>&#x20BA;&#x20BA;</span>
                         <input type="date" value={bitis} onChange={e => setBitis(e.target.value)}
                             style={{ border: 'none', outline: 'none', fontSize: '0.8rem', fontFamily: 'inherit', cursor: 'pointer' }} />
                     </div>
@@ -209,7 +209,7 @@ export default function RaporlarSayfasi() {
                     </button>
                     <button
                         onClick={async () => {
-                            if (indiriyor) return goster('ÃÃâ Excel dosyasââ hazâârlanââyor, lââtfen bekleyin...', 'error');
+                            if (indiriyor) return goster('&#x20BA;â Excel dosyasââ hazâârlanââyor, lââtfen bekleyin...', 'error');
                             setIndiriyor(true);
 
                             let basari = false;
@@ -221,15 +221,15 @@ export default function RaporlarSayfasi() {
                                     csvIndir(['Model Kodu', 'Model Adââ', 'Adet', 'Toplam Maliyet', 'Birim Maliyet'], birimMaliyetler.map(b => [b.model_kodu, b.model_adi, b.adet, b.toplam_maliyet.toFixed(2), b.birim_maliyet.toFixed(2)]), 'birim_maliyet');
                                     basari = true;
                                 } else if (aktifSekme === 'personel') {
-                                    csvIndir(['Ad Soyad', 'Rol', 'Gâânlââk (ÃÃ©â)', 'Aylââk (ÃÃ©â)', 'Devam %', 'Gelmedi'], personelRapor.map(p => [p.ad_soyad, p.rol, p.gunluk.toFixed(0), p.aylik.toFixed(0), p.devamlilââk, p.devam.gelmedi || 0]), 'personel');
+                                    csvIndir(['Ad Soyad', 'Rol', 'Gâânlââk (&#x20BA;â)', 'Aylââk (&#x20BA;â)', 'Devam %', 'GELMEDIi'], personelRapor.map(p => [p.ad_soyad, p.rol, p.gunluk.toFixed(0), p.aylik.toFixed(0), p.devamOrani, p.devam.GELMEDIi || 0]), 'personel');
                                     basari = true;
                                 } else if (aktifSekme === 'pl') {
-                                    csvIndir(['Kalem', 'Tutar (ÃÃ©â)'], [['Toplam Gelir', plRaporu.gelir.toFixed(2)], ['Toplam Gider', plRaporu.gider.toFixed(2)], ['Net Kar/Zarar', (plRaporu.kar || 0).toFixed(2)], ['Kar Marjââ %', plRaporu.marj]], 'kar_zarar');
+                                    csvIndir(['Kalem', 'Tutar (&#x20BA;â)'], [['Toplam Gelir', plRaporu.gelir.toFixed(2)], ['Toplam Gider', plRaporu.gider.toFixed(2)], ['Net Kar/Zarar', (plRaporu.kar || 0).toFixed(2)], ['Kar Marjââ %', plRaporu.marj]], 'kar_zarar');
                                     basari = true;
                                 } else {
-                                    alert('Lââtfen daha âÃnce bir sekme seâÄin (Siparisler, Birim Maliyet, Personel veya Kar&Zarar)');
+                                    alert('Lââtfen daha â&#x20BA;nce bir sekme seâÄin (Siparisler, Birim Maliyet, Personel veya Kar&Zarar)');
                                 }
-                                if (basari) telegramBildirim(`Â­ÅÃÂ¿ DââKKAT!\nKarargâÃ³h Raporlarââ Excel formatiyla indirildi.\nSekme: ${aktifSekme}\nSisteme sââzma (Veri âÃ§ââkarma) varsa denetleyin.`);
+                                if (basari) telegramBildirim(`Â­Å&#x20BA; DââKKAT!\nKarargâ&#x20BA;h Raporlarââ Excel formatiyla indirildi.\nSekme: ${aktifSekme}\nSisteme sââzma (Veri â&#x20BA;âkarma) varsa denetleyin.`);
                             } finally {
                                 setTimeout(() => setIndiriyor(false), 3000); // 3 saniye anti-spam (U Kriteri) mââhimmat kalkanââ
                             }
@@ -238,10 +238,10 @@ export default function RaporlarSayfasi() {
                         style={{ background: indiriyor ? '#64748b' : '#0f172a', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: indiriyor ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, color: 'white' }}>
                         <Download size={13} /> {indiriyor ? 'âândiriliyor...' : 'CSV âândir'}
                     </button>
-                    {/* CC Kriteri Otomatik Rota (Karargaha DâÃnâââ¼Å - Audit Zincirinin Sonu) */}
+                    {/* CC Kriteri Otomatik Rota (Karargaha Dâ&#x20BA;nâââ¼Å - Audit Zincirinin Sonu) */}
                     <a href="/" style={{ textDecoration: 'none', marginLeft: '0.5rem' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
-                            Â­ÅÃÃ¡ Ana Sayfaya DâÃn
+                            Â­Å&#x20BA; Ana Sayfaya Dâ&#x20BA;n
                         </button>
                     </a>
                 </div>
@@ -257,7 +257,7 @@ export default function RaporlarSayfasi() {
                 ))}
             </div>
 
-            {/* GENEL âÃ»ZET SEKMESââ */}
+            {/* GENEL â&#x20BA;ZET SEKMESââ */}
             {aktifSekme === 'genel' && (
                 <div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -266,8 +266,8 @@ export default function RaporlarSayfasi() {
                             { label: 'Kumaâ¼Å', val: loading ? '...' : kumaslar, icon: Package, color: '#0891b2', bg: '#ecfeff' },
                             { label: 'Sipariâ¼Å', val: loading ? '...' : siparis, icon: ShoppingCart, color: '#f97316', bg: '#fff7ed' },
                             { label: 'Personel', val: loading ? '...' : personel, icon: Users, color: '#059669', bg: '#ecfdf5' },
-                            { label: 'Â­ÅÃÂ¡ Aktif âÂ£retim', val: loading ? '...' : (aktifUretim ?? 0), icon: BarChart2, color: '#8b5cf6', bg: '#f5f3ff' },
-                            { label: 'Teslim Ciro', val: loading ? '...' : `ÃÃ©â${(toplamCiro || 0).toFixed(0)}`, icon: DollarSign, color: '#10b981', bg: '#ecfdf5' },
+                            { label: 'Â­Å&#x20BA; Aktif âÂ£retim', val: loading ? '...' : (aktifUretim ?? 0), icon: BarChart2, color: '#8b5cf6', bg: '#f5f3ff' },
+                            { label: 'Teslim Ciro', val: loading ? '...' : `&#x20BA;â${(toplamCiro || 0).toFixed(0)}`, icon: DollarSign, color: '#10b981', bg: '#ecfdf5' },
                         ].map((s, i) => (
                             <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -314,7 +314,7 @@ export default function RaporlarSayfasi() {
                                                     <div key={tip}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                                                             <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#374151' }}>{MAL_LABEL[tip] || tip}</span>
-                                                            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: MAL_RENK[tip] || '#64748b' }}>ÃÃ©â{tutar.toFixed(0)}</span>
+                                                            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: MAL_RENK[tip] || '#64748b' }}>&#x20BA;â{tutar.toFixed(0)}</span>
                                                         </div>
                                                         <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
                                                             <div style={{ height: '100%', width: `${pct}%`, background: MAL_RENK[tip] || '#64748b', borderRadius: 3 }} />
@@ -324,7 +324,7 @@ export default function RaporlarSayfasi() {
                                             })}
                                             <div style={{ marginTop: 8, padding: '8px 12px', background: '#0f172a', borderRadius: 8, display: 'flex', justifyContent: 'space-between' }}>
                                                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8' }}>GENEL TOPLAM</span>
-                                                <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#34d399' }}>ÃÃ©â{topMal.toFixed(2)}</span>
+                                                <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#34d399' }}>&#x20BA;â{topMal.toFixed(2)}</span>
                                             </div>
                                         </div>
                                     );
@@ -339,16 +339,16 @@ export default function RaporlarSayfasi() {
             {aktifSekme === 'birim_maliyet' && (
                 <div>
                     <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ fontSize: '1.8rem' }}>Â­ÅÃâ</div>
+                        <div style={{ fontSize: '1.8rem' }}>Â­Å&#x20BA;</div>
                         <div>
                             <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>âÂ£RETââLEN âÂ£RâÂ£N BââRââM MALââYETLERââ</div>
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Muhasebe raporlarâândan otomatik hesaplandââ ÃÃÃ¶ Toplam Maliyet âÃ Net âÂ£retilen Adet</div>
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Muhasebe raporlarâândan otomatik hesaplandââ &#x20BA;&#x20BA; Toplam Maliyet â&#x20BA; Net âÂ£retilen Adet</div>
                         </div>
                     </div>
                     {birimMaliyetler.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                             <DollarSign size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
-                            <p style={{ color: '#94a3b8', fontWeight: 700 }}>Henââz kilitlenmiâ¼Å muhasebe raporu yok.<br />Muhasebe ÃÃ¥Ã Rapor ÃÃ¥Ã Kilitle iâ¼Ålemi yapââldââktan sonra burada gâÃrâânââr.</p>
+                            <p style={{ color: '#94a3b8', fontWeight: 700 }}>Henââz kilitlenmiâ¼Å muhasebe raporu yok.<br />Muhasebe &#x20BA;&#x20BA; Rapor &#x20BA;&#x20BA; Kilitle iâ¼Ålemi yapââldââktan sonra burada gâ&#x20BA;râânââr.</p>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
@@ -367,11 +367,11 @@ export default function RaporlarSayfasi() {
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#fef9c3', borderRadius: 10, padding: '8px 14px' }}>
                                     <div style={{ fontSize: '0.6rem', color: '#92400e', fontWeight: 700, textTransform: 'uppercase' }}>Toplam Maliyet</div>
-                                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.1rem' }}>ÃÃ©â{bm.toplam_maliyet.toFixed(2)}</div>
+                                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.1rem' }}>&#x20BA;â{bm.toplam_maliyet.toFixed(2)}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: 'linear-gradient(135deg,#059669,#047857)', borderRadius: 10, padding: '8px 18px' }}>
                                     <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 700, textTransform: 'uppercase' }}>BââRââM MALââYET</div>
-                                    <div style={{ fontWeight: 900, color: 'white', fontSize: '1.3rem' }}>ÃÃ©â{bm.birim_maliyet.toFixed(2)}</div>
+                                    <div style={{ fontWeight: 900, color: 'white', fontSize: '1.3rem' }}>&#x20BA;â{bm.birim_maliyet.toFixed(2)}</div>
                                     <div style={{ fontSize: '0.58rem', color: '#a7f3d0' }}>/ adet</div>
                                 </div>
                             </div>
@@ -385,10 +385,10 @@ export default function RaporlarSayfasi() {
                 <div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                         {[
-                            { label: 'Â­ÅÃ´Ã Toplam Gelir (Teslim)', val: `ÃÃ©â${plRaporu.gelir.toFixed(2)}`, color: '#10b981', bg: '#ecfdf5', desc: 'Teslim edilen sipariâ¼Ålerin toplamââ' },
-                            { label: 'Â­ÅÃ´Ã± Toplam Gider (âÂ£retim)', val: `ÃÃ©â${plRaporu.gider.toFixed(2)}`, color: '#ef4444', bg: '#fef2f2', desc: 'Kayââtlââ maliyet kalemlerinin toplamââ' },
-                            { label: 'Â­ÅÃâ£ Net Kar / Zarar', val: `ÃÃ©â${(plRaporu.kar || 0).toFixed(2)}`, color: (plRaporu.kar || 0) >= 0 ? '#10b981' : '#ef4444', bg: (plRaporu.kar || 0) >= 0 ? '#ecfdf5' : '#fef2f2', desc: 'Gelir - Gider' },
-                            { label: 'Â­ÅÃ´Ã¨ Kar Marjââ', val: `%${plRaporu.marj}`, color: '#6366f1', bg: '#f5f3ff', desc: 'Net Kar / Gelir âÃ¹ 100' },
+                            { label: 'Â­Å&#x20BA; Toplam Gelir (Teslim)', val: `&#x20BA;â${plRaporu.gelir.toFixed(2)}`, color: '#10b981', bg: '#ecfdf5', desc: 'Teslim edilen sipariâ¼Ålerin toplamââ' },
+                            { label: 'Â­Å&#x20BA; Toplam Gider (âÂ£retim)', val: `&#x20BA;â${plRaporu.gider.toFixed(2)}`, color: '#ef4444', bg: '#fef2f2', desc: 'Kayââtlââ maliyet kalemlerinin toplamââ' },
+                            { label: 'Â­Å&#x20BA;£ Net Kar / Zarar', val: `&#x20BA;â${(plRaporu.kar || 0).toFixed(2)}`, color: (plRaporu.kar || 0) >= 0 ? '#10b981' : '#ef4444', bg: (plRaporu.kar || 0) >= 0 ? '#ecfdf5' : '#fef2f2', desc: 'Gelir - Gider' },
+                            { label: 'Â­Å&#x20BA; Kar Marjââ', val: `%${plRaporu.marj}`, color: '#6366f1', bg: '#f5f3ff', desc: 'Net Kar / Gelir â&#x20BA; 100' },
                         ].map((k, i) => (
                             <div key={i} style={{ background: k.bg, border: `2px solid ${k.color}30`, borderRadius: 16, padding: '1.25rem' }}>
                                 <div style={{ fontSize: '0.72rem', fontWeight: 800, color: k.color, marginBottom: 8 }}>{k.label}</div>
@@ -404,7 +404,7 @@ export default function RaporlarSayfasi() {
                                 {Object.entries(malGrup || {}).map(([tip, tutar]) => (
                                     <div key={tip} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderRadius: 8 }}>
                                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151' }}>{MAL_LABEL[tip] || tip}</span>
-                                        <span style={{ fontWeight: 900, color: MAL_RENK[tip], fontSize: '0.9rem' }}>ÃÃ©â{tutar.toFixed(2)}</span>
+                                        <span style={{ fontWeight: 900, color: MAL_RENK[tip], fontSize: '0.9rem' }}>&#x20BA;â{tutar.toFixed(2)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -427,7 +427,7 @@ export default function RaporlarSayfasi() {
                             <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'white', border: '1px solid #f1f5f9', borderRadius: 10 }}>
                                 <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>{formatTarih(s.created_at)}</div>
                                 <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 4, background: `${DURUM_RENK[s.durum] || '#94a3b8'}20`, color: DURUM_RENK[s.durum] || '#94a3b8' }}>{DURUM_LABEL[s.durum] || s.durum}</span>
-                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.9rem' }}>ÃÃ©â{parseFloat(s.toplam_tutar_tl || 0).toFixed(2)}</div>
+                                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.9rem' }}>&#x20BA;â{parseFloat(s.toplam_tutar_tl || 0).toFixed(2)}</div>
                             </div>
                         ))}
                     </div>
@@ -437,10 +437,10 @@ export default function RaporlarSayfasi() {
             {aktifSekme === 'personel' && (
                 <div>
                     <div style={{ background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ fontSize: '1.8rem' }}>Â­ÅÃ¦Ã</div>
+                        <div style={{ fontSize: '1.8rem' }}>Â­Å&#x20BA;</div>
                         <div>
                             <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>PERSONEL PERFORMANS RAPORU</div>
-                            <div style={{ fontSize: '0.75rem', color: '#bae6fd', fontWeight: 600 }}>Aktif personel ÃÃÃ¶ Gâânlââk ââcret, aylââk maliyet ve devam analizi</div>
+                            <div style={{ fontSize: '0.75rem', color: '#bae6fd', fontWeight: 600 }}>Aktif personel &#x20BA;&#x20BA; Gâânlââk ââcret, aylââk maliyet ve devam analizi</div>
                         </div>
                     </div>
                     {personelRapor.length === 0 && (
@@ -454,23 +454,23 @@ export default function RaporlarSayfasi() {
                             <div key={p.id} style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{p.ad_soyad}</div>
-                                    <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: 2 }}>{p.personel_kodu} ÃÃÃ¶ {(p.rol || '').replace(/_/g, ' ')}</div>
+                                    <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: 2 }}>{p.personel_kodu} &#x20BA;&#x20BA; {(p.rol || '').replace(/_/g, ' ')}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#f0fdf4', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#059669', fontWeight: 700 }}>GâÂ£NLâÂ£K</div>
-                                    <div style={{ fontWeight: 900, color: '#059669' }}>ÃÃ©â{p.gunluk.toFixed(0)}</div>
+                                    <div style={{ fontWeight: 900, color: '#059669' }}>&#x20BA;â{p.gunluk.toFixed(0)}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#eff6ff', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#2563eb', fontWeight: 700 }}>AYLIK</div>
-                                    <div style={{ fontWeight: 900, color: '#2563eb' }}>ÃÃ©â{p.aylik.toFixed(0)}</div>
+                                    <div style={{ fontWeight: 900, color: '#2563eb' }}>&#x20BA;â{p.aylik.toFixed(0)}</div>
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#f8fafc', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>DEVAM %</div>
                                     <div style={{ fontWeight: 900, color: p.devamlilââk >= 90 ? '#059669' : p.devamlilââk >= 75 ? '#f59e0b' : '#ef4444' }}>%{p.devamlilââk}</div>
                                 </div>
-                                <div style={{ textAlign: 'center', background: p.devam.gelmedi > 2 ? '#fef2f2' : '#f8fafc', borderRadius: 10, padding: '8px' }}>
-                                    <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>GELMEDââ</div>
-                                    <div style={{ fontWeight: 900, color: p.devam.gelmedi > 0 ? '#ef4444' : '#059669' }}>{p.devam.gelmedi || 0} gâân</div>
+                                <div style={{ textAlign: 'center', background: p.devam.GELMEDIi > 2 ? '#fef2f2' : '#f8fafc', borderRadius: 10, padding: '8px' }}>
+                                    <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>GELMEDI</div>
+                                    <div style={{ fontWeight: 900, color: p.devam.GELMEDIi > 0 ? '#ef4444' : '#059669' }}>{p.devam.GELMEDIi || 0} gâân</div>
                                 </div>
                             </div>
                         ))}
@@ -478,7 +478,7 @@ export default function RaporlarSayfasi() {
                     {personelRapor.length > 0 && (
                         <div style={{ marginTop: '1rem', background: '#0f172a', borderRadius: 12, padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ fontWeight: 800, color: '#94a3b8', fontSize: '0.82rem' }}>TOPLAM AYLIK PERSONEL MALââYETââ</span>
-                            <span style={{ fontWeight: 900, color: '#34d399', fontSize: '1.1rem' }}>ÃÃ©â{personelRapor.reduce((s, p) => s + p.aylik, 0).toFixed(2)}</span>
+                            <span style={{ fontWeight: 900, color: '#34d399', fontSize: '1.1rem' }}>&#x20BA;â{personelRapor.reduce((s, p) => s + p.aylik, 0).toFixed(2)}</span>
                         </div>
                     )}
                 </div>
