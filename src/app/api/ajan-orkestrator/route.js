@@ -103,7 +103,7 @@ async function taraModu() {
 
     // 6. Sipariş Anomalisi Tespiti (K-07)
     // Kural A: 24 saatte aynı müşteriden 3+ sipariş → şüpheli
-    // Kural B: Ürün fiyatı bir önceki fiyatın %50'sinden düşükse → kritik
+    // Kural B: Ürün fiyatı bir önceki fiyatIn %50'sinden düşükse → kritik
     try {
         const sonYirmidortSaat = new Date(Date.now() - 86400000).toISOString();
 
@@ -130,7 +130,7 @@ async function taraModu() {
                         veri: { musteri_id: musteriKey, siparis_sayisi: sayi },
                         atanan: null
                     });
-                    // Sistem uyarısı yaz
+                    // Sistem uyarIsı yaz
                     try {
                         await supabaseAdmin.from('b1_sistem_uyarilari').insert([{
                             tip: 'siparis_anomali',
@@ -138,11 +138,11 @@ async function taraModu() {
                             oncelik: 'kritik',
                             kaynak: 'Koordinatör Ajanı',
                         }]);
-                    } catch { /* Uyarı yazma hatası sistemi durdurmasın */ }
+                    } catch { /* Uyarı yazma hatası sistemi durdurmasIn */ }
                 }
             }
         }
-    } catch { /* Anomali taraması sistemi durdurmasın */ }
+    } catch { /* Anomali taraması sistemi durdurmasIn */ }
 
     // Orkestrator durumunu kaydet
     await supabaseAdmin.from('b1_ajan_gorevler').insert([{
@@ -152,35 +152,35 @@ async function taraModu() {
         durum: 'tamamlandi',
         oncelik: 'yuksek',
         bitis_tarihi: tarihStr,
-        sonuc_ozeti: `${gorevler.length} görev tespit edildi. Worker A ve B'ye dağıtılacak.`,
+        sonuc_ozeti: `${gorevler.length} görev tespit edildi. Worker A ve B'ye dagItIlacak.`,
         gorev_emri: 'Tüm 26 modülü tara, hata ve bekleyen görevleri listele',
     }]);
 
     return { gorevler, toplam: gorevler.length };
 }
 
-// ── DAĞIT: Görev listesini Worker A ve B'ye böler, paralel çalıştırır ──
+// ── DAgIT: Görev listesini Worker A ve B'ye böler, paralel çalIstIrIr ──
 async function dagitModu(gorevler) {
     if (!gorevler || gorevler.length === 0) {
         return { workerA: { sonuc: [], atlanan: 0 }, workerB: { sonuc: [], atlanan: 0 } };
     }
 
-    // Kritik görevler A'ya, diğerleri B'ye
+    // Kritik görevler A'ya, digerleri B'ye
     const kritikler = gorevler.filter(g => g.oncelik === 'kritik');
     const digerler = gorevler.filter(g => g.oncelik !== 'kritik');
 
-    // Worker A: Kritik görevler + diğerlerin yarısı
+    // Worker A: Kritik görevler + digerlerin yarIsı
     const workerAGorevler = [...kritikler, ...digerler.slice(0, Math.ceil(digerler.length / 2))].map(g => ({ ...g, atanan: 'Worker_A' }));
-    // Worker B: Diğer yarısı
+    // Worker B: Diger yarIsı
     const workerBGorevler = digerler.slice(Math.ceil(digerler.length / 2)).map(g => ({ ...g, atanan: 'Worker_B' }));
 
     const domain = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const headers = {
         'Content-Type': 'application/json',
-        'x-internal-api-key': process.env.INTERNAL_API_KEY || '' // [FIX] 'dev' fallback kaldırıldı
+        'x-internal-api-key': process.env.INTERNAL_API_KEY || '' // [FIX] 'dev' fallback kaldIrIldı
     };
 
-    // Promise.allSettled ile ikisi paralel çalışır
+    // Promise.allSettled ile ikisi paralel çalIsIr
     const [aRes, bRes] = await Promise.allSettled([
         fetch(`${domain}/api/worker-ajan`, {
             method: 'POST',
@@ -201,7 +201,7 @@ async function dagitModu(gorevler) {
     };
 }
 
-// ── DOĞRULA: İki worker'ın çıktısını birleştirir ──
+// ── DOgRULA: İki worker'ın çıktIsInı birlestirir ──
 async function dogrulamaModu(dagitimSonucu) {
     const { workerA, workerB, dagilim } = dagitimSonucu || {};
 
@@ -215,10 +215,10 @@ async function dogrulamaModu(dagitimSonucu) {
     const ozet = [
         `✅ Worker A: ${aTamamlanan} görev tamamlandı${aHata > 0 ? ` (${aHata} hata)` : ''}`,
         `✅ Worker B: ${bTamamlanan} görev tamamlandı${bHata > 0 ? ` (${bHata} hata)` : ''}`,
-        `📊 Toplam: ${toplam}/${(dagilim?.workerA || 0) + (dagilim?.workerB || 0)} başarılı`,
+        `📊 Toplam: ${toplam}/${(dagilim?.workerA || 0) + (dagilim?.workerB || 0)} basarIlı`,
     ].join('\n');
 
-    // Doğrulama logu yaz
+    // Dogrulama logu yaz
     await supabaseAdmin.from('b1_agent_loglari').insert([{
         ajan_adi: 'Koordinatör',
         islem_tipi: 'orkestrasyon_dogrulama',
@@ -237,7 +237,7 @@ async function dogrulamaModu(dagitimSonucu) {
 export async function POST(req) {
     try {
         const apiKey = req.headers.get('x-internal-api-key');
-        const yetkili = apiKey === process.env.INTERNAL_API_KEY && !!apiKey; // [FIX] NODE_ENV bypass kaldırıldı
+        const yetkili = apiKey === process.env.INTERNAL_API_KEY && !!apiKey; // [FIX] NODE_ENV bypass kaldIrIldı
         if (!yetkili) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
         const body = await req.json();
@@ -258,7 +258,7 @@ export async function POST(req) {
             return NextResponse.json({ mod, ...sonuc });
         }
 
-        return NextResponse.json({ error: 'Geçersiz mod. tara | dagit | dogrula kullanın.' }, { status: 400 });
+        return NextResponse.json({ error: 'Geçersiz mod. tara | dagit | dogrula kullanIn.' }, { status: 400 });
 
     } catch (e) {
         console.error('[ORKESTRTOR HATA]', e);

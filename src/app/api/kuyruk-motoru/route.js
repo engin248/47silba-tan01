@@ -7,19 +7,19 @@ const execAsync = util.promisify(exec);
 
 /**
  * /api/kuyruk-motoru 
- * GÖREVİ: Redis 'scraper_jobs' kuyruğundaki bekleyen görevleri çeker.
+ * GÖREVİ: Redis 'scraper_jobs' kuyrugundaki bekleyen görevleri çeker.
  * ZIRH (Rate Limit): Aynı anda sadece `CONCURRENCY_LIMIT` kadar görevi çeker (Spam ve RAM koruması).
  */
 export async function POST(req) {
     try {
         const auth = req.headers.get('Authorization');
         // Sadece Cron veya Yetkili servisle tetiklenebilir — her ortamda geçerli
-        if (auth !== `Bearer ${process.env.CRON_SECRET}`) { // [FIX] devMode bypass kaldırıldı
-            return NextResponse.json({ error: 'Siber Zırh: Yetkisiz Tetikleme Yasak' }, { status: 401 });
+        if (auth !== `Bearer ${process.env.CRON_SECRET}`) { // [FIX] devMode bypass kaldIrIldı
+            return NextResponse.json({ error: 'Siber ZIrh: Yetkisiz Tetikleme Yasak' }, { status: 401 });
         }
 
-        // ZIRH: CONCURRENCY LIMIT (Rate Limiting - Soğutma Kalkanı)
-        // Eğer kuyrukta 500 görev varsa, Vercel çöker. Sadece 2 tanesini çeker!
+        // ZIRH: CONCURRENCY LIMIT (Rate Limiting - Sogutma Kalkanı)
+        // Eger kuyrukta 500 görev varsa, Vercel çöker. Sadece 2 tanesini çeker!
         const CONCURRENCY_LIMIT = 2;
         let uyandirilanAjanlar = [];
 
@@ -33,22 +33,22 @@ export async function POST(req) {
             if (gorev) {
                 uyandirilanAjanlar.push(gorev);
 
-                // KURAL 20: Tamamen Asenkron Serbest Bırak (Fire-and-forget)
-                // Node JS Child Process olarak izole bir asker doğurur.
+                // KURAL 20: Tamamen Asenkron Serbest BIrak (Fire-and-forget)
+                // Node JS Child Process olarak izole bir asker dogurur.
                 if (gorev.data?.hedef === 'trendyol_indirim') {
-                    // Not: Windows/Linux VPS farketmeksizin asenkron çalışır
+                    // Not: Windows/Linux VPS farketmeksizin asenkron çalIsIr
                     execAsync(`node src/scripts/scrapers/oluisci.js`).catch(err => {
-                        console.error("[SHIELD_LOG] Bağımsız Ajan Çökmesi İnfazla Bastırıldı:", err.message);
+                        console.error("[SHIELD_LOG] BagImsIz Ajan Çökmesi İnfazla BastIrIldı:", err.message);
                     });
                 } else {
-                    // Diğer ajan hedefleri için
+                    // Diger ajan hedefleri için
                 }
             }
         }
 
         return NextResponse.json({
             success: true,
-            message: `${uyandirilanAjanlar.length} ajan soğutma (Rate Limit) kalkanından geçerek sahaya ateşlendi.`,
+            message: `${uyandirilanAjanlar.length} ajan sogutma (Rate Limit) kalkanIndan geçerek sahaya ateslendi.`,
             tetiklenen_ajan_sayisi: uyandirilanAjanlar.length,
             kalan_kuyruk: await KuyrukUzunlugu('scraper_jobs') - uyandirilanAjanlar.length
         });

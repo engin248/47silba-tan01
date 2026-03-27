@@ -13,12 +13,12 @@ import {
  * /api/cron-ajanlar — Zamanlanmış Ajan Köprüsü
  *
  * Vercel cron veya x-internal-api-key ile tetiklenir.
- * Her cron görevi, ajanlar-v2.js'deki ilgili fonksiyonu direkt çağırır.
+ * Her cron görevi, ajanlar-v2.js'deki ilgili fonksiyonu direkt çagIrIr.
  */
 export async function GET(req) {
     const authHeader = req.headers.get('Authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return NextResponse.json({ error: 'Yetkisiz Cron İsteği' }, { status: 401 });
+        return NextResponse.json({ error: 'Yetkisiz Cron İstegi' }, { status: 401 });
     }
 
     const gorev = new URL(req.url).searchParams.get('gorev');
@@ -38,10 +38,10 @@ export async function GET(req) {
                 oncelik: 'yuksek',
                 bitis_tarihi: new Date().toISOString(),
                 sonuc_ozeti: sonuc.brifing || sonuc.hata || 'Sabah brifing tamamlandı.',
-                gorev_emri: 'Sabah taraması — tüm kritik kontroller yapıldı'
+                gorev_emri: 'Sabah taraması — tüm kritik kontroller yapIldı'
             }]);
 
-            return NextResponse.json({ success: true, mesaj: 'Sabah cronu çalıştı', sonuc });
+            return NextResponse.json({ success: true, mesaj: 'Sabah cronu çalIstı', sonuc });
         }
 
         // ── GECE YEDEKLEMESİ (03:00 TR) ────────────────────────────
@@ -59,7 +59,7 @@ export async function GET(req) {
 
             await supabaseAdmin.from('b1_ajan_gorevler').insert([{
                 ajan_adi: 'Sistem',
-                gorev_adi: 'Gece Log Arşivleme ve Muhasebe (Cron)',
+                gorev_adi: 'Gece Log Arsivleme ve Muhasebe (Cron)',
                 gorev_tipi: 'kontrol',
                 durum: 'tamamlandi',
                 oncelik: 'normal',
@@ -69,7 +69,7 @@ export async function GET(req) {
             }]);
 
             return NextResponse.json({
-                success: true, mesaj: 'Gece cronu çalıştı',
+                success: true, mesaj: 'Gece cronu çalIstı',
                 aksamSonuc, muhasebeSonuc,
                 temizlenen_log: silinenLoglar?.length || 0
             });
@@ -79,7 +79,7 @@ export async function GET(req) {
         if (gorev === 'kamera_durum_kontrol_ajan') {
             const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL;
             if (!go2rtcUrl) {
-                return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanımlı değil.' });
+                return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanImlı degil.' });
             }
 
             let nvrDurum = 'aktif';
@@ -108,7 +108,7 @@ export async function GET(req) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             chat_id: TELEGRAM_CHAT_ID,
-                            text: "🔴 *KRİTİK UYARI* 🔴\n\nNVR Kamera Stream Sunucusu ulaşılamıyor!",
+                            text: "🔴 *KRITIK UYARI* 🔴\n\nNVR Kamera Stream Sunucusu ulasIlamIyor!",
                             parse_mode: 'Markdown'
                         })
                     }).catch(() => null);
@@ -121,17 +121,17 @@ export async function GET(req) {
                 } catch { }
             }
 
-            return NextResponse.json({ success: true, mesaj: `Kamera Cron Çalıştı. Durum: ${nvrDurum}, Mesai Dışı: ${mesaiDisi}` });
+            return NextResponse.json({ success: true, mesaj: `Kamera Cron ÇalIstı. Durum: ${nvrDurum}, Mesai Dışı: ${mesaiDisi}` });
         }
 
-        // ── AR-GE ZİNCİRİ: Yargıç + Köprü + Zincirci ────────────────
+        // ── AR-GE ZINCIRİ: Yargıç + Köprü + Zincirci ────────────────
         if (gorev === 'arge_zincir') {
             await zincirci();
 
             const domain = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
             const cronReqHeaders = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.CRON_SECRET}` // [A-4 FİX]: dev_secret fallback kaldırıldı
+                'Authorization': `Bearer ${process.env.CRON_SECRET}` // [A-4 FIX]: dev_secret fallback kaldIrIldı
             };
 
             fetch(`${domain}/api/ajan-yargic`, {
@@ -151,7 +151,7 @@ export async function GET(req) {
                 durum: 'tamamlandi',
                 oncelik: 'yuksek',
                 bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: 'Vercel Cron otonom zinciri ateşledi.',
+                sonuc_ozeti: 'Vercel Cron otonom zinciri atesledi.',
                 gorev_emri: 'Ar-Ge zinciri: Zincirci → Yargıç → Köprü'
             }]);
 
