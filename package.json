@@ -54,13 +54,5 @@
         "puppeteer-extra": "^3.3.6",
         "puppeteer-extra-plugin-stealth": "^2.11.2",
         "typescript": "^5.9.3"
-    },
-    "overrides": {
-        "glob": "^10.4.5",
-        "rimraf": "^5.0.10",
-        "inflight": "npm:lru-cache@^10.4.3",
-        "abab": "npm:base64-js@^1.5.1",
-        "domexception": "npm:es-domexception@^1.0.0",
-        "whatwg-encoding": "^3.1.1"
     }
 }
