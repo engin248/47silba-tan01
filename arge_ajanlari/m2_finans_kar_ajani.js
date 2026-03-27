@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config({ path: '../.env.local' });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] ANON_KEY fallback kaldırıldı
 const supabase = createClient(SUPABASE_URL, SUPABASE_ROLE_KEY);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AI_KEY_YOK');
@@ -140,7 +140,7 @@ if (require.main === module) {
     m2KarZararKilidi({
         urun_adi: "Kruvaze Siyah Oversize Kaban",
         kategori: "Kaban - Kışlık",
-        kumas_metre_fiyati: 350,  -- Kaliteli kaban kumaşı
+        kumas_metre_fiyati: 350,  // Kaliteli kaban kumaşı
         tahmini_satis_fiyati: 3800
     });
 }

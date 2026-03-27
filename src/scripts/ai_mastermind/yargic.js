@@ -14,7 +14,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.e
 // ESKİ: NEXT_PUBLIC_SUPABASE_ANON_KEY (RLS kısıtlamalarına takılır)
 // YENİ: SUPABASE_SERVICE_ROLE_KEY (sunucu tarafı script — güvenle kullanılabilir)
 // ─── SUPABASE BAĞLANTISI (Service Role Key — Ölü İşçi ile aynı standart) ───
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] ANON_KEY fallback kaldırıldı
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 
 }

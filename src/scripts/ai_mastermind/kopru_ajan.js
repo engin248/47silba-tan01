@@ -11,7 +11,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.e
 
 // ─── GÜVENLİK DÜZELTME: Service Role Key kullanılıyor ─────────
 // ─── SUPABASE BAĞLANTISI (Service Role Key — DELETE işlemi için RLS bypass gerekli) ───
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] ANON_KEY fallback kaldırıldı
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 
 }
