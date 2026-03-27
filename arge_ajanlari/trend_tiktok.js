@@ -1,7 +1,8 @@
 const { chromium } = require('playwright');
 const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config({ path: '../.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') }); // [FIX] mutlak yol
 
 // Supabase Kurulumu
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;

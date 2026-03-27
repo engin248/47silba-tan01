@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '../.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') }); // [FIX] mutlak yol
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 // [B-2 FİX]: SERVICE_ROLE_KEY zorunlu — ANON_KEY fallback kaldırıldı
