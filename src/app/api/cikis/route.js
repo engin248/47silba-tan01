@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST() {
     try {
-        const response = NextResponse.json({ success: true, message: 'Çıkış başarılı' });
+        const response = NextResponse.json({ success: true, message: 'ıkış başarılı' });
 
         // HttpOnly olan JWT token cookie'sini sil
         response.cookies.set({

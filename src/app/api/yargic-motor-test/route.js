@@ -5,7 +5,7 @@ export async function POST(req) {
     try {
         const body = await req.json();
 
-        // UI'dan gelen veya simüle edilen veriler
+        // UI'dan gelen veya simle edilen veriler
         const pazarVerisi = body.pazarVerisi || {
             sepetArtisi: true,
             yorumArtisi: true,

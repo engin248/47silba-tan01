@@ -3,27 +3,27 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // ESKİ GEMINI VE MOCK ANALİZ METOTLARI BATCH SİSTEMİNE TAŞINMIŞTIR.
 // BATCH AI KUYRUĞU OPTİMİZASYONU:
-// Eskiden for döngüsü içinde 20 kez Gemini API'ye istek atarak devasa maliyet yaratıyordu.
-// Şimdi tüm verileri toplayıp b1_ai_is_kuyrugu tablosuna 'yargic_analizi' türünde kaydediyoruz.
+// Eskiden for dngs iinde 20 kez Gemini API'ye istek atarak devasa maliyet yaratıyordu.
+// Şimdi tm verileri toplayıp b1_ai_is_kuyrugu tablosuna 'yargic_analizi' trnde kaydediyoruz.
 
-// GUI'DE TRACE GÖSTERİMİ İÇİN
+// GUI'DE TRACE GSTERİMİ İİN
 async function ajanAkliniGoster(gorevId, mesaj) {
     if (!gorevId) return;
     await supabaseAdmin.from('b1_ajan_gorevler').update({
-        hedef_modul: mesaj.substring(0, 100) // UI'daki modül alanına basıyoruz
+        hedef_modul: mesaj.substring(0, 100) // UI'daki modl alanına basıyoruz
     }).eq('id', gorevId);
 }
 
 
-// ─── API ENDPOINT ──────────────────────────────────────────────
+//  API ENDPOINT 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { gorev_id } = body; // Ajanlar UI'dan tetiklenirse gelir
 
-        // Cron job şifre koruması (eğer dışarıdan çağrıldıysa)
+        // Cron job şifre koruması (eğer dışarıdan ağrıldıysa)
         const auth = req.headers.get('authorization');
-        // ─── GÜVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı ───────────
+        //  GVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı 
         if (!process.env.CRON_SECRET) return NextResponse.json({ hata: 'Yapılandırma hatası: CRON_SECRET eksik' }, { status: 500 });
         const isCron = auth === `Bearer ${process.env.CRON_SECRET}`;
 
@@ -32,10 +32,10 @@ export async function POST(req) {
 
         if (gorev_id) {
             await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
-            await ajanAkliniGoster(gorev_id, '🧠 Yargıç (Matematikçi) Uyandı. Dosyalar inceleniyor...');
+            await ajanAkliniGoster(gorev_id, '🧠 Yargı (Matematiki) Uyandı. Dosyalar inceleniyor...');
         }
 
-        // 1. İşlenmemiş ham verileri çek (Limit 20 Vercel timeout'una takılmamak için)
+        // 1. İşlenmemiş ham verileri ek (Limit 20 Vercel timeout'una takılmamak iin)
         const { data: hamUrunler, error: fetchErr } = await supabaseAdmin
             .from('b1_arge_products')
             .select('*')
@@ -48,7 +48,7 @@ export async function POST(req) {
             if (gorev_id) {
                 await supabaseAdmin.from('b1_ajan_gorevler').update({
                     durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
-                    sonuc_ozeti: 'Kuyrukta yargılanacak hiç ürün bulunamadı. Temiz.'
+                    sonuc_ozeti: 'Kuyrukta yargılanacak hi rn bulunamadı. Temiz.'
                 }).eq('id', gorev_id);
             }
             return NextResponse.json({ message: 'No new products to analyze' }, { status: 200 });
@@ -57,14 +57,14 @@ export async function POST(req) {
         // Kuyruğa atılacak job listesi
         const kuyrukInsertleri = [];
 
-        if (gorev_id) await ajanAkliniGoster(gorev_id, `📦 ${hamUrunler.length} adet ürün BATCH AI Kuyruğuna yükleniyor...`);
+        if (gorev_id) await ajanAkliniGoster(gorev_id, `📦 ${hamUrunler.length} adet rn BATCH AI Kuyruğuna ykleniyor...`);
 
         for (let i = 0; i < hamUrunler.length; i++) {
             const urun = hamUrunler[i];
 
             let parsedHamVeri = {};
             try { parsedHamVeri = typeof urun.ham_veri === 'string' ? JSON.parse(urun.ham_veri) : urun.ham_veri || {}; } catch { }
-            const urunAdi = parsedHamVeri.isim || 'Bilinmeyen Ürün';
+            const urunAdi = parsedHamVeri.isim || 'Bilinmeyen rn';
             const fiyatSayi = parsedHamVeri.fiyatSayi || 0;
             const kaynak = urun.veri_kaynagi || 'Trendyol';
 
@@ -74,17 +74,17 @@ export async function POST(req) {
                 durum: 'bekliyor'
             });
 
-            // Kuyruğa eklendiği için islenen_durum güncelleniyor, ama analiz sonucu gelince asıl tablolar dolacak.
+            // Kuyruğa eklendiği iin islenen_durum gncelleniyor, ama analiz sonucu gelince asıl tablolar dolacak.
             await supabaseAdmin.from('b1_arge_products').update({ islenen_durum: 'kuyrukta', islendigi_tarih: new Date().toISOString() }).eq('id', urun.id);
         }
 
         const { error: insertErr } = await supabaseAdmin.from('b1_ai_is_kuyrugu').insert(kuyrukInsertleri);
         if (insertErr) throw insertErr;
 
-        const OzetStr = `🚀 ${hamUrunler.length} adet ürün Yapay Zeka (Batch) kuyruğuna alındı. Gece toplu olarak işlenecektir.`;
+        const OzetStr = `🚀 ${hamUrunler.length} adet rn Yapay Zeka (Batch) kuyruğuna alındı. Gece toplu olarak işlenecektir.`;
 
         if (gorev_id) {
-            await ajanAkliniGoster(gorev_id, '✅ Tüm Veriler Kuyrukta. Yargılama Ertelendi.');
+            await ajanAkliniGoster(gorev_id, ' Tm Veriler Kuyrukta. Yargılama Ertelendi.');
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
                 sonuc_ozeti: OzetStr
@@ -92,8 +92,8 @@ export async function POST(req) {
 
             // Skor yaz
             await supabaseAdmin.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Yargıç (Matematikçi)', islem_tipi: 'analiz_kuyruga_ekleme', kaynak_tablo: 'b1_ai_is_kuyrugu', sonuc: 'basarili',
-                mesaj: OzetStr + ` (Toplu API Çağrısı ile %95 Maliyet Tasarrufu Sağlandı)`
+                ajan_adi: 'Yargı (Matematiki)', islem_tipi: 'analiz_kuyruga_ekleme', kaynak_tablo: 'b1_ai_is_kuyrugu', sonuc: 'basarili',
+                mesaj: OzetStr + ` (Toplu API ağrısı ile %95 Maliyet Tasarrufu Sağlandı)`
             }]);
         }
 

@@ -1,7 +1,7 @@
 'use client';
 /**
  * app/siparisler/page.js — GİRİŞ NOKTASI (20 satır)
- * Tüm UI   → features/siparisler/components/SiparislerMainContainer.js
+ * Tm UI   → features/siparisler/components/SiparislerMainContainer.js
  * Route    : /siparisler
  */
 import { SiparislerMainContainer } from '@/features/siparisler';
@@ -11,7 +11,7 @@ export default function SiparislerPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                ⚠️ Siparisler modülü yüklenirken hata oluştu.
+                ️ Siparisler modl yklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

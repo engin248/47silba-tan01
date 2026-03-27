@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 /**
- * /api/perplexity-arama — Zamansal Doğrulama için Perplexity Araması
- * Kullanım: zamanYenidenArastir() fonksiyonu tarafından çağrılır.
+ * /api/perplexity-arama — Zamansal Doğrulama iin Perplexity Araması
+ * Kullanım: zamanYenidenArastir() fonksiyonu tarafından ağrılır.
  * Trend-ara ile aynı motor, farklı prompt — karşılaştırmalı analiz yapar.
  */
 
@@ -22,7 +22,7 @@ function rateLimitKontrol(ip) {
 export async function POST(request) {
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     if (!rateLimitKontrol(ip)) {
-        return NextResponse.json({ error: 'Çok fazla istek. 1 dakika bekleyin.' }, { status: 429 });
+        return NextResponse.json({ error: 'ok fazla istek. 1 dakika bekleyin.' }, { status: 429 });
     }
 
     const { sorgu } = await request.json();
@@ -30,9 +30,9 @@ export async function POST(request) {
 
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey || apiKey.includes('BURAYA')) {
-        // Demo modu — API key yoksa örnek karşılaştırma verisi döner
+        // Demo modu — API key yoksa rnek karşılaştırma verisi dner
         return NextResponse.json({
-            sonuc: `TREND: [GÜÇLÜ]\nSATIS: [ÇOK_SATTI]\nORTALAMA_FİYAT: 950 TL\nRAKİP_ÜRETTİ: EVET (Zara, DeFacto)\nHermAI_KARAR_UYUM: DOĞRULANDI\nEN_ÖNEMLİ_BULGU: Ürün Trendyol\'da 12.000+ aylık satışa ulaştı, fiyat yükselerek talep gücüne işaret ediyor.\n\n⚠️ Bu demo verisidir. Gerçek analiz için PERPLEXITY_API_KEY gereklidir.`,
+            sonuc: `TREND: [GL]\nSATIS: [OK_SATTI]\nORTALAMA_FİYAT: 950 TL\nRAKİP_RETTİ: EVET (Zara, DeFacto)\nHermAI_KARAR_UYUM: DOĞRULANDI\nEN_NEMLİ_BULGU: rn Trendyol\'da 12.000+ aylık satışa ulaştı, fiyat ykselerek talep gcne işaret ediyor.\n\n️ Bu demo verisidir. Gerek analiz iin PERPLEXITY_API_KEY gereklidir.`,
             demo: true,
         });
     }
@@ -49,7 +49,7 @@ export async function POST(request) {
                 messages: [
                     {
                         role: 'system',
-                        content: 'Sen THE ORDER sisteminin zamansal doğrulama uzmanısın. Sana verilen detaylı soruları gerçek piyasa verilerine dayanarak yanıtla. Yalnızca ölçülebilir veri, rakam ve yüzde kullan. Cevabın formatı: TREND/SATIS/ORTALAMA_FIYAT/RAKIP_URETTI/HermAI_KARAR_UYUM/EN_ONEMLI_BULGU şeklinde olmalı.'
+                        content: 'Sen THE ORDER sisteminin zamansal doğrulama uzmanısın. Sana verilen detaylı soruları gerek piyasa verilerine dayanarak yanıtla. Yalnızca llebilir veri, rakam ve yzde kullan. Cevabın formatı: TREND/SATIS/ORTALAMA_FIYAT/RAKIP_URETTI/HermAI_KARAR_UYUM/EN_ONEMLI_BULGU şeklinde olmalı.'
                     },
                     { role: 'user', content: sorgu }
                 ],
@@ -64,7 +64,7 @@ export async function POST(request) {
         }
 
         const data = await response.json();
-        const sonuc = data.choices?.[0]?.message?.content || 'Sonuç alınamadı';
+        const sonuc = data.choices?.[0]?.message?.content || 'Sonu alınamadı';
         return NextResponse.json({ sonuc, basarili: true });
 
     } catch (err) {

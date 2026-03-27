@@ -3,13 +3,13 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { isEmriSchema, veriDogrula } from '@/lib/zodSchemas';
 
-// ─── POST /api/is-emri-ekle ────────────────────────────────────
+//  POST /api/is-emri-ekle 
 export async function POST(request) {
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla istek. Lütfen bekleyin.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla istek. Ltfen bekleyin.' }, { status: 429 });
         }
 
         // 2. BODY
@@ -29,7 +29,7 @@ export async function POST(request) {
 
         const temizVeri = dogrulama.data;
 
-        // 4. MÜKERRER İŞ EMRİ KONTROLÜ
+        // 4. MKERRER İŞ EMRİ KONTROL
         const { data: mevcut } = await supabaseAdmin
             .from('production_orders')
             .select('id')
@@ -38,7 +38,7 @@ export async function POST(request) {
 
         if (mevcut && mevcut.length > 0) {
             return NextResponse.json(
-                { hata: 'Bu model için halihazırda bekleyen veya üretimde olan bir iş emri var!' },
+                { hata: 'Bu model iin halihazırda bekleyen veya retimde olan bir iş emri var!' },
                 { status: 409 }
             );
         }
@@ -55,7 +55,7 @@ export async function POST(request) {
         await supabaseAdmin.from('b0_sistem_loglari').insert([{
             tablo_adi: 'production_orders',
             islem_tipi: 'EKLEME',
-            kullanici_adi: 'Server API (Güvenli İş Emri)',
+            kullanici_adi: 'Server API (Gvenli İş Emri)',
             eski_veri: { model_id: temizVeri.model_id, quantity: temizVeri.quantity }
         }]);
 

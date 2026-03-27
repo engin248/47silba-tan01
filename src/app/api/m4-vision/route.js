@@ -3,17 +3,17 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { spamKontrol } from '@/lib/ApiZirhi';
 
 
-// Edge Node (İşletmedeki PC/Raspberry) cihazlarının buluta (Buraya) veri atacağı güvenli uç.
+// Edge Node (İşletmedeki PC/Raspberry) cihazlarının buluta (Buraya) veri atacağı gvenli u.
 export async function POST(req) {
     try {
-        // 🚨 KÖR NOKTA ZIRHI: DDoS Koruması (Makine Tüfeği) 🚨
+        // 🚨 KR NOKTA ZIRHI: DDoS Koruması (Makine Tfeği) 🚨
         const ip = req.headers.get('x-forwarded-for') || 'edge_ip';
         const { izinVerildi } = spamKontrol(ip);
         if (!izinVerildi) return NextResponse.json({ error: 'SPAM TESPİT EDİLDİ - BAĞLANTI REDDEDİLDİ!' }, { status: 429 });
 
         const authHeader = req.headers.get('Authorization');
-        // 'Bearer ' prefixi ile güvenlik
-        // ─── GÜVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı ───────────
+        // 'Bearer ' prefixi ile gvenlik
+        //  GVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı 
         if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Yapılandırma hatası: CRON_SECRET eksik' }, { status: 500 });
         const expectedSecret = process.env.CRON_SECRET;
         const isValid = authHeader === `Bearer ${expectedSecret}`;
@@ -24,7 +24,7 @@ export async function POST(req) {
 
         const body = await req.json();
 
-        // JSON'dan beklenen verileri çıkar
+        // JSON'dan beklenen verileri ıkar
         const { kamera_ip, kamera_adi, olay_tipi, guven_skoru, resim_url, ek_bilgi } = body;
 
         if (!kamera_ip || !olay_tipi) {

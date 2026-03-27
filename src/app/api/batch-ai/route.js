@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ─── BATCH GEMİNİ ANALİZ MOTORU ─────────────────────────────────────
+//  BATCH GEMİNİ ANALİZ MOTORU 
 async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
     if (!GEMINI_URL) return { error: 'Gemini API anahtarı yok', results: [] };
 
@@ -9,14 +9,14 @@ async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
         const pazar_urunleri = is_data_array.map(i => ({ id: i.kuyruk_id, ad: i.urunAdi, fiyat: i.fiyatSayi, data: i.ham_veri }));
 
         const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin. 
-Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) ürün verisidir.
-Görev: Bu ürünlerin HER BİRİNİ tekstil üretiminde kârlılık ve risk açısından analiz et. Sonuçları kesinlikle aşağıdaki formatta YALNIZCA BİR JSON LİSTESİ (Array) olarak dön. İçine ekstra açıklama ekleme.
+Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) rn verisidir.
+Grev: Bu rnlerin HER BİRİNİ tekstil retiminde krlılık ve risk aısından analiz et. Sonuları kesinlikle aşağıdaki formatta YALNIZCA BİR JSON LİSTESİ (Array) olarak dn. İine ekstra aıklama ekleme.
 [{
-    "kuyruk_id": "Buraya Listedeki Ürün ID'sini Yaz",
-    "satis_buyumesi": 0-100 arası puan, "sosyal_medya_etkisi": 0-100 arası puan, "rakip_kullanim_hizi": 0-100 arası puan, "sezon_uyumu": 0-100 arası puan, "teorik_maliyet": TL cinsinden üretim maliyeti tahmini, "kumas_turu": "Kumaş türü", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arası (düşük iyi), "uretim_karma_puani": 10-60 arası (düşük iyi), "risk_ozeti": "Kısa risk uyarısı", "agent_notu": "Kısa üretilmeli mi analizi"
+    "kuyruk_id": "Buraya Listedeki rn ID'sini Yaz",
+    "satis_buyumesi": 0-100 arası puan, "sosyal_medya_etkisi": 0-100 arası puan, "rakip_kullanim_hizi": 0-100 arası puan, "sezon_uyumu": 0-100 arası puan, "teorik_maliyet": TL cinsinden retim maliyeti tahmini, "kumas_turu": "Kumaş tr", "iscilik_zorlugu": "Kolay" veya "Orta" veya "Zor", "tedarik_riski_puani": 10-50 arası (dşk iyi), "uretim_karma_puani": 10-60 arası (dşk iyi), "risk_ozeti": "Kısa risk uyarısı", "agent_notu": "Kısa retilmeli mi analizi"
 }]
 
-HAM ÜRÜN LİSTESİ:
+HAM RN LİSTESİ:
 ${JSON.stringify(pazar_urunleri)}`;
 
         const res = await fetch(GEMINI_URL, {
@@ -44,7 +44,7 @@ ${JSON.stringify(pazar_urunleri)}`;
     }
 }
 
-// ─── API ENDPOINT ──────────────────────────────────────────────
+//  API ENDPOINT 
 export async function POST(req) {
     try {
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -82,7 +82,7 @@ export async function POST(req) {
 
         if (aiBatchRes.error) {
             await supabaseAdmin.from('b1_ai_is_kuyrugu').update({ durum: 'hata', sonuc_datasi: { hata: aiBatchRes.error } }).in('id', islerimIDleri);
-            throw new Error(`Toplu Gemini Analizi Çöktü: ${aiBatchRes.error}`);
+            throw new Error(`Toplu Gemini Analizi kt: ${aiBatchRes.error}`);
         }
 
         for (const ai of aiBatchRes.results) {
@@ -95,15 +95,15 @@ export async function POST(req) {
             const firsatSkoru = Math.max(0, Math.min(100, trendSkoru - (ortalamaRisk * 0.5)));
 
             let decision = '';
-            if (firsatSkoru >= 85) decision = 'ÜRETİM';
-            else if (firsatSkoru >= 70) decision = 'TEST ÜRETİMİ (Numune)';
+            if (firsatSkoru >= 85) decision = 'RETİM';
+            else if (firsatSkoru >= 70) decision = 'TEST RETİMİ (Numune)';
             else if (firsatSkoru >= 50) decision = 'İZLEME';
             else decision = 'REDDET';
 
-            const riskLevel = ortalamaRisk > 30 ? 'Yüksek' : ortalamaRisk > 15 ? 'Orta' : 'Düşük';
-            let timeRiskStr = '3-5 gün';
-            if (ai.iscilik_zorlugu === 'Zor') timeRiskStr = '10-15 gün';
-            else if (ai.iscilik_zorlugu === 'Orta') timeRiskStr = '7-10 gün';
+            const riskLevel = ortalamaRisk > 30 ? 'Yksek' : ortalamaRisk > 15 ? 'Orta' : 'Dşk';
+            let timeRiskStr = '3-5 gn';
+            if (ai.iscilik_zorlugu === 'Zor') timeRiskStr = '10-15 gn';
+            else if (ai.iscilik_zorlugu === 'Orta') timeRiskStr = '7-10 gn';
 
             const estimatedProfit = orgData.fiyatSayi ? Math.round(orgData.fiyatSayi * 0.45 * 100) : 0;
 
@@ -149,7 +149,7 @@ export async function POST(req) {
 
         return NextResponse.json({
             basarili: true,
-            mesaj: `${aiBatchRes.results.length} görev TEK BİR API BULK (BATCH) paketi ile hesaplandı ve dağıtıldı.`
+            mesaj: `${aiBatchRes.results.length} grev TEK BİR API BULK (BATCH) paketi ile hesaplandı ve dağıtıldı.`
         });
 
     } catch (e) {

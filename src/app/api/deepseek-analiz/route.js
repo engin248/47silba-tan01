@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 
 /**
  * /api/deepseek-analiz
- * DeepSeek V3 — Düşük Maliyetli Ürün Analiz Servisi
+ * DeepSeek V3 — Dşk Maliyetli rn Analiz Servisi
  *
- * Görev: Gemini'ye alternatif, daha ucuz ürün analizi.
- *        Tekstil/moda sektörü için üretim kararı, maliyet tahmini,
- *        rekabet analizi ve pazar yorum üretir.
+ * Grev: Gemini'ye alternatif, daha ucuz rn analizi.
+ *        Tekstil/moda sektr iin retim kararı, maliyet tahmini,
+ *        rekabet analizi ve pazar yorum retir.
  *
  * Input:  POST { urunAdi, kategori?, fiyat?, notlar? }
  * Output: { karar, skor, maliyet, riskler, oneriler, analiz }
@@ -28,30 +28,30 @@ export async function POST(req) {
         }
 
         const prompt = `Sen THE ORDER / NİZAM sisteminin tekstil fabrikası analisti'sin.
-Görevin: Verilen ürün için üretim kararı ve maliyet analizi yap.
+Grevin: Verilen rn iin retim kararı ve maliyet analizi yap.
 
-DİL KURALI: Tamamen soğukkanlı, metrik odaklı Türkçe yaz. Abartılı ifade kullanma.
+DİL KURALI: Tamamen soğukkanlı, metrik odaklı Trke yaz. Abartılı ifade kullanma.
 
-ÜRÜN BİLGİSİ:
-- Ürün Adı: ${urunAdi.trim()}
+RN BİLGİSİ:
+- rn Adı: ${urunAdi.trim()}
 - Kategori: ${kategori || 'belirtilmemiş'}
 - Hedef Fiyat: ${fiyat ? fiyat + ' TL' : 'belirtilmemiş'}
 - Notlar: ${notlar || 'yok'}
 
-GÖREV:
-Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
+GREV:
+Aşağıdaki JSON formatında yanıt ver (başka hibir şey yazma):
 
 {
-  "karar": "ÜRET | TEST_URETIM | IZLE | REDDET",
+  "karar": "RET | TEST_URETIM | IZLE | REDDET",
   "karar_skoru": 0-100,
   "tahmini_maliyet_tl": sayı,
-  "tahmini_kar_marji": "yüzde olarak",
+  "tahmini_kar_marji": "yzde olarak",
   "uretim_zorlugu": "Kolay | Orta | Zor",
   "tahmini_iscilik_gun": sayı,
   "riskler": ["Risk 1", "Risk 2"],
-  "guclu_yonler": ["Güçlü yön 1", "Güçlü yön 2"],
-  "pazar_yorumu": "2 cümle, metrik bazlı",
-  "oneri": "Fabrika yöneticisine 1 cümle net tavsiye"
+  "guclu_yonler": ["Gl yn 1", "Gl yn 2"],
+  "pazar_yorumu": "2 cmle, metrik bazlı",
+  "oneri": "Fabrika yneticisine 1 cmle net tavsiye"
 }`;
 
         const controller = new AbortController();
@@ -69,7 +69,7 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir şey yazma):
                 messages: [
                     {
                         role: 'system',
-                        content: 'Sen bir tekstil fabrikası yapay zeka analistsin. Türkçe konuş. Yalnızca geçerli JSON dön.',
+                        content: 'Sen bir tekstil fabrikası yapay zeka analistsin. Trke konuş. Yalnızca geerli JSON dn.',
                     },
                     { role: 'user', content: prompt },
                 ],

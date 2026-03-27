@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Sunucu Yük/Stres Testi Endpoint'i
+ * Sunucu Yk/Stres Testi Endpoint'i
  * Sadece admin yetkisi olanlar tetikleyebilir.
  * Parametreler: url, count, concurrency
  */
 export async function POST(req) {
     try {
-        // Güvenlik ve yetki kontrolü
+        // Gvenlik ve yetki kontrol
         const sessionCookie = req.cookies.get('sb47_auth_session')?.value;
         if (!sessionCookie) {
             return NextResponse.json({ error: 'Yetkisiz erişim. Oturum bulunamadı.' }, { status: 401 });
@@ -16,7 +16,7 @@ export async function POST(req) {
 
         const session = JSON.parse(sessionCookie);
         if (session.grup !== 'tam') {
-            return NextResponse.json({ error: 'Yetkisiz erişim. Bu testi sadece Sistem Yöneticileri başlatabilir.' }, { status: 403 });
+            return NextResponse.json({ error: 'Yetkisiz erişim. Bu testi sadece Sistem Yneticileri başlatabilir.' }, { status: 403 });
         }
 
         const body = await req.json();
@@ -26,10 +26,10 @@ export async function POST(req) {
 
         // URL doğrulaması
         if (!urlReq || typeof urlReq !== 'string') {
-            return NextResponse.json({ error: 'Geçerli bir hedef URL belirtilmelidir.' }, { status: 400 });
+            return NextResponse.json({ error: 'Geerli bir hedef URL belirtilmelidir.' }, { status: 400 });
         }
 
-        // Test Parametreleri Limitleri (Vercel'i kilitlememek için koruyucu sınırlar)
+        // Test Parametreleri Limitleri (Vercel'i kilitlememek iin koruyucu sınırlar)
         const vCount = Math.min(Math.max(1, countReq), 1000); // Maks 1000 istek
         const vConcurrency = Math.min(Math.max(1, conReq), 100); // Maks 100 eşzamanlı istek
 
@@ -53,7 +53,7 @@ export async function POST(req) {
         let completed = 0;
         const requestPromises = [];
 
-        // Concurrency kontrolü için basit bir asenkron kuyruk yapısı
+        // Concurrency kontrol iin basit bir asenkron kuyruk yapısı
         async function worker() {
             while (completed < vCount) {
                 // Fetch context
@@ -92,7 +92,7 @@ export async function POST(req) {
             }
         }
 
-        // Çalışanları (workers) başlat
+        // alışanları (workers) başlat
         for (let i = 0; i < vConcurrency; i++) {
             requestPromises.push(worker());
         }
@@ -110,7 +110,7 @@ export async function POST(req) {
             await supabase.from('b1_agent_loglari').insert([{
                 ajan_adi: 'Sistem Hafızası',
                 islem_tipi: 'Stres Testi',
-                mesaj: `Yük Testi: ${urlReq} hedefine ${vCount} istek atıldı. Başarılı: ${results.success}, Ort. Gecikme: ${results.avgLatencyMs}ms`,
+                mesaj: `Yk Testi: ${urlReq} hedefine ${vCount} istek atıldı. Başarılı: ${results.success}, Ort. Gecikme: ${results.avgLatencyMs}ms`,
                 seviye: 'uyari',
                 sonuc: results.failed === 0 ? 'basarili' : 'basarisiz'
             }]);
@@ -122,6 +122,6 @@ export async function POST(req) {
 
     } catch (error) {
         console.error('Stres test error:', error);
-        return NextResponse.json({ error: error.message || 'Test yürütülürken dahili hata oluştu.' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Test yrtlrken dahili hata oluştu.' }, { status: 500 });
     }
 }

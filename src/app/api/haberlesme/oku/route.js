@@ -11,7 +11,7 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Oda bilgisi eksik' }, { status: 400 });
         }
 
-        // Sadece Hedef Odaya veya Genel Karargaha ait (veya odanın gönderdiği) mesajları çek
+        // Sadece Hedef Odaya veya Genel Karargaha ait (veya odanın gnderdiği) mesajları ek
         const { data, error } = await supabaseAdmin
             .from('b1_askeri_haberlesme')
             .select('*')
@@ -20,14 +20,14 @@ export async function GET(req) {
             .limit(100);
 
         if (error) {
-            // Tablo yoksa boş dizi dön (Sistem çökmemesi için Kural 0 zırhı)
+            // Tablo yoksa boş dizi dn (Sistem kmemesi iin Kural 0 zırhı)
             if (error.code === '42P01') return NextResponse.json({ mesajlar: [] });
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         if (!data) return NextResponse.json({ mesajlar: [] });
 
-        // Veritabanındaki şifreli (Hex) paketleri sadece bu Server'da (Process Env Key ile) çözüyoruz
+        // Veritabanındaki şifreli (Hex) paketleri sadece bu Server'da (Process Env Key ile) zyoruz
         const cozulmusMesajlar = data.map(msg => {
             const orjinal = mesajCoz(msg.sifreli_mesaj, msg.iv_vektoru, msg.auth_tag);
             return {

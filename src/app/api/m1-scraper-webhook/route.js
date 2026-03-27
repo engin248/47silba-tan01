@@ -9,34 +9,34 @@ export async function POST(req) {
         const rawData = body.rawData;
 
         if (!rawData) {
-            return NextResponse.json({ error: 'rawData nesnesi bulunamadı. Lütfen M1 Görev Emri JSON formatına uyunuz.' }, { status: 400 });
+            return NextResponse.json({ error: 'rawData nesnesi bulunamadı. Ltfen M1 Grev Emri JSON formatına uyunuz.' }, { status: 400 });
         }
 
         // 1. Gelen ham veriyi The Order M1 Motoruna sor
         const motorSonucu = M1GelistirilmisTrendMotoru.trendiKoklaVeriEle(rawData);
 
-        // 2. Güvenlik Filtresi (Sadece barajı geçenleri al)
-        // İptalse veya skoru düşükse çöpe at (DB'ye kaydetme)
+        // 2. Gvenlik Filtresi (Sadece barajı geenleri al)
+        // İptalse veya skoru dşkse pe at (DB'ye kaydetme)
         if (motorSonucu.karar === 'IPTAL' || motorSonucu.toplamSkor < 65) {
             return NextResponse.json({
                 basarili: true,
-                mesaj: 'Ürün M1 Motoru tarafından elendi. Veritabanına kaydedilmedi.',
+                mesaj: 'rn M1 Motoru tarafından elendi. Veritabanına kaydedilmedi.',
                 alinanKarar: motorSonucu.karar,
                 skor: motorSonucu.toplamSkor,
-                sebep: motorSonucu.elenmeSebebi || 'Skor Barajı Geçilemedi'
+                sebep: motorSonucu.elenmeSebebi || 'Skor Barajı Geilemedi'
             });
         }
 
-        // 3. Geçerli Ürünü Supabase / b1_arge_trendler tablosuna kaydet
+        // 3. Geerli rn Supabase / b1_arge_trendler tablosuna kaydet
         const yeniTrend = {
             baslik: rawData.urunBasligi || 'Bilinmeyen Model (Scraper ID: ' + Date.now() + ')',
             platform: ['trendyol', 'amazon', 'instagram', 'pinterest', 'diger'].includes(rawData.platform) ? rawData.platform : 'diger',
             kategori: rawData.kategori || 'diger',
             hedef_kitle: 'kadın', // Varsayılan veya scrap edilen
-            talep_skoru: Math.floor(motorSonucu.toplamSkor / 10), // 10 üzerinden puan (0-10)
+            talep_skoru: Math.floor(motorSonucu.toplamSkor / 10), // 10 zerinden puan (0-10)
             zorluk_derecesi: 5,
             referans_linkler: rawData.kaynakLink ? [rawData.kaynakLink] : null,
-            aciklama: `[M1 Yapay Zeka Raporu]\nSkor: ${motorSonucu.toplamSkor}\nGüven Endeksi: ${motorSonucu.guvenSkoru}\nUyarılar:\n- ${motorSonucu.uyarılar.join('\n- ')}`,
+            aciklama: `[M1 Yapay Zeka Raporu]\nSkor: ${motorSonucu.toplamSkor}\nGven Endeksi: ${motorSonucu.guvenSkoru}\nUyarılar:\n- ${motorSonucu.uyarılar.join('\n- ')}`,
             durum: motorSonucu.karar === 'URET' ? 'onaylandi' : 'inceleniyor'
         };
 
@@ -48,16 +48,16 @@ export async function POST(req) {
 
         // 4. Log Kaydı
         await supabaseAdmin.from('b1_agent_loglari').insert([{
-            ajan_adi: 'Trend Kâşifi',
+            ajan_adi: 'Trend Kşifi',
             islem_tipi: 'Otomize Scraper Motor Enjeksiyonu',
-            mesaj: `Scraper Bot bir veri yükledi. AI analiz etti: Skor ${motorSonucu.toplamSkor}. Ürün sisteme ${motorSonucu.karar === 'URET' ? 'ONAYLI' : 'İNCELENİYOR'} olarak eklendi.`,
+            mesaj: `Scraper Bot bir veri ykledi. AI analiz etti: Skor ${motorSonucu.toplamSkor}. rn sisteme ${motorSonucu.karar === 'URET' ? 'ONAYLI' : 'İNCELENİYOR'} olarak eklendi.`,
             sonuc: 'basarili',
             created_at: new Date().toISOString()
         }]);
 
         return NextResponse.json({
             basarili: true,
-            mesaj: 'Ürün altın değerinde bulundu ve Karargah/Ar-Ge ekranlarına aktarıldı.',
+            mesaj: 'rn altın değerinde bulundu ve Karargah/Ar-Ge ekranlarına aktarıldı.',
             motorSonucu: motorSonucu
         });
 

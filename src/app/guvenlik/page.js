@@ -5,7 +5,7 @@ import { Shield, Clock, RefreshCw, CheckCircle2, AlertTriangle, LogOut } from 'l
 import { useAuth, ERISIM_GRUPLARI, ERISIM_MATRISI, pindenGrupBul } from '@/lib/auth';
 
 const formatTarih = (iso) => {
-    if (!iso) return 'ÔÇö';
+    if (!iso) return '';
     const d = new Date(iso);
     return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 };
@@ -43,24 +43,24 @@ export default function GuvenlikSayfasi() {
     };
 
     const handlePinDegistir = () => {
-        if (!pinDegistir.eskiPin || !pinDegistir.yeniPin || !pinDegistir.yeniPin2) return goster('T├╝m alanlar─▒ doldurun!', 'error');
-        if (pinDegistir.yeniPin !== pinDegistir.yeniPin2) return goster('Yeni kodlar e┼şle┼şmiyor!', 'error');
-        if (pinDegistir.yeniPin.length < 4) return goster('Kod en az 4 haneli olmal─▒!', 'error');
+        if (!pinDegistir.eskiPin || !pinDegistir.yeniPin || !pinDegistir.yeniPin2) return goster('Tm alanlar doldurun!', 'error');
+        if (pinDegistir.yeniPin !== pinDegistir.yeniPin2) return goster('Yeni kodlar eşleşmiyor!', 'error');
+        if (pinDegistir.yeniPin.length < 4) return goster('Kod en az 4 haneli olmal!', 'error');
         if (pinDegistir.yeniPin.length > 20) return goster('Kod en fazla 20 haneli olabilir!', 'error');
 
         try {
             const mevcut = localStorage.getItem(`sb47_${pinDegistir.grup}_pin`);
             if (mevcut && mevcut !== pinDegistir.eskiPin && pinDegistir.eskiPin !== process.env.NEXT_PUBLIC_ADMIN_PIN) {
-                telegramBildirim(`­şÜ¿ YETK─░S─░Z ─░┼ŞLEM\nG├╝venlik sayfas─▒nda hatal─▒ PIN de─şi┼ştirme denemesi yap─▒ld─▒.\nGrup: ${pinDegistir.grup.toUpperCase()}`);
-                return goster('Mevcut kod hatal─▒!', 'error');
+                telegramBildirim(`ş YETKSZ ŞLEM\nGvenlik sayfasnda hatal PIN deşiştirme denemesi yapld.\nGrup: ${pinDegistir.grup.toUpperCase()}`);
+                return goster('Mevcut kod hatal!', 'error');
             }
 
             localStorage.setItem(`sb47_${pinDegistir.grup}_pin`, pinDegistir.yeniPin);
             setYetkiState(p => ({ ...p, [pinDegistir.grup]: pinDegistir.yeniPin }));
-            telegramBildirim(`­şöÉ PIN DE─Ş─░┼ŞT─░R─░LD─░\n${pinDegistir.grup.toUpperCase()} eri┼şim PIN kodu panel ├╝zerinden yenilendi.`);
+            telegramBildirim(`ş PIN DEŞŞTRLD\n${pinDegistir.grup.toUpperCase()} erişim PIN kodu panel zerinden yenilendi.`);
             setPinDegistir({ grup: 'uretim', eskiPin: '', yeniPin: '', yeniPin2: '' });
-            goster('Ô£à Kod ba┼şar─▒yla g├╝ncellendi!');
-        } catch (error) { goster('PIN de─şi┼ştirilemedi: ' + error.message, 'error'); }
+            goster(' Kod başaryla gncellendi!');
+        } catch (error) { goster('PIN deşiştirilemedi: ' + error.message, 'error'); }
     };
 
     const goster = (text, type = 'success') => {
@@ -69,25 +69,25 @@ export default function GuvenlikSayfasi() {
     };
 
     const logTemizle = () => {
-        // ­şøæ AA Kriteri: ─░zinsiz Silme Engeli (Patron ┼şifresi sor)
-        const adminPin = prompt('G├╝venlik loglar─▒n─▒ silmek tehlikelidir. Y├Ânetici P─░N kodunu girin:');
+        // ş AA Kriteri: zinsiz Silme Engeli (Patron şifresi sor)
+        const adminPin = prompt('Gvenlik loglarn silmek tehlikelidir. Ynetici PN kodunu girin:');
         const dogruPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '9999';
-        if (adminPin !== dogruPin) return goster('Yetkisiz ─░┼şlem! Loglar silinemedi.', 'error');
+        if (adminPin !== dogruPin) return goster('Yetkisiz şlem! Loglar silinemedi.', 'error');
 
         localStorage.removeItem('sb47_giris_log');
         setLoglar([]);
-        goster('Ô£à Log kay─▒tlar─▒ yetkiyle temizlendi');
-        telegramBildirim(`­şÜ¿ KR─░T─░K ─░┼ŞLEM\nG├╝venlik (Giri┼ş) loglar─▒ Y├Ânetici yetkisi kullan─▒larak silindi!`);
+        goster(' Log kaytlar yetkiyle temizlendi');
+        telegramBildirim(`ş KRTK ŞLEM\nGvenlik (Giriş) loglar Ynetici yetkisi kullanlarak silindi!`);
     };
 
-    // Sadece "tam" eri┼şim grubu bu sayfay─▒ g├Âr├╝r
+    // Sadece "tam" erişim grubu bu sayfay grr
     if (kullanici?.grup !== 'tam') {
         return (
             <div dir={isAR ? 'rtl' : 'ltr'} style={{ textAlign: 'center', padding: '5rem', background: '#f8fafc', borderRadius: 20, border: '2px solid #e2e8f0' }}>
                 <Shield size={44} color="#94a3b8" style={{ marginBottom: '1rem' }} />
-                <h2 style={{ color: '#374151', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem y├Ânetimine aittir</h2>
+                <h2 style={{ color: '#374151', fontWeight: 800, fontSize: '1.1rem' }}>Bu alan sistem ynetimine aittir</h2>
                 <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                    Eri┼şim ayarlar─▒ merkezi olarak y├Ânetilmektedir.
+                    Erişim ayarlar merkezi olarak ynetilmektedir.
                 </p>
             </div>
         );
@@ -100,43 +100,43 @@ export default function GuvenlikSayfasi() {
     };
 
     const SEKMELER = [
-        { id: 'genel', label: '­şøí´©Å Genel' },
-        { id: 'yetki', label: '­şöæ Yetki Ver / Al' },
-        { id: 'erisim', label: '­şôï Eri┼şim Tablosu' },
-        { id: 'pin', label: '­şöÉ PIN De─şi┼ştir' },
-        { id: 'log', label: '­şôé Giri┼ş Kay─▒tlar─▒' },
+        { id: 'genel', label: 'ş Genel' },
+        { id: 'yetki', label: 'ş Yetki Ver / Al' },
+        { id: 'erisim', label: 'ş Erişim Tablosu' },
+        { id: 'pin', label: 'ş PIN Deşiştir' },
+        { id: 'log', label: 'ş Giriş Kaytlar' },
     ];
 
     const GRUP_RENK = { tam: '#6366f1', uretim: '#3b82f6', genel: '#10b981' };
     const GRUP_ACIKLAMA = {
-        tam: 'Sistemin t├╝m b├Âl├╝mlerine eri┼şim ve d├╝zenleme',
-        uretim: '├£retim ve y├Ânetim b├Âl├╝mlerine eri┼şim',
-        genel: 'G├Ârevle ilgili b├Âl├╝mlere yaln─▒zca g├Âr├╝nt├╝leme',
+        tam: 'Sistemin tm blmlerine erişim ve dzenleme',
+        uretim: 'retim ve ynetim blmlerine erişim',
+        genel: 'Grevle ilgili blmlere yalnzca grntleme',
     };
 
     return (
         <div>
-            {/* Ba┼şl─▒k */}
+            {/* Başlk */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#6366f1,#4f46e5)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Shield size={22} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Eri┼şim Y├Ânetimi</h1>
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Kodlar ┬À Eri┼şim alanlar─▒ ┬À Giri┼ş kay─▒tlar─▒</p>
+                        <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Erişim Ynetimi</h1>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>Kodlar  Erişim alanlar  Giriş kaytlar</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {/* CC Kriteri Otomatik Rota (Ayarlar Mod├╝l├╝ne Ge├ği┼ş) */}
+                    {/* CC Kriteri Otomatik Rota (Ayarlar Modlne Geğiş) */}
                     <a href="/ayarlar" style={{ textDecoration: 'none' }}>
                         <button style={{ background: '#0f172a', border: '1px solid #334155', color: '#f8fafc', padding: '7px 14px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            ÔÜÖ´©Å Ayarlar (M20)
+                             Ayarlar (M20)
                         </button>
                     </a>
                     <button onClick={cikisYap}
                         style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '7px 14px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <LogOut size={14} /> ├ç─▒k─▒┼ş
+                        <LogOut size={14} /> kş
                     </button>
                 </div>
             </div>
@@ -157,47 +157,47 @@ export default function GuvenlikSayfasi() {
                 ))}
             </div>
 
-            {/* ÔöÇÔöÇ YETK─░ VER / AL ÔöÇÔöÇ */}
+            {/*  YETK VER / AL  */}
             {sekme === 'yetki' && (() => {
                 const uretimAktif = !!yetkiState.uretim;
                 const genelAktif = !!yetkiState.genel;
 
                 const yetkiVer = (grup) => {
-                    const kod = prompt(`"${grup === 'uretim' ? '├£retim' : 'Genel'}" eri┼şimi i├ğin yeni kod belirleyin:`);
-                    if (!kod || kod.length < 4) { goster('Kod en az 4 karakter olmal─▒!', 'error'); return; }
-                    if (kod.length > 20) { goster('Kod ├ğok uzun!', 'error'); return; }
+                    const kod = prompt(`"${grup === 'uretim' ? 'retim' : 'Genel'}" erişimi iğin yeni kod belirleyin:`);
+                    if (!kod || kod.length < 4) { goster('Kod en az 4 karakter olmal!', 'error'); return; }
+                    if (kod.length > 20) { goster('Kod ğok uzun!', 'error'); return; }
                     try {
                         localStorage.setItem(`sb47_${grup}_pin`, kod);
                         setYetkiState(prev => ({ ...prev, [grup]: kod }));
-                        telegramBildirim(`­şşó YETK─░ VER─░LD─░\nYeni yetki verildi.\nGrup: ${grup.toUpperCase()}`);
-                        goster(`Ô£à Yetki verildi. Kod kopyalay─▒p ilgili ki┼şiyle payla┼ş─▒n.`);
+                        telegramBildirim(`şş YETK VERLD\nYeni yetki verildi.\nGrup: ${grup.toUpperCase()}`);
+                        goster(` Yetki verildi. Kod kopyalayp ilgili kişiyle paylaşn.`);
                     } catch (error) { goster('Hata: ' + error.message, 'error'); }
                 };
 
                 const yetkiIptal = (grup) => {
-                    if (!confirm('Bu eri┼şimi kapatmak istedi─şinizden emin misiniz?')) return;
+                    if (!confirm('Bu erişimi kapatmak istedişinizden emin misiniz?')) return;
                     try {
                         localStorage.removeItem(`sb47_${grup}_pin`);
                         setYetkiState(prev => ({ ...prev, [grup]: '' }));
-                        // O grupla giri┼ş yapan oturumlar─▒ da kapat
+                        // O grupla giriş yapan oturumlar da kapat
                         try {
                             const mevcut = JSON.parse(localStorage.getItem('sb47_auth') || 'null');
                             if (mevcut?.grup === grup) localStorage.removeItem('sb47_auth');
                         } catch { }
-                        telegramBildirim(`­şö┤ YETK─░ ─░PTAL ED─░LD─░\nEri┼şim yetkisi kapat─▒ld─▒.\nGrup: ${grup.toUpperCase()}`);
-                        goster(`Eri┼şim kapat─▒ld─▒. Aktif oturumlar sonland─▒r─▒ld─▒.`);
+                        telegramBildirim(`ş YETK PTAL EDLD\nErişim yetkisi kapatld.\nGrup: ${grup.toUpperCase()}`);
+                        goster(`Erişim kapatld. Aktif oturumlar sonlandrld.`);
                     } catch (error) { goster('Hata: ' + error.message, 'error'); }
                 };
 
                 const GRUPLAR = [
-                    { key: 'uretim', label: '├£retim Eri┼şimi', aciklama: '├£retim ve y├Ânetim b├Âl├╝mlerine eri┼şim', renk: '#3b82f6', aktif: uretimAktif },
-                    { key: 'genel', label: 'Genel Eri┼şim', aciklama: 'G├Ârevle ilgili sayfalara g├Âr├╝nt├╝leme', renk: '#10b981', aktif: genelAktif },
+                    { key: 'uretim', label: 'retim Erişimi', aciklama: 'retim ve ynetim blmlerine erişim', renk: '#3b82f6', aktif: uretimAktif },
+                    { key: 'genel', label: 'Genel Erişim', aciklama: 'Grevle ilgili sayfalara grntleme', renk: '#10b981', aktif: genelAktif },
                 ];
 
                 return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 520 }}>
                         <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '0.875rem 1rem', fontSize: '0.8rem', fontWeight: 600, color: '#1e40af' }}>
-                            ­şÆí Yetki verdi─şinizde sistem bir kod belirler ÔÇö o kodu ilgili ki┼şiyle payla┼ş─▒rs─▒n─▒z. ─░stedi─şiniz zaman kapatabilirsiniz; kod an─▒nda ge├ğersiz olur.
+                            ş Yetki verdişinizde sistem bir kod belirler  o kodu ilgili kişiyle paylaşrsnz. stedişiniz zaman kapatabilirsiniz; kod annda geğersiz olur.
                         </div>
                         {GRUPLAR.map(g => (
                             <div key={g.key} style={{ background: 'white', border: `2px solid ${g.aktif ? g.renk + '40' : '#e5e7eb'}`, borderRadius: 14, padding: '1.25rem' }}>
@@ -208,24 +208,24 @@ export default function GuvenlikSayfasi() {
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: g.aktif ? '#ecfdf5' : '#fef2f2', color: g.aktif ? '#059669' : '#dc2626' }}>
-                                            {g.aktif ? '­şşó A├ğ─▒k' : '­şö┤ Kapal─▒'}
+                                            {g.aktif ? 'şş Ağk' : 'ş Kapal'}
                                         </span>
                                     </div>
                                 </div>
                                 {g.aktif && (
                                     <div style={{ marginTop: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                                        Aktif kod mevcut ÔÇö payla┼ş─▒ld─▒ysa eri┼şim a├ğ─▒k.
+                                        Aktif kod mevcut  paylaşldysa erişim ağk.
                                     </div>
                                 )}
                                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                                     <button onClick={() => yetkiVer(g.key)}
                                         style={{ flex: 1, padding: '9px', background: g.renk, color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
-                                        {g.aktif ? '­şöä Kodu De─şi┼ştir' : 'Ô£à Yetki Ver'}
+                                        {g.aktif ? 'ş Kodu Deşiştir' : ' Yetki Ver'}
                                     </button>
                                     {g.aktif && (
                                         <button onClick={() => yetkiIptal(g.key)}
                                             style={{ padding: '9px 16px', background: 'white', border: '2px solid #ef4444', color: '#dc2626', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}>
-                                            ­şÜ½ Kapat
+                                            ş Kapat
                                         </button>
                                     )}
                                 </div>
@@ -235,7 +235,7 @@ export default function GuvenlikSayfasi() {
                 );
             })()}
 
-            {/* ÔöÇÔöÇ GENEL ÔöÇÔöÇ */}
+            {/*  GENEL  */}
             {sekme === 'genel' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '1rem' }}>
                     {Object.entries(ERISIM_GRUPLARI).map(([key, g]) => (
@@ -243,7 +243,7 @@ export default function GuvenlikSayfasi() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.75rem' }}>
                                 <span style={{ fontSize: '1.5rem' }}>{g.gosterge}</span>
                                 <div>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>{g.label} Eri┼şimi</div>
+                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>{g.label} Erişimi</div>
                                     <div style={{ fontSize: '0.65rem', color: GRUP_RENK[key], fontWeight: 700 }}>
                                         {Object.values(ERISIM_MATRISI).filter(m => m[key] !== null && m[key] !== undefined).length} sayfa
                                     </div>
@@ -255,20 +255,20 @@ export default function GuvenlikSayfasi() {
                     <div style={{ background: '#0f172a', borderRadius: 14, padding: '1.25rem' }}>
                         <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '0.85rem', marginBottom: '0.75rem' }}>Sistem Durumu</div>
                         {[
-                            { label: 'Oturum s├╝resi', val: '8 saat' },
-                            { label: 'PIN korumas─▒', val: 'Aktif' },
-                            { label: 'Giri┼ş kayd─▒', val: 'Aktif' },
+                            { label: 'Oturum sresi', val: '8 saat' },
+                            { label: 'PIN korumas', val: 'Aktif' },
+                            { label: 'Giriş kayd', val: 'Aktif' },
                         ].map((i, idx) => (
                             <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: '0.72rem' }}>
                                 <span style={{ color: '#64748b' }}>{i.label}</span>
-                                <span style={{ color: '#34d399', fontWeight: 700 }}>Ô£à {i.val}</span>
+                                <span style={{ color: '#34d399', fontWeight: 700 }}> {i.val}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ ER─░┼Ş─░M TABLOSU ÔöÇÔöÇ */}
+            {/*  ERŞM TABLOSU  */}
             {sekme === 'erisim' && (
                 <div style={{ background: 'white', borderRadius: 14, padding: '1.25rem', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
@@ -288,9 +288,9 @@ export default function GuvenlikSayfasi() {
                                     <td style={{ padding: '7px 14px', fontWeight: 600, color: '#0f172a', fontFamily: 'monospace', fontSize: '0.72rem' }}>{href}</td>
                                     {Object.keys(ERISIM_GRUPLARI).map(grup => (
                                         <td key={grup} style={{ padding: '7px 14px', textAlign: 'center' }}>
-                                            {erisim[grup] === 'full' && <span style={{ background: '#ecfdf5', color: '#059669', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}>Ô£à Tam</span>}
-                                            {erisim[grup] === 'read' && <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}>­şæü G├Âr├╝nt├╝</span>}
-                                            {!erisim[grup] && <span style={{ color: '#d1d5db', fontSize: '0.65rem' }}>ÔÇö</span>}
+                                            {erisim[grup] === 'full' && <span style={{ background: '#ecfdf5', color: '#059669', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}> Tam</span>}
+                                            {erisim[grup] === 'read' && <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}>ş Grnt</span>}
+                                            {!erisim[grup] && <span style={{ color: '#d1d5db', fontSize: '0.65rem' }}></span>}
                                         </td>
                                     ))}
                                 </tr>
@@ -300,20 +300,20 @@ export default function GuvenlikSayfasi() {
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ KOD Y├ûNET─░M─░ ÔöÇÔöÇ */}
+            {/*  KOD YNETM  */}
             {sekme === 'pin' && (
                 <div style={{ maxWidth: 440 }}>
                     <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '0.875rem 1rem', marginBottom: '1.25rem', fontSize: '0.8rem', fontWeight: 600, color: '#92400e' }}>
-                        Eri┼şim kodu de─şi┼şikliklerini kal─▒c─▒ hale getirmek i├ğin sunucu ortam de─şi┼şkenlerini g├╝ncelleyin.
+                        Erişim kodu deşişikliklerini kalc hale getirmek iğin sunucu ortam deşişkenlerini gncelleyin.
                     </div>
                     <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 14, padding: '1.5rem' }}>
-                        <h3 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem', fontSize: '0.95rem' }}>Eri┼şim Kodu G├╝ncelle</h3>
+                        <h3 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem', fontSize: '0.95rem' }}>Erişim Kodu Gncelle</h3>
                         <div style={{ display: 'grid', gap: '0.875rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Eri┼şim Grubu</label>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' }}>Erişim Grubu</label>
                                 <select value={pinDegistir.grup} onChange={e => setPinDegistir({ ...pinDegistir, grup: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
                                     {Object.entries(ERISIM_GRUPLARI).map(([k, g]) => (
-                                        <option key={k} value={k}>{g.gosterge} {g.label} Eri┼şimi</option>
+                                        <option key={k} value={k}>{g.gosterge} {g.label} Erişimi</option>
                                     ))}
                                 </select>
                             </div>
@@ -331,18 +331,18 @@ export default function GuvenlikSayfasi() {
                             </div>
                             <button onClick={handlePinDegistir}
                                 style={{ background: '#6366f1', color: 'white', border: 'none', padding: '11px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem' }}>
-                                Kodu G├╝ncelle
+                                Kodu Gncelle
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ G─░R─░┼Ş KAYITLARI ÔöÇÔöÇ */}
+            {/*  GRŞ KAYITLARI  */}
             {sekme === 'log' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>{loglar.length} kay─▒t</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>{loglar.length} kayt</span>
                         <button onClick={logTemizle}
                             style={{ background: 'white', border: '1px solid #e5e7eb', color: '#64748b', padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <RefreshCw size={12} /> Temizle
@@ -351,7 +351,7 @@ export default function GuvenlikSayfasi() {
                     {loglar.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 14, border: '2px dashed #e5e7eb' }}>
                             <Clock size={40} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
-                            <p style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.85rem' }}>Hen├╝z giri┼ş kayd─▒ yok.</p>
+                            <p style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.85rem' }}>Henz giriş kayd yok.</p>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -361,11 +361,11 @@ export default function GuvenlikSayfasi() {
                                 <div key={i} style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 10, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <span style={{ fontSize: '1.1rem' }}>{g?.gosterge || '?'}</span>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.82rem' }}>{g?.label || log.grup} Eri┼şimi</div>
+                                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.82rem' }}>{g?.label || log.grup} Erişimi</div>
                                         <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{formatTarih(log.saat)}</div>
                                     </div>
                                     <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 10px', borderRadius: 6, background: log.islem === 'giris' ? '#ecfdf5' : '#f8fafc', color: log.islem === 'giris' ? '#059669' : '#94a3b8' }}>
-                                        {log.islem === 'giris' ? 'Giri┼ş' : '├ç─▒k─▒┼ş'}
+                                        {log.islem === 'giris' ? 'Giriş' : 'kş'}
                                     </span>
                                 </div>
                             );

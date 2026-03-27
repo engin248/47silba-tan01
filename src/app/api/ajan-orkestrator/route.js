@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ═══════════════════════════════════════════════════════════
-//  PARÇA 1 — BACKEND
+// 
+//  PARA 1 — BACKEND
 //  /api/ajan-orkestrator
-//  Koordinatör: modları = 'tara' | 'dagit' | 'dogrula'
-// ═══════════════════════════════════════════════════════════
+//  Koordinatr: modları = 'tara' | 'dagit' | 'dogrula'
+// 
 
-// ── TARAMA: 26 Modülü kontrol eder, görev listesi üretir ──
+//  TARAMA: 26 Modl kontrol eder, grev listesi retir 
 async function taraModu() {
     const gorevler = [];
     const tarihStr = new Date().toISOString();
@@ -29,7 +29,7 @@ async function taraModu() {
         });
     }
 
-    // 2. Bekleyen sipariş taraması (2 günden eski)
+    // 2. Bekleyen sipariş taraması (2 gnden eski)
     const ikiGunOnce = new Date(Date.now() - 2 * 86400000).toISOString();
     const { data: bekleyenSiparis } = await supabaseAdmin
         .from('b2_siparisler')
@@ -42,13 +42,13 @@ async function taraModu() {
             id: `siparis_${s.id}`,
             tip: 'siparis_alarmi',
             oncelik: 'yuksek',
-            baslik: `2 Gün Onay Bekleyen: ${s.siparis_no}`,
+            baslik: `2 Gn Onay Bekleyen: ${s.siparis_no}`,
             veri: { siparis_id: s.id },
             atanan: null
         });
     }
 
-    // 3. Bekleyen ajan görevleri taraması
+    // 3. Bekleyen ajan grevleri taraması
     const { data: bekleyenGorev } = await supabaseAdmin
         .from('b1_ajan_gorevler')
         .select('id, gorev_adi, oncelik, created_at')
@@ -59,13 +59,13 @@ async function taraModu() {
             id: `ajan_${g.id}`,
             tip: 'ajan_gorevi',
             oncelik: g.oncelik || 'normal',
-            baslik: g.gorev_adi || 'Ajan Görevi',
+            baslik: g.gorev_adi || 'Ajan Grevi',
             veri: { gorev_id: g.id },
             atanan: null
         });
     }
 
-    // 4. Gecikmiş üretim emirleri
+    // 4. Gecikmiş retim emirleri
     const bugun = new Date().toISOString().split('T')[0];
     const { data: gecikme } = await supabaseAdmin
         .from('production_orders')
@@ -78,7 +78,7 @@ async function taraModu() {
             id: `uretim_${p.id}`,
             tip: 'uretim_gecikmesi',
             oncelik: 'kritik',
-            baslik: `Gecikmiş Üretim: ${p.id.slice(0, 8)}`,
+            baslik: `Gecikmiş retim: ${p.id.slice(0, 8)}`,
             veri: { order_id: p.id },
             atanan: null
         });
@@ -95,19 +95,19 @@ async function taraModu() {
             id: `trend_onay`,
             tip: 'bilgi',
             oncelik: 'normal',
-            baslik: `${trendler.length} Trend Koordinatör Onayı Bekliyor`,
+            baslik: `${trendler.length} Trend Koordinatr Onayı Bekliyor`,
             veri: { sayi: trendler.length },
             atanan: null
         });
     }
 
     // 6. Sipariş Anomalisi Tespiti (K-07)
-    // Kural A: 24 saatte aynı müşteriden 3+ sipariş → şüpheli
-    // Kural B: Ürün fiyatı bir önceki fiyatIn %50'sinden düşükse → kritik
+    // Kural A: 24 saatte aynı mşteriden 3+ sipariş → şpheli
+    // Kural B: rn fiyatı bir nceki fiyatIn %50'sinden dşkse → kritik
     try {
         const sonYirmidortSaat = new Date(Date.now() - 86400000).toISOString();
 
-        // Kural A: Çoklu sipariş anomalisi
+        // Kural A: oklu sipariş anomalisi
         const { data: sonSiparisler } = await supabaseAdmin
             .from('b2_siparisler')
             .select('musteri_id, musteri_adi, id')
@@ -126,7 +126,7 @@ async function taraModu() {
                         id: `anomali_musteri_${musteriKey}`,
                         tip: 'anomali_uyarisi',
                         oncelik: 'kritik',
-                        baslik: `🚨 Anormal Sipariş: Müşteri ${sayi} sipariş verdi (24s)`,
+                        baslik: `🚨 Anormal Sipariş: Mşteri ${sayi} sipariş verdi (24s)`,
                         veri: { musteri_id: musteriKey, siparis_sayisi: sayi },
                         atanan: null
                     });
@@ -134,9 +134,9 @@ async function taraModu() {
                     try {
                         await supabaseAdmin.from('b1_sistem_uyarilari').insert([{
                             tip: 'siparis_anomali',
-                            mesaj: `Müşteri ${musteriKey} son 24 saatte ${sayi} sipariş verdi — anomali tespiti.`,
+                            mesaj: `Mşteri ${musteriKey} son 24 saatte ${sayi} sipariş verdi — anomali tespiti.`,
                             oncelik: 'kritik',
-                            kaynak: 'Koordinatör Ajanı',
+                            kaynak: 'Koordinatr Ajanı',
                         }]);
                     } catch { /* Uyarı yazma hatası sistemi durdurmasIn */ }
                 }
@@ -146,30 +146,30 @@ async function taraModu() {
 
     // Orkestrator durumunu kaydet
     await supabaseAdmin.from('b1_ajan_gorevler').insert([{
-        ajan_adi: 'Koordinatör',
+        ajan_adi: 'Koordinatr',
         gorev_adi: 'Sistem Taraması (Orkestrator)',
         gorev_tipi: 'kontrol',
         durum: 'tamamlandi',
         oncelik: 'yuksek',
         bitis_tarihi: tarihStr,
-        sonuc_ozeti: `${gorevler.length} görev tespit edildi. Worker A ve B'ye dagItIlacak.`,
-        gorev_emri: 'Tüm 26 modülü tara, hata ve bekleyen görevleri listele',
+        sonuc_ozeti: `${gorevler.length} grev tespit edildi. Worker A ve B'ye dagItIlacak.`,
+        gorev_emri: 'Tm 26 modl tara, hata ve bekleyen grevleri listele',
     }]);
 
     return { gorevler, toplam: gorevler.length };
 }
 
-// ── DAgIT: Görev listesini Worker A ve B'ye böler, paralel çalIstIrIr ──
+//  DAgIT: Grev listesini Worker A ve B'ye bler, paralel alIstIrIr 
 async function dagitModu(gorevler) {
     if (!gorevler || gorevler.length === 0) {
         return { workerA: { sonuc: [], atlanan: 0 }, workerB: { sonuc: [], atlanan: 0 } };
     }
 
-    // Kritik görevler A'ya, digerleri B'ye
+    // Kritik grevler A'ya, digerleri B'ye
     const kritikler = gorevler.filter(g => g.oncelik === 'kritik');
     const digerler = gorevler.filter(g => g.oncelik !== 'kritik');
 
-    // Worker A: Kritik görevler + digerlerin yarIsı
+    // Worker A: Kritik grevler + digerlerin yarIsı
     const workerAGorevler = [...kritikler, ...digerler.slice(0, Math.ceil(digerler.length / 2))].map(g => ({ ...g, atanan: 'Worker_A' }));
     // Worker B: Diger yarIsı
     const workerBGorevler = digerler.slice(Math.ceil(digerler.length / 2)).map(g => ({ ...g, atanan: 'Worker_B' }));
@@ -180,7 +180,7 @@ async function dagitModu(gorevler) {
         'x-internal-api-key': process.env.INTERNAL_API_KEY || '' // [FIX] 'dev' fallback kaldIrIldı
     };
 
-    // Promise.allSettled ile ikisi paralel çalIsIr
+    // Promise.allSettled ile ikisi paralel alIsIr
     const [aRes, bRes] = await Promise.allSettled([
         fetch(`${domain}/api/worker-ajan`, {
             method: 'POST',
@@ -201,7 +201,7 @@ async function dagitModu(gorevler) {
     };
 }
 
-// ── DOgRULA: İki worker'ın çıktIsInı birlestirir ──
+//  DOgRULA: İki worker'ın ıktIsInı birlestirir 
 async function dogrulamaModu(dagitimSonucu) {
     const { workerA, workerB, dagilim } = dagitimSonucu || {};
 
@@ -213,14 +213,14 @@ async function dogrulamaModu(dagitimSonucu) {
     const hataSayisi = aHata + bHata;
 
     const ozet = [
-        `✅ Worker A: ${aTamamlanan} görev tamamlandı${aHata > 0 ? ` (${aHata} hata)` : ''}`,
-        `✅ Worker B: ${bTamamlanan} görev tamamlandı${bHata > 0 ? ` (${bHata} hata)` : ''}`,
+        ` Worker A: ${aTamamlanan} grev tamamlandı${aHata > 0 ? ` (${aHata} hata)` : ''}`,
+        ` Worker B: ${bTamamlanan} grev tamamlandı${bHata > 0 ? ` (${bHata} hata)` : ''}`,
         `📊 Toplam: ${toplam}/${(dagilim?.workerA || 0) + (dagilim?.workerB || 0)} basarIlı`,
     ].join('\n');
 
     // Dogrulama logu yaz
     await supabaseAdmin.from('b1_agent_loglari').insert([{
-        ajan_adi: 'Koordinatör',
+        ajan_adi: 'Koordinatr',
         islem_tipi: 'orkestrasyon_dogrulama',
         kaynak_tablo: 'orchestrator',
         sonuc: hataSayisi === 0 ? 'basarili' : 'uyari',
@@ -233,7 +233,7 @@ async function dogrulamaModu(dagitimSonucu) {
     };
 }
 
-// ── ANA HANDLER ──────────────────────────────────────────────
+//  ANA HANDLER 
 export async function POST(req) {
     try {
         const apiKey = req.headers.get('x-internal-api-key');
@@ -258,7 +258,7 @@ export async function POST(req) {
             return NextResponse.json({ mod, ...sonuc });
         }
 
-        return NextResponse.json({ error: 'Geçersiz mod. tara | dagit | dogrula kullanIn.' }, { status: 400 });
+        return NextResponse.json({ error: 'Geersiz mod. tara | dagit | dogrula kullanIn.' }, { status: 400 });
 
     } catch (e) {
         console.error('[ORKESTRTOR HATA]', e);

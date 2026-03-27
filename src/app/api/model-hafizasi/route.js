@@ -2,14 +2,14 @@
  * NIZAM MODEL HAFIZASI API
  * Endpoint: /api/model-hafizasi?model_id=xxx&model_kodu=MODEL-47-A
  *
- * Mimarisi: Ajan Öğrenmesi Altyapısı
- * ─────────────────────────────────────────────────────────────────
+ * Mimarisi: Ajan ğrenmesi Altyapısı
+ * 
  * M5 (Kesim bitti) → Zincirci Ajan → modelHafizasiOku(model_id)
- * → "Kritik not var mı?" → EVET → Üretim bandına ALERT
- * → "⚠️ Bu modelde dikiş sorunu yaşanmış — geçmiş notları oku"
+ * → "Kritik not var mı?" → EVET → retim bandına ALERT
+ * → "️ Bu modelde dikiş sorunu yaşanmış — gemiş notları oku"
  *
- * Not bırakan bir kez yazar → tüm sistem sonsuz kez faydalanır.
- * ─────────────────────────────────────────────────────────────────
+ * Not bırakan bir kez yazar → tm sistem sonsuz kez faydalanır.
+ * 
  */
 
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
@@ -29,7 +29,7 @@ export async function GET(request) {
     }
 
     try {
-        // ── SORGU: Bu modele ait tüm mesajlar ───────────────────────────
+        //  SORGU: Bu modele ait tm mesajlar 
         let query = supabaseAdmin
             .from('b1_ic_mesajlar')
             .select('id, konu, icerik, tip, oncelik, gonderen_adi, gonderen_modul, created_at, urun_kodu, urun_adi, mesaj_hash')
@@ -42,7 +42,7 @@ export async function GET(request) {
             query = query.eq('urun_kodu', model_kodu.toUpperCase());
         }
 
-        // Sadece kritik/sikayet/rapor filtreleme (ajan için hızlı tarama)
+        // Sadece kritik/sikayet/rapor filtreleme (ajan iin hızlı tarama)
         if (sadece_kritik) {
             query = query.or("oncelik.eq.kritik,tip.eq.sikayet,tip.eq.rapor");
         }
@@ -50,19 +50,19 @@ export async function GET(request) {
         const { data: mesajlar, error } = await query;
         if (error) throw error;
 
-        // ── HAFIZA ANALİZİ ──────────────────────────────────────────────
+        //  HAFIZA ANALİZİ 
         const kritikNotlar = mesajlar.filter(m =>
             m.oncelik === 'kritik' || ['sikayet', 'rapor'].includes(m.tip)
         );
         const uyariVar = kritikNotlar.length > 0;
 
-        // Modül bazında not sayıları — hangi aşamada sorun yaşandı
+        // Modl bazında not sayıları — hangi aşamada sorun yaşandı
         const modulOzeti = mesajlar.reduce((acc, m) => {
             acc[m.gonderen_modul] = (acc[m.gonderen_modul] || 0) + 1;
             return acc;
         }, {});
 
-        // Öğrenme özeti — ajan bu metni üretim bandına iletir
+        // ğrenme zeti — ajan bu metni retim bandına iletir
         let ogrenmeMesaji = null;
         if (uyariVar) {
             const konular = kritikNotlar
@@ -71,14 +71,14 @@ export async function GET(request) {
                 .join('\n');
 
             ogrenmeMesaji =
-                `⚠️ MODEL GEÇMİŞ UYARISI — ${model_kodu || model_id}\n\n` +
-                `Bu modelde geçmiş üretim döngülerinde ${kritikNotlar.length} kritik not kaydedilmiştir:\n` +
+                `️ MODEL GEMİŞ UYARISI — ${model_kodu || model_id}\n\n` +
+                `Bu modelde gemiş retim dnglerinde ${kritikNotlar.length} kritik not kaydedilmiştir:\n` +
                 konular +
                 (kritikNotlar.length > 3 ? `\n... ve ${kritikNotlar.length - 3} kritik not daha` : '') +
-                `\n\nÜretim öncesi geçmiş notları okuyunuz.`;
+                `\n\nretim ncesi gemiş notları okuyunuz.`;
         }
 
-        // ── YANIT ───────────────────────────────────────────────────────
+        //  YANIT 
         return Response.json({
             model_id,
             model_kodu: mesajlar[0]?.urun_kodu || model_kodu,
@@ -89,7 +89,7 @@ export async function GET(request) {
                 uyari_var: uyariVar,
                 modul_dagilimi: modulOzeti,
             },
-            // Ajan akışı için anahtar alan
+            // Ajan akışı iin anahtar alan
             ogrenme: {
                 uyari_var: uyariVar,
                 mesaj: ogrenmeMesaji,
@@ -101,7 +101,7 @@ export async function GET(request) {
                     tarih: m.created_at,
                 })),
             },
-            // Tam geçmiş (istenirse)
+            // Tam gemiş (istenirse)
             mesajlar: mesajlar.map(m => ({
                 id: m.id,
                 konu: m.konu,
@@ -111,7 +111,7 @@ export async function GET(request) {
                 kaynak: m.gonderen_modul,
                 yazan: m.gonderen_adi,
                 tarih: m.created_at,
-                hash: m.mesaj_hash, // bütünlük doğrulama için
+                hash: m.mesaj_hash, // btnlk doğrulama iin
             })),
         });
 

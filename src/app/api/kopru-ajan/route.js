@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// GUI'DE TRACE GÖSTERİMİ İÇİN
+// GUI'DE TRACE GSTERİMİ İİN
 async function ajanAkliniGoster(gorevId, mesaj) {
     if (!gorevId) return;
     await supabaseAdmin.from('b1_ajan_gorevler').update({
@@ -9,16 +9,16 @@ async function ajanAkliniGoster(gorevId, mesaj) {
     }).eq('id', gorevId);
 }
 
-// ─── TELEGRAM BİLDİRİM ────────────────────────────────────────
+//  TELEGRAM BİLDİRİM 
 async function telegramBildirimGonder(urunAdi, firsatSkoru, karar, agentNote, botToken, chatId) {
     if (!botToken || !chatId) return false;
 
-    const emoji = karar === 'ÜRETİM' ? '🏭' : '🧪';
+    const emoji = karar === 'RETİM' ? '🏭' : '🧪';
     const mesaj = `${emoji} *THE ORDER — YENİ KARAR*
 
-📦 *Ürün:* ${urunAdi}
+📦 *rn:* ${urunAdi}
 📊 *Fırsat Skoru:* ${firsatSkoru.toFixed(1)}/100
-⚡ *Karar:* ${karar}
+ *Karar:* ${karar}
 
 📝 _${agentNote || 'Detay yok.'}_
 
@@ -36,33 +36,33 @@ _Karargah panelinden onaylayın._`;
     }
 }
 
-// ─── YENİ KARARLARI TARA VE BİLDİR ───────────────────────────
+//  YENİ KARARLARI TARA VE BİLDİR 
 async function yeniKararlariTara(gorevId, botToken, chatId) {
-    if (gorevId) await ajanAkliniGoster(gorevId, '🔍 Telegram gönderilecek yeni kararlar taranıyor...');
+    if (gorevId) await ajanAkliniGoster(gorevId, '🔍 Telegram gnderilecek yeni kararlar taranıyor...');
 
     const birSaatOnce = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const { data: yeniKararlar, error } = await supabaseAdmin
         .from('b1_arge_strategy')
         .select('*')
-        .in('nizam_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
-        // Sadece 'boss_approved' = false olanları yani onaylanmamışları alabiliriz ama orijinal script son 1 saate göreydi.
+        .in('nizam_decision', ['RETİM', 'TEST RETİMİ (Numune)'])
+        // Sadece 'boss_approved' = false olanları yani onaylanmamışları alabiliriz ama orijinal script son 1 saate greydi.
         .gte('created_at', birSaatOnce)
         .order('opportunity_score', { ascending: false });
 
     if (error || !yeniKararlar || yeniKararlar.length === 0) {
-        if (gorevId) await ajanAkliniGoster(gorevId, '📭 Telegram için yeni bildirim bulunamadı.');
+        if (gorevId) await ajanAkliniGoster(gorevId, '📭 Telegram iin yeni bildirim bulunamadı.');
         return 0;
     }
 
-    if (gorevId) await ajanAkliniGoster(gorevId, `📤 ${yeniKararlar.length} adet yeni karar bulundu. Gönderiliyor...`);
+    if (gorevId) await ajanAkliniGoster(gorevId, `📤 ${yeniKararlar.length} adet yeni karar bulundu. Gnderiliyor...`);
 
     let gonderilen = 0;
     for (let i = 0; i < yeniKararlar.length; i++) {
         const karar = yeniKararlar[i];
         if (gorevId) await ajanAkliniGoster(gorevId, `📱 Telegram İletişiyor: [${i + 1}/${yeniKararlar.length}] ${karar.product_name?.substring(0, 15)}...`);
 
-        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen Ürün', karar.opportunity_score || 0, karar.nizam_decision, karar.agent_note, botToken, chatId);
+        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen rn', karar.opportunity_score || 0, karar.nizam_decision, karar.agent_note, botToken, chatId);
         if (basarili) gonderilen++;
 
         // Telegram rate limit koruması — mesajlar arası 1sn bekle (Sadece dış bağlantılarda)
@@ -72,9 +72,9 @@ async function yeniKararlariTara(gorevId, botToken, chatId) {
     return gonderilen;
 }
 
-// ─── ÇÖP SÜPÜRGESİ (7 GÜNLÜK TEMİZLİK) ─────────────────────
+//  P SPRGESİ (7 GNLK TEMİZLİK) 
 async function copSupurgesi(gorevId) {
-    if (gorevId) await ajanAkliniGoster(gorevId, '🧹 7 günden eski işlenmiş kayıtlar temizleniyor...');
+    if (gorevId) await ajanAkliniGoster(gorevId, '🧹 7 gnden eski işlenmiş kayıtlar temizleniyor...');
 
     const yediGunOnce = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -90,14 +90,14 @@ async function copSupurgesi(gorevId) {
     return silinen;
 }
 
-// ─── API ENDPOINT ──────────────────────────────────────────────
+//  API ENDPOINT 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { gorev_id } = body;
 
         const auth = req.headers.get('authorization');
-        // ─── GÜVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı ───────────
+        //  GVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı 
         if (!process.env.CRON_SECRET) return NextResponse.json({ hata: 'Yapılandırma hatası: CRON_SECRET eksik' }, { status: 500 });
         const isCron = auth === `Bearer ${process.env.CRON_SECRET}`;
 
@@ -106,23 +106,23 @@ export async function POST(req) {
 
         if (gorev_id) {
             await supabaseAdmin.from('b1_ajan_gorevler').update({ durum: 'calisıyor', baslangic_tarihi: new Date().toISOString() }).eq('id', gorev_id);
-            await ajanAkliniGoster(gorev_id, '🌉 Köprü Ajanı Başlatıldı...');
+            await ajanAkliniGoster(gorev_id, '🌉 Kpr Ajanı Başlatıldı...');
         }
 
         const gonderilen = await yeniKararlariTara(gorev_id, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID);
         const silinen = await copSupurgesi(gorev_id);
 
-        const sonucMesaji = `Köprü Raporu: ${gonderilen} karar yöneticilere (Telegram'a) iletildi, ${silinen} çöp veri temizlendi.`;
+        const sonucMesaji = `Kpr Raporu: ${gonderilen} karar yneticilere (Telegram'a) iletildi, ${silinen} p veri temizlendi.`;
 
         if (gorev_id) {
-            await ajanAkliniGoster(gorev_id, '✅ Köprü Protokolü Tamamlandı.');
+            await ajanAkliniGoster(gorev_id, ' Kpr Protokol Tamamlandı.');
             await supabaseAdmin.from('b1_ajan_gorevler').update({
                 durum: 'tamamlandi', bitis_tarihi: new Date().toISOString(),
                 sonuc_ozeti: sonucMesaji
             }).eq('id', gorev_id);
 
             await supabaseAdmin.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Köprü Ajanı (Haberci)', islem_tipi: 'iletişim_ve_temizlik', kaynak_tablo: 'b1_arge_strategy', sonuc: 'basarili', mesaj: sonucMesaji
+                ajan_adi: 'Kpr Ajanı (Haberci)', islem_tipi: 'iletişim_ve_temizlik', kaynak_tablo: 'b1_arge_strategy', sonuc: 'basarili', mesaj: sonucMesaji
             }]);
         }
 

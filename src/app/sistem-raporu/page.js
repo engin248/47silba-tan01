@@ -1,7 +1,7 @@
 'use client';
 /**
- * /sistem-raporu — Gerçek Hata Analiz Raporu
- * Müfettiş: ANTİGRAVİTY | Tarih: 19 Mart 2026
+ * /sistem-raporu — Gerek Hata Analiz Raporu
+ * Mfettiş: ANTİGRAVİTY | Tarih: 19 Mart 2026
  */
 
 const RAPOR = {
@@ -13,7 +13,7 @@ const RAPOR = {
             baslik: 'KATEGORİ 0 — SAHTE HATALAR',
             oncelik: 'Etki Yok',
             aciklama: 'node_modules/events/ ve node_modules/react/ hataları (~200 adet)',
-            detay: 'Bu hatalar bizim kodumuzda değil, React kütüphanesinin kendi dosyalarında. jsconfig.json güçlendirilerek elendi.',
+            detay: 'Bu hatalar bizim kodumuzda değil, React ktphanesinin kendi dosyalarında. jsconfig.json glendirilerek elendi.',
             durum: 'TAMAMLANDI',
         },
         {
@@ -22,7 +22,7 @@ const RAPOR = {
             baslik: 'KATEGORİ 1 — BUILD ENGELLEYİCİ KRİTİK HATALAR',
             oncelik: '🔴 ACİL',
             aciklama: 'zustand eksik, SayfaBasligi.js yok, @upstash paketleri, SUPABASE_SERVICE_ROLE_KEY',
-            detay: 'zustand kuruldu ✅ | SayfaBasligi.js oluşturuldu ✅ | jsconfig.json güçlendirildi ✅ | Build exit code 0 ✅',
+            detay: 'zustand kuruldu  | SayfaBasligi.js oluşturuldu  | jsconfig.json glendirildi  | Build exit code 0 ',
             durum: 'TAMAMLANDI',
         },
         {
@@ -31,7 +31,7 @@ const RAPOR = {
             baslik: 'KATEGORİ 2 — SUPABASE API YANLIŞ KULLANIMI',
             oncelik: '🔴 ACİL',
             aciklama: '~25 dosyada .catch() yanlış kullanımı → hatalar sessizce yutulur',
-            detay: 'Supabase-js v2\'de .from().insert().catch() zinciri çalışmaz. try-catch ile çevrilmesi gerekiyor. katalogApi.js ve ayarlarApi.js düzeltildi.',
+            detay: 'Supabase-js v2\'de .from().insert().catch() zinciri alışmaz. try-catch ile evrilmesi gerekiyor. katalogApi.js ve ayarlarApi.js dzeltildi.',
             durum: 'KISMI',
         },
         {
@@ -40,7 +40,7 @@ const RAPOR = {
             baslik: 'KATEGORİ 3 — REALTIME KANAL HATASI',
             oncelik: '🟡 ORTA',
             aciklama: 'ayarlarApi.js ve katalogApi.js — postgres_changes tip uyumsuzluğu',
-            detay: '@ts-ignore eklendi, runtime\'da düzgün çalışıyor. Supabase-js tip tanımı güncellendiğinde otomatik kapanır.',
+            detay: '@ts-ignore eklendi, runtime\'da dzgn alışıyor. Supabase-js tip tanımı gncellendiğinde otomatik kapanır.',
             durum: 'TAMAMLANDI',
         },
         {
@@ -49,7 +49,7 @@ const RAPOR = {
             baslik: 'KATEGORİ 4 — KOMPONENDe PROP EKSİKLİKLERİ',
             oncelik: '🟡 ORTA',
             aciklama: '~15 yerde children prop eksik — ClientLayout, KatalogMainContainer vb.',
-            detay: 'Runtime\'da hata üretebilir ama sayfa render engellenmez. Ayrı bir müdahale gerektiriyor.',
+            detay: 'Runtime\'da hata retebilir ama sayfa render engellenmez. Ayrı bir mdahale gerektiriyor.',
             durum: 'BEKLEMEDE',
         },
         {
@@ -68,12 +68,12 @@ const RAPOR = {
             oncelik: '🔴 ACİL',
             aciklama: 'Karargah sayfasında 13 kırmızı konsol hatası: 503, 400, ERR_CONNECTION_CLOSED',
             detay: [
-                '✅ /api/telegram-bildirim GET hatası → kaldırıldı',
-                '✅ b1_maliyet_kayitlari 400 → kalem_turu → maliyet_tipi düzeltildi',
-                '✅ b1_sistem_uyarilari 400 → tablo yok, sorgu kaldırıldı',
-                '✅ b1_ic_mesajlar ERR_CONNECTION_CLOSED → servis kapatıldı',
-                '✅ /api/stream-durum 503 → kamera polling kapatıldı',
-                '✅ Kırmızı alarm panosu → devre dışı',
+                ' /api/telegram-bildirim GET hatası → kaldırıldı',
+                ' b1_maliyet_kayitlari 400 → kalem_turu → maliyet_tipi dzeltildi',
+                ' b1_sistem_uyarilari 400 → tablo yok, sorgu kaldırıldı',
+                ' b1_ic_mesajlar ERR_CONNECTION_CLOSED → servis kapatıldı',
+                ' /api/stream-durum 503 → kamera polling kapatıldı',
+                ' Kırmızı alarm panosu → devre dışı',
             ].join('\n'),
             durum: 'TAMAMLANDI',
         },
@@ -88,8 +88,8 @@ const renkMap = {
 };
 
 const durumMap = {
-    'TAMAMLANDI': { renk: '#22c55e', etiket: '✅ TAMAMLANDI' },
-    'KISMI': { renk: '#f59e0b', etiket: '⚡ KISMİ' },
+    'TAMAMLANDI': { renk: '#22c55e', etiket: ' TAMAMLANDI' },
+    'KISMI': { renk: '#f59e0b', etiket: ' KISMİ' },
     'BEKLEMEDE': { renk: '#6b7280', etiket: '⏳ BEKLEMEDE' },
 };
 
@@ -104,17 +104,17 @@ export default function SistemRaporuSayfasi() {
             {/* Başlık */}
             <div style={{ borderBottom: '1px solid #1a4731', paddingBottom: '16px', marginBottom: '24px' }}>
                 <div style={{ fontSize: '10px', color: '#4ade80', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                    MİZANET SİSTEM MÜFETTİŞLİĞİ / GIZLI SINIFLANDIRMALI
+                    MİZANET SİSTEM MFETTİŞLİĞİ / GIZLI SINIFLANDIRMALI
                 </div>
                 <h1 style={{ fontSize: '22px', color: '#ffffff', margin: '0 0 4px 0', fontWeight: 'bold' }}>
-                    🔴 GERÇEK HATA ANALİZ RAPORU
+                    🔴 GEREK HATA ANALİZ RAPORU
                 </h1>
                 <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                    Tarih: {RAPOR.tarih} &nbsp;|&nbsp; Müfettiş: ANTİGRAVİTY &nbsp;|&nbsp; Kaynak: ts_errors.txt (491 satır) + build_log.txt
+                    Tarih: {RAPOR.tarih} &nbsp;|&nbsp; Mfettiş: ANTİGRAVİTY &nbsp;|&nbsp; Kaynak: ts_errors.txt (491 satır) + build_log.txt
                 </div>
             </div>
 
-            {/* Özet Sayaçlar */}
+            {/* zet Sayalar */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
                 {[
                     { etiket: 'TAMAMLANDI', sayi: tamamlandi, renk: '#22c55e' },

@@ -1,8 +1,8 @@
-// ═══════════════════════════════════════════════════════════
+// 
 //  K-17: Sistem Sağlık Endpoint — /api/health
-//  GET → Tüm kritik tabloları PARALEL sorgular, durum döner
-//  Kök Neden Fix: Sıralı → Promise.all() (10s → ~2s)
-// ═══════════════════════════════════════════════════════════
+//  GET → Tm kritik tabloları PARALEL sorgular, durum dner
+//  Kk Neden Fix: Sıralı → Promise.all() (10s → ~2s)
+// 
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
     const basla = Date.now();
 
-    // TÜM SORGULAR PARALEL — Promise.all() ile eş zamanlı çalışır
+    // TM SORGULAR PARALEL — Promise.all() ile eş zamanlı alışır
     const [dbSonuc, ajanSonuc, siparisSonuc, kasaSonuc, uyariSonuc] = await Promise.allSettled([
 
         // 1. Veritabanı bağlantısı + temel tablo
@@ -45,7 +45,7 @@ export async function GET() {
             .gte('created_at', new Date(Date.now() - 3600000).toISOString()),
     ]);
 
-    // ── Sonuçları çözümle ───────────────────────────────────
+    //  Sonuları zmle 
     let tamam = true;
     const sonuclar = {};
 
@@ -90,7 +90,7 @@ export async function GET() {
 
     return NextResponse.json({
         basarili: tamam,
-        durum: tamam ? '✅ TÜM SİSTEMLER ÇALIŞIYOR' : '⚠️ BAZI SİSTEMLERDE SORUN VAR',
+        durum: tamam ? ' TM SİSTEMLER ALIŞIYOR' : '️ BAZI SİSTEMLERDE SORUN VAR',
         yanit_sure_ms: sure,
         zaman: new Date().toISOString(),
         kontroller: sonuclar,

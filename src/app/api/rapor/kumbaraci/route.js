@@ -2,16 +2,16 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// KUMBARACI (AKILLI KÜMELEME) — THE ORDER / NIZAM
+// KUMBARACI (AKILLI KMELEME) — THE ORDER / NIZAM
 // /api/rapor/kumbaraci
 //
 // GET  → Bu haftanın kalıp+model metadatasından ortak malzeme planı
-// POST → Manuel malzeme listesi güncelle
+// POST → Manuel malzeme listesi gncelle
 // ============================================================
 
-// Standart tekstil malzemeleri tanımlama sözlüğü
+// Standart tekstil malzemeleri tanımlama szlğ
 const MALZEME_ANAHTAR_KELIMELERI = {
-    'dugme': ['düğme', 'button', 'dugme', 'çıt çıt'],
+    'dugme': ['dğme', 'button', 'dugme', 'ıt ıt'],
     'fermuar': ['fermuar', 'fermuvar', 'zipper', 'zip'],
     'astar': ['astar', 'lining'],
     'elastik': ['elastik', 'lastik', 'bant', 'elastic'],
@@ -27,7 +27,7 @@ export async function GET(req) {
         const haftaSayisi = parseInt(url.searchParams.get('hafta') || '1');
         const bitisTarihi = new Date(Date.now() + haftaSayisi * 7 * 86400000).toISOString();
 
-        // ─ Önümüzdeki haftaların kalıp taslakları ────────────
+        //  nmzdeki haftaların kalıp taslakları 
         const { data: kaliplar } = await sb
             .from('b1_model_taslaklari')
             .select('id, model_adi, malzeme_listesi, notlar, durum, created_at')
@@ -35,14 +35,14 @@ export async function GET(req) {
             .in('durum', ['aktif', 'hazirlaniyor', 'taslak'])
             .limit(100);
 
-        // ─ Modelhane taslakları ───────────────────────────────
+        //  Modelhane taslakları 
         const { data: modelhane } = await sb
             .from('b1_modelhane_kayitlari')
             .select('id, model_id, malzeme_notlari, durum, created_at')
             .lte('created_at', bitisTarihi)
             .limit(100);
 
-        // ─ Malzeme ihtiyaç kümeleme ───────────────────────────
+        //  Malzeme ihtiya kmeleme 
         const malzemeIstihtiyac = {};
 
         const tumNot = [
@@ -66,19 +66,19 @@ export async function GET(req) {
             .sort((a, b) => b.kac_modelde - a.kac_modelde)
             .map(m => ({
                 ...m,
-                toptan_oneri: m.kac_modelde >= 3 ? '✅ TOPTAN AL — İskonto fırsatı!' : '⬜ Tekil alım yeterli',
+                toptan_oneri: m.kac_modelde >= 3 ? ' TOPTAN AL — İskonto fırsatı!' : '⬜ Tekil alım yeterli',
                 oncelik: m.kac_modelde >= 5 ? 'acil' : m.kac_modelde >= 3 ? 'yuksek' : 'normal',
             }));
 
-        // ─ Log ───────────────────────────────────────────────
+        //  Log 
         const toptan = kumerlenmisMalzemeler.filter(m => m.kac_modelde >= 3);
         if (toptan.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Kumbaracı (Akıllı Kümeleme)',
+                ajan_adi: 'Kumbaracı (Akıllı Kmeleme)',
                 islem_tipi: 'malzeme_kumeleme',
                 kaynak_tablo: 'b1_model_taslaklari + b1_modelhane_kayitlari',
                 sonuc: 'basarili',
-                mesaj: `${(kaliplar || []).length + (modelhane || []).length} model analiz edildi. ${toptan.length} malzemede toptan alım önerisi üretildi.`,
+                mesaj: `${(kaliplar || []).length + (modelhane || []).length} model analiz edildi. ${toptan.length} malzemede toptan alım nerisi retildi.`,
             }]);
         }
 

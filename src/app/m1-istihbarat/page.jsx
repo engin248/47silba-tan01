@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase Client İstemci Tarafı Sadece Okuma İçin
+// Supabase Client İstemci Tarafı Sadece Okuma İin
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -14,11 +14,11 @@ export default function M1IstihbaratPaneli() {
     const [loading, setLoading] = useState(true);
     const [triggering, setTriggering] = useState(false);
 
-    // Veri Çekme Fonksiyonu
+    // Veri ekme Fonksiyonu
     const fetchIstihbaratData = async () => {
         try {
             setLoading(true);
-            // Ürünleri Çek
+            // rnleri ek
             const { data: prodData, error: prodErr } = await supabase
                 .from('b1_arge_products')
                 .select('*')
@@ -27,7 +27,7 @@ export default function M1IstihbaratPaneli() {
 
             if (!prodErr && prodData) setProducts(prodData);
 
-            // Logları Çek
+            // Logları ek
             const { data: logData, error: logErr } = await supabase
                 .from('b1_agent_loglari')
                 .select('*')
@@ -36,7 +36,7 @@ export default function M1IstihbaratPaneli() {
 
             if (!logErr && logData) setLogs(logData);
         } catch (err) {
-            console.error("Veri çekme hatası:", err);
+            console.error("Veri ekme hatası:", err);
             alert("SİSTEM BAĞLANTISI KOPUK (M1): Veritabanına veya API'ye ulaşılamıyor.");
         } finally {
             setLoading(false);
@@ -45,7 +45,7 @@ export default function M1IstihbaratPaneli() {
 
     useEffect(() => {
         fetchIstihbaratData();
-        // Gerçek zamanlı güncellemeler veya periyodik yenileme için poll
+        // Gerek zamanlı gncellemeler veya periyodik yenileme iin poll
         const interval = setInterval(fetchIstihbaratData, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -56,7 +56,7 @@ export default function M1IstihbaratPaneli() {
             const res = await fetch('/api/trigger-agents', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                alert("Ajanlar Sahaya Sürüldü! (Asenkron Görev Başladı)");
+                alert("Ajanlar Sahaya Srld! (Asenkron Grev Başladı)");
                 fetchIstihbaratData();
             } else {
                 alert("Tetikleme Hatası: " + data.message);
@@ -70,7 +70,7 @@ export default function M1IstihbaratPaneli() {
     };
 
     const getStatusBadge = (status) => {
-        if (status === 'ÇOK_SATAR' || status === 'BİNGO') return <span className="badge badge-success px-3 py-1 bg-green-900 text-green-100 rounded-full text-xs font-bold border border-green-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]">{status}</span>;
+        if (status === 'OK_SATAR' || status === 'BİNGO') return <span className="badge badge-success px-3 py-1 bg-green-900 text-green-100 rounded-full text-xs font-bold border border-green-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]">{status}</span>;
         if (status === 'İZLE') return <span className="badge badge-warning px-3 py-1 bg-yellow-900 text-yellow-100 rounded-full text-xs font-bold border border-yellow-500">{status}</span>;
         return <span className="badge badge-danger px-3 py-1 bg-red-900 text-red-100 rounded-full text-xs font-bold border border-red-500">{status}</span>;
     };
@@ -78,11 +78,11 @@ export default function M1IstihbaratPaneli() {
     return (
         <div className="p-8 min-h-screen text-white" style={{ background: '#0d1117', fontFamily: 'Inter, sans-serif' }}>
 
-            {/* ÜST BAR */}
+            {/* ST BAR */}
             <div className="flex justify-between items-center mb-10 pb-4 border-b border-[rgba(255,255,255,0.05)]">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-emerald-400 drop-shadow-md">M1 KARARGAH</h1>
-                    <p className="text-gray-400 mt-1 text-sm font-medium tracking-wide border-l-2 border-emerald-500 pl-3">İstihbarat, Saha Taraması ve Trend Ağ Geçidi</p>
+                    <p className="text-gray-400 mt-1 text-sm font-medium tracking-wide border-l-2 border-emerald-500 pl-3">İstihbarat, Saha Taraması ve Trend Ağ Geidi</p>
                 </div>
 
                 <button
@@ -92,13 +92,13 @@ export default function M1IstihbaratPaneli() {
             ${triggering ? 'bg-gray-700 cursor-not-allowed text-gray-400' : 'bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(16,185,129,0.4)] border-emerald-500/30'}
           `}
                 >
-                    {triggering ? "🚀 Ajanlar Kodlanıyor..." : "⚔️ BÜTÜN AJANLARI TETİKLE"}
+                    {triggering ? "🚀 Ajanlar Kodlanıyor..." : "️ BTN AJANLARI TETİKLE"}
                 </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* SOL/ORTA KOLON: ÜRÜN İSTİHBARATI */}
+                {/* SOL/ORTA KOLON: RN İSTİHBARATI */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xl">📡</span>
@@ -114,7 +114,7 @@ export default function M1IstihbaratPaneli() {
                             {products.map((product) => (
                                 <div key={product.id} className="glass-panel p-6 rounded-xl border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.04)] transition-colors group relative overflow-hidden">
 
-                                    {/* Neon Kenar Çizgisi Efekti */}
+                                    {/* Neon Kenar izgisi Efekti */}
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                                     <div className="flex justify-between items-start">
@@ -135,7 +135,7 @@ export default function M1IstihbaratPaneli() {
 
                             {products.length === 0 && !loading && (
                                 <div className="glass-panel p-8 text-center text-gray-500 italic rounded-xl border border-[rgba(255,255,255,0.02)]">
-                                    Henüz istihbarat verisi bulunamadı. Ajanları tetikleyin.
+                                    Henz istihbarat verisi bulunamadı. Ajanları tetikleyin.
                                 </div>
                             )}
                         </div>
@@ -171,7 +171,7 @@ export default function M1IstihbaratPaneli() {
                                 </div>
                             ))}
                             {logs.length === 0 && (
-                                <div className="text-gray-600 italic">Sistem beklemede... Log geçmişi temiz.</div>
+                                <div className="text-gray-600 italic">Sistem beklemede... Log gemişi temiz.</div>
                             )}
                         </div>
                     </div>
@@ -180,7 +180,7 @@ export default function M1IstihbaratPaneli() {
                     <div className="glass-panel p-5 rounded-xl border border-[rgba(255,255,255,0.03)] bg-gradient-to-br from-[rgba(16,185,129,0.05)] to-transparent">
                         <h4 className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">Asenkron Kalkan Durumu</h4>
                         <p className="text-sm text-gray-300">
-                            M1, M2 ve M3 süreçleri birbirinden %100 yalıtılmıştır. Buradaki hiçbir süreç arka plan motorlarını veya üretim hattını kilitleyemez.
+                            M1, M2 ve M3 sreleri birbirinden %100 yalıtılmıştır. Buradaki hibir sre arka plan motorlarını veya retim hattını kilitleyemez.
                         </p>
                     </div>
                 </div>

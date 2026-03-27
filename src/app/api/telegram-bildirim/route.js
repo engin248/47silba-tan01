@@ -4,12 +4,12 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 const MAX_ISTEK = 5;              // [C2-THROTTLE] Dakikada maksimum 5 mesaj
 const ZAMAN_ARALIGI_SN = 60;
-const DUPLICATE_BEKLEME_SN = 7200; // [C2-DUPLICATE] 2 saat içinde aynı alarm tekrar gitmesin
+const DUPLICATE_BEKLEME_SN = 7200; // [C2-DUPLICATE] 2 saat iinde aynı alarm tekrar gitmesin
 
 // [AYR-02] Mesajın hangi kategoriye ait olduğunu belirle
 function kategoriyiBelirle(mesaj) {
     const m = (mesaj || '').toLowerCase();
-    if (m.includes('üretim') || m.includes('iş emri') || m.includes('kesim') || m.includes('uretim')) return 'bildirim_uretim';
+    if (m.includes('retim') || m.includes('iş emri') || m.includes('kesim') || m.includes('uretim')) return 'bildirim_uretim';
     if (m.includes('stok') || m.includes('kritik stok') || m.includes('depo')) return 'bildirim_stok';
     if (m.includes('sipariş') || m.includes('siparis') || m.includes('teslim')) return 'bildirim_siparis';
     if (m.includes('personel') || m.includes('devamsizlik') || m.includes('maas') || m.includes('prim')) return 'bildirim_personel';
@@ -37,7 +37,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
     try {
-        // G3 FIX (Müfettiş 19.03.2026): Internal API Key Auth Zırhı eklendi.
+        // G3 FIX (Mfettiş 19.03.2026): Internal API Key Auth Zırhı eklendi.
         // Bu endpoint'e sadece kendi sistemimiz erişebilir, dışarıdan spam engellendi.
         const authHeader = request.headers.get('authorization') || '';
         const internalKey = process.env.INTERNAL_API_KEY || process.env.CRON_SECRET || '';
@@ -48,10 +48,10 @@ export async function POST(request) {
         const ipFallback = 'Anonim-' + Math.random().toString(36).substring(2, 9);
         const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ipFallback;
 
-        // Spam Zırhı Kök Çözümü (maybeSingle & Error Handling eklendi)
+        // Spam Zırhı Kk zm (maybeSingle & Error Handling eklendi)
         const { data: dbKayit, error: dbError } = await supabaseAdmin.from('b0_api_spam_kalkani').select('*').eq('ip_adresi', ip).maybeSingle();
 
-        // EĞER tablo yoksa, yetki yoksa veya Supabase çöktüyse sessizce devam etmek yerine bunu durdur
+        // EĞER tablo yoksa, yetki yoksa veya Supabase ktyse sessizce devam etmek yerine bunu durdur
         if (dbError) throw new Error("Spam Kalkanı DB Hatası: " + dbError.message);
 
         let engellendi = false;
@@ -76,7 +76,7 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: 'Telegram zirhi devrede. Cok fazla istek.' }, { status: 429 });
         }
 
-        // [C2-DUPLICATE] Aynı mesajın 2 saat içinde tekrar gidişini engelle
+        // [C2-DUPLICATE] Aynı mesajın 2 saat iinde tekrar gidişini engelle
         const body_raw = await request.clone().json().catch(() => ({}));
         const mesajOnizleme = (body_raw?.mesaj || '').substring(0, 80);
         if (mesajOnizleme) {
@@ -93,10 +93,10 @@ export async function POST(request) {
             if (dupCheck) {
                 const gecenSn = (new Date().getTime() - new Date(dupCheck.son_vurus_saati).getTime()) / 1000;
                 if (gecenSn < DUPLICATE_BEKLEME_SN) {
-                    return NextResponse.json({ success: false, engellendi: true, sebep: `Duplicate koruma: Bu alarm ${Math.round((DUPLICATE_BEKLEME_SN - gecenSn) / 60)} dakika sonra tekrar gönderilebilir.` });
+                    return NextResponse.json({ success: false, engellendi: true, sebep: `Duplicate koruma: Bu alarm ${Math.round((DUPLICATE_BEKLEME_SN - gecenSn) / 60)} dakika sonra tekrar gnderilebilir.` });
                 }
             }
-            // Yeni gönderimde özeti kaydet
+            // Yeni gnderimde zeti kaydet
             await supabaseAdmin.from('b0_api_spam_kalkani').upsert([{ ip_adresi: `msg_hash_${mesajOnizleme.replace(/\s/g, '')}`, spam_sayaci: 1, son_vurus_saati: new Date().toISOString(), son_mesaj_ozeti: mesajOnizleme }], { onConflict: 'ip_adresi' });
         }
 

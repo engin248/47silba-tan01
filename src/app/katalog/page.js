@@ -1,7 +1,7 @@
 'use client';
 /**
  * app/katalog/page.js — GİRİŞ NOKTASI (20 satır)
- * Tüm UI   → features/katalog/components/KatalogMainContainer.js
+ * Tm UI   → features/katalog/components/KatalogMainContainer.js
  * Route    : /katalog
  */
 import { KatalogMainContainer } from '@/features/katalog';
@@ -11,7 +11,7 @@ export default function KatalogPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                ⚠️ Katalog modülü yüklenirken hata oluştu.
+                ️ Katalog modl yklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

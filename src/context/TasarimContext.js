@@ -24,7 +24,7 @@ export function TasarimProvider({ children }) {
             if (!pathname) return;
 
             try {
-                // 1. Ã–nce bulunduÄŸumuz sayfanÄ±n Ã¶zel tasarÄ±mÄ± var mÄ± (Ã–rn: '/musteriler')
+                // 1. Önce bulunduğumuz sayfanın özel tasarımı var mı (Örn: '/musteriler')
                 const { data: sayfaTasarimi } = await supabase
                     .from('b0_tasarim_ayarlari')
                     .select('*')
@@ -36,7 +36,7 @@ export function TasarimProvider({ children }) {
                     return;
                 }
 
-                // 2. Ã–zel sayfa tasarÄ±mÄ± yoksa Global TemayÄ± Ã§ek
+                // 2. Özel sayfa tasarımı yoksa Global Temayı çek
                 const { data: globalTasarim } = await supabase
                     .from('b0_tasarim_ayarlari')
                     .select('*')
@@ -46,7 +46,7 @@ export function TasarimProvider({ children }) {
                 if (globalTasarim) {
                     uygula(globalTasarim);
                 } else {
-                    // HiÃ§biri yoksa varsayÄ±lan
+                    // Hiçbiri yoksa varsayılan
                     uygula({
                         ana_renk: '#047857', ikincil_renk: '#0f172a',
                         arkaplan_renk: '#f8fafc', kutu_arka_plan: '#ffffff',
@@ -54,7 +54,7 @@ export function TasarimProvider({ children }) {
                     });
                 }
             } catch (error) {
-                // Hata durumunda varsayÄ±lan temada kal
+                // Hata durumunda varsayılan temada kal
                 setTema(prev => ({ ...prev, yukleniyor: false }));
             }
         };
@@ -75,18 +75,18 @@ export function TasarimProvider({ children }) {
         };
         setTema(yeniTema);
 
-        // CSS Variable'larÄ± root nesnesine (HTML elemanÄ±na) enjekte et
+        // CSS Variable'ları root nesnesine (HTML elemanına) enjekte et
         if (typeof document !== 'undefined') {
             const root = document.documentElement;
             root.style.setProperty('--c-ana', yeniTema.ana_renk);
             root.style.setProperty('--c-ikincil', yeniTema.ikincil_renk);
-            // Sayfa zemin rengi %10 aÃ§Ä±lÄ±yor
+            // Sayfa zemin rengi %10 açılıyor
             root.style.setProperty('--c-arka', `color-mix(in srgb, ${yeniTema.arkaplan_renk} 90%, white)`);
             root.style.setProperty('--c-kutu', yeniTema.kutu_arka_plan);
             root.style.setProperty('--f-yazi', yeniTema.yazi_tipi);
             root.style.setProperty('--b-radius', yeniTema.kose_radius);
 
-            // GÃ¶lge Stili
+            // Gölge Stili
             if (yeniTema.golge_stili === 'yok') root.style.setProperty('--s-golge', 'none');
             else if (yeniTema.golge_stili === 'sert') root.style.setProperty('--s-golge', '4px 4px 0px rgba(0,0,0,1)');
             else root.style.setProperty('--s-golge', '0 8px 24px -8px rgba(0,0,0,0.08)');

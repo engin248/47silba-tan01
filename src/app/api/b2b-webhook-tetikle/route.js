@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 
 /**
  * FAZ 5.2: B2B TOPTANCI (MAIL / WHATSAPP) OTONOM TETİKLEYİCİSİ (WEBHOOK)
- * Görev: Karargah (M3) panelinde Patron "ÜRET" butonuna (Kalıphaneye Bas) tıkladığı saniye, 
- * Hermania ajanının (Bot 11) önceden İngilizce ve Arapça olarak yazdığı katalog/B2B ikna metni
- * bu adres üzerinden SendGrid (Mail) veya Meta/Twilio (WhatsApp) API'lerine asenkron fırlatılır.
+ * Grev: Karargah (M3) panelinde Patron "RET" butonuna (Kalıphaneye Bas) tıkladığı saniye, 
+ * Hermania ajanının (Bot 11) nceden İngilizce ve Arapa olarak yazdığı katalog/B2B ikna metni
+ * bu adres zerinden SendGrid (Mail) veya Meta/Twilio (WhatsApp) API'lerine asenkron fırlatılır.
  */
 export async function POST(req) {
     try {
@@ -12,19 +12,19 @@ export async function POST(req) {
         const { urun_adi, b2b_ingilizce_mail, b2b_arapca_mail, hedef_pazar } = body;
 
         if (!urun_adi || (!b2b_ingilizce_mail && !b2b_arapca_mail)) {
-            return NextResponse.json({ hata: "Eksik parametreler (Ürün Adı veya Taslak Metni Yok)" }, { status: 400 });
+            return NextResponse.json({ hata: "Eksik parametreler (rn Adı veya Taslak Metni Yok)" }, { status: 400 });
         }
 
         // KURAL 21: Maliyet Şeffaflığı Uyarısı
-        // Gerçek bir Twilio / SendGrid entegrasyonu ateşlendiğinde, atılan her mesaj/mail başına 
-        // cüzi de olsa (Örn: 0.001$) bir API maliyeti yansıyacaktır. Sistem şu an dışa açık mock fırlatma yapıyor.
+        // Gerek bir Twilio / SendGrid entegrasyonu ateşlendiğinde, atılan her mesaj/mail başına 
+        // czi de olsa (rn: 0.001$) bir API maliyeti yansıyacaktır. Sistem şu an dışa aık mock fırlatma yapıyor.
 
-        console.log(`\n[B2B İHRACAT HATLARI AÇILDI - FAZ 5.2] ${urun_adi} için ${hedef_pazar} müşterilerine katalog yollanıyor...`);
+        console.log(`\n[B2B İHRACAT HATLARI AILDI - FAZ 5.2] ${urun_adi} iin ${hedef_pazar} mşterilerine katalog yollanıyor...`);
 
-        // GERÇEK DÜNYA BAĞLANTISI YERİ:
+        // GEREK DNYA BAĞLANTISI YERİ:
         // await fetch('https://api.sendgrid.com/v3/mail/send', { headers: {'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`}...})
 
-        let secilen_metin = hedef_pazar === 'ARAPÇA' ? b2b_arapca_mail : b2b_ingilizce_mail;
+        let secilen_metin = hedef_pazar === 'ARAPA' ? b2b_arapca_mail : b2b_ingilizce_mail;
 
         const webhookDurumu = {
             gonderilen_pazar: hedef_pazar,
@@ -33,16 +33,16 @@ export async function POST(req) {
             hedef_kanallar: "Mail (SendGrid) & WhatsApp (Meta) Webhook Ağı"
         };
 
-        console.log(`[ONAY] Müşteri portföyüne ${webhookDurumu.mesaj_uzunlugu} karakterlik Satış Kancası başarıyla fırlatıldı.`);
+        console.log(`[ONAY] Mşteri portfyne ${webhookDurumu.mesaj_uzunlugu} karakterlik Satış Kancası başarıyla fırlatıldı.`);
 
         return NextResponse.json({
             success: true,
-            message: "Toptancı müşterilere (B2B) teklif metni başarıyla fırlatıldı. Satış Köprüsü Aktif.",
+            message: "Toptancı mşterilere (B2B) teklif metni başarıyla fırlatıldı. Satış Kprs Aktif.",
             webhook_raporu: webhookDurumu
         }, { status: 200 });
 
     } catch (e) {
-        console.error("[B2B WEBHOOK ÇÖKMESİ]:", e);
+        console.error("[B2B WEBHOOK KMESİ]:", e);
         return NextResponse.json({
             success: false,
             message: "Mail/WP ağına bağlanırken istasyon koptu: " + e.message

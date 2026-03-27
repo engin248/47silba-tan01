@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ─── GÜVENLİK YAMASI: Parametre Doğrulama ───────────────────────────
+//  GVENLİK YAMASI: Parametre Doğrulama 
 // SQL injection ve tehlikeli select kalıplarını engelle
 const GUVENLI_KOLON_REGEX = /^[a-zA-Z0-9_,.*() ]+$/;
 const TEHLIKELI_KALIPLAR = /(\b(DROP|DELETE|INSERT|UPDATE|ALTER|EXEC|UNION|SELECT\s+\*\s+FROM)\b|--|;|\/\*)/i;
@@ -30,15 +30,15 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Bu tabloya erisim izni yok.' }, { status: 403 });
         }
 
-        // ─── SUTUNLAR DOĞRULAMASI ───────────────────────────────
-        // ESKİ: sutunlar doğrudan supabase.select() içine geçiriliyordu
-        //        → SQL injection riski (örn: "*, (SELECT password FROM users)")
+        //  SUTUNLAR DOĞRULAMASI 
+        // ESKİ: sutunlar doğrudan supabase.select() iine geiriliyordu
+        //        → SQL injection riski (rn: "*, (SELECT password FROM users)")
         // YENİ: Regex whitelist + tehlikeli kalıp engeli
         let secimKolonlari = '*';
         if (sutunlar && typeof sutunlar === 'string' && sutunlar !== '*') {
             if (!parametreGuvenliMi(sutunlar)) {
                 return NextResponse.json(
-                    { hata: 'Geçersiz sutunlar parametresi. Sadece alfanümerik, virgül ve alt çizgi kabul edilir.' },
+                    { hata: 'Geersiz sutunlar parametresi. Sadece alfanmerik, virgl ve alt izgi kabul edilir.' },
                     { status: 400 }
                 );
             }
@@ -52,7 +52,7 @@ export async function POST(request) {
                 // Filtre alan adı doğrulaması
                 if (!parametreGuvenliMi(alan)) {
                     return NextResponse.json(
-                        { hata: `Geçersiz filtre alan adı: ${alan}` },
+                        { hata: `Geersiz filtre alan adı: ${alan}` },
                         { status: 400 }
                     );
                 }
@@ -66,7 +66,7 @@ export async function POST(request) {
             // Order alan adı doğrulaması
             if (!parametreGuvenliMi(order.alan)) {
                 return NextResponse.json(
-                    { hata: `Geçersiz sıralama alan adı: ${order.alan}` },
+                    { hata: `Geersiz sıralama alan adı: ${order.alan}` },
                     { status: 400 }
                 );
             }

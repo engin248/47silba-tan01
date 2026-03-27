@@ -1,7 +1,7 @@
 'use client';
 
 // =========================================================================
-// 47 ANTİGRAVİTY ERP - TASARIM ALTYAPISI (Sayfa Yönlendirme)
+// 47 ANTİGRAVİTY ERP - TASARIM ALTYAPISI (Sayfa Ynlendirme)
 // =========================================================================
 import TasarimMainContainer from '@/features/tasarim/components/TasarimMainContainer';
 

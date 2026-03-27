@@ -1,12 +1,12 @@
 // /api/2fa-kurulum/route.js
-// Koordinatör için TOTP 2FA QR kod kurulumu
+// Koordinatr iin TOTP 2FA QR kod kurulumu
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { secretOlustur, qrUrlOlustur } from '@/lib/totp';
 
 export async function POST(request) {
     try {
-        // JWT cookie kontrolü — sadece 'tam' grubu kurulum yapabilir
+        // JWT cookie kontrol — sadece 'tam' grubu kurulum yapabilir
         const cookieHeader = request.headers.get('cookie') || '';
         const tokenMatch = cookieHeader.match(/sb47_jwt_token=([^;]+)/);
         if (!tokenMatch) {
@@ -25,7 +25,7 @@ export async function POST(request) {
             // Mevcut secret'ı kullan (yeniden kurulum)
             secret = mevcut.eski_veri.secret;
         } else {
-            // Yeni secret üret ve kaydet
+            // Yeni secret ret ve kaydet
             secret = secretOlustur();
             await supabaseAdmin.from('b0_sistem_loglari').insert([{
                 tablo_adi: '2fa_config',
@@ -36,13 +36,13 @@ export async function POST(request) {
         }
 
         const otpauthUrl = qrUrlOlustur(secret, '47 Antigravity ERP');
-        // QR kod için Google Charts API (ücretsiz, dış JS yok)
+        // QR kod iin Google Charts API (cretsiz, dış JS yok)
         const qrImageUrl = `https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=${encodeURIComponent(otpauthUrl)}&choe=UTF-8`;
 
         return NextResponse.json({
             basarili: true,
             qrUrl: qrImageUrl,
-            secret, // Kullanıcıya gösterilecek (manuel giriş için)
+            secret, // Kullanıcıya gsterilecek (manuel giriş iin)
             mesaj: 'Google Authenticator ile QR kodu okutun',
         });
     } catch (err) {

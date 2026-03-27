@@ -1,5 +1,5 @@
-// /karargah → Ana Karargah Sayfasına Yönlendirme
-// Asıl Karargah dashboard'u src/app/page.js (/) içinde tanımlıdır.
+// /karargah → Ana Karargah Sayfasına Ynlendirme
+// Asıl Karargah dashboard'u src/app/page.js (/) iinde tanımlıdır.
 import { redirect } from 'next/navigation';
 
 export default function KarargahYonlendirme() {

@@ -1,7 +1,7 @@
 'use client';
 // =========================================================================
-// DÄ°L CONTEXT â€” TÃ¼m sayfalara dil seÃ§imini anlÄ±k iletir
-// KullanÄ±m: import { useLang } from '@/context/langContext'
+// DİL CONTEXT "” Tüm sayfalara dil seçimini anlık iletir
+// Kullanım: import { useLang } from '@/context/langContext'
 // =========================================================================
 import { createContext, useContext, useState, useEffect } from 'react';
 
@@ -16,7 +16,7 @@ export function LangProvider({ children }) {
     );
 }
 
-// Hook â€” sayfa componentlerinde kullanÄ±lÄ±r
+// Hook "” sayfa componentlerinde kullanılır
 export function useLang() {
     return useContext(LangContext);
 }

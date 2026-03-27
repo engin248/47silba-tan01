@@ -1,15 +1,15 @@
 'use client';
 import { useEffect } from 'react';
 
-// ─── GLOBAL HATA SINIRI (Next.js Error Boundary) ──────────────
-// Herhangi bir sayfa çöktüğünde bu ekran gösterilir.
-// Vercel + Sentry entegrasyonu için hazır.
+//  GLOBAL HATA SINIRI (Next.js Error Boundary) 
+// Herhangi bir sayfa ktğnde bu ekran gsterilir.
+// Vercel + Sentry entegrasyonu iin hazır.
 export default function HataSayfasi({ error, reset }) {
     useEffect(() => {
         // Hata loglama — console'a yaz (Sentry bağlanınca buraya hook edilir)
         console.error('[GLOBAL HATA]', error?.message, error?.stack);
 
-        // ─── SENTRY HAZIR HOOK (Sentry kurulunca aktif olur) ──
+        //  SENTRY HAZIR HOOK (Sentry kurulunca aktif olur) 
         // if (typeof window !== 'undefined' && window.Sentry) {
         //     window.Sentry.captureException(error);
         // }
@@ -28,7 +28,7 @@ export default function HataSayfasi({ error, reset }) {
             fontFamily: 'system-ui, sans-serif',
         }}>
             {/* İkon */}
-            <div style={{ fontSize: '3rem' }}>⚠️</div>
+            <div style={{ fontSize: '3rem' }}>️</div>
 
             {/* Başlık */}
             <h1 style={{
@@ -42,7 +42,7 @@ export default function HataSayfasi({ error, reset }) {
                 SİSTEM HATASI
             </h1>
 
-            {/* Açıklama */}
+            {/* Aıklama */}
             <p style={{
                 color: '#94a3b8',
                 fontSize: '0.9rem',
@@ -51,7 +51,7 @@ export default function HataSayfasi({ error, reset }) {
                 margin: 0,
                 lineHeight: 1.6,
             }}>
-                Beklenmedik bir hata oluştu. Verileriniz güvende, işlem kaydedilmedi.
+                Beklenmedik bir hata oluştu. Verileriniz gvende, işlem kaydedilmedi.
             </p>
 
             {/* Hata detayı (sadece geliştirme ortamında) */}
@@ -102,7 +102,7 @@ export default function HataSayfasi({ error, reset }) {
                         cursor: 'pointer',
                     }}
                 >
-                    🏠 Karargâha Dön
+                    🏠 Karargha Dn
                 </button>
             </div>
 

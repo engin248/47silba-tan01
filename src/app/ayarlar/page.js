@@ -12,7 +12,7 @@ const VARSAYILAN = {
     siraladim_adim: true,
     aktif_dil: 'ar',
     max_video_sn: 300,
-    goruntu_siki┼ştirma: 'yuksek',
+    goruntu_sikiştirma: 'yuksek',
     dakika_basi_ucret: 2.50,
     prim_orani: 0.15,
     yillik_izin_hakki: 15,
@@ -65,20 +65,20 @@ export default function AyarlarSayfasi() {
             if (data?.deger) {
                 try { setAyarlar({ ...VARSAYILAN, ...JSON.parse(data.deger) }); } catch { }
             }
-        } catch (error) { goster('Ayarlar y├╝klenemedi: ' + error.message, 'error'); }
+        } catch (error) { goster('Ayarlar yklenemedi: ' + error.message, 'error'); }
     };
 
     const kaydet = async () => {
         if (!kullanici || kullanici.grup !== 'tam') {
-            const pin = prompt('Sistem Ayarlar─▒n─▒ kaydetmek i├ğin Y├Ânetici P─░N girin:');
+            const pin = prompt('Sistem Ayarlarn kaydetmek iğin Ynetici PN girin:');
             const kilitPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '9999';
-            if (pin !== kilitPin) return goster('Hatal─▒ yetki! ─░┼şlem engellendi.', 'error');
+            if (pin !== kilitPin) return goster('Hatal yetki! şlem engellendi.', 'error');
         }
 
-        // X Kriteri (S─▒n─▒r G├╝venli─şi)
-        if (ayarlar.dakika_basi_ucret < 0 || ayarlar.dakika_basi_ucret > 500) return goster('Dakika ├╝creti mant─▒ks─▒z (Max 500)', 'error');
-        if (ayarlar.prim_orani < 0 || ayarlar.prim_orani >= 1) return goster('Prim oran─▒ %0 ile %99 aras─▒ olmal─▒', 'error');
-        if (ayarlar.yillik_izin_hakki < 0 || ayarlar.yillik_izin_hakki > 90) return goster('─░zin hakk─▒ ├ğok y├╝ksek (Max 90)', 'error');
+        // X Kriteri (Snr Gvenlişi)
+        if (ayarlar.dakika_basi_ucret < 0 || ayarlar.dakika_basi_ucret > 500) return goster('Dakika creti mantksz (Max 500)', 'error');
+        if (ayarlar.prim_orani < 0 || ayarlar.prim_orani >= 1) return goster('Prim oran %0 ile %99 aras olmal', 'error');
+        if (ayarlar.yillik_izin_hakki < 0 || ayarlar.yillik_izin_hakki > 90) return goster('zin hakk ğok yksek (Max 90)', 'error');
 
         setLoading(true);
         try {
@@ -94,13 +94,13 @@ export default function AyarlarSayfasi() {
             }
             if (error) throw error;
 
-            goster('Ô£à Ayarlar kaydedildi.');
-            telegramBildirim(`ÔÜÖ´©Å S─░STEM AYARLARI G├£NCELLEND─░\nPrim: %${(ayarlar.prim_orani * 100).toFixed(0)}\nDk Mlyt: Ôé║${ayarlar.dakika_basi_ucret}\nSistem parametreleri y├Ânetici taraf─▒ndan de─şi┼ştirildi.`);
+            goster(' Ayarlar kaydedildi.');
+            telegramBildirim(` SSTEM AYARLARI GNCELLEND\nPrim: %${(ayarlar.prim_orani * 100).toFixed(0)}\nDk Mlyt: ${ayarlar.dakika_basi_ucret}\nSistem parametreleri ynetici tarafndan deşiştirildi.`);
         } catch (error) {
             // [AI ZIRHI]: Offline guard (Kriter J)
             if (!navigator.onLine || error.message?.includes('fetch')) {
                 await cevrimeKuyrugaAl({ tablo: 'b1_sistem_ayarlari', islem_tipi: 'UPSERT', veri: { anahtar: 'sistem_genel', deger: JSON.stringify(ayarlar) } });
-                goster('─░nternet Yok: Ayarlar ├ğevrimd─▒┼ş─▒ kuyru─şa al─▒nd─▒.', 'success');
+                goster('nternet Yok: Ayarlar ğevrimdş kuyruşa alnd.', 'success');
             } else {
                 goster('Hata: ' + error.message, 'error');
             }
@@ -116,8 +116,8 @@ export default function AyarlarSayfasi() {
         return (
             <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
                 <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETK─░S─░Z G─░R─░┼Ş ENGELLEND─░</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Sistem Ayarlar─▒ izne tabidir. G├Âr├╝nt├╝lemek ve d├╝zenlemek i├ğin ├£retim P─░N giri┼şi zorunludur.</p>
+                <h2 style={{ color: '#b91c1c', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase' }}>YETKSZ GRŞ ENGELLEND</h2>
+                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 8 }}>Sistem Ayarlar izne tabidir. Grntlemek ve dzenlemek iğin retim PN girişi zorunludur.</p>
             </div>
         );
     }
@@ -126,17 +126,17 @@ export default function AyarlarSayfasi() {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>ÔÜÖ´©Å Sistem Ayarlar─▒</h1>
-                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0', fontWeight: 600 }}>1. Birim ÔÇö ├£retim Anayasas─▒ & Sabit De─şi┼şkenler</p>
+                    <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}> Sistem Ayarlar</h1>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0', fontWeight: 600 }}>1. Birim  retim Anayasas & Sabit Deşişkenler</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <button onClick={kaydet} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 8, background: loading ? '#94a3b8' : '#0f172a', color: 'white', border: 'none', padding: '10px 22px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
-                        <Save size={16} /> {loading ? 'Kaydediliyor...' : 'De─şi┼şiklikleri Kaydet'}
+                        <Save size={16} /> {loading ? 'Kaydediliyor...' : 'Deşişiklikleri Kaydet'}
                     </button>
-                    {/* CC Kriteri Otomatik Rota (Karargaha D├Ân├╝┼ş/D├Âng├╝ Sonu) */}
+                    {/* CC Kriteri Otomatik Rota (Karargaha Dnş/Dng Sonu) */}
                     <a href="/" style={{ textDecoration: 'none' }}>
                         <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', color: '#0f172a', border: '2px solid #e2e8f0', padding: '10px 22px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
-                            ­şÅø´©Å Kararg├óh (Ba┼şa D├Ân)
+                            ş Karargh (Başa Dn)
                         </button>
                     </a>
                 </div>
@@ -149,16 +149,16 @@ export default function AyarlarSayfasi() {
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                {/* KARAR K─░L─░TLER─░ */}
+                {/* KARAR KLTLER */}
                 <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1.25rem' }}>
-                        <Settings2 size={18} color="#f97316" /> ─░nisiyatif & Tolerans Kilitleri
+                        <Settings2 size={18} color="#f97316" /> nisiyatif & Tolerans Kilitleri
                     </h2>
 
                     {[
-                        { key: 'teknik_foy_zorunlu', baslik: 'Teknik F├Ây Foto─şraf─▒ Zorunlu', aciklama: 'A4 formu foto─şraflanmadan ├╝retim ba┼şlat─▒lamaz.' },
-                        { key: 'vidan_hesaplayici', baslik: 'Ak─▒ll─▒ Vicdan Hesaplay─▒c─▒', aciklama: 'Sistemsel duru┼ş s├╝releri (elektrik, makine) otomatik prim maliyetinden d├╝┼ş├╝l├╝r.' },
-                        { key: 'siraladim_adim', baslik: 'S─▒ral─▒ Ad─▒m Bypass Engeli', aciklama: 'Kesim tamamlan─▒p kan─▒t gelmeden fason i┼ş├ği sonraki ad─▒ma ge├ğemez.' },
+                        { key: 'teknik_foy_zorunlu', baslik: 'Teknik Fy Fotoşraf Zorunlu', aciklama: 'A4 formu fotoşraflanmadan retim başlatlamaz.' },
+                        { key: 'vidan_hesaplayici', baslik: 'Akll Vicdan Hesaplayc', aciklama: 'Sistemsel duruş sreleri (elektrik, makine) otomatik prim maliyetinden dşlr.' },
+                        { key: 'siraladim_adim', baslik: 'Sral Adm Bypass Engeli', aciklama: 'Kesim tamamlanp kant gelmeden fason işği sonraki adma geğemez.' },
                     ].map(({ key, baslik, aciklama }) => (
                         <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                             <div style={{ flex: 1 }}>
@@ -175,12 +175,12 @@ export default function AyarlarSayfasi() {
                     ))}
 
                     <div style={{ marginTop: '1rem' }}>
-                        <label style={lbl}>Dakika Ba┼ş─▒ Ortalama ├£cret (Ôé║)</label>
+                        <label style={lbl}>Dakika Baş Ortalama cret ()</label>
                         <input type="number" step="0.01" value={ayarlar.dakika_basi_ucret} onChange={e => set('dakika_basi_ucret', parseFloat(e.target.value))} style={inp} />
-                        <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>D-C Kronometrede durunca maliyet hesab─▒nda kullan─▒l─▒r.</p>
+                        <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>D-C Kronometrede durunca maliyet hesabnda kullanlr.</p>
                     </div>
                     <div style={{ marginTop: '0.875rem' }}>
-                        <label style={lbl}>Prim Oran─▒ (% ÔÇö e┼şik ├╝st├╝ kazan├ğ)</label>
+                        <label style={lbl}>Prim Oran (%  eşik st kazanğ)</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                             <input
                                 type="range" min="0" max="99" step="1"
@@ -219,69 +219,69 @@ export default function AyarlarSayfasi() {
                                         color: Math.round(ayarlar.prim_orani * 100) === v ? 'white' : '#64748b',
                                     }}>%{v}</button>
                             ))}
-                            <span style={{ fontSize: '0.65rem', color: '#94a3b8', alignSelf: 'center', marginLeft: 4 }}>H─▒zl─▒ se├ğ</span>
+                            <span style={{ fontSize: '0.65rem', color: '#94a3b8', alignSelf: 'center', marginLeft: 4 }}>Hzl seğ</span>
                         </div>
                         <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 2 }}>
-                            ─░┼şletme karar─▒: %0ÔÇô%99 aras─▒ ├Âzg├╝rce ayarla. Bu ayda ├ğok i┼ş ÔåÆ %20, az i┼ş ÔåÆ %10.
-                            E┼şik a┼ş─▒ld─▒─ş─▒nda ├ğal─▒┼şanlar bu oranla prim kazan─▒r.
+                            şletme karar: %0%99 aras zgrce ayarla. Bu ayda ğok iş  %20, az iş  %10.
+                            Eşik aşldşnda ğalşanlar bu oranla prim kazanr.
                         </p>
                     </div>
                     <div style={{ marginTop: '0.875rem' }}>
-                        <label style={lbl}>Y─▒ll─▒k ─░zin Hakk─▒ (G├╝n)</label>
+                        <label style={lbl}>Yllk zin Hakk (Gn)</label>
                         <input type="number" step="1" min="0" max="60" value={ayarlar.yillik_izin_hakki} onChange={e => set('yillik_izin_hakki', parseInt(e.target.value))} style={inp} />
-                        <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>Personel mod├╝l├╝nde izin bakiyesi hesab─▒nda kullan─▒l─▒r.</p>
+                        <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>Personel modlnde izin bakiyesi hesabnda kullanlr.</p>
                     </div>
                 </div>
 
-                {/* D─░L & MEDYA */}
+                {/* DL & MEDYA */}
                 <div style={{ background: 'white', border: '2px solid #f1f5f9', borderRadius: 16, padding: '1.5rem' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginBottom: '1.25rem' }}>
                         <Globe size={18} color="#3b82f6" /> Dil & Medya Optimizasyonu
                     </h2>
 
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={lbl}>─░kinci Dil (Aray├╝z ├çevirisi)</label>
+                        <label style={lbl}>kinci Dil (Arayz evirisi)</label>
                         <select value={ayarlar.aktif_dil} onChange={e => set('aktif_dil', e.target.value)} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
-                            <option value="ar">Arap├ğa (Ïğ┘äÏ╣Ï▒Ï¿┘èÏ®)</option>
-                            <option value="en">─░ngilizce (English)</option>
-                            <option value="fr">Frans─▒zca (Fran├ğais)</option>
+                            <option value="ar">Arapğa (ğ)</option>
+                            <option value="en">ngilizce (English)</option>
+                            <option value="fr">Franszca (Franğais)</option>
                         </select>
                     </div>
 
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={lbl}>Maks. Video S├╝resi (Saniye)</label>
+                        <label style={lbl}>Maks. Video Sresi (Saniye)</label>
                         <input type="number" min="30" max="600" value={ayarlar.max_video_sn} onChange={e => set('max_video_sn', parseInt(e.target.value))} style={inp} />
                         <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>
-                            Modelhane video kan─▒t─▒ i├ğin s├╝re s─▒n─▒r─▒.
-                            <strong style={{ color: '#059669' }}> Sekt├Âr standard─▒: 60ÔÇô300 sn (1ÔÇô5 dk).</strong> Min: 30 sn | ┼Şu an: {ayarlar.max_video_sn} sn ({(ayarlar.max_video_sn / 60).toFixed(1)} dk)
+                            Modelhane video kant iğin sre snr.
+                            <strong style={{ color: '#059669' }}> Sektr standard: 60300 sn (15 dk).</strong> Min: 30 sn | Şu an: {ayarlar.max_video_sn} sn ({(ayarlar.max_video_sn / 60).toFixed(1)} dk)
                         </p>
                     </div>
 
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={lbl}>G├Ârsel S─▒k─▒┼şt─▒rma Seviyesi</label>
-                        <select value={ayarlar.goruntu_siki┼ştirma} onChange={e => set('goruntu_siki┼ştirma', e.target.value)} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
-                            <option value="yuksek">Y├╝ksek S─▒k─▒┼şt─▒rma (WebP ÔÇö %80 tasarruf)</option>
-                            <option value="orta">Orta Kalite (HD ÔÇö %30 tasarruf)</option>
-                            <option value="ham">Ham (S─▒k─▒┼şt─▒rmas─▒z)</option>
+                        <label style={lbl}>Grsel Skştrma Seviyesi</label>
+                        <select value={ayarlar.goruntu_sikiştirma} onChange={e => set('goruntu_sikiştirma', e.target.value)} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
+                            <option value="yuksek">Yksek Skştrma (WebP  %80 tasarruf)</option>
+                            <option value="orta">Orta Kalite (HD  %30 tasarruf)</option>
+                            <option value="ham">Ham (Skştrmasz)</option>
                         </select>
                     </div>
 
                     <div style={{ background: '#f8fafc', borderRadius: 10, padding: '0.875rem', marginTop: '0.5rem' }}>
                         <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#374151', marginBottom: '0.375rem' }}>MEVCUT AYARLAR</div>
                         <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace', lineHeight: 1.6 }}>
-                            F├Ây Zorunlu: {ayarlar.teknik_foy_zorunlu ? 'Ô£à' : 'ÔØî'}<br />
-                            Vicdan Motor: {ayarlar.vidan_hesaplayici ? 'Ô£à' : 'ÔØî'}<br />
-                            S─▒ral─▒ Ad─▒m: {ayarlar.siraladim_adim ? 'Ô£à' : 'ÔØî'}<br />
-                            Dk/Ôé║: {ayarlar.dakika_basi_ucret}<br />
-                            Prim Oran─▒: %{(ayarlar.prim_orani * 100).toFixed(0)}<br />
-                            Y─▒ll─▒k ─░zin: {ayarlar.yillik_izin_hakki} g├╝n
+                            Fy Zorunlu: {ayarlar.teknik_foy_zorunlu ? '' : ''}<br />
+                            Vicdan Motor: {ayarlar.vidan_hesaplayici ? '' : ''}<br />
+                            Sral Adm: {ayarlar.siraladim_adim ? '' : ''}<br />
+                            Dk/: {ayarlar.dakika_basi_ucret}<br />
+                            Prim Oran: %{(ayarlar.prim_orani * 100).toFixed(0)}<br />
+                            Yllk zin: {ayarlar.yillik_izin_hakki} gn
                         </div>
                     </div>
                 </div>
             </div>
 
             <div style={{ marginTop: '1.25rem', background: '#f0fdf4', border: '2px solid #bbf7d0', borderRadius: 12, padding: '1rem', fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>
-                Ô£à <strong>Sistem Haz─▒r:</strong> Ayarlar Supabase&apos;de <code>b1_sistem_ayarlari</code> tablosuna kal─▒c─▒ olarak kaydediliyor. Sayfa yenilenince ayarlar korunur.
+                 <strong>Sistem Hazr:</strong> Ayarlar Supabase&apos;de <code>b1_sistem_ayarlari</code> tablosuna kalc olarak kaydediliyor. Sayfa yenilenince ayarlar korunur.
             </div>
         </div>
     );

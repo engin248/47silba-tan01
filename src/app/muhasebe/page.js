@@ -1,7 +1,7 @@
 'use client';
 /**
  * app/muhasebe/page.js — GİRİŞ NOKTASI (20 satır)
- * Tüm UI   → features/muhasebe/components/MuhasebeMainContainer.js
+ * Tm UI   → features/muhasebe/components/MuhasebeMainContainer.js
  * Route    : /muhasebe
  */
 import { MuhasebeMainContainer } from '@/features/muhasebe';
@@ -11,7 +11,7 @@ export default function MuhasebePage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                ⚠️ Muhasebe modülü yüklenirken hata oluştu.
+                ️ Muhasebe modl yklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

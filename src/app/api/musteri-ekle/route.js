@@ -4,12 +4,12 @@ import { rateLimitKontrol } from '@/lib/rateLimit';
 import { musteriSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
 
-// ─── POST /api/musteri-ekle ────────────────────────────────────
+//  POST /api/musteri-ekle 
 export async function POST(request) {
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla istek.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla istek.' }, { status: 429 });
         }
 
         const body = await request.json();
@@ -29,11 +29,11 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Veri doğrulama hatası', detay: dogrulama.error }, { status: 422 });
         }
 
-        // Mükerrer müşteri kodu
+        // Mkerrer mşteri kodu
         const { data: mevcut } = await supabaseAdmin
             .from('b2_musteriler').select('id').eq('musteri_kodu', dogrulama.data.musteri_kodu);
         if (mevcut && mevcut.length > 0) {
-            return NextResponse.json({ hata: 'Bu müşteri kodu zaten kayıtlı!' }, { status: 409 });
+            return NextResponse.json({ hata: 'Bu mşteri kodu zaten kayıtlı!' }, { status: 409 });
         }
 
         const { data, error } = await supabaseAdmin

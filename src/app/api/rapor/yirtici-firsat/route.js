@@ -5,9 +5,9 @@ import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 // YIRTICI FIRSAT BOTU — THE ORDER / NIZAM
 // /api/rapor/yirtici-firsat
 //
-// GET  → Trendyol'da tükenip sizde olan ürünlerin listesi
+// GET  → Trendyol'da tkenip sizde olan rnlerin listesi
 // POST → Fiyat artış alarmı tetikle (Telegram)
-// Kullanım: Herhangi bir kısıtlama olmaksızın her çağrıda çalışır.
+// Kullanım: Herhangi bir kısıtlama olmaksızın her ağrıda alışır.
 // ============================================================
 
 export async function GET(req) {
@@ -15,14 +15,14 @@ export async function GET(req) {
         const url = new URL(req.url);
         const artisTavsiyeYuzde = parseFloat(url.searchParams.get('artis') || '15');
 
-        // ─ Sizin stoğunuzdaki ürünler ─────────────────────────
+        //  Sizin stoğunuzdaki rnler 
         const { data: stokUrunler } = await sb
             .from('b2_urun_katalogu')
             .select('id, urun_kodu, urun_adi, stok_adedi, satis_fiyati, kategori')
             .gt('stok_adedi', 0)
             .limit(200);
 
-        // ─ Scraper'dan gelen Trendyol verileri ───────────────
+        //  Scraper'dan gelen Trendyol verileri 
         // (b1_arge_products tablosundaki scraper verisi)
         const { data: trendyolVerisi } = await sb
             .from('b1_arge_products')
@@ -30,7 +30,7 @@ export async function GET(req) {
             .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
             .limit(500);
 
-        // ─ Eşleştirme: Trendyol'da bitmiş, bizde var ─────────
+        //  Eşleştirme: Trendyol'da bitmiş, bizde var 
         const firsatlar = [];
 
         for (const stokItem of (stokUrunler || [])) {
@@ -38,7 +38,7 @@ export async function GET(req) {
                 let hamVeri = {};
                 try { hamVeri = typeof trendItem.ham_veri === 'string' ? JSON.parse(trendItem.ham_veri) : trendItem.ham_veri || {}; } catch { }
 
-                // Stok durumu: 0 veya çok az = Arz açığı sinyali
+                // Stok durumu: 0 veya ok az = Arz aığı sinyali
                 const trendStok = Number(hamVeri.stokAdedi || hamVeri.stok || 99);
                 const isimEslesme = hamVeri.isim && stokItem.urun_adi &&
                     (hamVeri.isim.toLowerCase().includes(stokItem.urun_adi.toLowerCase().substring(0, 6)) ||
@@ -60,23 +60,23 @@ export async function GET(req) {
                         trendyol_stok: trendStok,
                         trendyol_fiyat: trendFiyat,
                         firsat_skoru: Math.max(0, (10 - trendStok) * 10 + (stokItem.stok_adedi > 5 ? 20 : 0)),
-                        alarm_mesaji: `🦅 ARZ AÇIĞI: "${stokItem.urun_adi}" — Trendyol'da ${trendStok} adet kaldı. Sizde ${stokItem.stok_adedi} adet var. Fiyatı %${artisTavsiyeYuzde} artırın: ${onerilen_fiyat} TL`,
+                        alarm_mesaji: `🦅 ARZ AIĞI: "${stokItem.urun_adi}" — Trendyol'da ${trendStok} adet kaldı. Sizde ${stokItem.stok_adedi} adet var. Fiyatı %${artisTavsiyeYuzde} artırın: ${onerilen_fiyat} TL`,
                     });
                 }
             }
         }
 
-        // Fırsat skoruna göre sırala
+        // Fırsat skoruna gre sırala
         firsatlar.sort((a, b) => b.firsat_skoru - a.firsat_skoru);
 
-        // ─ Log ───────────────────────────────────────────────
+        //  Log 
         if (firsatlar.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
                 ajan_adi: 'Yırtıcı Fırsat Botu',
                 islem_tipi: 'firsat_tarama',
                 kaynak_tablo: 'b2_urun_katalogu + b1_arge_products',
                 sonuc: 'uyari',
-                mesaj: `${(stokUrunler || []).length} stok ürünü × ${(trendyolVerisi || []).length} Trendyol kaydı tarandı. ${firsatlar.length} fırsat bulundu.`,
+                mesaj: `${(stokUrunler || []).length} stok rn  ${(trendyolVerisi || []).length} Trendyol kaydı tarandı. ${firsatlar.length} fırsat bulundu.`,
             }]);
         }
 
@@ -96,18 +96,18 @@ export async function GET(req) {
     }
 }
 
-// ─── POST: Fiyat artışı Telegram alarmı gönder ──────────────
+//  POST: Fiyat artışı Telegram alarmı gnder 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { urun_adi, onerilen_fiyat, mevcut_fiyat, trendyol_stok, bizim_stok } = body;
 
         const mesaj = `🦅 *YIRTICI FIRSAT BOTU*\n\n` +
-            `Ürün: *${urun_adi}*\n` +
-            `Trendyol Stok: ${trendyol_stok} adet (kritik düşük!)\n` +
+            `rn: *${urun_adi}*\n` +
+            `Trendyol Stok: ${trendyol_stok} adet (kritik dşk!)\n` +
             `Bizim Stok: ${bizim_stok} adet\n` +
             `Mevcut Fiyat: ${mevcut_fiyat} TL\n` +
-            `*Önerilen Yeni Fiyat: ${onerilen_fiyat} TL*\n\n` +
+            `*nerilen Yeni Fiyat: ${onerilen_fiyat} TL*\n\n` +
             `⏰ ${new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}`;
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -127,7 +127,7 @@ export async function POST(req) {
             uyari_tipi: 'firsat_alami',
             seviye: 'bilgi',
             baslik: `🦅 Fırsat Alarmı: ${urun_adi}`,
-            mesaj: `Önerilen fiyat: ${onerilen_fiyat} TL (Mevcut: ${mevcut_fiyat} TL)`,
+            mesaj: `nerilen fiyat: ${onerilen_fiyat} TL (Mevcut: ${mevcut_fiyat} TL)`,
             kaynak_tablo: 'b2_urun_katalogu',
             durum: 'aktif',
         }]);

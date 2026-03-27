@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 
-// NIZAM V3 MİMARİSİ: VISION AJAN ÇEKİRDEĞİ 
-// Metin Kazıma (Scraping) İptal Edilmiştir. Yerini Görsel Okuma almıştır.
+// NIZAM V3 MİMARİSİ: VISION AJAN EKİRDEĞİ 
+// Metin Kazıma (Scraping) İptal Edilmiştir. Yerini Grsel Okuma almıştır.
 
 const asilHavuzTablo = 'b1_arge_trendler';
 const copHavuzTablo = 'b0_bigdata_cop_arsivi'; // Diger butun ham gorsel ve yazilar buraya eklenecek
@@ -20,20 +20,20 @@ export async function POST(req) {
         const { platformUrl, base64Image, aramaKonusu } = body;
 
         if (!base64Image) {
-            return NextResponse.json({ basarili: false, mesaj: 'İşlenecek görsel (Vision) bulunamadı.' }, { status: 400 });
+            return NextResponse.json({ basarili: false, mesaj: 'İşlenecek grsel (Vision) bulunamadı.' }, { status: 400 });
         }
 
         // 1. GEMINI VISION AI MODELİNİ HAZIRLA
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); // Görsel analizde çok iyi ve maliyeti sıfıra yakın
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); // Grsel analizde ok iyi ve maliyeti sıfıra yakın
 
-        // 2. YAPAY İNSAN GÖZÜ İÇİN TALİMAT (PROMPT)
+        // 2. YAPAY İNSAN GZ İİN TALİMAT (PROMPT)
         const prompt = `
         Sen NIZAM ERP'nin "Kurmay" istihbarat ajanısın. 
-        Sana internetteki bir ekran görüntüsü veya kıyafetlerin fotoğrafı verildi. HTML scraping kullanmiyoruz, sadece gözlerinle incele.
+        Sana internetteki bir ekran grnts veya kıyafetlerin fotoğrafı verildi. HTML scraping kullanmiyoruz, sadece gzlerinle incele.
         Arama Konusu: ${aramaKonusu || 'Bilinmiyor'}
 
-        GÖREVİN:
-        Bu resimdeki ürünü incele ve bana SADECE ŞU JSON FORMATINDA HAP BİLGİYİ DÖN:
+        GREVİN:
+        Bu resimdeki rn incele ve bana SADECE ŞU JSON FORMATINDA HAP BİLGİYİ DN:
         {
             "baslik": "Resimdeki en net kiyafetin adi/modeli",
             "kategori": "Giyim/Aksesuar vs.",
@@ -42,10 +42,10 @@ export async function POST(req) {
             "oneri_skoru": 1 ile 10 arasi bir trend yildizi,
             "karar_ozeti": "Neden bu urun satar veya satmaz? Kisa vizyon yazin"
         }
-        Cevabın MÜTLAKA parse edilebilir temiz JSON olmalıdır. Markdown veya süslü karakter (backtick \`\`\` ) kullanma.
+        Cevabın MTLAKA parse edilebilir temiz JSON olmalıdır. Markdown veya ssl karakter (backtick \`\`\` ) kullanma.
         `;
 
-        // Base64 formatını parçala ve objeyi hazırla
+        // Base64 formatını parala ve objeyi hazırla
         const [mimeType, b64Data] = base64Image.split('base64,');
         const gorselData = {
             inlineData: { data: b64Data, mimeType: mimeType.replace('data:', '').replace(';', '') }
@@ -56,8 +56,8 @@ export async function POST(req) {
         const cleanJson = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const aiCevap = JSON.parse(cleanJson);
 
-        // 4. ÇÖPLERİ M21'İN BIG DATA ARŞİVİNE AT
-        // (Arkaplan öğrenmesi ve incelemesi için)
+        // 4. PLERİ M21'İN BIG DATA ARŞİVİNE AT
+        // (Arkaplan ğrenmesi ve incelemesi iin)
         await sb.from(copHavuzTablo).insert([{
             kaynak_url: platformUrl || 'Bilinmiyor',
             gorsel_base64: base64Image.substring(0, 1000) + '...', // Log şişmesin diye limitli
@@ -66,7 +66,7 @@ export async function POST(req) {
             tarih: new Date().toISOString()
         }]);
 
-        // 5. RAFİNE MÜCEVHER BİLGİYİ NİZAM'IN ASIL AR-GE ÇEKİRDEĞİNE (B1) KAYDET
+        // 5. RAFİNE MCEVHER BİLGİYİ NİZAM'IN ASIL AR-GE EKİRDEĞİNE (B1) KAYDET
         const { data: yeniTrend, error } = await sb.from(asilHavuzTablo).insert([{
             baslik: aiCevap.baslik,
             kategori: aiCevap.kategori,
@@ -81,7 +81,7 @@ export async function POST(req) {
 
         return NextResponse.json({
             basarili: true,
-            mesaj: 'Gemini gözüyle tarandı, çöpler dışlandı, asil veri eklendi.',
+            mesaj: 'Gemini gzyle tarandı, pler dışlandı, asil veri eklendi.',
             data: yeniTrend
         });
 

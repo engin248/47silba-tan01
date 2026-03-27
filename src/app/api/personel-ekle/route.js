@@ -4,12 +4,12 @@ import { rateLimitKontrol } from '@/lib/rateLimit';
 import { personelSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
 
-// ─── POST /api/personel-ekle ───────────────────────────────────
+//  POST /api/personel-ekle 
 export async function POST(request) {
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla istek.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla istek.' }, { status: 429 });
         }
 
         const body = await request.json();
@@ -29,7 +29,7 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Veri doğrulama hatası', detay: dogrulama.error }, { status: 422 });
         }
 
-        // Mükerrer personel kodu kontrolü
+        // Mkerrer personel kodu kontrol
         const { data: mevcut } = await supabaseAdmin
             .from('b1_personel').select('id').eq('personel_kodu', dogrulama.data.personel_kodu);
         if (mevcut && mevcut.length > 0) {
@@ -43,7 +43,7 @@ export async function POST(request) {
         await supabaseAdmin.from('b0_sistem_loglari').insert([{
             tablo_adi: 'b1_personel',
             islem_tipi: 'EKLEME',
-            kullanici_adi: 'Server API (Güvenli Personel Kaydı)',
+            kullanici_adi: 'Server API (Gvenli Personel Kaydı)',
             eski_veri: { personel_kodu: dogrulama.data.personel_kodu }
         }]);
 

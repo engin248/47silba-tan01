@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// KÖR NOKTA FIRE RADARI — THE ORDER / NIZAM
+// KR NOKTA FIRE RADARI — THE ORDER / NIZAM
 // /api/rapor/kor-nokta
 //
 // GET  → Model bazında kumaş harcama & fire oranı raporu
@@ -17,7 +17,7 @@ export async function GET(req) {
 
         const baslangic = new Date(Date.now() - gunSayisi * 86400000).toISOString();
 
-        // ─ Üretim emirlerini çek (biten siparişler) ──────────
+        //  retim emirlerini ek (biten siparişler) 
         let uretimQuery = sb
             .from('production_orders')
             .select('id, model_id, quantity, fabric_used, fabric_planned, status, created_at, completed_at')
@@ -28,7 +28,7 @@ export async function GET(req) {
         if (filtreModel) uretimQuery = uretimQuery.eq('model_id', filtreModel);
         const { data: uretimler } = await uretimQuery.limit(100);
 
-        // ─ Fire hesabı ───────────────────────────────────────
+        //  Fire hesabı 
         const modelFireMap = {};
         for (const u of (uretimler || [])) {
             const key = u.model_id || 'bilinmiyor';
@@ -53,7 +53,7 @@ export async function GET(req) {
             };
         }).sort((a, b) => b.fire_oran_yuzde - a.fire_oran_yuzde);
 
-        // ─ Manuel fire kayıtlarını çek ───────────────────────
+        //  Manuel fire kayıtlarını ek 
         const { data: manuelFireler } = await sb
             .from('b1_fire_kayitlari')
             .select('*')
@@ -61,13 +61,13 @@ export async function GET(req) {
             .order('created_at', { ascending: false })
             .limit(50);
 
-        // ─ Alarm: %10 üstü fire varsa kaydet ─────────────────
+        //  Alarm: %10 st fire varsa kaydet 
         const kritikler = fireRaporlari.filter(f => f.durum === 'kritik');
         if (kritikler.length > 0) {
             await sb.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'fire_yuksek',
                 seviye: 'kritik',
-                baslik: `🔥 ${kritikler.length} modelde yüksek fire oranı tespit edildi`,
+                baslik: `🔥 ${kritikler.length} modelde yksek fire oranı tespit edildi`,
                 mesaj: kritikler.map(k => `Model ${k.model_id}: %${k.fire_oran_yuzde} fire`).join(', '),
                 kaynak_tablo: 'production_orders',
                 durum: 'aktif',
@@ -76,7 +76,7 @@ export async function GET(req) {
 
         if (kritikler.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
-                ajan_adi: 'Kör Nokta Fire Radarı',
+                ajan_adi: 'Kr Nokta Fire Radarı',
                 islem_tipi: 'fire_analiz',
                 kaynak_tablo: 'production_orders',
                 sonuc: 'uyari',
@@ -101,7 +101,7 @@ export async function GET(req) {
     }
 }
 
-// ─── POST: Manuel Fire Kaydı ──────────────────────────────────
+//  POST: Manuel Fire Kaydı 
 export async function POST(req) {
     try {
         const body = await req.json();

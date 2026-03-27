@@ -1,14 +1,14 @@
 /**
- * /api/kur — Günlük Döviz Kuru
+ * /api/kur — Gnlk Dviz Kuru
  * [A-02] TCMB (Merkez Bankası) Canlı Kuru
- * Supabase'e günlük cache yazılır — aynı gün ikincil istek yapılmaz
+ * Supabase'e gnlk cache yazılır — aynı gn ikincil istek yapılmaz
  */
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { spamKontrol } from '@/lib/ApiZirhi';
 
 export async function GET(request) {
-    // R1 FIX (Müfettiş 19.03.2026): Rate limit zirhi eklendi
+    // R1 FIX (Mfettiş 19.03.2026): Rate limit zirhi eklendi
     const ip = request.headers.get('x-forwarded-for') || 'sistem';
     const { izinVerildi } = spamKontrol(ip);
     if (!izinVerildi) return NextResponse.json({ usd_tl: 32.5, eur_tl: null, kaynak: 'rate_limit' }, { status: 429 });
@@ -16,7 +16,7 @@ export async function GET(request) {
     try {
         const bugun = new Date().toISOString().slice(0, 10); // "2026-03-10"
 
-        // 1. Önce Supabase cache'e bak (aynı gün varsa direkt dön)
+        // 1. nce Supabase cache'e bak (aynı gn varsa direkt dn)
         const { data: cached } = await supabaseAdmin
             .from('b0_sistem_loglari')
             .select('eski_veri')
@@ -33,7 +33,7 @@ export async function GET(request) {
             });
         }
 
-        // 2. TCMB Güncel Döviz Kuru XML (Primary)
+        // 2. TCMB Gncel Dviz Kuru XML (Primary)
         let usd_tl = null;
         let eur_tl = null;
         let aktif_kaynak = 'tcmb';
@@ -56,7 +56,7 @@ export async function GET(request) {
                 throw new Error("TCMB response is not ok");
             }
         } catch (tcmbErr) {
-            // 3. Fallback: ExchangeRate-API (TCMB Çökerse)
+            // 3. Fallback: ExchangeRate-API (TCMB kerse)
             aktif_kaynak = 'api (fallback)';
             try {
                 const res = await fetch('https://open.er-api.com/v6/latest/USD', {
@@ -69,12 +69,12 @@ export async function GET(request) {
                     eur_tl = json?.rates?.TRY && json?.rates?.EUR ? (json.rates.TRY / json.rates.EUR) : null;
                 }
             } catch {
-                usd_tl = 32.5; // Kötü gün senaryosu
+                usd_tl = 32.5; // Kt gn senaryosu
                 aktif_kaynak = 'sabit_yedek';
             }
         }
 
-        // 4. Supabase'e günlük cache yaz
+        // 4. Supabase'e gnlk cache yaz
         if (usd_tl) {
             await supabaseAdmin.from('b0_sistem_loglari').upsert([{
                 tablo_adi: 'kur_cache',

@@ -3,10 +3,10 @@ import { KuyrugaEkle } from '../../../../src/lib/redis_kuyruk';
 
 export async function POST(req) {
     try {
-        // Ajan görevlerini kuyruğa ASENKRON olarak ekler (UI Asla Kilitlenmez)
+        // Ajan grevlerini kuyruğa ASENKRON olarak ekler (UI Asla Kilitlenmez)
         // Bu, arkaplanda calisan worker.js tarafından işlenecektir.
 
-        // Örnek tetiklemeler: TikTok ve Trendyol saha taramaları
+        // rnek tetiklemeler: TikTok ve Trendyol saha taramaları
         await KuyrugaEkle('scraper_jobs', {
             hedef: 'trendyol_indirim',
             ajanadi: 'Vision Trendyol Ajani',
@@ -21,7 +21,7 @@ export async function POST(req) {
 
         return NextResponse.json({
             success: true,
-            message: 'Görevler Sentinel/Worker havuzuna sevk edildi. Arka planda asenkron yürütülecek.'
+            message: 'Grevler Sentinel/Worker havuzuna sevk edildi. Arka planda asenkron yrtlecek.'
         }, { status: 200 });
 
     } catch (error) {

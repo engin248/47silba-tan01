@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 
 /**
  * /api/agent/kasif
- * THE ORDER / NİZAM — KAŞİF AJAN (Dış Gözlemci)
+ * THE ORDER / NİZAM — KAŞİF AJAN (Dış Gzlemci)
  *
- * Görev: Verilen ürün için internet araştırması yapar (Perplexity Sonar),
- * ardından Gemini ile "Bu ürün neden satar / satmaz?" karar desteği üretir.
- * Hermes V2 mimarisi üzerine karar kalibrasyonu katmanı olarak çalışır.
+ * Grev: Verilen rn iin internet araştırması yapar (Perplexity Sonar),
+ * ardından Gemini ile "Bu rn neden satar / satmaz?" karar desteği retir.
+ * Hermes V2 mimarisi zerine karar kalibrasyonu katmanı olarak alışır.
  *
  * Input:  { urunAdi, kumasCinsi, hedefKitle, sezon, hermesSkoru }
  * Output: { piyasaOzeti, satarMi, gucluYonler, zayifYonler, tavsiye, kaynaklar }
@@ -27,21 +27,21 @@ export async function POST(req) {
             return NextResponse.json({ error: 'urunAdi zorunlu' }, { status: 400 });
         }
 
-        // ── AŞAMA 1: PERPLEXITY SONAR — Piyasa Araştırması ──────────
+        //  AŞAMA 1: PERPLEXITY SONAR — Piyasa Araştırması 
         const perplexityPrompt = `
-Tekstil ve hazır giyim sektörü için piyasa araştırması yap.
+Tekstil ve hazır giyim sektr iin piyasa araştırması yap.
 
-Ürün: ${urunAdi}
+rn: ${urunAdi}
 Kumaş: ${kumasCinsi || 'belirtilmemiş'}
 Hedef Kitle: ${hedefKitle || 'genel'}
 Sezon: ${sezon || 'genel'}
 
-Şu soruları yanıtla (Türkçe):
-1. Bu ürün şu an Türkiye ve Avrupa pazarında trend mi? (Evet/Hayır + kısa açıklama)
-2. Amazon, Zara, Trendyol gibi platformlarda bu ürünün talebi nasıl? (Yüksek/Orta/Düşük)
+Şu soruları yanıtla (Trke):
+1. Bu rn şu an Trkiye ve Avrupa pazarında trend mi? (Evet/Hayır + kısa aıklama)
+2. Amazon, Zara, Trendyol gibi platformlarda bu rnn talebi nasıl? (Yksek/Orta/Dşk)
 3. Rakip fiyat aralığı nedir? (TL ve EUR olarak tahmini)
-4. Bu ürün için en büyük 2 risk nedir?
-5. Bu ürün için en büyük 2 fırsat nedir?
+4. Bu rn iin en byk 2 risk nedir?
+5. Bu rn iin en byk 2 fırsat nedir?
 
 Kısa ve veri odaklı yanıt ver. Kaynak belirt.
 `.trim();
@@ -61,7 +61,7 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
                     messages: [
                         {
                             role: 'system',
-                            content: 'Sen tekstil sektörü için piyasa araştırması yapan bir uzman analistin. Türkçe yanıt ver. Kısa, net ve veri odaklı ol.'
+                            content: 'Sen tekstil sektr iin piyasa araştırması yapan bir uzman analistin. Trke yanıt ver. Kısa, net ve veri odaklı ol.'
                         },
                         { role: 'user', content: perplexityPrompt }
                     ],
@@ -78,19 +78,19 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
                 kaynaklar = perplexityData.citations || [];
             }
         } catch (perplexityErr) {
-            // Perplexity başarısız → Gemini tek başına çalışır
+            // Perplexity başarısız → Gemini tek başına alışır
             piyasaVeri = null;
         }
 
-        // ── AŞAMA 2: GEMİNİ — "Satar mı?" Karar Desteği ───────────
+        //  AŞAMA 2: GEMİNİ — "Satar mı?" Karar Desteği 
         const geminiPrompt = `
-Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İç Üretim kapasitesine sahip) için ürün kârlılık kararı veriyorsun.
+Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İ retim kapasitesine sahip) iin rn krlılık kararı veriyorsun.
 
-DİL VE ÜSLUP KURALI (KESİN TALİMAT):
-Asla sübjektif, coşkulu, abartılı veya satıcı ağzıyla ("müthiş satıyor", "uçuyor", "hemen üretmeliyiz", "harika fırsat") YAZMAYACAKSIN. Tamamen soğukkanlı, net, metrik (sayısal) ve analitik bir dil kullan. Raporlamalarını yüzdelik değişimler, TL cinsinden fiyat bantları ve ölçülebilir istatistikler üzerine kur. Ölçülemeyen hiçbir yorum yapma.
+DİL VE SLUP KURALI (KESİN TALİMAT):
+Asla sbjektif, coşkulu, abartılı veya satıcı ağzıyla ("mthiş satıyor", "uuyor", "hemen retmeliyiz", "harika fırsat") YAZMAYACAKSIN. Tamamen soğukkanlı, net, metrik (sayısal) ve analitik bir dil kullan. Raporlamalarını yzdelik değişimler, TL cinsinden fiyat bantları ve llebilir istatistikler zerine kur. llemeyen hibir yorum yapma.
 
-== ÜRÜN BİLGİSİ ==
-Ürün Adı: ${urunAdi}
+== RN BİLGİSİ ==
+rn Adı: ${urunAdi}
 Kumaş: ${kumasCinsi || 'belirtilmemiş'}
 Hedef Kitle: ${hedefKitle || 'genel'}
 Sezon: ${sezon || 'genel'}
@@ -99,18 +99,18 @@ Hermes AI Trend Skoru: ${hermesSkoru || 'bilinmiyor'}/100
 == PIYASA ARAŞTIRMASI (Perplexity Sonar / Hermes Verisi) ==
 ${piyasaVeri || 'Piyasa verisi alınamadı — kendi analitik veri havuzunla değerlendirme yap.'}
 
-== GÖREV ==
-Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize dayanarak SADECE şu JSON formatında yanıt ver (başka hiçbir şey yazma):
+== GREV ==
+Yukarıdaki pazar verilerine ve 119 Kriterlik retim/krlılık filtrelerimize dayanarak SADECE şu JSON formatında yanıt ver (başka hibir şey yazma):
 
 {
   "satarMi": true/false,
-  "kararGuven": "1-10 arası tam sayı (Veri kalitesine göre)",
-  "piyasaOzeti": "Tamamen metrik olan, 2 cümlelik veri özeti (Örn: Pazar doygunluğa ulaşmış, rekabet yüksek, kar marjı tahmini %12)",
-  "gucluYonler": ["Operasyonel güçlü yön 1 (Örn: Fason imalata uygun)", "Metrik güçlü yön 2"],
-  "zayifYonler": ["Operasyonel zayıf yön 1 (Örn: Yüksek metraj firesi)", "Risk 2"],
-  "tavsiye": "Yöneticiye tamamen finansal/operasyonel tavsiye (Örn: Üretim marjı %20'nin altında kalacağı için reddedildi)",
+  "kararGuven": "1-10 arası tam sayı (Veri kalitesine gre)",
+  "piyasaOzeti": "Tamamen metrik olan, 2 cmlelik veri zeti (rn: Pazar doygunluğa ulaşmış, rekabet yksek, kar marjı tahmini %12)",
+  "gucluYonler": ["Operasyonel gl yn 1 (rn: Fason imalata uygun)", "Metrik gl yn 2"],
+  "zayifYonler": ["Operasyonel zayıf yn 1 (rn: Yksek metraj firesi)", "Risk 2"],
+  "tavsiye": "Yneticiye tamamen finansal/operasyonel tavsiye (rn: retim marjı %20'nin altında kalacağı iin reddedildi)",
   "fiyatAraligi": { "min": "Rakam", "max": "Rakam" },
-  "benzerUrunler": ["Aynı segment ürün 1", "Aynı segment ürün 2"]
+  "benzerUrunler": ["Aynı segment rn 1", "Aynı segment rn 2"]
 }
 `.trim();
 
@@ -145,7 +145,7 @@ Yukarıdaki pazar verilerine ve 119 Kriterlik üretim/kârlılık filtrelerimize
             kararJSON = { satarMi: null, tavsiye: rawText, piyasaOzeti: 'JSON parse hatası' };
         }
 
-        // ── SONUÇ ──────────────────────────────────────────────────
+        //  SONU 
         return NextResponse.json({
             ajan: 'kasif',
             urun: urunAdi,

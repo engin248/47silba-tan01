@@ -4,15 +4,15 @@ import { NextResponse } from 'next/server';
  * /api/serp-trend
  * SerpAPI — Google Trend Doğrulama Servisi
  *
- * Görev: Verilen ürün/trend için Google arama sonuçlarından
- *        gerçek piyasa sinyali çeker. Perplexity'nin göremediği
+ * Grev: Verilen rn/trend iin Google arama sonularından
+ *        gerek piyasa sinyali eker. Perplexity'nin gremediği
  *        Google Shopping, Google Trends datası gelir.
  *
  * Input:  POST { sorgu: string, kategori?: string }
  * Output: { sonuclar, alışverisSonuclari, ilgiliAramalar, googleTrendsSkoru }
  */
 
-// Rate limit: basit in-memory (production için Upstash Redis önerilir)
+// Rate limit: basit in-memory (production iin Upstash Redis nerilir)
 const sonAramaMap = new Map();
 const BEKLEME_MS = 5000; // 5 saniye bekleme arası aramalar
 
@@ -36,15 +36,15 @@ export async function POST(req) {
         const sonArama = sonAramaMap.get(ip) || 0;
         if (Date.now() - sonArama < BEKLEME_MS) {
             return NextResponse.json({
-                error: `Lütfen ${Math.ceil((BEKLEME_MS - (Date.now() - sonArama)) / 1000)} saniye bekleyin.`
+                error: `Ltfen ${Math.ceil((BEKLEME_MS - (Date.now() - sonArama)) / 1000)} saniye bekleyin.`
             }, { status: 429 });
         }
         sonAramaMap.set(ip, Date.now());
 
-        // Türkiye pazarı için arama sorgusu
-        const arama = `${sorgu.trim()} ${kategori ? kategori : ''} Türkiye`.trim();
+        // Trkiye pazarı iin arama sorgusu
+        const arama = `${sorgu.trim()} ${kategori ? kategori : ''} Trkiye`.trim();
 
-        // ─── AŞAMA 1: Google Organic Arama ───────────────────────
+        //  AŞAMA 1: Google Organic Arama 
         const organikUrl = new URL('https://serpapi.com/search.json');
         organikUrl.searchParams.set('q', arama);
         organikUrl.searchParams.set('location', 'Turkey');
@@ -53,7 +53,7 @@ export async function POST(req) {
         organikUrl.searchParams.set('api_key', SERPAPI_KEY);
         organikUrl.searchParams.set('num', '5');
 
-        // ─── AŞAMA 2: Google Shopping ────────────────────────────
+        //  AŞAMA 2: Google Shopping 
         const shoppingUrl = new URL('https://serpapi.com/search.json');
         shoppingUrl.searchParams.set('engine', 'google_shopping');
         shoppingUrl.searchParams.set('q', arama);
@@ -73,7 +73,7 @@ export async function POST(req) {
 
         clearTimeout(timeout);
 
-        // Organik sonuçlar
+        // Organik sonular
         let sonuclar = [];
         let ilgiliAramalar = [];
         if (organikRes.status === 'fulfilled' && organikRes.value.ok) {
@@ -87,7 +87,7 @@ export async function POST(req) {
             ilgiliAramalar = (data.related_searches || []).slice(0, 6).map(r => r.query);
         }
 
-        // Shopping sonuçları
+        // Shopping sonuları
         let alisverisler = [];
         if (shoppingRes.status === 'fulfilled' && shoppingRes.value.ok) {
             const data = await shoppingRes.value.json();
@@ -101,8 +101,8 @@ export async function POST(req) {
             }));
         }
 
-        // ─── Basit Google Trend Skoru Hesabı ─────────────────────
-        // Shopping sonucu sayısı + organik sonuç kalitesine göre 0-100 skor
+        //  Basit Google Trend Skoru Hesabı 
+        // Shopping sonucu sayısı + organik sonu kalitesine gre 0-100 skor
         const shoppingSkor = Math.min(alisverisler.length * 15, 60);
         const organikSkor = Math.min(sonuclar.length * 8, 40);
         const googleTrendsSkoru = shoppingSkor + organikSkor;
@@ -130,10 +130,10 @@ export async function POST(req) {
             ilgiliAramalar,
             fiyatAraligi,
             piyasaYorumu: googleTrendsSkoru >= 70
-                ? 'Güçlü pazar talebi — Google\'da yoğun alışveriş trafiği'
+                ? 'Gl pazar talebi — Google\'da yoğun alışveriş trafiği'
                 : googleTrendsSkoru >= 40
-                    ? 'Orta düzey talep — pazar var ama rekabet izlenebilir'
-                    : 'Düşük Google sinyali — niş ürün veya yeterli veri yok',
+                    ? 'Orta dzey talep — pazar var ama rekabet izlenebilir'
+                    : 'Dşk Google sinyali — niş rn veya yeterli veri yok',
             timestamp: new Date().toISOString(),
         });
 

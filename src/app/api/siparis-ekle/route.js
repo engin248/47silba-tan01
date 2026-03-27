@@ -4,12 +4,12 @@ import { rateLimitKontrol } from '@/lib/rateLimit';
 import { siparisSchema, siparisKalemSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
 
-// ─── POST /api/siparis-ekle ────────────────────────────────────
+//  POST /api/siparis-ekle 
 export async function POST(request) {
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 10, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla istek. Lütfen bekleyin.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla istek. Ltfen bekleyin.' }, { status: 429 });
         }
 
         const body = await request.json();
@@ -19,7 +19,7 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'siparis ve kalemler zorunlu' }, { status: 400 });
         }
         if (kalemler.length === 0) {
-            return NextResponse.json({ hata: 'En az 1 ürün kalemi zorunlu' }, { status: 400 });
+            return NextResponse.json({ hata: 'En az 1 rn kalemi zorunlu' }, { status: 400 });
         }
         if (kalemler.length > 50) {
             return NextResponse.json({ hata: 'Bir siparişte en fazla 50 kalem olabilir' }, { status: 400 });
@@ -31,19 +31,19 @@ export async function POST(request) {
             return NextResponse.json({ hata: 'Sipariş verisi hatalı', detay: siparisDog.error }, { status: 422 });
         }
 
-        // Mükerrer sipariş no kontrolü
+        // Mkerrer sipariş no kontrol
         const { data: mevcut } = await supabaseAdmin
             .from('b2_siparisler').select('id').eq('siparis_no', siparisDog.data.siparis_no);
         if (mevcut && mevcut.length > 0) {
             return NextResponse.json({ hata: 'Bu sipariş numarası zaten kayıtlı!' }, { status: 409 });
         }
 
-        // [M12 - ZIRH #1]: Kara Liste (Blacklist) Kontrolü
+        // [M12 - ZIRH #1]: Kara Liste (Blacklist) Kontrol
         if (siparisDog.data.musteri_id) {
             const { data: musteriData } = await supabaseAdmin
                 .from('b2_musteriler').select('kara_liste').eq('id', siparisDog.data.musteri_id).single();
             if (musteriData && musteriData.kara_liste) {
-                return NextResponse.json({ hata: '⛔ DİKKAT: Seçilen müşteri KARA LİSTEDE! Sipariş onaylanamaz. Finans departmanıyla görüşün.' }, { status: 403 });
+                return NextResponse.json({ hata: ' DİKKAT: Seilen mşteri KARA LİSTEDE! Sipariş onaylanamaz. Finans departmanıyla grşn.' }, { status: 403 });
             }
         }
 
@@ -74,17 +74,17 @@ export async function POST(request) {
             await supabaseAdmin.from('b0_sistem_loglari').insert([{
                 tablo_adi: 'b2_siparisler',
                 islem_tipi: 'EKLEME',
-                kullanici_adi: 'Server API (Güvenli Sipariş)',
+                kullanici_adi: 'Server API (Gvenli Sipariş)',
                 eski_veri: { siparis_no: siparisDog.data.siparis_no, kalem_sayisi: kalemler.length }
             }]);
-        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+        } catch (e) { console.error('[KR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
-        // [M9 - ZIRH #2]: Müşteri Cari Bakiyesi ve M7 Kasa Entegrasyonu (Finans Zırhı)
+        // [M9 - ZIRH #2]: Mşteri Cari Bakiyesi ve M7 Kasa Entegrasyonu (Finans Zırhı)
         if (siparisDog.data.musteri_id) {
             const islemTutari = parseFloat(siparisDog.data.toplam_tutar_tl || 0);
             if (islemTutari > 0) {
-                // Cari Bakiye Güncelle (Tutar kadar borç eklenir, ödeme yaptıysa o an kasa/tahsilatla düşmesi theOrder standardıdır)
-                // Yada peşin ise bakiye değişmez. Biz standart olarak bakiyeye bindirip anında kasadan tahsilat düşebiliriz.
+                // Cari Bakiye Gncelle (Tutar kadar bor eklenir, deme yaptıysa o an kasa/tahsilatla dşmesi theOrder standardıdır)
+                // Yada peşin ise bakiye değişmez. Biz standart olarak bakiyeye bindirip anında kasadan tahsilat dşebiliriz.
                 // Burada en doğrusu theOrder mantığında: Sipariş cirosunu bakiyeye(borca) ekle.
                 const { data: musteriData } = await supabaseAdmin.from('b2_musteriler').select('toplam_borc_tl').eq('id', siparisDog.data.musteri_id).single();
                 if (musteriData) {
@@ -106,7 +106,7 @@ export async function POST(request) {
                 onay_durumu: 'onaylandi'
             }]);
 
-            // Otomatik Tahsilat yapıldığı için Müşteri borcunu geri düş (Çünkü peşin verdi)
+            // Otomatik Tahsilat yapıldığı iin Mşteri borcunu geri dş (nk peşin verdi)
             if (siparisDog.data.musteri_id) {
                 const { data: musteriData } = await supabaseAdmin.from('b2_musteriler').select('toplam_borc_tl').eq('id', siparisDog.data.musteri_id).single();
                 if (musteriData) {

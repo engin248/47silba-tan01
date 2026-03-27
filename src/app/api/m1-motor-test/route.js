@@ -5,13 +5,13 @@ export async function POST(req) {
     try {
         const body = await req.json();
 
-        // Gelen test/simülasyon verisi, yoksa varsayılan rastgele bir ürün profili atayalım
+        // Gelen test/simlasyon verisi, yoksa varsayılan rastgele bir rn profili atayalım
         const rawData = body.rawData || {
             veriGecikmesiSaat: 2,
             toplamIzlenme: 1250000,
             yorumSayisi: 850,
             sepetTotal: 12000,
-            satisSinyali: 11500, // Dönüşüm yüksek
+            satisSinyali: 11500, // Dnşm yksek
 
             sepetDeltasi: 400,
             yorumDeltasi: 35,
@@ -47,7 +47,7 @@ export async function POST(req) {
             benzerVaryantSayisi: 1,
 
             // Makro Katmanlar
-            ayinGunu: 15,          // Maaş günü (Tetikleyici)
+            ayinGunu: 15,          // Maaş gn (Tetikleyici)
             ozelGunAdi: null,
             ozelGuneKalanGun: null,
             urunPiyasadaKacGundurVar: 5,
@@ -62,7 +62,7 @@ export async function POST(req) {
 
         const result = M1GelistirilmisTrendMotoru.trendiKoklaVeriEle(rawData);
 
-        // UI için ham verileri ve logu geri dönüyoruz
+        // UI iin ham verileri ve logu geri dnyoruz
         return NextResponse.json({
             basarili: true,
             motorSonucu: result,

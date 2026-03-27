@@ -1,15 +1,15 @@
-// ─── ROOT LAYOUT — SERVER COMPONENT ──────────────────────────
-// 'use client' BURADA YOK — Next.js metadata API çalışsın diye
-// Tüm client mantığı (sidebar, auth, offline, realtime) → ClientLayout.js içinde
+//  ROOT LAYOUT — SERVER COMPONENT 
+// 'use client' BURADA YOK — Next.js metadata API alışsın diye
+// Tm client mantığı (sidebar, auth, offline, realtime) → ClientLayout.js iinde
 import './globals.css';
 import ClientLayout from './ClientLayout';
 
-// ─── NEXT.JS METADATA API (Doğru Kullanım) ───────────────────
+//  NEXT.JS METADATA API (Doğru Kullanım) 
 export const metadata = {
-    title: '47 Sil Baştan — Üretim & Mağaza Sistemi',
-    description: 'THE ORDER NIZAM — Adil Düzen, Şeffaf Maliyet, Adaletli Dağıtım. Fason ve Ürün Yönetim Sistemi.',
+    title: '47 Sil Baştan — retim & Mağaza Sistemi',
+    description: 'THE ORDER NIZAM — Adil Dzen, Şeffaf Maliyet, Adaletli Dağıtım. Fason ve rn Ynetim Sistemi.',
     manifest: '/manifest.json',
-    keywords: ['üretim', 'fason', 'tekstil', 'stok', 'muhasebe', 'nizam'],
+    keywords: ['retim', 'fason', 'tekstil', 'stok', 'muhasebe', 'nizam'],
     icons: {
         icon: '/icon.png',
         apple: '/icon.png',
@@ -22,13 +22,13 @@ export const metadata = {
     },
     openGraph: {
         title: '47 Sil Baştan — THE ORDER NIZAM',
-        description: 'Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım',
+        description: 'Adil Dzen  Şeffaf Maliyet  Adaletli Dağıtım',
         locale: 'tr_TR',
         type: 'website',
     },
 };
 
-// ─── VIEWPORT (Next.js 14+ ayrı export olmalı) ───────────────
+//  VIEWPORT (Next.js 14+ ayrı export olmalı) 
 export const viewport = {
     width: 'device-width',
     initialScale: 1,

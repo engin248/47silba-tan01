@@ -52,9 +52,9 @@ export async function POST(request) {
             `  • ${u.urun_adi} (${u.urun_kodu || '—'}): ${u.stok_adeti} adet`
         ).join('\n');
 
-        const mesaj = `⚠️ KRİTİK STOK UYARISI\n${new Date().toLocaleString('tr-TR')}\n\n${kritikUrunler.length} ürün kritik stok altında:\n${satirlar}\n\n📦 Hemen tedarik başlatın!`;
+        const mesaj = `️ KRİTİK STOK UYARISI\n${new Date().toLocaleString('tr-TR')}\n\n${kritikUrunler.length} rn kritik stok altında:\n${satirlar}\n\n📦 Hemen tedarik başlatın!`;
 
-        // Telegram bildirim gönder
+        // Telegram bildirim gnder
         const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
         const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -89,7 +89,7 @@ export async function POST(request) {
             kritik: kritikUrunler,
             sayac: kritikUrunler.length,
             telegram: telegramOk,
-            mesaj: telegramOk ? '✅ Telegram bildirimi gönderildi' : '📊 Rapor hazır (Telegram token eksik)',
+            mesaj: telegramOk ? ' Telegram bildirimi gnderildi' : '📊 Rapor hazır (Telegram token eksik)',
         });
     } catch (e) {
         return NextResponse.json({ error: e.message }, { status: 500 });

@@ -10,14 +10,14 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Eksik parametre' }, { status: 400 });
         }
 
-        // Düz metin mesajı sunucuda AES-256 ile şifreliyoruz
+        // Dz metin mesajı sunucuda AES-256 ile şifreliyoruz
         const sifreliPaket = mesajSifrele(mesaj_metni);
         if (!sifreliPaket) {
             return NextResponse.json({ error: 'Şifreleme başarısız' }, { status: 500 });
         }
 
         // Supabase tarafında tablo yoksa bile oluşturulması (Migration mantığı) gerekecek.
-        // Veritabanına DÜZ METİN GİTMEZ. Sadece şifreli vektörler(Hex) gider.
+        // Veritabanına DZ METİN GİTMEZ. Sadece şifreli vektrler(Hex) gider.
         const { data, error } = await supabaseAdmin
             .from('b1_askeri_haberlesme')
             .insert([{
@@ -31,14 +31,14 @@ export async function POST(req) {
 
         if (error) {
             console.error("[HABERLEŞME API HATA]:", error.message);
-            // Tablo yoksa sahte başarı dönelim şimdilik (UI çökmesin)
+            // Tablo yoksa sahte başarı dnelim şimdilik (UI kmesin)
             if (error.code === '42P01') {
                 return NextResponse.json({ success: true, fake: true, message: 'Tablo yok ama şifrelendi.' });
             }
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, message: 'Emir uçtan uca şifrelendi ve hedefe mühürlendi.' });
+        return NextResponse.json({ success: true, message: 'Emir utan uca şifrelendi ve hedefe mhrlendi.' });
     } catch (e) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

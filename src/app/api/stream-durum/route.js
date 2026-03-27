@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 5;
 
 export async function GET(request) {
-    // R2 FIX (Müfettiş 19.03.2026): Rate limit zirhi eklendi
+    // R2 FIX (Mfettiş 19.03.2026): Rate limit zirhi eklendi
     const ip = request.headers.get('x-forwarded-for') || 'sistem';
     const { izinVerildi } = spamKontrol(ip);
     if (!izinVerildi) return NextResponse.json({ durum: 'kapali', mesaj: 'Rate limit' }, { status: 429 });

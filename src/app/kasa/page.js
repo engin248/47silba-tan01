@@ -22,7 +22,7 @@ const TIP_RENK = {
     senet: '#8b5cf6', avans: '#3b82f6', diger: '#64748b',
 };
 const TIP_ICON = {
-    tahsilat: '­şôê', iade_odeme: 'Ôå®´©Å', cek: '­şôä', senet: '­şôï', avans: '­şÆÁ', diger: '­şÆ░',
+    tahsilat: 'ş', iade_odeme: '', cek: 'ş', senet: 'ş', avans: 'ş', diger: 'ş',
 };
 
 export default function KasaSayfasi() {
@@ -67,8 +67,8 @@ export default function KasaSayfasi() {
     const yukle = async () => {
         setLoading(true);
         try {
-            // [AI ZIRHI]: 10sn timeout DDoS kalkan─▒ (Kriter Q)
-            const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Ba─şlant─▒ zaman a┼ş─▒m─▒ (10sn)')), 10000));
+            // [AI ZIRHI]: 10sn timeout DDoS kalkan (Kriter Q)
+            const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Başlant zaman aşm (10sn)')), 10000));
             const [harRes, musRes] = await Promise.race([
                 Promise.allSettled([
                     supabase.from('b2_kasa_hareketleri')
@@ -81,15 +81,15 @@ export default function KasaSayfasi() {
             if (harRes.status === 'fulfilled' && harRes.value.data) setHareketler(harRes.value.data);
             else if (harRes.status === 'fulfilled' && harRes.value.error) throw harRes.value.error;
             if (musRes.status === 'fulfilled' && musRes.value.data) setMusteriler(musRes.value.data);
-        } catch (e) { goster('Kasa verileri al─▒namad─▒: ' + e.message, 'error'); }
+        } catch (e) { goster('Kasa verileri alnamad: ' + e.message, 'error'); }
         setLoading(false);
     };
 
     const kaydet = async () => {
-        if (!form.tutar_tl || parseFloat(form.tutar_tl) <= 0) return goster('Tutar 0\'dan b├╝y├╝k olmal─▒!', 'error');
-        if (parseFloat(form.tutar_tl) > 10000000) return goster('Tutar ├ğok y├╝ksek! Kontrol edin.', 'error');
-        if (!form.aciklama.trim()) return goster('A├ğ─▒klama zorunlu!', 'error');
-        if (form.aciklama.length > 500) return goster('A├ğ─▒klama ├ğok uzun!', 'error');
+        if (!form.tutar_tl || parseFloat(form.tutar_tl) <= 0) return goster('Tutar 0\'dan byk olmal!', 'error');
+        if (parseFloat(form.tutar_tl) > 10000000) return goster('Tutar ğok yksek! Kontrol edin.', 'error');
+        if (!form.aciklama.trim()) return goster('Ağklama zorunlu!', 'error');
+        if (form.aciklama.length > 500) return goster('Ağklama ğok uzun!', 'error');
 
         const veri = {
             hareket_tipi: form.hareket_tipi,
@@ -104,7 +104,7 @@ export default function KasaSayfasi() {
         // [AI ZIRHI]: Offline Modu (Kriter J)
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b2_kasa_hareketleri', 'INSERT', veri);
-            goster('ÔÜí ├çevrimd─▒┼ş─▒: Kasa i┼şlemi kuyru─şa al─▒nd─▒.');
+            goster(' evrimdş: Kasa işlemi kuyruşa alnd.');
             setForm(BOSH_FORM); setFormAcik(false);
             return;
         }
@@ -113,31 +113,31 @@ export default function KasaSayfasi() {
         try {
             const { error } = await supabase.from('b2_kasa_hareketleri').insert([veri]);
             if (error) throw error;
-            goster(`Ô£à ${TIP_ICON[form.hareket_tipi]} Kasa hareketi kaydedildi: Ôé║${parseFloat(form.tutar_tl).toFixed(2)}`);
-            telegramBildirim(`­şÆ░ KASA HAREKET─░\nTip: ${form.hareket_tipi.toUpperCase()}\nTutar: Ôé║${parseFloat(form.tutar_tl).toFixed(2)}\nA├ğ─▒klama: ${form.aciklama}`);
+            goster(` ${TIP_ICON[form.hareket_tipi]} Kasa hareketi kaydedildi: ${parseFloat(form.tutar_tl).toFixed(2)}`);
+            telegramBildirim(`ş KASA HAREKET\nTip: ${form.hareket_tipi.toUpperCase()}\nTutar: ${parseFloat(form.tutar_tl).toFixed(2)}\nAğklama: ${form.aciklama}`);
             setForm(BOSH_FORM); setFormAcik(false); yukle();
-        } catch (e) { goster('Kay─▒t hatas─▒: ' + e.message, 'error'); }
+        } catch (e) { goster('Kayt hatas: ' + e.message, 'error'); }
         setLoading(false);
     };
 
     const onayDegistir = async (id, yeniOnay) => {
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b2_kasa_hareketleri', 'UPDATE', { id, onay_durumu: yeniOnay });
-            return goster('ÔÜí ├çevrimd─▒┼ş─▒: Onay de─şi┼şikli─şi kuyru─şa al─▒nd─▒.');
+            return goster(' evrimdş: Onay deşişiklişi kuyruşa alnd.');
         }
         try {
             const { error } = await supabase.from('b2_kasa_hareketleri').update({ onay_durumu: yeniOnay }).eq('id', id);
             if (error) throw error;
-            goster(yeniOnay === 'onaylandi' ? 'Ô£à Tahsilat onayland─▒!' : 'ÔØî ─░ptal edildi.'); yukle();
-        } catch (e) { goster('Onay hatas─▒: ' + e.message, 'error'); }
+            goster(yeniOnay === 'onaylandi' ? ' Tahsilat onayland!' : ' ptal edildi.'); yukle();
+        } catch (e) { goster('Onay hatas: ' + e.message, 'error'); }
     };
 
     const sil = async (id) => {
         if (kullanici?.grup !== 'tam') {
-            const pin = prompt('Silme i┼şlemi Y├Ânetici yetkisi gerektirir. P─░N:');
-            if (pin !== (process.env.NEXT_PUBLIC_ADMIN_PIN)) return goster('Yetkisiz i┼şlem!', 'error');
+            const pin = prompt('Silme işlemi Ynetici yetkisi gerektirir. PN:');
+            if (pin !== (process.env.NEXT_PUBLIC_ADMIN_PIN)) return goster('Yetkisiz işlem!', 'error');
         }
-        if (!confirm('Bu kasa kayd─▒ silinsin mi?')) return;
+        if (!confirm('Bu kasa kayd silinsin mi?')) return;
 
         // [AI ZIRHI]: B0 Kara Kutu silme logu (Kriter 25)
         try {
@@ -151,7 +151,7 @@ export default function KasaSayfasi() {
         try {
             const { error } = await supabase.from('b2_kasa_hareketleri').delete().eq('id', id);
             if (error) throw error;
-            goster('Kay─▒t silindi.'); yukle();
+            goster('Kayt silindi.'); yukle();
         } catch (e) { goster('Silinemedi: ' + e.message, 'error'); }
     };
 
@@ -168,29 +168,29 @@ export default function KasaSayfasi() {
         return tipOk && onayOk;
     });
 
-    const formatTarih = (iso) => { if (!iso) return 'ÔÇö'; return new Date(iso).toLocaleDateString('tr-TR'); };
+    const formatTarih = (iso) => { if (!iso) return ''; return new Date(iso).toLocaleDateString('tr-TR'); };
     const inp = { width: '100%', padding: '9px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
     const lbl = { display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase' };
 
     if (!yetkiliMi) return (
         <div dir={isAR ? 'rtl' : 'ltr'} style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: 16, margin: '2rem' }}>
             <Lock size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-            <h2 style={{ color: '#b91c1c', fontWeight: 900 }}>YETK─░S─░Z G─░R─░┼Ş ENGELLEND─░</h2>
-            <p style={{ color: '#7f1d1d', fontWeight: 600 }}>Kasa & Finans verileri gizlidir. ├£retim P─░N giri┼şi zorunludur.</p>
+            <h2 style={{ color: '#b91c1c', fontWeight: 900 }}>YETKSZ GRŞ ENGELLEND</h2>
+            <p style={{ color: '#7f1d1d', fontWeight: 600 }}>Kasa & Finans verileri gizlidir. retim PN girişi zorunludur.</p>
         </div>
     );
 
     return (
         <div>
-            {/* BA┼ŞLIK */}
+            {/* BAŞLIK */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#059669,#047857)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <DollarSign size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'Ïğ┘äÏÁ┘åÏ»┘ê┘é ┘êÏğ┘ä┘àÏğ┘ä┘èÏ®' : 'Kasa & Finans'}</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'Ïğ┘äÏ¬Ï¡ÏÁ┘è┘ä ÔåÆ Ïğ┘ä┘à┘êÏğ┘ü┘éÏ® ÔåÆ Ïğ┘äÏ▒ÏÁ┘èÏ» ÔåÆ ┘àÏ¬ÏğÏ¿Ï╣Ï® Ïğ┘äÏ┤┘è┘âÏğÏ¬' : 'Tahsilat ÔåÆ Onay ÔåÆ Bakiye ÔåÆ ├çek/Senet Takibi'}</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'ğ ğğ' : 'Kasa & Finans'}</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'ğ  ğğ  ğ  ğ ğğ' : 'Tahsilat  Onay  Bakiye  ek/Senet Takibi'}</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -205,26 +205,26 @@ export default function KasaSayfasi() {
                 </div>
             </div>
 
-            {/* ├ûZET KUTULARI */}
+            {/* ZET KUTULARI */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
                 <div style={{ background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Ô£à Onayl─▒ Tahsilat</div>
-                    <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>Ôé║{tahsilat.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}> Onayl Tahsilat</div>
+                    <div style={{ fontWeight: 900, color: '#059669', fontSize: '1.35rem' }}>{tahsilat.toFixed(2)}</div>
                 </div>
                 <div style={{ background: '#fefce8', border: '2px solid #fde68a', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ÔÅ│ Bekleyen</div>
-                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.35rem' }}>Ôé║{bekleyen.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#78350f', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}> Bekleyen</div>
+                    <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.35rem' }}>{bekleyen.toFixed(2)}</div>
                 </div>
                 <div style={{ background: netBakiye >= 0 ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>­şÆ░ NET BAK─░YE</div>
-                    <div style={{ fontWeight: 900, color: netBakiye >= 0 ? '#34d399' : '#fca5a5', fontSize: '1.35rem' }}>{netBakiye >= 0 ? '+' : ''}Ôé║{netBakiye.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ş NET BAKYE</div>
+                    <div style={{ fontWeight: 900, color: netBakiye >= 0 ? '#34d399' : '#fca5a5', fontSize: '1.35rem' }}>{netBakiye >= 0 ? '+' : ''}{netBakiye.toFixed(2)}</div>
                 </div>
                 <div style={{ background: vadesi.length > 0 ? '#fef2f2' : '#f8fafc', border: `2px solid ${vadesi.length > 0 ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ÔÜá´©Å Vadesi Ge├ğen</div>
+                    <div style={{ fontSize: '0.65rem', color: vadesi.length > 0 ? '#991b1b' : '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}> Vadesi Geğen</div>
                     <div style={{ fontWeight: 900, color: vadesi.length > 0 ? '#ef4444' : '#0f172a', fontSize: '1.35rem' }}>{vadesi.length} Adet</div>
                 </div>
                 <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, padding: '1rem 1.25rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>­şôè Toplam Kay─▒t</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>ş Toplam Kayt</div>
                     <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.35rem' }}>{hareketler.length}</div>
                 </div>
             </div>
@@ -239,7 +239,7 @@ export default function KasaSayfasi() {
             {/* FORM */}
             {formAcik && (
                 <div style={{ background: 'white', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>­şÆ░ Yeni Kasa Hareketi</h3>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>ş Yeni Kasa Hareketi</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
                         <div>
                             <label style={lbl}>Hareket Tipi *</label>
@@ -248,43 +248,43 @@ export default function KasaSayfasi() {
                             </select>
                         </div>
                         <div>
-                            <label style={lbl}>├ûdeme Y├Ântemi *</label>
+                            <label style={lbl}>deme Yntemi *</label>
                             <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
                                 {ODEME_YONTEMLERI.map(y => <option key={y} value={y}>{y.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label style={lbl}>Tutar (Ôé║) *</label>
+                            <label style={lbl}>Tutar () *</label>
                             <input type="number" min="0.01" step="0.01" value={form.tutar_tl} onChange={e => setForm({ ...form, tutar_tl: e.target.value })} placeholder="0.00" style={{ ...inp, fontWeight: 800, color: '#059669' }} />
                         </div>
                         <div>
-                            <label style={lbl}>Vade Tarihi (├çek/Senet)</label>
+                            <label style={lbl}>Vade Tarihi (ek/Senet)</label>
                             <input type="date" value={form.vade_tarihi} onChange={e => setForm({ ...form, vade_tarihi: e.target.value })} style={inp} />
                         </div>
                         <div>
-                            <label style={lbl}>M├╝┼şteri</label>
+                            <label style={lbl}>Mşteri</label>
                             <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value })} style={{ ...inp, cursor: 'pointer', background: 'white' }}>
-                                <option value="">ÔÇö Anonim / Perakende ÔÇö</option>
+                                <option value=""> Anonim / Perakende </option>
                                 {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
                             </select>
                         </div>
                         <div style={{ gridColumn: '1/-1' }}>
-                            <label style={lbl}>A├ğ─▒klama *</label>
-                            <input maxLength={500} value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} placeholder="Kasa hareketinin detay─▒n─▒ yaz─▒n..." style={inp} />
+                            <label style={lbl}>Ağklama *</label>
+                            <input maxLength={500} value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} placeholder="Kasa hareketinin detayn yazn..." style={inp} />
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>─░ptal</button>
+                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>ptal</button>
                         <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#059669', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
-                            {loading ? '...' : 'Ô£à Kaydet'}
+                            {loading ? '...' : ' Kaydet'}
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* F─░LTRELER */}
+            {/* FLTRELER */}
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginRight: 4 }}>T─░P:</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginRight: 4 }}>TP:</span>
                 {['hepsi', ...HAREKET_TIPLERI].map(t => (
                     <button key={t} onClick={() => setFiltreTip(t)}
                         style={{
@@ -293,7 +293,7 @@ export default function KasaSayfasi() {
                             background: filtreTip === t ? (TIP_RENK[t] || '#374151') : 'white',
                             color: filtreTip === t ? 'white' : '#374151'
                         }}>
-                        {t === 'hepsi' ? 'T├╝m├╝' : `${TIP_ICON[t]} ${t.replace('_', ' ')}`}
+                        {t === 'hepsi' ? 'Tm' : `${TIP_ICON[t]} ${t.replace('_', ' ')}`}
                     </button>
                 ))}
                 <div style={{ width: 1, background: '#e5e7eb', margin: '0 4px', height: 24 }} />
@@ -306,28 +306,28 @@ export default function KasaSayfasi() {
                             background: filtreOnay === o ? '#374151' : 'white',
                             color: filtreOnay === o ? 'white' : '#374151'
                         }}>
-                        {o === 'hepsi' ? 'T├╝m├╝' : o === 'bekliyor' ? 'ÔÅ│ Bekliyor' : o === 'onaylandi' ? 'Ô£à Onayl─▒' : 'ÔØî ─░ptal'}
+                        {o === 'hepsi' ? 'Tm' : o === 'bekliyor' ? ' Bekliyor' : o === 'onaylandi' ? ' Onayl' : ' ptal'}
                     </button>
                 ))}
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, marginLeft: 8 }}>{filtreli.length} i┼şlem</span>
+                <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, marginLeft: 8 }}>{filtreli.length} işlem</span>
             </div>
 
-            {/* L─░STE */}
+            {/* LSTE */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {loading && filtreli.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', fontWeight: 700 }}>ÔÅ│ Y├╝kleniyor...</div>
+                    <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', fontWeight: 700 }}> Ykleniyor...</div>
                 )}
                 {!loading && filtreli.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                         <DollarSign size={40} style={{ color: '#e5e7eb', margin: '0 auto 0.5rem' }} />
-                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>Kasa hareketi yok. "Yeni Hareket" ile ba┼şlay─▒n.</p>
+                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>Kasa hareketi yok. "Yeni Hareket" ile başlayn.</p>
                     </div>
                 )}
                 {filtreli.map(h => (
                     <div key={h.id} style={{ background: 'white', border: '2px solid', borderColor: h.onay_durumu === 'onaylandi' ? '#6ee7b7' : h.onay_durumu === 'iptal' ? '#fca5a5' : '#fde68a', borderRadius: 12, padding: '0.875rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 36, height: 36, borderRadius: 8, background: (TIP_RENK[h.hareket_tipi] || '#64748b') + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
-                                {TIP_ICON[h.hareket_tipi] || '­şÆ░'}
+                                {TIP_ICON[h.hareket_tipi] || 'ş'}
                             </div>
                             <div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{h.aciklama}</div>
@@ -339,20 +339,20 @@ export default function KasaSayfasi() {
                                         {h.odeme_yontemi?.replace('_', ' ')}
                                     </span>
                                     {h.b2_musteriler?.ad_soyad && (
-                                        <span style={{ fontSize: '0.62rem', color: '#3b82f6', fontWeight: 700 }}>­şæñ {h.b2_musteriler.ad_soyad}</span>
+                                        <span style={{ fontSize: '0.62rem', color: '#3b82f6', fontWeight: 700 }}>ş {h.b2_musteriler.ad_soyad}</span>
                                     )}
                                     {h.vade_tarihi && (
                                         <span style={{ fontSize: '0.62rem', fontWeight: 700, color: new Date(h.vade_tarihi) < new Date() ? '#ef4444' : '#f59e0b' }}>
-                                            ÔÅ░ Vade: {formatTarih(h.vade_tarihi)}
+                                             Vade: {formatTarih(h.vade_tarihi)}
                                         </span>
                                     )}
-                                    <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>­şùô {formatTarih(h.created_at)}</span>
+                                    <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>ş {formatTarih(h.created_at)}</span>
                                 </div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                             <div style={{ fontWeight: 900, color: TIP_RENK[h.hareket_tipi] || '#0f172a', fontSize: '1rem' }}>
-                                Ôé║{parseFloat(h.tutar_tl || 0).toFixed(2)}
+                                {parseFloat(h.tutar_tl || 0).toFixed(2)}
                             </div>
                             {h.onay_durumu === 'bekliyor' && (
                                 <button onClick={() => onayDegistir(h.id, 'onaylandi')} title="Onayla"
@@ -365,7 +365,7 @@ export default function KasaSayfasi() {
                                 background: h.onay_durumu === 'onaylandi' ? '#ecfdf5' : h.onay_durumu === 'iptal' ? '#fef2f2' : '#fefce8',
                                 color: h.onay_durumu === 'onaylandi' ? '#059669' : h.onay_durumu === 'iptal' ? '#ef4444' : '#d97706'
                             }}>
-                                {h.onay_durumu === 'onaylandi' ? 'Ô£à Onayl─▒' : h.onay_durumu === 'iptal' ? 'ÔØî ─░ptal' : 'ÔÅ│ Bekliyor'}
+                                {h.onay_durumu === 'onaylandi' ? ' Onayl' : h.onay_durumu === 'iptal' ? ' ptal' : ' Bekliyor'}
                             </span>
                             <button onClick={() => sil(h.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: 6, borderRadius: 6, cursor: 'pointer' }}>
                                 <Trash2 size={13} />

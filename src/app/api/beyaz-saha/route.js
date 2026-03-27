@@ -9,22 +9,22 @@ export async function POST(req) {
 
         const hedef = hedefParametre || 'Genel Saha Taraması';
 
-        // 1. Ekranları Beslemek İçin Log Başlangıcı
+        // 1. Ekranları Beslemek İin Log Başlangıcı
         await supabaseAdmin.from('b1_agent_loglari').insert([{
             ajan_adi: 'BEYAZ_SAHA_ORKESTRATOR',
             islem_tipi: 'TETIKLENDI',
-            mesaj: `Hedef "${hedef}" için Ajanlar (Bot 3, Bot 4, Bot 5) cehenneme sürülüyor...`,
+            mesaj: `Hedef "${hedef}" iin Ajanlar (Bot 3, Bot 4, Bot 5) cehenneme srlyor...`,
             sonuc: 'bekliyor'
         }]);
 
-        // Vercel Serverless Function Limitlerini aşmamak için 
-        // işi tamamen koparıp otonom Redis Scraper işçisine devrediyoruz (Fire and Forget)
+        // Vercel Serverless Function Limitlerini aşmamak iin 
+        // işi tamamen koparıp otonom Redis Scraper işisine devrediyoruz (Fire and Forget)
         await KuyrugaEkle('scraper_jobs', {
             hedef: hedef,
             zamanDamgasi: new Date().toISOString()
         });
 
-        // 200 HTTP Dönüşü
+        // 200 HTTP Dnş
         return NextResponse.json({
             success: true,
             mesaj: `Ajanlar Yolda... "${hedef}" kuyruğa eklendi.`,
@@ -34,7 +34,7 @@ export async function POST(req) {
         await supabaseAdmin.from('b1_agent_loglari').insert([{
             ajan_adi: 'BEYAZ_SAHA_ORKESTRATOR',
             islem_tipi: 'FATAL_ERROR',
-            mesaj: `Kuyruk Ekleme Çöktü: ${error.message}`,
+            mesaj: `Kuyruk Ekleme kt: ${error.message}`,
             sonuc: 'hata'
         }]);
 

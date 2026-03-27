@@ -1,18 +1,18 @@
-// /api/pin-dogrula — Kurumsal 3 Katmanlı PIN Güvenlik Sistemi
-// Katman 1: Sunucu tarafı PIN doğrulama (client hiçbir zaman PIN göremez)
+// /api/pin-dogrula — Kurumsal 3 Katmanlı PIN Gvenlik Sistemi
+// Katman 1: Sunucu tarafı PIN doğrulama (client hibir zaman PIN gremez)
 // Katman 2: Upstash Redis rate limiting (5 hatalı deneme → 15 dk ban)
-// Katman 3: JWT session token (8 saat süre, imzalı, HttpOnly cookie)
+// Katman 3: JWT session token (8 saat sre, imzalı, HttpOnly cookie)
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 
-// ── UPSTASH RATE LIMIT ─────────────────────────────────────────────
+//  UPSTASH RATE LIMIT 
 // [NIZAM FIX] Upstash free tier 'evalsha' iznini reddediyor → 500 crash.
-// Çözüm: in-memory rate limit kullan. Paid plan olursa aşağıdaki bloğu aç.
+// zm: in-memory rate limit kullan. Paid plan olursa aşağıdaki bloğu a.
 let ratelimit = null;
 /*
-// Paid plan için aşağıdaki bloğu aktifleştir:
+// Paid plan iin aşağıdaki bloğu aktifleştir:
 try {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         const { Ratelimit } = await import('@upstash/ratelimit');
@@ -61,7 +61,7 @@ function bellekHataliDeneme(ip) {
     return MAX_DENEME - kayit.sayi;
 }
 
-// ── JWT YARDIMCILARI ────────────────────────────────────────────────
+//  JWT YARDIMCILARI 
 async function jwtOlustur(grup) {
     // JWT_SIRRI Vercel ENV'e girilmeli. Yoksa giriş sistemi devre dışıdır.
     const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
@@ -99,19 +99,19 @@ async function jwtOlustur(grup) {
     }
 }
 
-// ── ANA HANDLER ────────────────────────────────────────────────────
+//  ANA HANDLER 
 export async function POST(request) {
     try {
         const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
             || request.headers.get('x-real-ip')
             || 'bilinmeyen';
 
-        // ── Rate Limit Kontrolü ──
+        //  Rate Limit Kontrol 
         if (ratelimit) {
             const { success } = await ratelimit.limit(`ip:${ip}`);
             if (!success) {
                 return NextResponse.json(
-                    { hata: 'Çok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
+                    { hata: 'ok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
                     { status: 429 }
                 );
             }
@@ -120,33 +120,33 @@ export async function POST(request) {
             const durum = belleKileKontrol(ip);
             if (!durum.izinli) {
                 return NextResponse.json(
-                    { hata: `Çok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+                    { hata: `ok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
                     { status: 429 }
                 );
             }
         }
 
-        // ── İstek Gövdesi ──
+        //  İstek Gvdesi 
         let pin, tip;
         try {
             const body = await request.json();
             pin = body?.pin?.trim();
             tip = body?.tip || 'uretim'; // 'uretim' | 'genel' | 'tam'
         } catch {
-            return NextResponse.json({ hata: 'Geçersiz istek formatı.' }, { status: 400 });
+            return NextResponse.json({ hata: 'Geersiz istek formatı.' }, { status: 400 });
         }
 
         if (!pin || pin.length < 4) {
             return NextResponse.json({ hata: 'PIN en az 4 karakter olmalı.' }, { status: 400 });
         }
 
-        // ── PIN Doğrulama: tam > uretim > genel öncelik sırası ──
+        //  PIN Doğrulama: tam > uretim > genel ncelik sırası 
         const temizle = (v) => v?.replace(/['"\\r\\n]/g, '').trim();
 
         const YETKI_SIRASI = [
             { pin: temizle(process.env.ADMIN_PIN), grup: 'tam' },        // Sistem sahibi — 474747
-            { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },  // Koordinatör — 4747
-            // TEST_COORDINATOR_PIN production'dan kaldırıldı (Müfettiş G2 FIX 19.03.2026)
+            { pin: temizle(process.env.COORDINATOR_PIN), grup: 'tam' },  // Koordinatr — 4747
+            // TEST_COORDINATOR_PIN production'dan kaldırıldı (Mfettiş G2 FIX 19.03.2026)
             { pin: temizle(process.env.URETIM_PIN), grup: 'uretim' },
             { pin: temizle(process.env.GENEL_PIN), grup: 'genel' },
         ];
@@ -175,7 +175,7 @@ export async function POST(request) {
             );
         }
 
-        // ── Başarılı Giriş — JWT Token Oluştur ──
+        //  Başarılı Giriş — JWT Token Oluştur 
         const token = await jwtOlustur(grup);
 
         // Başarılı girişi logla — fire-and-forget
@@ -183,13 +183,13 @@ export async function POST(request) {
             try {
                 await supabaseAdmin.from('b0_sistem_loglari').insert([{
                     olay: 'PIN_BASARILI_GIRIS',
-                    detay: `IP: ${ip} | Grup: ${grup} | Token süresi: 8 saat`,
+                    detay: `IP: ${ip} | Grup: ${grup} | Token sresi: 8 saat`,
                     seviye: 'bilgi'
                 }]);
             } catch { }
         })();
 
-        // ─── GÜVENLİK: HttpOnly Set-Cookie (XSS koruması) ───────────────
+        //  GVENLİK: HttpOnly Set-Cookie (XSS koruması) 
         const isProd = process.env.NODE_ENV === 'production';
         const cookieMaxAge = 8 * 3600; // 8 saat
 
@@ -207,7 +207,7 @@ export async function POST(request) {
             maxAge: cookieMaxAge,
         });
 
-        // 2. Auth session cookie — Middleware sayfa koruması için
+        // 2. Auth session cookie — Middleware sayfa koruması iin
         const sessionData = JSON.stringify({ grup, zaman: Date.now() });
         response.cookies.set('sb47_auth_session', sessionData, {
             httpOnly: true,

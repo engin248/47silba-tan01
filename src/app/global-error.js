@@ -1,20 +1,20 @@
 'use client';
 import { useEffect } from 'react';
 
-// ─── KÜRESEL ÇÖKME VE ZIRH KALKANI (GLOBAL ERROR BOUNDARY) ───
-// Kriter 168: Tüm sistem (layout dahil) çökse bile fabrikayı durdurmayan Zero Downtime Rollback kalkanı.
+//  KRESEL KME VE ZIRH KALKANI (GLOBAL ERROR BOUNDARY) 
+// Kriter 168: Tm sistem (layout dahil) kse bile fabrikayı durdurmayan Zero Downtime Rollback kalkanı.
 // Kriter 188: Kritik hatalarda otonom kurtarma/Doomsday senaryosu.
 export default function GlobalError({ error, reset }) {
     useEffect(() => {
         // Loglama ve Sentry/Karargah Veritabanı kara kutu entegrasyonu
-        console.error('[KÜRESEL ÇÖKME - DOOMSDAY KALKANI]', error?.message, error?.stack);
+        console.error('[KRESEL KME - DOOMSDAY KALKANI]', error?.message, error?.stack);
 
-        // Telegram Sistem Botuna acil ping gönderilebilir (otonom tetik)
+        // Telegram Sistem Botuna acil ping gnderilebilir (otonom tetik)
         try {
             fetch('/api/telegram-bildirim', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mesaj: '⚠️ GLOBAL CRASH!\n\nUrl: /app/global-error.js\nHata: ' + error.message }),
+                body: JSON.stringify({ mesaj: '️ GLOBAL CRASH!\n\nUrl: /app/global-error.js\nHata: ' + error.message }),
             }).catch(() => null);
         } catch { }
     }, [error]);
@@ -34,16 +34,16 @@ export default function GlobalError({ error, reset }) {
                     fontFamily: 'system-ui, -apple-system, sans-serif',
                 }}>
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#dc2626', color: 'white', padding: '8px 16px', borderRadius: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        <span>⚠️ SİSTEM ZIRHI DEVREDE</span>
+                        <span>️ SİSTEM ZIRHI DEVREDE</span>
                     </div>
 
                     <h1 style={{ color: '#f8fafc', fontSize: '1.75rem', fontWeight: 900, textAlign: 'center', margin: 0, textTransform: 'uppercase' }}>
-                        Ölümcül Hata Yakalandı
+                        lmcl Hata Yakalandı
                     </h1>
 
                     <p style={{ color: '#cbd5e1', fontSize: '1rem', textAlign: 'center', maxWidth: '500px', margin: 0, lineHeight: 1.6, fontWeight: 500 }}>
-                        Ana sistem omurgasında (Layout/Root) kritik bir çökme meydana geldi.<br />
-                        Ancak Endişelenmeyin! Kalkan aktifleşti ve veri kaybı önlendi.
+                        Ana sistem omurgasında (Layout/Root) kritik bir kme meydana geldi.<br />
+                        Ancak Endişelenmeyin! Kalkan aktifleşti ve veri kaybı nlendi.
                     </p>
 
                     <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1rem', width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

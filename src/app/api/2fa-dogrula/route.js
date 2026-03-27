@@ -1,5 +1,5 @@
 // /api/2fa-dogrula/route.js
-// TOTP kodu doğrulama — PIN doğrulandıktan sonra çağrılır
+// TOTP kodu doğrulama — PIN doğrulandıktan sonra ağrılır
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { totpDogrula } from '@/lib/totp';
@@ -10,7 +10,7 @@ const FA2_KILIT = new Map();
 export async function POST(request) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'bilinmeyen';
 
-    // ── 2FA brute-force koruması: 3 yanlış → 5 dakika kilit
+    //  2FA brute-force koruması: 3 yanlış → 5 dakika kilit
     const kilit = FA2_KILIT.get(ip);
     if (kilit && Date.now() < kilit.bitis) {
         const kalan = Math.ceil((kilit.bitis - Date.now()) / 1000);
@@ -25,9 +25,9 @@ export async function POST(request) {
             return NextResponse.json({ hata: '6 haneli numerik kod gerekli.' }, { status: 400 });
         }
 
-        // temp_token doğrula (pin-dogrula'dan dönen geçici token)
+        // temp_token doğrula (pin-dogrula'dan dnen geici token)
         if (!temp_token) {
-            return NextResponse.json({ hata: 'Geçersiz istek — önce PIN doğrulama gerekli.' }, { status: 400 });
+            return NextResponse.json({ hata: 'Geersiz istek — nce PIN doğrulama gerekli.' }, { status: 400 });
         }
 
         const { data: config } = await supabaseAdmin
@@ -38,8 +38,8 @@ export async function POST(request) {
             .maybeSingle();
 
         if (!config?.eski_veri?.secret) {
-            // 2FA kurulmamış — geç (ilk kurulum)
-            return NextResponse.json({ basarili: true, kurulmamis: true, mesaj: '2FA henüz kurulmamış, geç.' });
+            // 2FA kurulmamış — ge (ilk kurulum)
+            return NextResponse.json({ basarili: true, kurulmamis: true, mesaj: '2FA henz kurulmamış, ge.' });
         }
 
         const secret = config.eski_veri.secret;

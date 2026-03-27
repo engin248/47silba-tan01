@@ -4,19 +4,19 @@ import { rateLimitKontrol } from '@/lib/rateLimit';
 import { kumasSchema, aksesuarSchema, veriDogrula } from '@/lib/zodSchemas';
 import { hataBildir } from '@/lib/hataBildirim';
 
-// ─── SERVER-SIDE SUPABASE (Service Role Key — güvenli) ─────────
+//  SERVER-SIDE SUPABASE (Service Role Key — gvenli) 
 // Client-side anon key yerine sunucu tarafı service key kullanılır.
 // Bu sayede RLS bypass riski kontrol altına alınır.
-// ─── POST /api/kumas-ekle ──────────────────────────────────────
+//  POST /api/kumas-ekle 
 export async function POST(request) {
     try {
-        // 1. RATE LIMIT KONTROLÜ
+        // 1. RATE LIMIT KONTROL
         const forwarded = request.headers.get('x-forwarded-for');
         const ip = forwarded ? forwarded.split(',')[0].trim() : 'bilinmeyen';
         const limitGecti = rateLimitKontrol(ip, 20, 60); // 1 dakikada max 20 istek
         if (!limitGecti) {
             return NextResponse.json(
-                { hata: 'Çok fazla istek. Lütfen bekleyin.' },
+                { hata: 'ok fazla istek. Ltfen bekleyin.' },
                 { status: 429 }
             );
         }
@@ -38,7 +38,7 @@ export async function POST(request) {
             schema = aksesuarSchema;
             tablo = 'b1_aksesuar_arsivi';
         } else {
-            return NextResponse.json({ hata: 'Geçersiz tip' }, { status: 400 });
+            return NextResponse.json({ hata: 'Geersiz tip' }, { status: 400 });
         }
 
         const dogrulama = veriDogrula(schema, veri);
@@ -51,7 +51,7 @@ export async function POST(request) {
 
         const temizVeri = dogrulama.data;
 
-        // 4. MÜKERRER KONTROL
+        // 4. MKERRER KONTROL
         const kodAlani = tip === 'kumas' ? 'kumas_kodu' : 'aksesuar_kodu';
         const kodDegeri = tip === 'kumas' ? temizVeri.kumas_kodu : temizVeri.aksesuar_kodu;
 
@@ -77,7 +77,7 @@ export async function POST(request) {
             await supabaseAdmin.from('b0_sistem_loglari').insert([{
                 tablo_adi: tablo,
                 islem_tipi: 'EKLEME',
-                kullanici_adi: 'Server API (Güvenli Ekleme)',
+                kullanici_adi: 'Server API (Gvenli Ekleme)',
                 eski_veri: { bilgi: `${kodDegeri} kodu ile yeni kayıt eklendi.` }
             }]);
         } catch (e) {

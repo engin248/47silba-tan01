@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-// ═══════════════════════════════════════════════════════════
-//  /api/ai-kahin-ajan — Kâhin AI Ajanı
+// 
+//  /api/ai-kahin-ajan — Khin AI Ajanı
 //  Perplexity API (sonar model) — Vercel'de PERPLEXITY_API_KEY gerekli
-// ═══════════════════════════════════════════════════════════
+// 
 
 export async function POST(req) {
     try {
@@ -13,7 +13,7 @@ export async function POST(req) {
             return NextResponse.json({ error: 'PERPLEXITY_API_KEY tanımlı değil.' }, { status: 500 });
         }
 
-        // 1. Personel verisi çek
+        // 1. Personel verisi ek
         const { data: pData, error: pError } = await supabaseAdmin
             .from('b1_personel')
             .select('id, ad_soyad, aylik_maliyet_tl')
@@ -26,7 +26,7 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Personel tablosu boş.' }, { status: 404 });
         }
 
-        // 2. Bu ayın performans verisi çek
+        // 2. Bu ayın performans verisi ek
         const ayBasi = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
         const { data: perfData } = await supabaseAdmin
             .from('b1_personel_performans')
@@ -34,7 +34,7 @@ export async function POST(req) {
             .gte('created_at', ayBasi);
 
         // 3. Analiz metni oluştur
-        let isciAnalizMetni = 'Fabrikanın bu ayki üretim verileri:\n\n';
+        let isciAnalizMetni = 'Fabrikanın bu ayki retim verileri:\n\n';
         for (const p of pData) {
             const raporlar = (perfData || []).filter(l => l.personel_id === p.id);
             const adet = raporlar.reduce((s, r) => s + (Number(r.uretilen_adet) || 0), 0);
@@ -46,7 +46,7 @@ export async function POST(req) {
             const maliyet = Number(p.aylik_maliyet_tl) || 0;
             isciAnalizMetni += `Personel: ${p.ad_soyad}
   - Aylık Maliyet: ${maliyet} TL
-  - Üretilen Adet: ${adet}
+  - retilen Adet: ${adet}
   - Katma Değer: ${deger} TL
   - Kalite Puanı: ${kalite.toFixed(1)}/10
   - Kazanılan Prim: ${prim} TL
@@ -65,12 +65,12 @@ export async function POST(req) {
                 messages: [
                     {
                         role: 'system',
-                        content: `Sen acımasız ve net bir Yalın Üretim Yapay Zeka Başdenetçisi (Kâhin Agent) sin.
-Fabrika patronuna Türkçe, kısa (max 5 paragraf), eyleme geçirilebilir "Kârlılık ve Adalet Raporu" sun.
+                        content: `Sen acımasız ve net bir Yalın retim Yapay Zeka Başdenetisi (Khin Agent) sin.
+Fabrika patronuna Trke, kısa (max 5 paragraf), eyleme geirilebilir "Krlılık ve Adalet Raporu" sun.
 KURALLAR:
-1. Maliyet > Katma Değer → "Zarar Yazdırıyor" — eğitim/uyarı öner.
+1. Maliyet > Katma Değer → "Zarar Yazdırıyor" — eğitim/uyarı ner.
 2. Katma Değer > Maliyet → "Liyakat Yıldızı" — tebrik et.
-3. Kalite Puanı < 5 → Çok üretse bile disiplin uyarısı ver.
+3. Kalite Puanı < 5 → ok retse bile disiplin uyarısı ver.
 4. Maksimum 5-6 paragraf. MD formatı. Agresif kurumsal dil.`,
                     },
                     { role: 'user', content: `VERİLER:\n${isciAnalizMetni}` },
@@ -86,7 +86,7 @@ KURALLAR:
         }
 
         const aiJson = await aiRes.json();
-        const aiCevap = aiJson?.choices?.[0]?.message?.content || 'AI yargıç sessiz kaldı.';
+        const aiCevap = aiJson?.choices?.[0]?.message?.content || 'AI yargı sessiz kaldı.';
 
         // 5. Log yaz
         try {
@@ -95,12 +95,12 @@ KURALLAR:
                 kaynak_tablo: 'b1_personel', sonuc: 'basarili',
                 mesaj: `${pData.length} personel analiz edildi.`,
             }]);
-        } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: route.js'); }
+        } catch (_) { console.error('[KR NOKTA ZIRHI - YUTULAN HATA] Dosya: route.js'); }
 
         return NextResponse.json({ success: true, aiCevap, personel_sayisi: pData.length });
 
     } catch (error) {
-        console.error('[Kâhin AI Hatası]', error);
+        console.error('[Khin AI Hatası]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

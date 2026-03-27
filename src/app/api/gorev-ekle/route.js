@@ -3,14 +3,14 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { gorevSchema, veriDogrula } from '@/lib/zodSchemas';
 
-// ─── POST /api/gorev-ekle ─────────────────────────────────────
+//  POST /api/gorev-ekle 
 // NOT: Eski gorev-ekle varsa bunu ona birleştirin veya eski route'u silin
 export async function POST(request) {
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 15, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla istek.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla istek.' }, { status: 429 });
         }
 
         // 2. BODY PARSE
@@ -26,12 +26,12 @@ export async function POST(request) {
         });
 
         if (!dogrulama.basarili) {
-            return NextResponse.json({ hata: 'Geçersiz veri', detay: dogrulama.error }, { status: 422 });
+            return NextResponse.json({ hata: 'Geersiz veri', detay: dogrulama.error }, { status: 422 });
         }
 
         const temizVeri = dogrulama.data;
 
-        // 4. MÜKERRER TITLE KONTROLÜ (Race Condition zırhı)
+        // 4. MKERRER TITLE KONTROL (Race Condition zırhı)
         const { data: mevcut } = await supabaseAdmin
             .from('b1_gorevler')
             .select('id')
@@ -40,7 +40,7 @@ export async function POST(request) {
 
         if (mevcut && mevcut.length > 0) {
             return NextResponse.json(
-                { hata: 'Aynı başlıkta bekleyen bir görev zaten mevcut!' },
+                { hata: 'Aynı başlıkta bekleyen bir grev zaten mevcut!' },
                 { status: 409 }
             );
         }

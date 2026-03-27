@@ -1,5 +1,5 @@
 export const metadata = {
-    title: 'Üretim Kiosk Terminali | THE ORDER',
+    title: 'retim Kiosk Terminali | THE ORDER',
     description: 'Personel barkod ve sepet okutma sistemi',
 };
 

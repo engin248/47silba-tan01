@@ -5,26 +5,26 @@ import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 // DARBOĞAZ (BOTTLENECK) TEŞHİSCİSİ — THE ORDER / NIZAM
 // /api/rapor/darbogaz
 //
-// GET  → Mevcut darboğaz analizini döner (Dashboard için)
+// GET  → Mevcut darboğaz analizini dner (Dashboard iin)
 // POST → Kamera Vision AI snapshot'ı kabul eder (Vision Gateway)
-//        Gemini Vision API ile karedeki parça adedini sayar,
+//        Gemini Vision API ile karedeki para adedini sayar,
 //        production_orders hedefiyle karşılaştırır.
 // ============================================================
 
 const EVRE_SURELER = {
     m3_m4: { evre: 'Kalıp → Modelhane', beklenen_gun: 3 },
     m4_m5: { evre: 'Modelhane → Kesim', beklenen_gun: 2 },
-    m5_m6: { evre: 'Kesim → Üretim', beklenen_gun: 1 },
+    m5_m6: { evre: 'Kesim → retim', beklenen_gun: 1 },
 };
 
-// ─── GET: Darboğaz raporu (Dashboard) ─────────────────────────
+//  GET: Darboğaz raporu (Dashboard) 
 export async function GET(req) {
     try {
         const bugun = new Date();
         const otuzGunOnce = new Date(bugun.getTime() - 30 * 86400000).toISOString();
         const sonuclar = {};
 
-        // ─ M3→M4: Kalıp tamamlanma → Modelhane başlama süresi ─
+        //  M3→M4: Kalıp tamamlanma → Modelhane başlama sresi 
         const { data: kaliplar } = await sb
             .from('b1_model_taslaklari')
             .select('id, model_adi, updated_at, created_at, durum, zincir_bildirim_m4')
@@ -50,7 +50,7 @@ export async function GET(req) {
             tum_kayitlar: m3m4Sureler.slice(0, 10),
         };
 
-        // ─ M4→M5: Modelhane onayı → Kesim başlama süresi ─────
+        //  M4→M5: Modelhane onayı → Kesim başlama sresi 
         const { data: modelhane } = await sb
             .from('b1_modelhane_kayitlari')
             .select('id, model_id, updated_at, zincir_bildirim_m5')
@@ -75,8 +75,8 @@ export async function GET(req) {
             tum_kayitlar: m4m5Sureler.slice(0, 10),
         };
 
-        // ─ M5→M6: Kesim bitmesi → Üretim başlama süresi ──────
-        // (b1_kesim_emirleri tablosu hazır olmadığı için şimdilik production_orders'dan)
+        //  M5→M6: Kesim bitmesi → retim başlama sresi 
+        // (b1_kesim_emirleri tablosu hazır olmadığı iin şimdilik production_orders'dan)
         const { data: uretimler } = await sb
             .from('production_orders')
             .select('id, model_id, start_time, planned_start_date, status')
@@ -102,7 +102,7 @@ export async function GET(req) {
             tum_kayitlar: m5m6Sureler.slice(0, 10),
         };
 
-        // ─ Son Vision AI kamera ölçümü ────────────────────────
+        //  Son Vision AI kamera lm 
         const { data: sonVision } = await sb
             .from('b1_agent_loglari')
             .select('created_at, mesaj')
@@ -110,7 +110,7 @@ export async function GET(req) {
             .order('created_at', { ascending: false })
             .limit(1);
 
-        // ─ Özet ──────────────────────────────────────────────
+        //  zet 
         const darbogazlar = Object.values(sonuclar).filter(e => e.darbogaz_var);
 
         if (darbogazlar.length > 0) {
@@ -119,7 +119,7 @@ export async function GET(req) {
                 islem_tipi: 'darbogaz_analiz',
                 kaynak_tablo: 'b1_model_taslaklari',
                 sonuc: 'uyari',
-                mesaj: `⚠️ ${darbogazlar.length} evrede darboğaz tespit edildi: ${darbogazlar.map(d => d.evre).join(', ')}`,
+                mesaj: `️ ${darbogazlar.length} evrede darboğaz tespit edildi: ${darbogazlar.map(d => d.evre).join(', ')}`,
             }]);
         }
 
@@ -139,19 +139,19 @@ export async function GET(req) {
     }
 }
 
-// ─── POST: Vision AI Gateway (Kamera Snapshot → Gemini → Sayım) ──
-// Bu endpoint kameradan gelen JPEG görüntüyü base64 olarak kabul eder.
-// Gemini Vision API ile sahnedeki dikiş parçalarını sayar,
+//  POST: Vision AI Gateway (Kamera Snapshot → Gemini → Sayım) 
+// Bu endpoint kameradan gelen JPEG grnty base64 olarak kabul eder.
+// Gemini Vision API ile sahnedeki dikiş paralarını sayar,
 // production_orders hedefiyle karşılaştırır ve sonucu kaydeder.
 export async function POST(req) {
     try {
         const body = await req.json();
         const {
             goruntu_base64,    // base64 JPEG frame (kameradan)
-            kamera_id,         // Hangi kamera (ör: "band_1")
-            model_id,          // Hangi model üretiliyor (production_orders.model_id)
-            hedef_adet,        // Bu vardiyada üretilmesi beklenen toplam adet
-            gecen_dakika,      // Vardiyanın başından bu yana geçen dakika
+            kamera_id,         // Hangi kamera (r: "band_1")
+            model_id,          // Hangi model retiliyor (production_orders.model_id)
+            hedef_adet,        // Bu vardiyada retilmesi beklenen toplam adet
+            gecen_dakika,      // Vardiyanın başından bu yana geen dakika
         } = body;
 
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -161,17 +161,17 @@ export async function POST(req) {
         let ai_guveni = 'low';
         let kaynak = 'mock';
 
-        // ─── Gemini Vision Analizi ────────────────────────────
+        //  Gemini Vision Analizi 
         if (GEMINI_API_KEY && goruntu_base64) {
-            const visionPrompt = `Sen bir üretim bandı izleme yapay zekasısın.
-Ekteki görüntü bir tekstil (giyim) üretim bandına ait.
-Görevin:
-1. Bantta ve masada gördüğün tamamlanmış veya yarım dikilmiş GİYİM PARÇASı sayısını say.
-2. Bant aktif mi yoksa çalışanlar boşta mı? (aktif/boşta)
-3. Tahminine olan güvenini belirt. (yuksek/orta/dusuk)
+            const visionPrompt = `Sen bir retim bandı izleme yapay zekasısın.
+Ekteki grnt bir tekstil (giyim) retim bandına ait.
+Grevin:
+1. Bantta ve masada grdğn tamamlanmış veya yarım dikilmiş GİYİM PARASı sayısını say.
+2. Bant aktif mi yoksa alışanlar boşta mı? (aktif/boşta)
+3. Tahminine olan gvenini belirt. (yuksek/orta/dusuk)
 
 Sadece şu JSON formatında yanıt ver:
-{"sayilan_adet": <sayi>, "bant_aktif": <true|false>, "ai_guveni": "yuksek|orta|dusuk", "gozlem": "<tek cümle>"}`;
+{"sayilan_adet": <sayi>, "bant_aktif": <true|false>, "ai_guveni": "yuksek|orta|dusuk", "gozlem": "<tek cmle>"}`;
 
             try {
                 const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -209,13 +209,13 @@ Sadece şu JSON formatında yanıt ver:
             }
         }
 
-        // HermAI Gerçeklik Freni: Saçma değerleri reddet
+        // HermAI Gereklik Freni: Sama değerleri reddet
         if (sayilan_adet !== null && hedef_adet && sayilan_adet > hedef_adet * 2) {
-            sayilan_adet = null; // Halüsinasyon! Çöp kaydı engellendi.
+            sayilan_adet = null; // Halsinasyon! p kaydı engellendi.
             kaynak = 'herm_freni_reddetti';
         }
 
-        // ─── Verimlilik Hesabı ────────────────────────────────
+        //  Verimlilik Hesabı 
         let verimlilik_yuzde = null;
         let beklenen_bu_ana_kadar = null;
 
@@ -225,7 +225,7 @@ Sadece şu JSON formatında yanıt ver:
             verimlilik_yuzde = Math.round((sayilan_adet / Math.max(beklenen_bu_ana_kadar, 1)) * 100);
         }
 
-        // ─── Kaydet ──────────────────────────────────────────
+        //  Kaydet 
         await sb.from('b1_agent_loglari').insert([{
             ajan_adi: 'Darboğaz Teşhiscisi (Vision)',
             islem_tipi: 'vision_kamera_olcum',
@@ -236,20 +236,20 @@ Sadece şu JSON formatında yanıt ver:
                     verimlilik_yuzde >= 50 ? 'uyari' : 'hata',
             mesaj: [
                 `📷 Kamera: ${kamera_id || 'Belt-1'}`,
-                `Sayılan parça: ${sayilan_adet ?? 'Ölçülemedi'} / Hedef bu ana: ${beklenen_bu_ana_kadar ?? '?'}`,
-                `Bant durumu: ${bant_aktif ? '✅ Aktif' : '⚠️ Boşta'}`,
+                `Sayılan para: ${sayilan_adet ?? 'llemedi'} / Hedef bu ana: ${beklenen_bu_ana_kadar ?? '?'}`,
+                `Bant durumu: ${bant_aktif ? ' Aktif' : '️ Boşta'}`,
                 `Verimlilik: ${verimlilik_yuzde !== null ? '%' + verimlilik_yuzde : 'Hesaplanamadı'}`,
-                `AI Güven: ${ai_guveni} | Kaynak: ${kaynak}`,
+                `AI Gven: ${ai_guveni} | Kaynak: ${kaynak}`,
             ].join(' | '),
         }]);
 
-        // Düşük verimlilik alarmı
+        // Dşk verimlilik alarmı
         if (verimlilik_yuzde !== null && verimlilik_yuzde < 50) {
             await sb.from('b1_sistem_uyarilari').insert([{
                 uyari_tipi: 'fire_yuksek',
                 seviye: 'uyari',
-                baslik: `⚠️ Bant Verimliliği Düşük: %${verimlilik_yuzde}`,
-                mesaj: `Kamera (${kamera_id}) analizi: ${sayilan_adet} parça tamamlandı. Beklenen ${beklenen_bu_ana_kadar}. Model ID: ${model_id || '-'}`,
+                baslik: `️ Bant Verimliliği Dşk: %${verimlilik_yuzde}`,
+                mesaj: `Kamera (${kamera_id}) analizi: ${sayilan_adet} para tamamlandı. Beklenen ${beklenen_bu_ana_kadar}. Model ID: ${model_id || '-'}`,
                 kaynak_tablo: 'production_orders',
                 kaynak_id: model_id || null,
                 durum: 'aktif',

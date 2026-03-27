@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 
-// ─── 404 SAYFASI ──────────────────────────────────────────────
+//  404 SAYFASI 
 export default function BulunamadiSayfasi() {
     return (
         <div style={{
@@ -29,7 +29,7 @@ export default function BulunamadiSayfasi() {
                 SAYFA BULUNAMADI
             </h1>
             <p style={{ color: '#64748b', fontSize: '0.875rem', textAlign: 'center', maxWidth: '320px', margin: 0 }}>
-                Bu rota sistemde tanımlı değil. Karargâha dönün.
+                Bu rota sistemde tanımlı değil. Karargha dnn.
             </p>
             <Link href="/" style={{
                 background: '#f59e0b',
@@ -41,7 +41,7 @@ export default function BulunamadiSayfasi() {
                 fontWeight: 800,
                 letterSpacing: '0.05em',
             }}>
-                🏠 KARARGÂHA DÖN
+                🏠 KARARGHA DN
             </Link>
         </div>
     );

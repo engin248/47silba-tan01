@@ -1,7 +1,7 @@
 'use client';
 /**
  * app/personel/page.js — GİRİŞ NOKTASI (20 satır)
- * Tüm UI   → features/personel/components/PersonelMainContainer.js
+ * Tm UI   → features/personel/components/PersonelMainContainer.js
  * Route    : /personel
  */
 import { PersonelMainContainer } from '@/features/personel';
@@ -11,7 +11,7 @@ export default function PersonelPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                ⚠️ Personel modülü yüklenirken hata oluştu.
+                ️ Personel modl yklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

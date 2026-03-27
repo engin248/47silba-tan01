@@ -1,7 +1,7 @@
 'use client';
 /**
  * app/kumas/page.js — GİRİŞ NOKTASI (20 satır)
- * Tüm UI   → features/kumas/components/KumasMainContainer.js
+ * Tm UI   → features/kumas/components/KumasMainContainer.js
  * Route    : /kumas
  */
 import { KumasMainContainer } from '@/features/kumas';
@@ -11,7 +11,7 @@ export default function KumasPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                ⚠️ Kumas modülü yüklenirken hata oluştu.
+                ️ Kumas modl yklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

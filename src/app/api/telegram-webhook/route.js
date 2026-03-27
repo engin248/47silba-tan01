@@ -58,11 +58,11 @@ export async function POST(request) {
         const chat_id = message.chat?.id;
         const text = message.text || '';
 
-        if (text.toLowerCase() === '/maliyet' || text.toLowerCase() === 'maliyeti göster') {
+        if (text.toLowerCase() === '/maliyet' || text.toLowerCase() === 'maliyeti gster') {
             const izinliAdminIdGubu = process.env.TELEGRAM_ADMIN_CHAT_ID?.split(',') || [];
             if (!izinliAdminIdGubu.includes(String(chat_id))) {
                 await botLog(chat_id, '/maliyet', 'YETKISIZ');
-                await telegramMesaj(chat_id, '⛔ <b>YETKİSİZ ERİŞİM ENGELLENDİ!</b>\nBu komutu okuma yetkiniz yok.');
+                await telegramMesaj(chat_id, ' <b>YETKİSİZ ERİŞİM ENGELLENDİ!</b>\nBu komutu okuma yetkiniz yok.');
                 return NextResponse.json({ ok: true });
             }
             await botLog(chat_id, '/maliyet', 'BASARILI');
@@ -74,10 +74,10 @@ export async function POST(request) {
             await botLog(chat_id, '/start', 'BASARILI');
             await telegramMesaj(chat_id,
                 '👋 <b>47 Sil Baştan — Fotoğraf Botu</b>\n\n' +
-                'Atölye fotoğraflarını direkt buradan sisteme yükle!\n\n' +
+                'Atlye fotoğraflarını direkt buradan sisteme ykle!\n\n' +
                 '📷 <b>Nasıl kullanılır?</b>\n' +
-                '1. Fotoğrafı bu sohbete gönder\n' +
-                '2. Açıklama yaz (isteğe bağlı)\n' +
+                '1. Fotoğrafı bu sohbete gnder\n' +
+                '2. Aıklama yaz (isteğe bağlı)\n' +
                 '3. Fotoğraf otomatik Modelhane Arşivine kaydedilir\n\n' +
                 '📋 Komutlar:\n/numune - Numune fotoğrafı\n/kumas - Kumaş fotoğrafı\n/genel - Genel arşiv'
             );
@@ -94,14 +94,14 @@ export async function POST(request) {
                 file_id = message.document.file_id;
                 uzanti = message.document.file_name?.split('.').pop()?.toLowerCase() || 'jpg';
             } else {
-                await telegramMesaj(chat_id, '⚠️ Sadece fotoğraf destekleniyor.');
+                await telegramMesaj(chat_id, '️ Sadece fotoğraf destekleniyor.');
                 return NextResponse.json({ ok: true });
             }
 
-            await telegramMesaj(chat_id, '⏳ Fotoğraf yükleniyor...');
+            await telegramMesaj(chat_id, '⏳ Fotoğraf ykleniyor...');
             const dosya = await dosyaIndir(file_id);
             if (!dosya) {
-                await telegramMesaj(chat_id, '❌ Dosya indirilemedi.');
+                await telegramMesaj(chat_id, ' Dosya indirilemedi.');
                 return NextResponse.json({ ok: true });
             }
 
@@ -120,21 +120,21 @@ export async function POST(request) {
                 });
 
             if (error) {
-                await telegramMesaj(chat_id, `❌ Yükleme hatası: ${error.message}`);
+                await telegramMesaj(chat_id, ` Ykleme hatası: ${error.message}`);
                 return NextResponse.json({ ok: true });
             }
 
             const { data: urlData } = supabase.storage.from('teknik-foyler').getPublicUrl(data.path);
             await botLog(chat_id, 'FOTOGRAF_YUKLE', 'BASARILI', klasor + ' → ' + yol);
             await telegramMesaj(chat_id,
-                `✅ <b>Fotoğraf kaydedildi!</b>\n\n📁 Klasör: ${klasor}\n🔗 URL: <code>${urlData.publicUrl}</code>`
+                ` <b>Fotoğraf kaydedildi!</b>\n\n📁 Klasr: ${klasor}\n🔗 URL: <code>${urlData.publicUrl}</code>`
             );
             return NextResponse.json({ ok: true });
         }
 
         if (text && !text.startsWith('/')) {
             const yetkiliIdleri = process.env.TELEGRAM_ADMIN_CHAT_ID?.split(',') || [];
-            const isim = yetkiliIdleri.includes(String(chat_id)) ? 'Koordinatör (Telegram)' : 'Saha Görevlisi';
+            const isim = yetkiliIdleri.includes(String(chat_id)) ? 'Koordinatr (Telegram)' : 'Saha Grevlisi';
             const { error: dbErr } = await supabase.from('b1_ic_mesajlar').insert({
                 konu: '📱 TELEGRAM SAHA EMRİ',
                 icerik: text,
@@ -146,16 +146,16 @@ export async function POST(request) {
             });
             if (dbErr) {
                 await botLog(chat_id, 'SISTEME_MESAJ', 'HATA', dbErr.message);
-                await telegramMesaj(chat_id, `❌ Mesaj ERP sistemine aktarılamadı.\nHata: ${dbErr.message}`);
+                await telegramMesaj(chat_id, ` Mesaj ERP sistemine aktarılamadı.\nHata: ${dbErr.message}`);
             } else {
                 await botLog(chat_id, 'SISTEME_MESAJ', 'BASARILI', text.slice(0, 50));
-                await telegramMesaj(chat_id, '🚨 <b>Sistem Uyarıldı!</b>\nMesajınız Karargâh paneline ACİL uyarısıyla düştü.');
+                await telegramMesaj(chat_id, '🚨 <b>Sistem Uyarıldı!</b>\nMesajınız Karargh paneline ACİL uyarısıyla dşt.');
             }
             return NextResponse.json({ ok: true });
         }
 
         if (text && text.startsWith('/')) {
-            await telegramMesaj(chat_id, '⚠️ Anlaşılamayan komut! Düz metin ile emir gönderin.');
+            await telegramMesaj(chat_id, '️ Anlaşılamayan komut! Dz metin ile emir gnderin.');
         }
 
         return NextResponse.json({ ok: true });

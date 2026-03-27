@@ -5,14 +5,14 @@ import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 // SİSTEM HAFIZASI GERİ BİLDİRİMİ — THE ORDER / NIZAM
 // /api/rapor/sistem-hafizasi
 //
-// POST → Ar-Ge form gönderilmeden ÖNCE çağrılır.
-//        Geçmişte zarar eden model/kumaş kombinasyonu varsa
-//        BLOCK sinyali döner ve form engellenir.
-// GET  → Zarar kaydı listesi (Yönetim için)
+// POST → Ar-Ge form gnderilmeden NCE ağrılır.
+//        Gemişte zarar eden model/kumaş kombinasyonu varsa
+//        BLOCK sinyali dner ve form engellenir.
+// GET  → Zarar kaydı listesi (Ynetim iin)
 // ============================================================
 
-// HermAI Gerçeklik Freni burada da devrede:
-// Eşleşme skoru %60'ın altında kalan benzerlik uyarıya dönüşmez.
+// HermAI Gereklik Freni burada da devrede:
+// Eşleşme skoru %60'ın altında kalan benzerlik uyarıya dnşmez.
 
 function basitBenzerlik(str1, str2) {
     if (!str1 || !str2) return 0;
@@ -35,7 +35,7 @@ export async function POST(req) {
             return NextResponse.json({ engel: false, mesaj: 'Başlık boş, kontrol atlandı.' });
         }
 
-        // ─ Son 3 yılın zarar eden / reddedilen trendlerini çek
+        //  Son 3 yılın zarar eden / reddedilen trendlerini ek
         const ucYilOnce = new Date(Date.now() - 3 * 365 * 86400000).toISOString();
 
         const { data: reddedilenler } = await sb
@@ -52,7 +52,7 @@ export async function POST(req) {
             .gte('created_at', ucYilOnce)
             .limit(100);
 
-        // ─ Benzerlik taraması ──────────────────────────────────
+        //  Benzerlik taraması 
         const uyarilar = [];
         let maxBenzerlik = 0;
 
@@ -71,23 +71,23 @@ export async function POST(req) {
                     benzerlik_skoru: toplamSkor,
                     gecmis_durum: 'Reddedildi',
                     tarih: r.created_at,
-                    mesaj: `⚠️ "${r.baslik}" geçmişte reddedildi (%${toplamSkor} benzerlik)`,
+                    mesaj: `️ "${r.baslik}" gemişte reddedildi (%${toplamSkor} benzerlik)`,
                 });
             }
         }
 
-        // ─ HermAI Gerçeklik Freni: %90 üstü → TAM ENGEL ──────
+        //  HermAI Gereklik Freni: %90 st → TAM ENGEL 
         const tamEngel = maxBenzerlik >= 90;
         const uyariEngel = maxBenzerlik >= 60 && maxBenzerlik < 90;
 
-        // ─ Log ───────────────────────────────────────────────
+        //  Log 
         if (uyarilar.length > 0) {
             await sb.from('b1_agent_loglari').insert([{
                 ajan_adi: 'Sistem Hafızası Geri Bildirimi',
                 islem_tipi: 'hafiza_kontrol',
                 kaynak_tablo: 'b1_arge_trendler',
                 sonuc: tamEngel ? 'hata' : 'uyari',
-                mesaj: `"${baslik}" için ${uyarilar.length} geçmiş eşleşme. Max benzerlik: %${maxBenzerlik}. Engel: ${tamEngel ? 'EVET' : 'HAYIR'}`,
+                mesaj: `"${baslik}" iin ${uyarilar.length} gemiş eşleşme. Max benzerlik: %${maxBenzerlik}. Engel: ${tamEngel ? 'EVET' : 'HAYIR'}`,
             }]);
         }
 
@@ -98,10 +98,10 @@ export async function POST(req) {
             benzerlik_skoru: maxBenzerlik,
             uyarılar: uyarilar.slice(0, 5),
             mesaj: tamEngel
-                ? `🚫 ENGELLENDI: Bu model/ürün geçmişte %${maxBenzerlik} benzerliğiyle başarısız oldu. Yeniden düşünün.`
+                ? `🚫 ENGELLENDI: Bu model/rn gemişte %${maxBenzerlik} benzerliğiyle başarısız oldu. Yeniden dşnn.`
                 : uyariEngel
-                    ? `⚠️ UYARI: Benzer içerik geçmişte sorun yaşadı (%${maxBenzerlik}). Devam edebilirsiniz ama dikkatli olun.`
-                    : '✅ Geçmiş hafızada sorun bulunamadı. Devam edin.',
+                    ? `️ UYARI: Benzer ierik gemişte sorun yaşadı (%${maxBenzerlik}). Devam edebilirsiniz ama dikkatli olun.`
+                    : ' Gemiş hafızada sorun bulunamadı. Devam edin.',
         });
 
     } catch (e) {
@@ -109,7 +109,7 @@ export async function POST(req) {
     }
 }
 
-// ─── GET: Zarar eden ürün/model geçmişi listesi ──────────────
+//  GET: Zarar eden rn/model gemişi listesi 
 export async function GET(req) {
     try {
         const { data: reddedilenler } = await sb

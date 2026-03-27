@@ -8,12 +8,12 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
 const ONCELIK = ['dusuk', 'normal', 'yuksek', 'kritik'];
 const ONCELIK_RENK = { dusuk: '#64748b', normal: '#3b82f6', yuksek: '#f59e0b', kritik: '#ef4444' };
-const ONCELIK_LABEL = { dusuk: 'Ô¼ç´©Å D├╝┼ş├╝k', normal: 'ÔŞí´©Å Normal', yuksek: 'Ô¼å´©Å Y├╝ksek', kritik: '­şöÑ Kritik' };
-const DURUM_LABEL = { bekliyor: 'ÔÅ│ Bekliyor', devam: 'ÔÜÖ´©Å Devam', tamamlandi: 'Ô£à Tamam', iptal: 'ÔØî ─░ptal' };
+const ONCELIK_LABEL = { dusuk: ' Dşk', normal: 'Ş Normal', yuksek: ' Yksek', kritik: 'ş Kritik' };
+const DURUM_LABEL = { bekliyor: ' Bekliyor', devam: ' Devam', tamamlandi: ' Tamam', iptal: ' ptal' };
 const DURUM_RENK = { bekliyor: '#f59e0b', devam: '#3b82f6', tamamlandi: '#10b981', iptal: '#ef4444' };
 const BOSH = { baslik: '', aciklama: '', atanan_kisi: '', son_tarih: '', oncelik: 'normal', modul: 'genel' };
 
-const formatTarih = (iso) => { if (!iso) return 'ÔÇö'; const d = new Date(iso); return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); };
+const formatTarih = (iso) => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); };
 
 export default function GorevlerSayfasi() {
     const { lang } = useLang();
@@ -54,7 +54,7 @@ export default function GorevlerSayfasi() {
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 4000); };
 
-    const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Ba─şlant─▒ zaman a┼ş─▒m─▒ (10 sn)')), 10000));
+    const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Başlant zaman aşm (10 sn)')), 10000));
 
     const yukle = async () => {
         setLoading(true);
@@ -63,21 +63,21 @@ export default function GorevlerSayfasi() {
             const res = await Promise.race([req, timeoutPromise()]);
 
             if (res.error && res.error.code === '42P01') {
-                goster('ÔÜá´©Å b1_gorevler tablosu Supabase\'de yok. SQL Editor\'dan olu┼şturun.', 'error');
+                goster(' b1_gorevler tablosu Supabase\'de yok. SQL Editor\'dan oluşturun.', 'error');
             } else if (res.error) { throw res.error; }
             else if (res.data) { setGorevler(res.data); }
-        } catch (error) { goster('G├Ârevler Y├╝klenemedi: ' + error.message, 'error'); }
+        } catch (error) { goster('Grevler Yklenemedi: ' + error.message, 'error'); }
         setLoading(false);
     };
 
     const kaydet = async () => {
-        if (!form.baslik.trim()) return goster('Ba┼şl─▒k zorunlu!', 'error');
-        if (form.baslik.length > 100) return goster('Ba┼şl─▒k ├ğok uzun!', 'error');
-        if (form.aciklama && form.aciklama.length > 500) return goster('A├ğ─▒klama ├ğok uzun!', 'error');
+        if (!form.baslik.trim()) return goster('Başlk zorunlu!', 'error');
+        if (form.baslik.length > 100) return goster('Başlk ğok uzun!', 'error');
+        if (form.aciklama && form.aciklama.length > 500) return goster('Ağklama ğok uzun!', 'error');
 
         setLoading(true);
         try {
-            // ÔöÇÔöÇÔöÇ K├ûR NOKTA 5: ºİNTERNET YOKKEN YAPILAN ─░┼ŞLEM─░ KURTAR ÔöÇÔöÇÔöÇ
+            //  KR NOKTA 5: İNTERNET YOKKEN YAPILAN ŞLEM KURTAR 
             if (!navigator.onLine) {
                 const cevrimeVerisi = {
                     baslik: form.baslik.trim(),
@@ -92,10 +92,10 @@ export default function GorevlerSayfasi() {
                 if (duzenleId) {
                     cevrimeVerisi.id = duzenleId;
                     await cevrimeKuyrugaAl('b1_gorevler', 'UPDATE', cevrimeVerisi);
-                    goster('ÔÜí ├çevrimd─▒┼ş─▒: D├╝zenleme tablet haf─▒zas─▒na al─▒nd─▒!');
+                    goster(' evrimdş: Dzenleme tablet hafzasna alnd!');
                 } else {
                     await cevrimeKuyrugaAl('b1_gorevler', 'INSERT', cevrimeVerisi);
-                    goster('ÔÜí ├çevrimd─▒┼ş─▒: Yeni g├Ârev tablet haf─▒zas─▒na al─▒nd─▒!');
+                    goster(' evrimdş: Yeni grev tablet hafzasna alnd!');
                 }
 
                 setForm(BOSH); setFormAcik(false); setDuzenleId(null);
@@ -110,16 +110,16 @@ export default function GorevlerSayfasi() {
                     oncelik: form.oncelik, updated_at: new Date().toISOString(),
                 }).eq('id', duzenleId);
                 if (error) throw error;
-                goster('Ô£à G├Ârev g├╝ncellendi!');
+                goster(' Grev gncellendi!');
                 setForm(BOSH); setFormAcik(false); setDuzenleId(null); yukle();
             } else {
-                // ­şøæ U Kriteri: M├╝kerrer (Ayn─▒ ba┼şl─▒kla 2. kez) G├Ârev Engeli
+                // ş U Kriteri: Mkerrer (Ayn başlkla 2. kez) Grev Engeli
                 const { data: mevcutGorev } = await supabase.from('b1_gorevler')
                     .select('id').ilike('baslik', form.baslik.trim()).eq('durum', 'bekliyor');
 
                 if (mevcutGorev && mevcutGorev.length > 0) {
                     setLoading(false);
-                    return goster('ÔÜá´©Å Bu ba┼şl─▒kta bekleyen bir g├Ârev zaten var! ├çift kay─▒t engellendi.', 'error');
+                    return goster(' Bu başlkta bekleyen bir grev zaten var! ift kayt engellendi.', 'error');
                 }
 
                 const { error } = await supabase.from('b1_gorevler').insert([{
@@ -128,10 +128,10 @@ export default function GorevlerSayfasi() {
                     oncelik: form.oncelik, durum: 'bekliyor'
                 }]);
                 if (error) throw error;
-                goster('Ô£à G├Ârev olu┼şturuldu!');
+                goster(' Grev oluşturuldu!');
 
                 if (form.oncelik === 'kritik') {
-                    telegramBildirim(`­şöÑ KR─░T─░K G├ûREV!\nBa┼şl─▒k: ${form.baslik}\nAtanan: ${form.atanan_kisi || 'Herkes'}\nAC─░L M├£DAHALE BEKLEN─░YOR.`);
+                    telegramBildirim(`ş KRTK GREV!\nBaşlk: ${form.baslik}\nAtanan: ${form.atanan_kisi || 'Herkes'}\nACL MDAHALE BEKLENYOR.`);
                 }
                 setForm(BOSH); setFormAcik(false); yukle();
             }
@@ -142,29 +142,29 @@ export default function GorevlerSayfasi() {
     const durumGuncelle = async (id, durum, baslik) => {
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_gorevler', 'UPDATE', { id, durum });
-            return goster('ÔÜí ├çevrimd─▒┼ş─▒: Durum de─şi┼şikli─şi tablet haf─▒zas─▒na kilitlendi.');
+            return goster(' evrimdş: Durum deşişiklişi tablet hafzasna kilitlendi.');
         }
 
         try {
             const { error } = await supabase.from('b1_gorevler').update({ durum }).eq('id', id);
             if (error) throw error;
-            yukle(); goster('Durum g├╝ncellendi');
-            if (durum === 'tamamlandi') telegramBildirim(`Ô£à G├ûREV TAMAMLANDI!\n${baslik}`);
-        } catch (error) { goster('Durum Hatas─▒: ' + error.message, 'error'); }
+            yukle(); goster('Durum gncellendi');
+            if (durum === 'tamamlandi') telegramBildirim(` GREV TAMAMLANDI!\n${baslik}`);
+        } catch (error) { goster('Durum Hatas: ' + error.message, 'error'); }
     };
 
     const sil = async (id) => {
         if (!navigator.onLine) {
             await cevrimeKuyrugaAl('b1_gorevler', 'DELETE', { id });
-            return goster('ÔÜí ├çevrimd─▒┼ş─▒: Silme komutu internet gelince i┼şlenecek.');
+            return goster(' evrimdş: Silme komutu internet gelince işlenecek.');
         }
 
         if (!kullanici || kullanici.grup !== 'tam') {
-            const adminPin = prompt('Bu g├Ârevi silmek i├ğin Y├Ânetici P─░N kodunu girin:');
+            const adminPin = prompt('Bu grevi silmek iğin Ynetici PN kodunu girin:');
             const dogruPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '9999';
-            if (adminPin !== dogruPin) return goster('Yetkisiz ─░┼şlem!', 'error');
+            if (adminPin !== dogruPin) return goster('Yetkisiz şlem!', 'error');
         }
-        if (!confirm('G├Ârev silinsin mi?')) return;
+        if (!confirm('Grev silinsin mi?')) return;
         try {
 
             // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
@@ -210,33 +210,33 @@ export default function GorevlerSayfasi() {
                         <ClipboardList size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? 'Ï¬Ï¬Ï¿Ï╣ Ïğ┘ä┘à┘çÏğ┘à' : 'G├Ârev Takibi'}</h1>
-                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? 'Ï¬Ï╣┘è┘è┘å Ïğ┘ä┘à┘çÏğ┘à ┬À Ï¬Ï¡Ï»┘èÏ» Ïğ┘äÏú┘ê┘ä┘ê┘èÏ® ┬À Ïğ┘äÏ¬Ï¬Ï¿Ï╣' : 'G├Ârev ata ┬À ├Âncelik belirle ┬À takip et'}</p>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{isAR ? ' ğğ' : 'Grev Takibi'}</h1>
+                        <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0', fontWeight: 600 }}>{isAR ? ' ğğ   ğ  ğ' : 'Grev ata  ncelik belirle  takip et'}</p>
                     </div>
                 </div>
                 {erisim === 'full' && (
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => setFormAcik(!formAcik)}
                             style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)' }}>
-                            <Plus size={18} /> Yeni G├Ârev
+                            <Plus size={18} /> Yeni Grev
                         </button>
-                        {/* CC Kriteri Otomatik Rota (M16 Raporlara Ge├ği┼ş) */}
+                        {/* CC Kriteri Otomatik Rota (M16 Raporlara Geğiş) */}
                         <a href="/raporlar" style={{ textDecoration: 'none' }}>
                             <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
-                                ­şôè Raporlar (M16)
+                                ş Raporlar (M16)
                             </button>
                         </a>
                     </div>
                 )}
             </div>
 
-            {/* ─░statistik */}
+            {/* statistik */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 {[
                     { label: 'Toplam', val: istatistik.toplam, color: '#047857', bg: '#ecfdf5' },
-                    { label: 'ÔÅ│ Bekliyor', val: istatistik.bekliyor, color: '#d97706', bg: '#fffbeb' },
-                    { label: 'ÔÜÖ´©Å Devam', val: istatistik.devam, color: '#2563eb', bg: '#eff6ff' },
-                    { label: '­şöÑ Kritik', val: istatistik.kritik, color: '#dc2626', bg: '#fef2f2' },
+                    { label: ' Bekliyor', val: istatistik.bekliyor, color: '#d97706', bg: '#fffbeb' },
+                    { label: ' Devam', val: istatistik.devam, color: '#2563eb', bg: '#eff6ff' },
+                    { label: 'ş Kritik', val: istatistik.kritik, color: '#dc2626', bg: '#fef2f2' },
                 ].map((s, i) => (
                     <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                         <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
@@ -254,18 +254,18 @@ export default function GorevlerSayfasi() {
             {/* Form */}
             {formAcik && erisim === 'full' && (
                 <div style={{ background: 'white', border: '2px solid #047857', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(4,120,87,0.10)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>­şôï Yeni G├Ârev</h3>
+                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem', fontSize: '1rem' }}>ş Yeni Grev</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem' }}>
                         <div style={{ gridColumn: '1/-1' }}>
-                            <label style={lbl}>G├Ârev Ba┼şl─▒─ş─▒ *</label>
-                            <input maxLength={100} value={form.baslik} onChange={e => setForm({ ...form, baslik: e.target.value })} placeholder="G├Ârev ne?" style={inp} />
+                            <label style={lbl}>Grev Başlş *</label>
+                            <input maxLength={100} value={form.baslik} onChange={e => setForm({ ...form, baslik: e.target.value })} placeholder="Grev ne?" style={inp} />
                         </div>
                         <div style={{ gridColumn: '1/-1' }}>
-                            <label style={lbl}>A├ğ─▒klama</label>
+                            <label style={lbl}>Ağklama</label>
                             <textarea maxLength={500} rows={2} value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} style={{ ...inp, resize: 'vertical' }} />
                         </div>
                         <div>
-                            <label style={lbl}>Atanan Ki┼şi</label>
+                            <label style={lbl}>Atanan Kişi</label>
                             <input maxLength={50} value={form.atanan_kisi} onChange={e => setForm({ ...form, atanan_kisi: e.target.value })} placeholder="Ad Soyad" style={inp} />
                         </div>
                         <div>
@@ -273,42 +273,42 @@ export default function GorevlerSayfasi() {
                             <input type="datetime-local" value={form.son_tarih} onChange={e => setForm({ ...form, son_tarih: e.target.value })} style={inp} />
                         </div>
                         <div>
-                            <label style={lbl}>├ûncelik</label>
+                            <label style={lbl}>ncelik</label>
                             <select value={form.oncelik} onChange={e => setForm({ ...form, oncelik: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
                                 {ONCELIK.map(o => <option key={o} value={o}>{ONCELIK_LABEL[o]}</option>)}
                             </select>
                         </div>
                         {/* <div style={{ display: 'none' }}>
-                            <label style={lbl}>Mod├╝l</label>
+                            <label style={lbl}>Modl</label>
                             <input maxLength={50} value={form.modul} onChange={e => setForm({ ...form, modul: e.target.value })} placeholder="genel / kesim / kumas..." style={inp} />
                         </div> */}
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => { setForm(BOSH); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>─░ptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : 'G├Ârev Olu┼ştur'}</button>
+                        <button onClick={() => { setForm(BOSH); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #e5e7eb', borderRadius: 8, background: 'white', fontWeight: 700, cursor: 'pointer' }}>ptal</button>
+                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>{loading ? '...' : 'Grev Oluştur'}</button>
                     </div>
                 </div>
             )}
 
             {/* Arama + Filtreler */}
             <div style={{ position: 'relative', marginBottom: '0.75rem', maxWidth: 420 }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>­şöı</span>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>şı</span>
                 <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
-                    placeholder="Ba┼şl─▒k, ki┼şi veya a├ğ─▒klama ara..."
+                    placeholder="Başlk, kişi veya ağklama ara..."
                     style={inp} />
             </div>
             <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 {['hepsi', ...ONCELIK].map(o => (
                     <button key={o} onClick={() => setFiltreOncelik(o)}
                         style={{ padding: '5px 12px', border: '2px solid', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: filtreOncelik === o ? (ONCELIK_RENK[o] || '#8b5cf6') : '#e5e7eb', background: filtreOncelik === o ? (ONCELIK_RENK[o] || '#8b5cf6') : 'white', color: filtreOncelik === o ? 'white' : '#374151' }}>
-                        {o === 'hepsi' ? 'T├╝m├╝' : ONCELIK_LABEL[o]}
+                        {o === 'hepsi' ? 'Tm' : ONCELIK_LABEL[o]}
                     </button>
                 ))}
                 <div style={{ width: 1, background: '#e5e7eb', margin: '0 4px' }} />
                 {['hepsi', 'bekliyor', 'devam', 'tamamlandi'].map(d => (
                     <button key={d} onClick={() => setFiltreDurum(d)}
                         style={{ padding: '5px 12px', border: '2px solid', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', borderColor: filtreDurum === d ? (DURUM_RENK[d] || '#8b5cf6') : '#e5e7eb', background: filtreDurum === d ? (DURUM_RENK[d] || '#8b5cf6') : 'white', color: filtreDurum === d ? 'white' : '#374151' }}>
-                        {d === 'hepsi' ? 'T├╝m Durumlar' : DURUM_LABEL[d]}
+                        {d === 'hepsi' ? 'Tm Durumlar' : DURUM_LABEL[d]}
                     </button>
                 ))}
             </div>
@@ -318,7 +318,7 @@ export default function GorevlerSayfasi() {
                 {filtreli.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e5e7eb' }}>
                         <ClipboardList size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
-                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>G├Ârev bulunamad─▒.</p>
+                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>Grev bulunamad.</p>
                     </div>
                 )}
                 {filtreli.map(g => (
@@ -328,7 +328,7 @@ export default function GorevlerSayfasi() {
                                 <div style={{ display: 'flex', gap: 6, marginBottom: '0.375rem', flexWrap: 'wrap' }}>
                                     <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${ONCELIK_RENK[g.oncelik]}20`, color: ONCELIK_RENK[g.oncelik] }}>{ONCELIK_LABEL[g.oncelik]}</span>
                                     <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: `${DURUM_RENK[g.durum]}20`, color: DURUM_RENK[g.durum] }}>{DURUM_LABEL[g.durum]}</span>
-                                    {g.modul && g.modul !== 'genel' && <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', color: '#64748b' }}>­şôü {g.modul}</span>}
+                                    {g.modul && g.modul !== 'genel' && <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', color: '#64748b' }}>ş {g.modul}</span>}
                                 </div>
                                 <h3 style={{ fontWeight: 800, color: '#0f172a', margin: 0, fontSize: '0.95rem' }}>{g.baslik}</h3>
                                 {g.aciklama && <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0' }}>{g.aciklama}</p>}
@@ -340,9 +340,9 @@ export default function GorevlerSayfasi() {
                             </div>
                             {erisim === 'full' && (
                                 <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap' }}>
-                                    <button onClick={() => { setForm({ baslik: g.baslik, aciklama: g.aciklama || '', atanan_kisi: g.atanan_kisi || '', son_tarih: g.bitis_tarihi ? g.bitis_tarihi.slice(0, 16) : '', oncelik: g.oncelik, modul: g.modul || 'genel' }); setDuzenleId(g.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>Ô£Å´©Å D├╝zenle</button>
-                                    {g.durum === 'bekliyor' && <button onClick={() => durumGuncelle(g.id, 'devam', g.baslik)} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>ÔÜÖ´©Å Ba┼şlat</button>}
-                                    {g.durum === 'devam' && <button onClick={() => durumGuncelle(g.id, 'tamamlandi', g.baslik)} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>Ô£à Tamam</button>}
+                                    <button onClick={() => { setForm({ baslik: g.baslik, aciklama: g.aciklama || '', atanan_kisi: g.atanan_kisi || '', son_tarih: g.bitis_tarihi ? g.bitis_tarihi.slice(0, 16) : '', oncelik: g.oncelik, modul: g.modul || 'genel' }); setDuzenleId(g.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}> Dzenle</button>
+                                    {g.durum === 'bekliyor' && <button onClick={() => durumGuncelle(g.id, 'devam', g.baslik)} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}> Başlat</button>}
+                                    {g.durum === 'devam' && <button onClick={() => durumGuncelle(g.id, 'tamamlandi', g.baslik)} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '5px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}> Tamam</button>}
                                     <button onClick={() => sil(g.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '5px 10px', borderRadius: 6, cursor: 'pointer' }}><Trash2 size={13} /></button>
                                 </div>
                             )}

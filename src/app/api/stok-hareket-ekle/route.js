@@ -9,7 +9,7 @@ export async function POST(request) {
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
         if (!rateLimitKontrol(ip, 20, 60)) {
-            return NextResponse.json({ hata: 'Çok fazla stok hareketi isteği. Lütfen bekleyin.' }, { status: 429 });
+            return NextResponse.json({ hata: 'ok fazla stok hareketi isteği. Ltfen bekleyin.' }, { status: 429 });
         }
 
         const body = await request.json();
@@ -17,7 +17,7 @@ export async function POST(request) {
         // Zod Validator
         const dogrulama = veriDogrula(stokHareketiSchema, body);
         if (!dogrulama.basarili) {
-            return NextResponse.json({ hata: 'Geçersiz stok tahsisi.', detay: dogrulama.error }, { status: 422 });
+            return NextResponse.json({ hata: 'Geersiz stok tahsisi.', detay: dogrulama.error }, { status: 422 });
         }
 
         const payload = dogrulama.data;
@@ -39,7 +39,7 @@ export async function POST(request) {
                 kullanici_adi: 'Server API (Otonom Zırh)',
                 eski_veri: { urun: payload.urun_id, islem: payload.hareket_tipi, adet: payload.adet }
             }]);
-        } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
+        } catch (e) { console.error('[KR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: route.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
 
         return NextResponse.json({ mesaj: 'Başarılı', veri: data });
     } catch (error) {

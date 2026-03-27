@@ -19,7 +19,7 @@ export async function POST(req) {
         const islemAdeti = Math.max(1, parseInt(adet) || 1);
         const kalite = Math.min(10, Math.max(0, parseFloat(kalite_puani) || 8.0));
 
-        // 1. Operasyonun değer bilgilerini çek
+        // 1. Operasyonun değer bilgilerini ek
         const { data: opData, error: opErr } = await supabase
             .from('b1_operasyon_tanimlari')
             .select('isletmeye_kattigi_deger_tl, baz_prim_tl, zorluk_derecesi, operasyon_adi')
@@ -32,7 +32,7 @@ export async function POST(req) {
 
         const katilanDeger = islemAdeti * parseFloat(opData.isletmeye_kattigi_deger_tl || 0);
 
-        // 2. Personelin bu ay toplam biriktirdiği değeri ve aylık maliyetini çek
+        // 2. Personelin bu ay toplam biriktirdiği değeri ve aylık maliyetini ek
         const date = new Date();
         const ilkGun = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
 
@@ -49,7 +49,7 @@ export async function POST(req) {
         const yeniBirikis = mevcutBirikis + katilanDeger;
 
         // 3. Prim hesabı: sadece maliyet kotası aşılmışsa prim yaz
-        // Formül: Adet × Zorluk Çarpanı × Baz Prim TL
+        // Forml: Adet  Zorluk arpanı  Baz Prim TL
         let kazanilanPrim = 0;
         const primYazildiMi = yeniBirikis >= aylikMaliyet && aylikMaliyet > 0;
         if (primYazildiMi) {
