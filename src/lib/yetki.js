@@ -1,4 +1,5 @@
 'use client';
+// [FIX] 'server-only' kaldırıldı — bu dosya client-side React Context + Hook
 /**
  * src/lib/yetki.js
  * Granüler Yetki Sistemi — React Context + Hook
