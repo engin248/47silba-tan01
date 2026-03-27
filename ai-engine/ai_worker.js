@@ -1,10 +1,11 @@
 const { KuyruktanAl } = require('../src/lib/redis_kuyruk');
-require('dotenv').config({ path: '.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') }); // [FIX] mutlak yol
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { createClient } = require('@supabase/supabase-js');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'YOK');
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || ''); // [FIX] ANON_KEY fallback kaldırıldı
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || ''); // [FIX] mutlak yol + undefined lint
 
 const QUEUE_NAME = 'ai_jobs';
 const DELAY_MS = 5000; // Rate limit yememek için 5 saniye bekleme (Soğutma)
