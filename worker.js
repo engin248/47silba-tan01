@@ -80,10 +80,15 @@ async function isciMotoru() {
                 console.log(`\n[ZİNCİRLEME KOMUTA] Ürün ÇOK_SATAR damgası yedi. EKİP 2 (M2 Kar ve Altın Kriter) tetikleniyor...`);
                 const urunIsmi = sonuc.urun_adi || job.data.hedef;
 
+                // [B-3 FİX]: Dinamik fiyat — Supabase'den çekil, olmasa .env fallback
+                const { data: prms } = await supabase.from('sistem_parametreleri').select('anahtar,deger').in('anahtar', ['kumas_metre_fiyati', 'hedef_satis_fiyati']);
+                const kumasFiyati = parseFloat(prms?.find(p => p.anahtar === 'kumas_metre_fiyati')?.deger) || parseFloat(process.env.DEFAULT_KUMAS_FIYATI) || 140;
+                const satisFiyati = parseFloat(prms?.find(p => p.anahtar === 'hedef_satis_fiyati')?.deger) || parseFloat(process.env.DEFAULT_SATIS_FIYATI) || 900;
+
                 // 2. FAZ (EKİP 2): Finans ve Altın Kriter Zırhı
                 const m2Sonuc = await SentinelZirhi(job.id + "_m2", urunIsmi, async (hedef, j_id, t_fnc) => {
                     return await m2KarZararKilidi({
-                        urun_adi: hedef, kategori: "Genel Toptan Tekstil", kumas_metre_fiyati: 140, tahmini_satis_fiyati: 900
+                        urun_adi: hedef, kategori: "Genel Toptan Tekstil", kumas_metre_fiyati: kumasFiyati, tahmini_satis_fiyati: satisFiyati
                     }, j_id, t_fnc);
                 }, 40);
 

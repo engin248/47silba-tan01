@@ -131,7 +131,7 @@ export async function GET(req) {
             const domain = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
             const cronReqHeaders = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`
+                'Authorization': `Bearer ${process.env.CRON_SECRET}` // [A-4 FİX]: dev_secret fallback kaldırıldı
             };
 
             fetch(`${domain}/api/ajan-yargic`, {

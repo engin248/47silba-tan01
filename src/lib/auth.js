@@ -158,14 +158,10 @@ export function AuthProvider({ children }) {
         setKullanici(kayit);
         localStorage.setItem('sb47_auth', JSON.stringify(kayit));
 
-        // Cookie'ye de yaz (middleware katmanı için)
-        // NOT: sb47_auth_session artık yalnızca görsel amaçlı — yetki JWT üzerinden doğrulanır
-        const cookieValue = encodeURIComponent(JSON.stringify(kayit));
-        document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
-        // ─── GÜVENLİK [K-01 FIX]: Client-side JWT cookie yazma kaldırıldı ───
-        // JWT token artık YALNIZCA /api/pin-dogrula'da HttpOnly olarak set ediliyor.
-        // Burada document.cookie ile yazmak XSS saldırısında token'ı ifşa ederdi.
-        // veri.token hâlâ response'da geliyor ama client-side'a yazılmıyor.
+        // ─── GÜVENLİK [A-3 DÜZELTME]: İmzasız JSON cookie KALDIRILDI ─────────
+        // sb47_auth_session (imzasız JSON) artık yazılmıyor.
+        // Middleware yalnızca sb47_jwt_token (HttpOnly, /api/pin-dogrula tarafından set edilir) okur.
+        // XSS saldırısında oturum bilgisi ifşa edilemez.
 
 
         // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)

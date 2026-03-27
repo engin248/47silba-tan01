@@ -97,7 +97,9 @@ export async function POST(req) {
         const { gorev_id } = body;
 
         const auth = req.headers.get('authorization');
-        const isCron = auth === `Bearer ${process.env.CRON_SECRET || 'dev_secret'}`; // GÜVENLIK: NEXT_PUBLIC_ prefix'i kaldırıldı
+        // ─── GÜVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı ───────────
+        if (!process.env.CRON_SECRET) return NextResponse.json({ hata: 'Yapılandırma hatası: CRON_SECRET eksik' }, { status: 500 });
+        const isCron = auth === `Bearer ${process.env.CRON_SECRET}`;
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;

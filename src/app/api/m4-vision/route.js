@@ -13,8 +13,10 @@ export async function POST(req) {
 
         const authHeader = req.headers.get('Authorization');
         // 'Bearer ' prefixi ile güvenlik
-        const expectedSecret = process.env.CRON_SECRET || 'dev_secret';
-        const isValid = authHeader === `Bearer ${expectedSecret}` || authHeader === expectedSecret;
+        // ─── GÜVENLİK [A-4 FİX]: dev_secret fallback kaldırıldı ───────────
+        if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Yapılandırma hatası: CRON_SECRET eksik' }, { status: 500 });
+        const expectedSecret = process.env.CRON_SECRET;
+        const isValid = authHeader === `Bearer ${expectedSecret}`;
 
         if (!isValid) {
             return NextResponse.json({ error: 'Yetkisiz Edge Cihazı (Auth Hatası)!' }, { status: 401 });
