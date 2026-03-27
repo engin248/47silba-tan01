@@ -1,4 +1,3 @@
-import 'server-only';
 /**
  * src/lib/totp.js
  * RFC 6238 TOTP — Dış paket yok, Web Crypto API kullanır

@@ -1,3 +1,4 @@
+import 'server-only';
 // ============================================================
 // 47 SİL BAŞTAN — 7 AJAN KOMUTA SİSTEMİ (TAM KOD)
 // Dosya: src/lib/ajanlar-v2.js

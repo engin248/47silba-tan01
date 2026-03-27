@@ -1,29 +1,29 @@
-﻿/**
- * ═══════════════════════════════════════════════════════
- * HATA BİLDİRİM SİSTEMİ — Telegram'a Otomatik Alarm
- * Sentry yerine kendi altyapımızla hata izleme
- * ═══════════════════════════════════════════════════════
+/**
+ * =======================================================
+ * HATA B�LD�R�M S�STEM� � Telegram'a Otomatik Alarm
+ * Sentry yerine kendi altyap�m�zla hata izleme
+ * =======================================================
  */
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// Son gönderilen hatanın zamanı — aynı hatayı 5 dakika içinde tekrar gönderme
+// Son g�nderilen hatan�n zaman� � ayn� hatay� 5 dakika i�inde tekrar g�nderme
 const _hataKontrol = new Map();
 
 /**
- * Telegram'a hata bildirimi gönder
- * @param {string} modul - Hangi modülde hata? Örn: '/api/kumas-ekle'
+ * Telegram'a hata bildirimi g�nder
+ * @param {string} modul - Hangi mod�lde hata? �rn: '/api/kumas-ekle'
  * @param {Error|string} hata - Hata objesi veya mesaj
- * @param {string} [ekBilgi] - Opsiyonel ek bilgi (IP, kullanıcı vs)
+ * @param {string} [ekBilgi] - Opsiyonel ek bilgi (IP, kullan�c� vs)
  */
 export async function hataBildir(modul, hata, ekBilgi = '') {
     try {
-        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return; // Env yoksa sessizce geç
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return; // Env yoksa sessizce ge�
 
         const hataMesaji = hata instanceof Error ? hata.message : String(hata);
 
-        // Aynı hata 5 dakika içinde tekrar gelirse gönderme (spam önleme)
+        // Ayn� hata 5 dakika i�inde tekrar gelirse g�nderme (spam �nleme)
         const anahtar = `${modul}:${hataMesaji.slice(0, 50)}`;
         const sonGonderim = _hataKontrol.get(anahtar);
         if (sonGonderim && (Date.now() - sonGonderim) < 5 * 60 * 1000) return;
@@ -36,14 +36,14 @@ export async function hataBildir(modul, hata, ekBilgi = '') {
         });
 
         const mesaj = [
-            `🔴 <b>SİSTEM HATASI!</b>`,
+            `?? <b>S�STEM HATASI!</b>`,
             ``,
-            `📍 <b>Modül:</b> <code>${modul}</code>`,
-            `❌ <b>Hata:</b> <code>${hataMesaji.slice(0, 200)}</code>`,
-            ekBilgi ? `ℹ️ <b>Bilgi:</b> ${ekBilgi}` : '',
-            `🕐 <b>Saat:</b> ${saat}`,
+            `?? <b>Mod�l:</b> <code>${modul}</code>`,
+            `? <b>Hata:</b> <code>${hataMesaji.slice(0, 200)}</code>`,
+            ekBilgi ? `?? <b>Bilgi:</b> ${ekBilgi}` : '',
+            `?? <b>Saat:</b> ${saat}`,
             ``,
-            `<i>mizanet.com</i>`, // [DOMAIN FIX] eski vercel adresi güncellendi
+            `<i>mizanet.com</i>`, // [DOMAIN FIX] eski vercel adresi g�ncellendi
         ].filter(Boolean).join('\n');
 
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -60,13 +60,13 @@ export async function hataBildir(modul, hata, ekBilgi = '') {
         });
 
     } catch (bildirimHata) {
-        // H3 FIX: Bildirim gönderilemese bile sistemi engelleme — ama hata logla
-        console.error('[H3 HATA BİLDİRİM HATASI] Telegram\'a gönderilemedi:', bildirimHata?.message);
+        // H3 FIX: Bildirim g�nderilemese bile sistemi engelleme � ama hata logla
+        console.error('[H3 HATA B�LD�R�M HATASI] Telegram\'a g�nderilemedi:', bildirimHata?.message);
     }
 }
 
 /**
- * Kritik olmayan ama dikkat gerektiren durumlar için uyarı
+ * Kritik olmayan ama dikkat gerektiren durumlar i�in uyar�
  * @param {string} modul
  * @param {string} mesaj
  */
@@ -80,10 +80,10 @@ export async function uyariBildir(modul, mesaj) {
         });
 
         const metin = [
-            `⚠️ <b>SİSTEM UYARISI</b>`,
-            `📍 <b>Modül:</b> <code>${modul}</code>`,
-            `💬 <b>Mesaj:</b> ${mesaj}`,
-            `🕐 ${saat}`,
+            `?? <b>S�STEM UYARISI</b>`,
+            `?? <b>Mod�l:</b> <code>${modul}</code>`,
+            `?? <b>Mesaj:</b> ${mesaj}`,
+            `?? ${saat}`,
         ].join('\n');
 
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -92,5 +92,5 @@ export async function uyariBildir(modul, mesaj) {
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: metin, parse_mode: 'HTML' }),
             signal: AbortSignal.timeout(5000)
         });
-    } catch (_) { console.error('[KÖR NOKTA ZIRHI - YUTULAN HATA] Dosya: hataBildirim.js'); }
+    } catch (_) { console.error('[K�R NOKTA ZIRHI - YUTULAN HATA] Dosya: hataBildirim.js'); }
 }
