@@ -1,10 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env.local') }); // [FIX] kısmi yol → mutlak yol
 
 // Supabase Sunucu Bağlantısı
 const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',    // [FIX] undefined geçme engellendi
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''    // [FIX] aynı
 );
 
 /**

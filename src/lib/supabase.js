@@ -18,8 +18,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(
-    supabaseUrl || 'https://placeholder-mimari-alarm.supabase.co',
-    supabaseKey || 'placeholder-key-set-env-variables'
+    supabaseUrl || '', // [FIX] placeholder fallback kaldırıldı — ENV boşsa hata açık çıkar
+    supabaseKey || ''  // [FIX] aynı
 );
 
 // ─── Bağlantı durum tespiti (client-side) ───────────────────────
