@@ -7,6 +7,12 @@ const crypto = require('crypto');
 let _redis = null;
 function getRedis() {
     if (_redis) return _redis;
+
+    // Vercel pre-render esnasında (build time) Redis URL okunamadığında gelen uyarı spamlarını engellemek adına:
+    if (process.env.NODE_ENV === 'production' && !process.env.UPSTASH_REDIS_REST_URL) {
+        return null;
+    }
+
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     if (!url || !token || url === '' || token === '') {

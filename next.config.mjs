@@ -90,8 +90,11 @@ export default withSentryConfig(nextConfig, {
     project: process.env.SENTRY_PROJECT,
     silent: true,
     widenClientFileUpload: true,
-    hideSourceMaps: true,         // Kullanıcıya sourcemap gösterme
+    hideSourceMaps: true,
     disableLogger: true,
     tunnelRoute: '/monitoring',
+    sourcemaps: {
+        disable: true, // Vercel NativeCommandError'ı kesin olarak kilitler
+    },
 });
 

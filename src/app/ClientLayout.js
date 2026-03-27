@@ -1,18 +1,17 @@
 "use client";
 
 import React from 'react';
+import { AuthProvider } from '@/lib/auth';
 
 /**
  * Mizanet (THE ORDER) Ana Client Layout Katmanı.
  * Server component olan 'layout.js' içinden çağrılır.
- * İleride eklenecek olan Bildirim (Toast), Sidebar, veya Gerçek Zamanlı (Realtime) 
- * provider'lar bu sarmalayıcı (wrapper) içerisine yerleştirilecektir.
+ * Ana uygulama State ve Kimlik sağlayıcıları burada sarmalanır.
  */
 export default function ClientLayout({ children }) {
     return (
-        <React.Fragment>
-            {/* Bildirimler, Menüler veya Sentry ErrorBoundary buraya gelebilir */}
+        <AuthProvider>
             {children}
-        </React.Fragment>
+        </AuthProvider>
     );
 }

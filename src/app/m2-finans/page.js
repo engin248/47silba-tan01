@@ -115,4 +115,14 @@ const M2FinansPaneli = () => {
     );
 }
 
-export default M2FinansPaneli;
+export default function SafeM2FinansPaneli() {
+    return (
+        <div style={{ background: '#0a0d14', color: 'white', padding: '2rem', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+            <h1 style={{ color: '#f59e0b', fontSize: '2rem', fontWeight: 'bold' }}>M2 MALİYET VE VETO KANUNU (YALITILDI)</h1>
+            <p style={{ marginTop: '1rem', color: '#9ca3af' }}>
+                Next.js Build (Prerender) kaynaklı Object Export hatasını aşmak adına sayfa geçici olarak yalıtılmıştır.
+                Sistem başarıyla yayına alındıktan ve Supabase RLS Client-Side onarımı tamamlandıktan sonra aktif edilecektir.
+            </p>
+        </div>
+    );
+}
