@@ -468,7 +468,7 @@ export default function MusterilerSayfasi() {
                                     {m.risk_limiti && <span style={{ fontSize: '0.75rem', color: '#d97706', fontWeight: 800, padding: '2px 6px', background: '#fffbeb', borderRadius: 4 }}>💳 Risk: ₺{parseFloat(m.risk_limiti).toFixed(0)}</span>}
                                     {/* MS-03 Cari Bakiye Mockup */}
                                     <span style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 800, padding: '2px 6px', background: '#ecfdf5', borderRadius: 4, border: '1px solid #10b981' }}>
-                                        💵 MS-03 Bakiye: ₺{(Math.random() * (15000 - (-5000)) - 5000).toFixed(0)}
+                                        💵 MS-03 Bakiye: Hesaplanıyor...
                                     </span>
                                 </div>
                             </div>

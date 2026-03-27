@@ -34,7 +34,7 @@ async function m4HammaddeSiparisVer(urunAdi, kumasTipi, miktarMetre, toptanciEma
         // const siparisEmri = await fetch("https://api.kumasci.com/v1/b2b-siparis", { ... body: miktarMetre ... })
         // Biz sistemi test etmek ve altyapıyı mühürlemek adına Mock ID kullanıyoruz.
 
-        const siparisKodu = "MZN-M4-B2B-" + Math.floor(Math.random() * 999999);
+        const siparisKodu = "MZN-M4-B2B-" + Date.now(); // [FIX] Math.random → Date.now (tekrarsız ID)
         const tahminiBirimFiyat = parseFloat(process.env.KUMAS_BIRIM_FIYAT_TL || '145'); // [H7 FIX] hardcoded → env'den dinamik
         const finansalYuku = miktarMetre * tahminiBirimFiyat;
 
