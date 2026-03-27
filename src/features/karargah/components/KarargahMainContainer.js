@@ -348,7 +348,7 @@ export function KarargahMainContainer() {
                                 <span className="text-xs font-bold uppercase tracking-[0.25em] text-green-600">GÖREV MERKEZİ / CMD</span>
                             </div>
                             <div className="flex gap-2 mb-4">
-                                <input value={commandText} onChange={(e) => setCommandText(e.target.value)} placeholder="komut gir..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono" />
+                                <input id="karargah-komut" name="karargah-komut" value={commandText} onChange={(e) => setCommandText(e.target.value)} placeholder="komut gir..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-green-500/60 placeholder-green-900 font-mono" />
                                 <button onClick={hizliGorevAtama} className="bg-green-900/30 hover:bg-green-800/40 text-green-300 text-xs px-4 py-2 border border-green-800/50 hover:border-green-500/60 font-bold uppercase tracking-wider transition-colors">GÖNDER</button>
                             </div>
                             <div className="border-t border-green-900/40 pt-4">
@@ -356,7 +356,7 @@ export function KarargahMainContainer() {
                                     <span className="text-green-700">PROJEKSİYON SİMÜLATÖRÜ</span>
                                     <span className="text-green-400 font-bold">{simulasyon > 0 ? '+' : ''}{simulasyon}%</span>
                                 </div>
-                                <input type="range" min="-20" max="20" step="1" value={simulasyon} onChange={(e) => setSimulasyon(parseInt(e.target.value))} className="w-full h-1 bg-green-900/40 accent-green-500 cursor-pointer" />
+                                <input id="karargah-simulasyon" name="karargah-simulasyon" type="range" min="-20" max="20" step="1" value={simulasyon} onChange={(e) => setSimulasyon(parseInt(e.target.value))} className="w-full h-1 bg-green-900/40 accent-green-500 cursor-pointer" />
                             </div>
                         </div>
 
@@ -366,7 +366,7 @@ export function KarargahMainContainer() {
                                 <span className="text-xs font-bold uppercase tracking-[0.25em] text-yellow-600">DİJİTAL DANIŞMAN / AI</span>
                             </div>
                             <div className="flex gap-2 mb-3">
-                                <input value={aiSorgu} onChange={(e) => setAiSorgu(e.target.value)} placeholder="analiz isteği..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono" />
+                                <input id="karargah-ai-sorgu" name="karargah-ai-sorgu" value={aiSorgu} onChange={(e) => setAiSorgu(e.target.value)} placeholder="analiz isteği..." className="flex-1 bg-black/80 text-green-300 text-xs px-3 py-2 border border-green-900/60 focus:outline-none focus:border-yellow-600/50 placeholder-green-900 font-mono" />
                                 <button onClick={aiAnalizBaslat} disabled={isAiLoading} className="bg-yellow-900/20 hover:bg-yellow-800/30 text-yellow-300 text-xs px-4 py-2 border border-yellow-900/40 hover:border-yellow-500/50 font-bold uppercase tracking-wider transition-colors disabled:opacity-40">
                                     {isAiLoading ? '...' : 'ANALİZ'}
                                 </button>
