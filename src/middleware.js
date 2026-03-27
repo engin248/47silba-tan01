@@ -190,7 +190,7 @@ export async function middleware(request) {
         '/ayarlar', '/guvenlik', '/denetmen', '/personel', '/arge',
         '/kumas', '/kalip', '/maliyet', '/uretim', '/musteriler',
         '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar',
-        '/haberlesme', '/tasarim', '/kameralar', // ← EKLENDİ: daha önce korumasızdı
+        '/haberlesme', '/tasarim',
     ];
 
     const eslesenRota = korunanSayfaRotalar.find(rota => url.startsWith(rota));
