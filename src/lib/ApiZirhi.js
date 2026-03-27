@@ -1,3 +1,4 @@
+import 'server-only';
 // 🛡️ BAŞ MÜFETTİŞ API ZIRHI (SPAM VE DDOS KALKANI)
 // Amaç: Dışarıdan gelen API isteklerini sınırlandırmak ve Supabase faturasını korumak.
 

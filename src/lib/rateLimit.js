@@ -1,3 +1,4 @@
+import 'server-only';
 /**
  * ─── KALICI RATE LIMITER (DDoS ve Spam Koruması) ───────────────
  * Vercel serverless cold start sorununu aşmak için globalThis kullanılır.
