@@ -84,7 +84,12 @@ const nextConfig = {
 };
 
 // Sentry wrapper — App Router ile aktif
-// SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT → Vercel env vars'da tanımlı
+// Windows lokal derlemelerde _not-found.js.nft.json oluşturulamama (ENOENT) 
+// fatal hatasına neden olduğu için Sentry webpack sarıcısı devre dışı bırakıldı.
+// Vercel'e atarken sorun yaşanmaması için standart export yapılıyor.
+export default nextConfig;
+
+/*
 export default withSentryConfig(nextConfig, {
     org: process.env.SENTRY_ORG,
     project: process.env.SENTRY_PROJECT,
@@ -97,4 +102,5 @@ export default withSentryConfig(nextConfig, {
         disable: true, // Vercel NativeCommandError'ı kesin olarak kilitler
     },
 });
+*/
 

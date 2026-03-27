@@ -130,17 +130,20 @@ export function useKarargah() {
             // Alarmlar — sadece ALARM_AKTIF=true ise
             try {
                 if (ALARM_AKTIF) {
+                    /* Geçici Süreyle Kapatıldı (b1_sistem_uyarilari tablosu yoksa 400 fırlatıyor ve konsolu kirletiyor)
                     const { data: uyarilar } = await supabase
                         .from('b1_sistem_uyarilari')
-                        .select('id, mesaj, uyari_tipi, created_at, neden, potansiyel_zarar')
+                        .select('id, mesaj, uyari_tipi, created_at')
                         .order('created_at', { ascending: false }).limit(10);
                     if (uyarilar && uyarilar.length > 0) {
                         setAlarms(uyarilar.map(u => ({
                             id: u.id, text: u.mesaj || 'Sistem uyarısı',
-                            neden: u.neden || 'Detay mevcut değil.',
-                            zarar: u.potansiyel_zarar || 0, tip: u.uyari_tipi || 'uyari',
+                            neden: 'Detay mevcut değil.',
+                            zarar: 0, tip: u.uyari_tipi || 'uyari',
                         })));
                     } else { setAlarms([]); }
+                    */
+                    setAlarms([]);
                 }
             } catch { /* tablo yok — sessiz */ }
 
@@ -228,7 +231,7 @@ export function useKarargah() {
         veriCek();
         const kanal = supabase.channel('karargah-realtime')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, () => { if (!document.hidden) veriCek(); })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); })
+            // .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); }) // Tablo yoka konsol kirliliği yapar
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_agent_loglari' }, () => { if (!document.hidden) veriCek(); })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, () => { if (!document.hidden) veriCek(); })
             .subscribe();
