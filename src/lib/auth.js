@@ -97,9 +97,9 @@ export function AuthProvider({ children }) {
                     localStorage.removeItem('sb47_auth');
                 }
             }
-        } catch (authHata) { 
+        } catch (authHata) {
             console.warn('[AUTH] Oturum parse hatası, sıfırlanıyor:', authHata?.message);
-            localStorage.removeItem('sb47_auth'); 
+            localStorage.removeItem('sb47_auth');
         }
         setYukleniyor(false);
     }, []);
@@ -159,13 +159,13 @@ export function AuthProvider({ children }) {
         localStorage.setItem('sb47_auth', JSON.stringify(kayit));
 
         // Cookie'ye de yaz (middleware katmanı için)
+        // NOT: sb47_auth_session artık yalnızca görsel amaçlı — yetki JWT üzerinden doğrulanır
         const cookieValue = encodeURIComponent(JSON.stringify(kayit));
         document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
-
-        // JWT Token cookie'ye yaz (middleware JWT doğrulaması için)
-        if (veri.token) {
-            document.cookie = `sb47_jwt_token=${veri.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
-        }
+        // ─── GÜVENLİK [K-01 FIX]: Client-side JWT cookie yazma kaldırıldı ───
+        // JWT token artık YALNIZCA /api/pin-dogrula'da HttpOnly olarak set ediliyor.
+        // Burada document.cookie ile yazmak XSS saldırısında token'ı ifşa ederdi.
+        // veri.token hâlâ response'da geliyor ama client-side'a yazılmıyor.
 
 
         // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)

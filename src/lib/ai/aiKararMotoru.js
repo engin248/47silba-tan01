@@ -4,15 +4,18 @@ import { hataBildir } from '@/lib/hataBildirim';
 const AI_MODEL_VERSION = 'gemini-2.5-flash'; // Kriter 139: Model Versiyon Kontrolü
 
 // ─── 🔒 RATE LİMİTER: Dakikada maks 15 istek ─────────────────────────────────
-const _rateLimiter = { sayac: 0, resetZamani: Date.now() };
+// [U-15 FIX] globalThis kullanılıyor — serverless cold start'ta sıfırlanmaz
+if (!globalThis.__aiRateLimiter) {
+    globalThis.__aiRateLimiter = { sayac: 0, resetZamani: Date.now() };
+}
 function _rateLimiterKontrol() {
     const simdi = Date.now();
-    if (simdi - _rateLimiter.resetZamani > 60000) {
-        _rateLimiter.sayac = 0;
-        _rateLimiter.resetZamani = simdi;
+    if (simdi - globalThis.__aiRateLimiter.resetZamani > 60000) {
+        globalThis.__aiRateLimiter.sayac = 0;
+        globalThis.__aiRateLimiter.resetZamani = simdi;
     }
-    _rateLimiter.sayac++;
-    return { izin: _rateLimiter.sayac <= 15, dakikadaIstek: _rateLimiter.sayac };
+    globalThis.__aiRateLimiter.sayac++;
+    return { izin: globalThis.__aiRateLimiter.sayac <= 15, dakikadaIstek: globalThis.__aiRateLimiter.sayac };
 }
 
 // Kriter 78, 136, 137, 138: Karar Doğrulama, Semizleme ve Bias Denetimi

@@ -45,7 +45,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
     }
 
     const browser = await puppeteer.launch({
-        headless: false, // WAF TEST ICIN ACIK
+        headless: 'new', // [#3 FIX] headless: false → 'new' — VPS'te GUI yok, artık çalışır
         args: [
             '--no-sandbox', '--disable-setuid-sandbox', '--start-maximized',
             '--disable-blink-features=AutomationControlled'
@@ -163,16 +163,22 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
                         platform: 'trendyol',
                         kaynakLink: link,
                         kategori: pdpData.urun_ozellikleri.find(o => o.key?.toLowerCase() === 'kategori')?.value || 'kadın_giyim',
-                        toplamIzlenme: (pdpData.favori_sayisi * 120) + 15000,
-                        yorumSayisi: pdpData.urun_degerlendirme_sayisi || 0,
-                        sepetTotal: pdpData.favori_sayisi * 3,
-                        satisSinyali: pdpData.urun_degerlendirme_sayisi * 10,
-                        pozitifYorumOrani: pdpData.urun_puani > 4 ? 85 : 40,
+                        // [U-13 FIX] Gerçek Trendyol API'sinden alınamayan değerler 'tahmini_' ön ekiyle işaretlendi
+                        tahmini_izlenme: (pdpData.favori_sayisi * 120) + 15000, // favori × 120 + 15000 tahmini
+                        yorumSayisi: pdpData.urun_degerlendirme_sayisi || 0, // gerçek veri
+                        tahmini_sepet: pdpData.favori_sayisi * 3, // gerçek sepet verisi yok
+                        tahmini_satisSinyali: pdpData.urun_degerlendirme_sayisi * 10, // gerçek satış verisi yok
+                        pozitifYorumOrani: pdpData.urun_puani > 4 ? 85 : 40, // puana göre kaba tahmin
                         trendKategorisi: 'hizli_moda',
                         trendEgrisi: 'yukselis',
                         yorumKelimeleri: pdpData.urun_yorum_ozeti || 'harika çok güzel',
                         birYildizOrani: pdpData.urun_puani < 3.5 ? 20 : 5,
-                        ayinGunu: bugunTarih.getDate()
+                        ayinGunu: bugunTarih.getDate(),
+                        // Gerçek veriler
+                        urun_puani: pdpData.urun_puani,
+                        indirimli_fiyat: pdpData.indirimli_fiyat,
+                        orjinal_fiyat: pdpData.orjinal_fiyat,
+                        favori_sayisi: pdpData.favori_sayisi,
                     };
                     islenenler.push(rawDataPayload);
                 }

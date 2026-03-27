@@ -3,6 +3,8 @@
 // Dosya: src/lib/ajanlar-v2.js
 // Her ajan kendi bölümünde tanımlı, isimler config'den gelir
 // ============================================================
+// [K-10 FIX] server-only: Bu dosya SERVICE_ROLE_KEY kullanıyor, client bundle'a girmemeli
+import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 
 const sb = createClient(
@@ -153,11 +155,11 @@ export async function sabahSubayi() {
             }
         }
 
-        // ── KONTROL NOKTASI 7: Personel Devam ───────────────
+        // ── KONTROL NOKTASI 7: Personel Devam ─────────────────────
         sonuc.kontrol_sayisi++;
         const { data: personel } = await sb.from('b1_personel')
             .select('id')
-            .eq('aktif', true);
+            .eq('durum', 'aktif'); // [#5 FIX] 'aktif' boolean yok — durum string kolonudur
         sonuc.bulgular.push(`👥 Aktif personel: ${personel?.length || 0} kişi`);
 
         // ── KONTROL NOKTASI 8: Bekleyen Ajan Görevleri ──────
@@ -260,8 +262,8 @@ export async function aksamci() {
         // ── KONTROL NOKTASI 5: Personel Kapanış ─────────────
         sonuc.kontrol_sayisi++;
         const { data: personel } = await sb.from('b1_personel')
-            .select('ad, soyad')
-            .eq('aktif', true)
+            .select('ad_soyad')
+            .eq('durum', 'aktif') // [#5 FIX] kolon: durum, değer: 'aktif'
             .limit(3);
         sonuc.ozet.push(`👥 Kapanış çeki yapıldı`);
 
@@ -570,33 +572,39 @@ export async function finansKalkani() {
             }
         }
 
-        // ── KONTROL NOKTASI 2: Vadesi Geçen Alacaklar ─────── (PASİF)
-        // sonuc.kontrol_sayisi++;
-        // const { data: alacaklar } = await sb.from('b2_kasa_hareketleri')
-        //     .select('id, tutar, aciklama, vade_tarihi')
-        //     .eq('hareket_tipi', 'alacak')
-        //     .eq('odendi', false)
-        //     .lt('vade_tarihi', bugun)
-        //     .order('vade_tarihi', { ascending: true }).limit(10);
-        // if (alacaklar?.length > 0) {
-        //     const toplam = alacaklar.reduce((s, a) => s + (a.tutar || 0), 0);
-        //     await alarmYaz('diger', alacaklar.length > 5 ? 'kritik' : 'uyari',
-        //         `${alacaklar.length} Vadesi Geçmiş Alacak — ₺${toplam.toFixed(0)}`,
-        //         `30 günü aşan tahsilat bekliyor`, 'b2_kasa_hareketleri');
-        // }
+        // ── KONTROL NOKTASI 2: Vadesi Geçen Alacaklar ─────── [U-14 FIX] AKTİF
+        sonuc.kontrol_sayisi++;
+        try {
+            const { data: alacaklar } = await sb.from('b2_kasa_hareketleri')
+                .select('id, tutar, aciklama, vade_tarihi')
+                .eq('hareket_tipi', 'alacak')
+                .eq('odendi', false)
+                .lt('vade_tarihi', bugun)
+                .order('vade_tarihi', { ascending: true }).limit(10);
+            if (alacaklar?.length > 0) {
+                const toplam = alacaklar.reduce((s, a) => s + (a.tutar || 0), 0);
+                const a = await alarmYaz('diger', alacaklar.length > 5 ? 'kritik' : 'uyari',
+                    `${alacaklar.length} Vadesi Geçmiş Alacak — ₺${toplam.toFixed(0)}`,
+                    `30 günü aşan tahsilat bekliyor`, 'b2_kasa_hareketleri', null);
+                if (a) sonuc.alarmlar.push(a);
+            }
+        } catch { /* b2_kasa_hareketleri'nde odendi/vade_tarihi kolonu yoksa atla */ }
 
-        // ── KONTROL NOKTASI 3: Kasa Kritik Seviye ─────────── (PASİF)
-        // sonuc.kontrol_sayisi++;
-        // const { data: kasaTum } = await sb.from('b2_kasa_hareketleri')
-        //     .select('hareket_tipi, tutar').limit(100);
-        // if (kasaTum?.length) {
-        //     const bakiye = kasaTum.reduce((s, k) =>
-        //         s + (k.hareket_tipi === 'gelir' ? k.tutar : -k.tutar), 0);
-        //     if (bakiye < 500) {
-        //         await alarmYaz('diger', 'kritik', '🚨 Kasa Kritik Seviyede',
-        //             `Tahmini bakiye: ₺${bakiye.toFixed(0)}`, 'b2_kasa_hareketleri');
-        //     }
-        // }
+        // ── KONTROL NOKTASI 3: Kasa Kritik Seviye ─────────── [U-14 FIX] AKTİF
+        sonuc.kontrol_sayisi++;
+        try {
+            const { data: kasaTum } = await sb.from('b2_kasa_hareketleri')
+                .select('hareket_tipi, tutar').limit(200);
+            if (kasaTum?.length) {
+                const bakiye = kasaTum.reduce((s, k) =>
+                    s + (k.hareket_tipi === 'gelir' ? (k.tutar || 0) : -(k.tutar || 0)), 0);
+                if (bakiye < 500) {
+                    const a = await alarmYaz('diger', 'kritik', '🚨 Kasa Kritik Seviyede',
+                        `Tahmini bakiye: ₺${bakiye.toFixed(0)}`, 'b2_kasa_hareketleri', null);
+                    if (a) sonuc.alarmlar.push(a);
+                }
+            }
+        } catch { /* kasa tablosu yoksa atla */ }
 
         // ── KONTROL NOKTASI 4: Aylık Gider Artışı ───────────
         sonuc.kontrol_sayisi++;
@@ -633,18 +641,21 @@ export async function finansKalkani() {
             }
         }
 
-        // ── KONTROL NOKTASI 6: Gelecek Ödemeler ───────────── (PASİF)
-        // sonuc.kontrol_sayisi++;
-        // const { data: yaklasanOdeme } = await sb.from('b2_kasa_hareketleri')
-        //     .select('id, tutar, vade_tarihi').eq('odendi', false)
-        //     .gte('vade_tarihi', bugun)
-        //     .lte('vade_tarihi', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
-        //     .limit(5);
-        // if (yaklasanOdeme?.length > 0) {
-        //     const toplam = yaklasanOdeme.reduce((s, o) => s + (o.tutar || 0), 0);
-        //     await logYaz(isim, 'yaklasan_odeme',
-        //         `7 gün içinde ${yaklasanOdeme.length} ödeme: ₺${toplam.toFixed(0)}`);
-        // }
+        // ── KONTROL NOKTASI 6: Gelecek Ödemeler ─────────── [U-14 FIX] AKTİF
+        sonuc.kontrol_sayisi++;
+        try {
+            const { data: yaklasanOdeme } = await sb.from('b2_kasa_hareketleri')
+                .select('id, tutar, vade_tarihi').eq('odendi', false)
+                .gte('vade_tarihi', bugun)
+                .lte('vade_tarihi', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
+                .limit(5);
+            if (yaklasanOdeme?.length > 0) {
+                const toplam = yaklasanOdeme.reduce((s, o) => s + (o.tutar || 0), 0);
+                await logYaz(isim, 'yaklasan_odeme',
+                    `7 gün içinde ${yaklasanOdeme.length} ödeme: ₺${toplam.toFixed(0)}`);
+                sonuc.bulgular.push(`📅 Yakın ödeme: ${yaklasanOdeme.length} kalem, ₺${toplam.toFixed(0)}`);
+            }
+        } catch { /* vade_tarihi kolonu yoksa atla */ }
 
         await logYaz(isim, 'finans_kontrol',
             `${sonuc.kontrol_sayisi} kontrol | ${sonuc.alarmlar.length} yeni alarm`);
@@ -728,13 +739,16 @@ export async function trendKasifi(gorevEmri = null) {
         // ── KONTROL NOKTASI 4: Veritabanına Kaydet ──────────
         sonuc.arastirilan++;
         for (const baslik of gecenTrendler) {
-            const skor = Math.floor(Math.random() * 3) + 7; // 7-9 arası demo
+            // [U-11 FIX] Perplexity yanıtından gerçek skor almaya çalış; başarısız olursa sabit 7
+            // Not: Perplexity düz metin döndürüyor, sayısal skor parse edilemiyor → tarafsız 7 atanır
+            // Gerçek skor için Perplexity response'u structured JSON formatında istemek gerekir
+            const skor = 7; // sabit orta değer — Math.random() kaldırıldı
             await sb.from('b1_arge_trendler').insert([{
                 baslik,
                 platform: 'trendyol',
                 kategori: 'diger',
                 talep_skoru: skor,
-                aciklama: `${isim} otomatik araştırma: ${new Date().toLocaleDateString('tr-TR')}`,
+                aciklama: `${isim} otomatik araştırma: ${new Date().toLocaleDateString('tr-TR')} | Skor incelenmeyi bekliyor`,
                 durum: 'inceleniyor',
             }]);
             sonuc.eklenen++;
@@ -798,7 +812,8 @@ export async function muhasebeYazici() {
 
         // ── KONTROL NOKTASI 5: Personel Verimliliği ─────────
         const { data: personel } = await sb.from('b1_personel')
-            .select('id, ad, soyad, prim_puani').eq('aktif', true);
+            .select('id, ad_soyad, ai_verimlilik_puani') // [#5 FIX] doğru kolon adları
+            .eq('durum', 'aktif'); // [#5 FIX] 'aktif' boolean yok — durum string
         sonuc.aktif_personel = personel?.length || 0;
 
         // ── KONTROL NOKTASI 6: Raporu Kaydet ─────────────────
@@ -841,11 +856,12 @@ export async function muhasebeYazici() {
 // TÜM AJANLARI ÇALIŞTIR (Toplu)
 // ============================================================
 export async function tumAjanlariCalistir() {
-    const [sabah, aksam, nabizSonuc, zincir, finans] = await Promise.allSettled([
+    // [BUG FIX] Önce 5 değişken 4 promise vardı — aksam undefined kalıyordu
+    const [sabahSonuc, nabizSonuc, zincirSonuc, finansSonuc] = await Promise.allSettled([
         sabahSubayi(),
         nabiz(),
         zincirci(),
         finansKalkani(),
     ]);
-    return { sabah, nabizSonuc, zincir, finans };
+    return { sabah: sabahSonuc, nabiz: nabizSonuc, zincir: zincirSonuc, finans: finansSonuc };
 }

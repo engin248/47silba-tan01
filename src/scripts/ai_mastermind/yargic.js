@@ -101,8 +101,8 @@ Aşağıdaki JSON formatında skorları dön (SADECE JSON, açıklama yazma):
     } catch (err) {
         clearTimeout(timeout);
         const sebep = err.name === 'AbortError' ? 'TIMEOUT (3sn)' : err.message;
-
-        return mockAnaliz(fiyatStr);
+        console.warn(`[YARGIÇ] ⚠️ Gemini timeout/hata: ${sebep} → Mock analiz devreye girdi`);
+        return { ...mockAnaliz(fiyatStr), _mockSebep: sebep }; // [U-12 FIX] mock olduğunu işaretle
     }
 }
 
@@ -131,10 +131,11 @@ async function yargilamayiBaslat() {
 
     try {
         // 1. İşlenmemiş ham verileri çek
+        // [#12 FIX] 'mock_islendi' da sorguya eklendi — mock kararlar yeniden işlenir
         const { data: hamUrunler, error: fetchErr } = await supabase
             .from('b1_arge_products')
             .select('*')
-            .eq('islenen_durum', 'bekliyor')
+            .in('islenen_durum', ['bekliyor', 'mock_islendi'])
             .limit(50);
 
         if (fetchErr) throw fetchErr;
@@ -283,10 +284,12 @@ async function yargilamayiBaslat() {
                 else sayac.izleme++;
             }
 
-            // Ana ürün tablosunu "İşlendi" olarak işaretle
+            // Ana ürün tablosunu işaretle
+            // [#12 FIX] Mock analiz 'islendi' değil 'mock_islendi' olarak işaretlenir
+            // → Sonraki yargic çalışmasında yeniden işlenir, kalıcı yanlış karar kalmaz
             await supabase.from('b1_arge_products')
                 .update({
-                    islenen_durum: 'islendi',
+                    islenen_durum: ai.kaynak === 'gemini' ? 'islendi' : 'mock_islendi',
                     isleyen_ajan: ai.kaynak === 'gemini' ? 'GEMINI_ANALYST' : 'MOCK_ANALYST',
                     islendigi_tarih: new Date().toISOString()
                 })

@@ -19,10 +19,19 @@ export async function videoVeResimDenetle(resimBase64) {
             const GEMINI_VISION_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
             // Base64 veya URL belirle
-            const isUrl = resimBase64.startsWith('http');
-            const imagePart = isUrl
-                ? { file_data: { mime_type: 'image/jpeg', file_uri: resimBase64 } }
-                : { inline_data: { mime_type: 'image/jpeg', data: resimBase64.replace(/^data:image\/\w+;base64,/, '') } };
+            // [U-18 FIX] file_data formatı Files API için — harici URL'ler için fetch → base64 → inline_data
+            let imagePart;
+            if (resimBase64.startsWith('http')) {
+                // URL'yi fetch edip base64'e çevir
+                const imgRes = await fetch(resimBase64, { signal: AbortSignal.timeout(10000) });
+                if (!imgRes.ok) throw new Error(`Görsel indirilemedi: HTTP ${imgRes.status}`);
+                const imgBuffer = await imgRes.arrayBuffer();
+                const base64Data = Buffer.from(imgBuffer).toString('base64');
+                const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+                imagePart = { inline_data: { mime_type: mimeType, data: base64Data } };
+            } else {
+                imagePart = { inline_data: { mime_type: 'image/jpeg', data: resimBase64.replace(/^data:image\/\w+;base64,/, '') } };
+            }
 
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 20000); // 20sn timeout

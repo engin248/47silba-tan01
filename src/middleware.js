@@ -191,6 +191,10 @@ export async function middleware(request) {
         '/kumas', '/kalip', '/maliyet', '/uretim', '/musteriler',
         '/siparisler', '/stok', '/katalog', '/gorevler', '/raporlar', '/ajanlar',
         '/haberlesme', '/tasarim',
+        // [K-08 FIX] Eksik rotalar eklendi
+        '/karargah', '/m1-istihbarat', '/m2-finans', '/m3-tasarim', '/m4-lojistik',
+        // [#21 FIX] Yarım modüller kapatıldı
+        '/odalar', '/sistem-raporu', '/uretim-kiosk',
     ];
 
     const eslesenRota = korunanSayfaRotalar.find(rota => url.startsWith(rota));
