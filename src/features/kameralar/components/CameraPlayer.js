@@ -43,19 +43,23 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
     }, [offline]);
 
     // 2. Timeout Kontrolü (Connection delay)
+    // FİX: loading state dependency array'den çıkarıldı → sonsuz render döngüsü engellendi
+    // loadingRef.current ile anlık state okunur (stale closure olmadan)
+    const loadingRef = useRef(loading);
+    useEffect(() => { loadingRef.current = loading; }, [loading]);
+
     useEffect(() => {
         if (!isVisible || offline || error) return;
         setLoading(true);
         const timeout = type === 'main' ? 5000 : 3000;
         const timer = setTimeout(() => {
-            // timeout süresini aşarsa hala yükleniyor ise hata ver ve reconnect'e gönder
-            if (loading) {
+            if (loadingRef.current) {
                 setError(true);
                 setLoading(false);
             }
         }, timeout);
         return () => clearTimeout(timer);
-    }, [isVisible, type, retryCount, offline, error, loading]);
+    }, [isVisible, type, retryCount, offline, error]);
 
     // 3. Auto-Reconnect / Self Healing
     useEffect(() => {
