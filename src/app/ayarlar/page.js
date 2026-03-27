@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/ayarlar/page.js â€” GÄ°RÄ°Å NOKTASI (20 satÄ±r)
- * TÃ¼m UI   â†’ features/ayarlar/components/AyarlarMainContainer.js
+ * app/ayarlar/page.js — GİRİŞ NOKTASI (20 satır)
+ * Tüm UI   › features/ayarlar/components/AyarlarMainContainer.js
  * Route    : /ayarlar
  */
 import { AyarlarMainContainer } from '@/features/ayarlar';
@@ -14,7 +14,7 @@ export default function AyarlarPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Ayarlar modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Ayarlar modülü yüklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

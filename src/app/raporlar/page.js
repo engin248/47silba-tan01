@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/raporlar/page.js â€” GÄ°RÄ°Å NOKTASI (20 satÄ±r)
- * TÃ¼m UI   â†’ features/raporlar/components/RaporlarMainContainer.js
+ * app/raporlar/page.js — GİRİŞ NOKTASI (20 satır)
+ * Tüm UI   › features/raporlar/components/RaporlarMainContainer.js
  * Route    : /raporlar
  */
 import { RaporlarMainContainer } from '@/features/raporlar';
@@ -14,7 +14,7 @@ export default function RaporlarPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Raporlar modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Raporlar modülü yüklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

@@ -1,5 +1,5 @@
 'use client';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 /**
  * app/maliyet/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/maliyet/components/MaliyetMainContainer.js

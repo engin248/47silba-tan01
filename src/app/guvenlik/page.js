@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/guvenlik/page.js â€” GÄ°RÄ°Å NOKTASI (20 satÄ±r)
- * TÃ¼m UI   â†’ features/guvenlik/components/GuvenlikMainContainer.js
+ * app/guvenlik/page.js — GİRİŞ NOKTASI (20 satır)
+ * Tüm UI   › features/guvenlik/components/GuvenlikMainContainer.js
  * Route    : /guvenlik
  */
 import { GuvenlikMainContainer } from '@/features/guvenlik';
@@ -14,7 +14,7 @@ export default function GuvenlikPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Guvenlik modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Guvenlik modülü yüklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/imalat/page.js â€” GÄ°RÄ°Å NOKTASI (21 satÄ±r)
- * TÃ¼m UI   â†’ features/imalat/components/ImalatMainContainer.js
+ * app/imalat/page.js — GİRİŞ NOKTASI (21 satır)
+ * Tüm UI   › features/imalat/components/ImalatMainContainer.js
  * Route    : /imalat
  */
 import { ImalatMainContainer } from '@/features/imalat';
@@ -14,7 +14,7 @@ export default function ImalatPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Imalat modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Imalat modülü yüklenirken hata oluştu.
             </p>
         }>
             <ImalatMainContainer />

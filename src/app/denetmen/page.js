@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/denetmen/page.js â€” GÄ°RÄ°Å NOKTASI (20 satÄ±r)
- * TÃ¼m UI   â†’ features/denetmen/components/DenetmenMainContainer.js
+ * app/denetmen/page.js — GİRİŞ NOKTASI (20 satır)
+ * Tüm UI   › features/denetmen/components/DenetmenMainContainer.js
  * Route    : /denetmen
  */
 import { DenetmenMainContainer } from '@/features/denetmen';
@@ -14,7 +14,7 @@ export default function DenetmenPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Denetmen modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Denetmen modülü yüklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

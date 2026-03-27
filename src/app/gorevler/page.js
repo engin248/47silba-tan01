@@ -1,8 +1,8 @@
-ï»¿'use client';
-import { useLang } from '@/lib/langContext';
+'use client';
+import { useLang } from '@/context/langContext';
 /**
- * app/gorevler/page.js â€” GÄ°RÄ°Å NOKTASI (20 satÄ±r)
- * TÃ¼m UI   â†’ features/gorevler/components/GorevlerMainContainer.js
+ * app/gorevler/page.js — GİRİŞ NOKTASI (20 satır)
+ * Tüm UI   › features/gorevler/components/GorevlerMainContainer.js
  * Route    : /gorevler
  */
 import { GorevlerMainContainer } from '@/features/gorevler';
@@ -14,7 +14,7 @@ export default function GorevlerPage() {
     return (
         <ErrorBoundary fallback={
             <p className="p-8 text-red-700 font-bold text-center">
-                âš ï¸ Gorevler modÃ¼lÃ¼ yÃ¼klenirken hata oluÅŸtu.
+                ?? Gorevler modülü yüklenirken hata oluştu.
             </p>
         }>
             <div className="min-h-screen font-sans bg-[#0d1117] text-white">

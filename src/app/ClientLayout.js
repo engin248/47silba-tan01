@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import './globals.css';
 import {
     LayoutDashboard, Scissors, Activity, FileSearch, Settings, Users, Bot,
@@ -11,47 +11,47 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth, ERISIM_MATRISI } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { bekleyenleriGetir, offlineSenkronizasyonuBaslat } from '@/lib/offlineKuyruk';
-import { LangProvider, useLang } from '@/lib/langContext';
+import { LangProvider, useLang } from '@/context/langContext';
 import { YetkiProvider } from '@/lib/yetki';
-import { TasarimProvider } from '@/lib/TasarimContext';
+import { TasarimProvider } from '@/context/TasarimContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BildirimZili from '@/lib/components/ui/BildirimZili';
 import MesajBildirimButonu from '@/components/MesajBildirimButonu';
 import NizamVoiceAgent from '@/components/NizamVoiceAgent';
 
-// ─── NAV YAPISI ───────────────────────────────────────────────
+// ��� NAV YAPISI �����������������������������������������������
 const NAV_ITEMS = [
-    { href: '/', icon: LayoutDashboard, labelTR: 'Karargâh', labelAR: 'المقر الرئيسي', group: 'ana' },
-    // 1. BİRİM
-    { href: '/arge', icon: TrendingUp, labelTR: 'Ar-Ge & Trend', labelAR: 'بحث وتطوير', badge: 'M1', group: 'birim1' },
-    { href: '/kumas', icon: Layers, labelTR: 'Kumaş & Malzeme', labelAR: 'أرشيف الأقمشة', badge: 'M2', group: 'birim1' },
-    { href: '/kalip', icon: BookOpen, labelTR: 'Kalıp & Serileme', labelAR: 'القالب والتسلسل', badge: 'M3', group: 'birim1' },
-    { href: '/modelhane', icon: FileSearch, labelTR: 'Modelhane & Prova', labelAR: 'النمذجة والفيديو', badge: 'M4', group: 'birim1' },
-    { href: '/kesim', icon: Scissors, labelTR: 'Kesim & Fire', labelAR: 'القطع والتشطيب', badge: 'M5', group: 'birim1' },
-    { href: '/uretim', icon: Cpu, labelTR: 'Üretim & Bant', labelAR: 'التصنيع وخط الإنتاج', badge: 'M6', group: 'birim1' },
-    { href: '/maliyet', icon: Activity, labelTR: 'Maliyet Merkezi', labelAR: 'مركز التكلفة', badge: 'M7', group: 'birim1' },
-    { href: '/muhasebe', icon: BarChart3, labelTR: 'Muhasebe & Nakit', labelAR: 'المحاسبة والتقرير', badge: 'M8', group: 'birim1' },
-    // 2. BİRİM
-    { href: '/katalog', icon: ShoppingBag, labelTR: 'Ürün Kartları', labelAR: 'كتالوج المنتجات', badge: 'M9', group: 'birim2' },
-    { href: '/siparisler', icon: ShoppingCart, labelTR: 'Siparişler & Kargo', labelAR: 'إدارة الطلبات', badge: 'M10', group: 'birim2' },
-    { href: '/stok', icon: Package, labelTR: 'Stok & Depo', labelAR: 'الجرد والشحن', badge: 'M11', group: 'birim2' },
-    { href: '/kasa', icon: Wallet, labelTR: 'Kasa & Tahsilat', labelAR: 'الصندوق والتحصيل', badge: 'M12', group: 'birim2' },
-    // YÖNETİM
-    { href: '/musteriler', icon: UserCheck, labelTR: 'Müşteri CRM', labelAR: 'إدارة العملاء', badge: 'M13', group: 'yonetim' },
-    { href: '/personel', icon: Users, labelTR: 'Personel & Performans', labelAR: 'الموظفون', badge: 'M14', group: 'yonetim' },
-    { href: '/gorevler', icon: ClipboardList, labelTR: 'Görev & Kanban', labelAR: 'متابعة المهام', badge: 'M15', group: 'yonetim' },
-    { href: '/raporlar', icon: PieChart, labelTR: 'Analitik Raporlar', labelAR: 'التقارير', badge: 'M16', group: 'yonetim' },
+    { href: '/', icon: LayoutDashboard, labelTR: 'Kararg�h', labelAR: '????? ???????', group: 'ana' },
+    // 1. B�R�M
+    { href: '/arge', icon: TrendingUp, labelTR: 'Ar-Ge & Trend', labelAR: '??? ??????', badge: 'M1', group: 'birim1' },
+    { href: '/kumas', icon: Layers, labelTR: 'Kuma� & Malzeme', labelAR: '????? ???????', badge: 'M2', group: 'birim1' },
+    { href: '/kalip', icon: BookOpen, labelTR: 'Kal�p & Serileme', labelAR: '?????? ????????', badge: 'M3', group: 'birim1' },
+    { href: '/modelhane', icon: FileSearch, labelTR: 'Modelhane & Prova', labelAR: '??????? ????????', badge: 'M4', group: 'birim1' },
+    { href: '/kesim', icon: Scissors, labelTR: 'Kesim & Fire', labelAR: '????? ????????', badge: 'M5', group: 'birim1' },
+    { href: '/uretim', icon: Cpu, labelTR: '�retim & Bant', labelAR: '??????? ??? ???????', badge: 'M6', group: 'birim1' },
+    { href: '/maliyet', icon: Activity, labelTR: 'Maliyet Merkezi', labelAR: '???? ???????', badge: 'M7', group: 'birim1' },
+    { href: '/muhasebe', icon: BarChart3, labelTR: 'Muhasebe & Nakit', labelAR: '???????? ????????', badge: 'M8', group: 'birim1' },
+    // 2. B�R�M
+    { href: '/katalog', icon: ShoppingBag, labelTR: '�r�n Kartlar�', labelAR: '?????? ????????', badge: 'M9', group: 'birim2' },
+    { href: '/siparisler', icon: ShoppingCart, labelTR: 'Sipari�ler & Kargo', labelAR: '????? ???????', badge: 'M10', group: 'birim2' },
+    { href: '/stok', icon: Package, labelTR: 'Stok & Depo', labelAR: '????? ??????', badge: 'M11', group: 'birim2' },
+    { href: '/kasa', icon: Wallet, labelTR: 'Kasa & Tahsilat', labelAR: '??????? ????????', badge: 'M12', group: 'birim2' },
+    // Y�NET�M
+    { href: '/musteriler', icon: UserCheck, labelTR: 'M��teri CRM', labelAR: '????? ???????', badge: 'M13', group: 'yonetim' },
+    { href: '/personel', icon: Users, labelTR: 'Personel & Performans', labelAR: '????????', badge: 'M14', group: 'yonetim' },
+    { href: '/gorevler', icon: ClipboardList, labelTR: 'G�rev & Kanban', labelAR: '?????? ??????', badge: 'M15', group: 'yonetim' },
+    { href: '/raporlar', icon: PieChart, labelTR: 'Analitik Raporlar', labelAR: '????????', badge: 'M16', group: 'yonetim' },
 
-    // SİSTEM
-    { href: '/kameralar', icon: Camera, labelTR: 'Kameralar (Vizyon)', labelAR: 'الكاميرات', badge: 'M18', group: 'sistem' },
-    { href: '/ajanlar', icon: Zap, labelTR: '🤖 AI Komuta Merkezi', labelAR: 'قيادة الوكلاء', group: 'sistem' },
+    // S�STEM
+    { href: '/kameralar', icon: Camera, labelTR: 'Kameralar (Vizyon)', labelAR: '?????????', badge: 'M18', group: 'sistem' },
+    { href: '/ajanlar', icon: Zap, labelTR: '?? AI Komuta Merkezi', labelAR: '????? ???????', group: 'sistem' },
 
-    { href: '/denetmen', icon: Bot, labelTR: 'Müfettiş & Öğrenme', labelAR: 'المفتش', group: 'sistem' },
-    { href: '/guvenlik', icon: Shield, labelTR: 'Güvenlik & Loglar', labelAR: 'الأمان', group: 'sistem' },
-    { href: '/ayarlar', icon: Settings, labelTR: 'Sistem Ayarları', labelAR: 'الإعدادات', group: 'sistem' },
+    { href: '/denetmen', icon: Bot, labelTR: 'M�fetti� & ��renme', labelAR: '??????', group: 'sistem' },
+    { href: '/guvenlik', icon: Shield, labelTR: 'G�venlik & Loglar', labelAR: '??????', group: 'sistem' },
+    { href: '/ayarlar', icon: Settings, labelTR: 'Sistem Ayarlar�', labelAR: '?????????', group: 'sistem' },
 ];
 
-// ─── SAYFA ERİŞİM KONTROLÜ ────────────────────────────────────
+// ��� SAYFA ER���M KONTROL� ������������������������������������
 function SidebarInner({ isAR }) {
     /** @type {any} */
     const { kullanici, cikisYap, sayfaErisim } = useAuth();
@@ -108,12 +108,12 @@ function SidebarInner({ isAR }) {
                 )
             ))}
 
-            <NavGroup label="▸ 1. BİRİM" labelAR="▸ الوحدة الأولى" color="#6ee7b7" groupKey="birim1" />
-            <NavGroup label="▸ 2. BİRİM" labelAR="▸ الوحدة الثانية" color="#fcd34d" groupKey="birim2" />
-            <NavGroup label="▸ YÖNETİM" labelAR="▸ الإدارة" color="#cbd5e1" groupKey="yonetim" />
-            <NavGroup label="▸ SİSTEM" labelAR="▸ النظام" color="#c4b5fd" groupKey="sistem" />
+            <NavGroup label="? 1. B�R�M" labelAR="? ?????? ??????" color="#6ee7b7" groupKey="birim1" />
+            <NavGroup label="? 2. B�R�M" labelAR="? ?????? ???????" color="#fcd34d" groupKey="birim2" />
+            <NavGroup label="? Y�NET�M" labelAR="? ???????" color="#cbd5e1" groupKey="yonetim" />
+            <NavGroup label="? S�STEM" labelAR="? ??????" color="#c4b5fd" groupKey="sistem" />
 
-            {/* Alt — Kullanıcı bilgisi + çıkış */}
+            {/* Alt � Kullan�c� bilgisi + ��k�� */}
             {kullanici && (
                 <div style={{ marginTop: 'auto', padding: '0.75rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', margin: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -123,9 +123,9 @@ function SidebarInner({ isAR }) {
                             </div>
                             <div style={{ fontSize: '0.6rem', color: '#475569' }}>Aktif oturum</div>
                         </div>
-                        <button onClick={cikisYap} title="Çıkış Yap" aria-label="Sistemden çıkış yap"
+                        <button onClick={cikisYap} title="��k�� Yap" aria-label="Sistemden ��k�� yap"
                             style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <LogOut size={11} /> Çıkış
+                            <LogOut size={11} /> ��k��
                         </button>
                     </div>
                 </div>
@@ -148,7 +148,7 @@ function LayoutInner({ children }) {
 
     const isGiris = pathname === '/giris';
 
-    // ─── KÖR NOKTA 5: ИNTERNET KESİNTİSİ (OFFLINE ÇÖKÜŞ KALKANI) ───
+    // ��� K�R NOKTA 5: ?NTERNET KES�NT�S� (OFFLINE ��K�� KALKANI) ���
     const [internetVar, setInternetVar] = useState(true);
     const [bekleyenIslemAdeti, setBekleyenIslemAdeti] = useState(0);
 
@@ -157,7 +157,7 @@ function LayoutInner({ children }) {
             const kuyruk = await bekleyenleriGetir();
             setBekleyenIslemAdeti(kuyruk.length);
         } catch (e) {
-            // IndexedDB kapalı veya henüz yüklenmedi
+            // IndexedDB kapal� veya hen�z y�klenmedi
         }
     };
 
@@ -169,10 +169,10 @@ function LayoutInner({ children }) {
             setInternetVar(true);
             const snc = await offlineSenkronizasyonuBaslat();
             if (snc && snc.basarili > 0) {
-                alert(`✅ İNTERNET GELDİ!\nÇevrimdışı iken attığınız ${snc.basarili} işlem başarıyla ana sunucuya aktarıldı.`);
+                alert(`? �NTERNET GELD�!\n�evrimd��� iken att���n�z ${snc.basarili} i�lem ba�ar�yla ana sunucuya aktar�ld�.`);
             }
             if (snc && snc.basarisiz > 0) {
-                alert(`⚠️ DİKKAT!\n${snc.basarisiz} adet kuyruktaki işlem hata verdi.`);
+                alert(`?? D�KKAT!\n${snc.basarisiz} adet kuyruktaki i�lem hata verdi.`);
             }
             kuyruklariSay();
         };
@@ -185,10 +185,10 @@ function LayoutInner({ children }) {
         window.addEventListener('online', onOnline);
         window.addEventListener('offline', onOffline);
 
-        // K-16: Gerçek Service Worker Kaydı (Stale-While-Revalidate offline fallback)
+        // K-16: Ger�ek Service Worker Kayd� (Stale-While-Revalidate offline fallback)
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                .catch(() => { /* SW kaydı sessiz başarısız olabilir */ });
+                .catch(() => { /* SW kayd� sessiz ba�ar�s�z olabilir */ });
         }
 
         return () => {
@@ -197,14 +197,14 @@ function LayoutInner({ children }) {
         };
     }, []);
 
-    // ─── KÖR NOKTA 4: SİSTEM ÇAPINDA CANLI AĞ ───
+    // ��� K�R NOKTA 4: S�STEM �APINDA CANLI A� ���
     useEffect(() => {
         if (!kullanici || isGiris) return;
 
         const sub = supabase.channel('global_izleme')
             .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-                let islemTR = payload.eventType === 'INSERT' ? 'Yeni Ekleme' : payload.eventType === 'UPDATE' ? 'Güncelleme' : 'Silme';
-                let msg = `⚡ Bir personel işlem yaptı: ${payload.table} (${islemTR}). Taze veriyi görmek için tıklayın.`;
+                let islemTR = payload.eventType === 'INSERT' ? 'Yeni Ekleme' : payload.eventType === 'UPDATE' ? 'G�ncelleme' : 'Silme';
+                let msg = `? Bir personel i�lem yapt�: ${payload.table} (${islemTR}). Taze veriyi g�rmek i�in t�klay�n.`;
                 setCanliBildirim(msg);
                 setTimeout(() => setCanliBildirim(null), 10000);
             }).subscribe();
@@ -218,8 +218,8 @@ function LayoutInner({ children }) {
         }
     }, [kullanici, yukleniyor, pathname]);
 
-    // KÖKLÜ ÇÖZÜM: Kullanıcı yoksa bile içeriği çiz ki Kameralar paneli giriş izni kilidini kullanabilsin.
-    // Eğer direkt null dönerseniz tamamen SİYAH ekran hatası oluyordu!
+    // K�KL� ��Z�M: Kullan�c� yoksa bile i�eri�i �iz ki Kameralar paneli giri� izni kilidini kullanabilsin.
+    // E�er direkt null d�nerseniz tamamen S�YAH ekran hatas� oluyordu!
     if (!kullanici) {
         return <>{children}</>;
     }
@@ -229,22 +229,22 @@ function LayoutInner({ children }) {
         <div className="layout-container" style={{ flexDirection: isAR ? 'row-reverse' : 'row' }}>
             {/* SIDEBAR */}
             <aside className={`sidebar${sidebarAcik ? ' mobile-open' : ''}`}>
-                {/* Başlık */}
+                {/* Ba�l�k */}
                 <div style={{ padding: '1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.25rem' }}>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0 }}>
                         <span style={{ color: '#f59e0b' }}>mizanet</span>
                         <span style={{ color: '#6ee7b7' }}>.com</span>
                     </h1>
                     <p style={{ fontSize: '0.85rem', color: '#e2e8f0', margin: '6px 0 0', fontWeight: 700, letterSpacing: '0.05em', lineHeight: '1.4' }}>
-                        Adil Düzen · Şeffaf Maliyet<br />Adaletli Dağıtım
+                        Adil D�zen � �effaf Maliyet<br />Adaletli Da��t�m
                     </p>
                 </div>
 
                 {/* Dil */}
                 <div style={{ padding: '0.5rem 0.75rem' }}>
                     <div style={{ display: 'flex', gap: '0.375rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '3px' }}>
-                        <button onClick={() => setLang('tr')} style={{ flex: 1, padding: '5px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, background: lang === 'tr' ? '#3b82f6' : 'transparent', color: lang === 'tr' ? 'white' : '#94a3b8', transition: 'all 0.2s' }}>🇹🇷 TR</button>
-                        <button onClick={() => setLang('ar')} style={{ flex: 1, padding: '5px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, background: lang === 'ar' ? '#8b5cf6' : 'transparent', color: lang === 'ar' ? 'white' : '#94a3b8', transition: 'all 0.2s' }}>🇸🇦 AR</button>
+                        <button onClick={() => setLang('tr')} style={{ flex: 1, padding: '5px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, background: lang === 'tr' ? '#3b82f6' : 'transparent', color: lang === 'tr' ? 'white' : '#94a3b8', transition: 'all 0.2s' }}>???? TR</button>
+                        <button onClick={() => setLang('ar')} style={{ flex: 1, padding: '5px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, background: lang === 'ar' ? '#8b5cf6' : 'transparent', color: lang === 'ar' ? 'white' : '#94a3b8', transition: 'all 0.2s' }}>???? AR</button>
                     </div>
                 </div>
 
@@ -256,15 +256,15 @@ function LayoutInner({ children }) {
 
                 {/* Sistem durumu */}
                 <div style={{ padding: '0.75rem', background: 'rgba(0,0,0,0.3)', margin: '0 0.75rem 0.75rem', borderRadius: '8px', fontSize: '10px', color: '#475569', textAlign: 'center' }}>
-                    <div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 3 }}>✅ Sistem Aktif</div>
-                    <div style={{ color: '#60a5fa' }}>1. Birim M1–M8 ✅</div>
-                    <div style={{ color: '#fb923c' }}>2. Birim M9–M12 ✅</div>
-                    <div style={{ color: '#a3e635', marginTop: 1 }}>Yönetim M13–M16 ✅</div>
-                    <div style={{ color: '#8b5cf6', marginTop: 1 }}>Sistem AI/Güvenlik ✅</div>
+                    <div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 3 }}>? Sistem Aktif</div>
+                    <div style={{ color: '#60a5fa' }}>1. Birim M1�M8 ?</div>
+                    <div style={{ color: '#fb923c' }}>2. Birim M9�M12 ?</div>
+                    <div style={{ color: '#a3e635', marginTop: 1 }}>Y�netim M13�M16 ?</div>
+                    <div style={{ color: '#8b5cf6', marginTop: 1 }}>Sistem AI/G�venlik ?</div>
                 </div>
             </aside>
 
-            {/* MOBİL OVERLAY */}
+            {/* MOB�L OVERLAY */}
             <div
                 className={`sidebar-overlay ${sidebarAcik ? 'mobile-open' : ''}`}
                 onClick={() => setSidebarAcik(false)}
@@ -277,7 +277,7 @@ function LayoutInner({ children }) {
                         <button
                             className="hamburger-btn"
                             onClick={() => setSidebarAcik(v => !v)}
-                            aria-label="Menüyü aç/kapat"
+                            aria-label="Men�y� a�/kapat"
                             aria-expanded={sidebarAcik}
                             aria-controls="sidebar"
                         >
@@ -291,10 +291,10 @@ function LayoutInner({ children }) {
                             {(() => {
                                 const aktifItem = NAV_ITEMS.find(n => n.href === pathname);
                                 const baslikMtn = pathname === '/'
-                                    ? "KARARGÂH OPERASYON MERKEZİ"
+                                    ? "KARARG�H OPERASYON MERKEZ�"
                                     : aktifItem
                                         ? (isAR ? aktifItem.labelAR : aktifItem.labelTR).toUpperCase()
-                                        : "THE ORDER / NİZAM";
+                                        : "THE ORDER / N�ZAM";
 
                                 return (
                                     <h2 style={{ margin: 0, fontSize: pathname === '/' ? '1.5rem' : '1.2rem', fontWeight: 900, color: '#34d399', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -308,11 +308,11 @@ function LayoutInner({ children }) {
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                         {!internetVar ? (
                             <span className="badge badge-warning" style={{ background: '#fef3c7', color: '#b45309' }}>
-                                ⚡ {bekleyenIslemAdeti > 0 ? `${bekleyenIslemAdeti} Bekliyor` : 'Çevrimdışı'}
+                                ? {bekleyenIslemAdeti > 0 ? `${bekleyenIslemAdeti} Bekliyor` : '�evrimd���'}
                             </span>
                         ) : (
                             <span style={{ background: 'rgba(52,211,153,0.15)', color: '#6ee7b7', padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(52,211,153,0.2)' }}>
-                                {isAR ? 'النظام نشط' : 'Sistem Aktif'}
+                                {isAR ? '?????? ???' : 'Sistem Aktif'}
                             </span>
                         )}
                         <BildirimZili />
@@ -327,7 +327,7 @@ function LayoutInner({ children }) {
                 </div>
             </main>
 
-            {/* KÖR NOKTA 4: CANLI AĞ BİLDİRİM BALONU */}
+            {/* K�R NOKTA 4: CANLI A� B�LD�R�M BALONU */}
             {canliBildirim && (
                 <div onClick={() => window.location.reload()}
                     style={{ position: 'fixed', bottom: 20, right: 20, background: '#10b981', color: 'white', padding: '12px 20px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800, boxShadow: '0 10px 30px rgba(16,185,129,0.4)', cursor: 'pointer', zIndex: 9999, animation: 'slideIn 0.3s ease-out' }}>
@@ -335,21 +335,21 @@ function LayoutInner({ children }) {
                 </div>
             )}
 
-            {/* KÖR NOKTA 5: İNTERNET KESİNTİSİ ALARM BALONU */}
+            {/* K�R NOKTA 5: �NTERNET KES�NT�S� ALARM BALONU */}
             {!internetVar && (
                 <div style={{ position: 'fixed', bottom: 20, left: 20, background: '#ef4444', color: 'white', padding: '12px 20px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800, border: '2px solid #b91c1c', boxShadow: '0 10px 30px rgba(239,68,68,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', gap: 10 }}>
                     <Zap size={20} />
                     <div>
-                        <div style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>BAĞLANTI KOPTU (ÇEVRİMDIŞI ÇALIŞIYORSUNUZ)</div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#fef2f2', marginTop: 2 }}>Cihazdaki {bekleyenIslemAdeti} işlem beklemede. Üretime devam edin, internet gelince aktarılacak.</div>
+                        <div style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>BA�LANTI KOPTU (�EVR�MDI�I �ALI�IYORSUNUZ)</div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#fef2f2', marginTop: 2 }}>Cihazdaki {bekleyenIslemAdeti} i�lem beklemede. �retime devam edin, internet gelince aktar�lacak.</div>
                     </div>
                 </div>
             )}
 
-            {/* MESAJ BİLDİRİM BUTONU — tüm sayfalarda sabit, okunmamış varsa kırmızı */}
+            {/* MESAJ B�LD�R�M BUTONU � t�m sayfalarda sabit, okunmam�� varsa k�rm�z� */}
             <MesajBildirimButonu />
 
-            {/* KÜRESEL SESLİ KOMUT ASİSTANI (GÖLGE) */}
+            {/* K�RESEL SESL� KOMUT AS�STANI (G�LGE) */}
             <NizamVoiceAgent />
 
             <style>{`
@@ -366,7 +366,7 @@ function LayoutInner({ children }) {
 /** @param {{children: any}} props */
 export default function ClientLayout({ children }) {
     return (
-        <ErrorBoundary modulAd="Uygulama Çekirdeği">
+        <ErrorBoundary modulAd="Uygulama �ekirde�i">
             <AuthProvider>
                 <YetkiProvider>
                     <TasarimProvider>

@@ -1,5 +1,5 @@
 'use client';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 /**
  * app/ajanlar/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/ajanlar/components/AjanlarMainContainer.js
