@@ -8,6 +8,11 @@ const BOT_IMZALARI = [
     'semrushbot', 'dotbot', 'mj12bot', 'petalbot',
 ];
 
+// ─── IP KISITLAMA (GU-04) ────────────────────────────────────────
+// Güvenli IP listesi ENV içinden okunur. Eğer boşsa (veya tanımlı değilse) kontrol edilmez.
+const IP_KONTROL_AKTIF = process.env.IP_WHITELIST_ENABLED === 'true';
+const GUVENLI_IPLER = (process.env.IP_WHITELIST || '').split(',').map(ip => ip.trim()).filter(Boolean);
+
 // ─── İMZASIZ JWT DOĞRULAMA (Edge Runtime — SubtleCrypto) ────────
 async function jwtDogrula(token, sirri) {
     if (!token || !sirri) return null;
@@ -89,6 +94,18 @@ export async function middleware(request) {
 
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'bilinmeyen';
     const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+
+    // ─── [GU-04] IP KISITLAMA KONTROLÜ (BEYAZ LİSTE) ────────────
+    if (IP_KONTROL_AKTIF && GUVENLI_IPLER.length > 0) {
+        if (!GUVENLI_IPLER.includes(ip) && ip !== '::1' && ip !== '127.0.0.1' && ip !== 'bilinmeyen') {
+            console.warn(`[GÜVENLİK GU-04] Yetkisiz IP erişimi engellendi: ${ip}`);
+            // IP kısıtlamasına takılanlara 403 sayfasi (veya JSON) dön
+            return new NextResponse(
+                JSON.stringify({ hata: 'IP Adresiniz sistem erişimi için yetkilendirilmemiş. (GU-04 BEYAZ LİSTE)' }),
+                { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+    }
 
     // ─── 0. SALDIRI YOL ENGELİ (WordPress/CMS Tarama Botu) ────
     const ENGELLENEN_YOLLAR = [

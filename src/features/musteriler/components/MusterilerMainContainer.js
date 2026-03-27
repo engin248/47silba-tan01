@@ -246,6 +246,8 @@ export default function MusterilerSayfasi() {
         aktif: musteriler.filter(m => m.aktif !== false).length,
         karaListe: musteriler.filter(m => m.kara_liste === true).length,
         toptan: musteriler.filter(m => m.musteri_tipi === 'toptan').length,
+        vip: musteriler.filter(m => (m.risk_limiti > 50000 || m.musteri_tipi === 'toptan' || ['VIP', 'A'].includes(m.segment))).length,
+        potansiyel: musteriler.filter(m => m.segment === 'C' || !m.vergi_no).length
     };
 
     const isAR = lang === 'ar';
@@ -311,6 +313,16 @@ export default function MusterilerSayfasi() {
                 <div className="premium-card hover-elevate glass-panel">
                     <div style={{ fontSize: '0.65rem', color: '#92400e', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>🏭 Toptan Alıcılar</div>
                     <div style={{ fontWeight: 900, color: '#d97706', fontSize: '1.5rem' }}>{istatistik.toptan}</div>
+                </div>
+                {/* [MS-02] RFM: VIP Segmentasyon */}
+                <div className="premium-card hover-elevate glass-panel" style={{ background: '#fdf4ff', border: '1px solid #fbcfe8' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#9d174d', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>⭐️ VIP Müşteriler</div>
+                    <div style={{ fontWeight: 900, color: '#831843', fontSize: '1.5rem' }}>{istatistik.vip}</div>
+                </div>
+                {/* [MS-02] Potansiyel (C Segment) */}
+                <div className="premium-card hover-elevate glass-panel" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#b45309', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>🎯 Potansiyel</div>
+                    <div style={{ fontWeight: 900, color: '#78350f', fontSize: '1.5rem' }}>{istatistik.potansiyel}</div>
                 </div>
             </div >
 

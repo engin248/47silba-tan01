@@ -400,7 +400,7 @@ export default function GuvenlikMainContainer() {
                                             <span style={{ fontWeight: 900, fontSize: '0.8rem', color: sayi >= 5 ? '#dc2626' : sayi > 0 ? '#d97706' : '#10b981' }}>
                                                 {sayi}/5 deneme
                                             </span>
-                                             {sayi > 0 && <button onClick={async () => { const pin = prompt('Sifirlamak icin Admin PIN girin:'); if (!pin) return; try { const res = await fetch('/api/pin-dogrula', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin, grup: 'tam' }) }); const d = await res.json(); if (!d.token) { goster('Yetkisiz! PIN hatali.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sifirlandi.'); } catch { goster('Sunucu hatasi.', 'error'); } }} style={{ fontSize: '0.65rem', background: '#173a34', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#a7f3d0' }}>sifirla</button>}
+                                            {sayi > 0 && <button onClick={async () => { const pin = prompt('Sifirlamak icin Admin PIN girin:'); if (!pin) return; try { const res = await fetch('/api/pin-dogrula', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin, grup: 'tam' }) }); const d = await res.json(); if (!d.token) { goster('Yetkisiz! PIN hatali.', 'error'); return; } setHataliGirisler(p => ({ ...p, [g]: 0 })); goster('Sifirlandi.'); } catch { goster('Sunucu hatasi.', 'error'); } }} style={{ fontSize: '0.65rem', background: '#173a34', border: 'none', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: '#a7f3d0' }}>sifirla</button>}
                                         </div>
                                     </div>
                                 );
@@ -414,7 +414,7 @@ export default function GuvenlikMainContainer() {
                                 { label: 'Erişim Matrisi Tanımlı', ok: true },
                                 { label: 'Giriş Log Kaydı', ok: true },
                                 { label: '2FA (İki Faktörlü)', ok: false },
-                                { label: 'IP Kısıtlama', ok: false },
+                                { label: 'IP Kısıtlama (BEYAZ LİSTE)', ok: true },
                             ].map((item, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f8fafc', fontSize: '0.78rem' }}>
                                     <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{item.label}</span>

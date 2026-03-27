@@ -27,7 +27,7 @@ const DURUM_RENK = { aktif: '#10b981', izinli: '#f59e0b', cikti: '#ef4444' };
 
 const BOSH_FORM = {
     personel_kodu: '', ad_soyad: '', ad_soyad_ar: '', rol: 'duz_makinaci',
-    telefon: '', gunluk_calisma_dk: '480', saatlik_ucret_tl: '',
+    telefon: '', tc_kimlik: '', gunluk_calisma_dk: '480', saatlik_ucret_tl: '',
     ise_giris_tarihi: new Date().toISOString().split('T')[0],
     durum: 'aktif', notlar: ''
 };
@@ -525,6 +525,10 @@ export default function PersonelMainContainer() {
                             <input maxLength={30} value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} placeholder="+90 555 000 00 00" style={inp} />
                         </div>
                         <div>
+                            <label style={lbl}>TC Kimlik No</label>
+                            <input maxLength={11} value={form.tc_kimlik || ''} onChange={e => setForm({ ...form, tc_kimlik: e.target.value.replace(/[^0-9]/g, '') })} placeholder="11 haneli TCKN" style={inp} />
+                        </div>
+                        <div>
                             <label style={lbl}>İşe Giriş Tarihi</label>
                             <input type="date" value={form.ise_giris_tarihi} onChange={e => setForm({ ...form, ise_giris_tarihi: e.target.value })} style={inp} />
                         </div>
@@ -594,6 +598,8 @@ export default function PersonelMainContainer() {
                                 </div>
                             </div>
                             {p.telefon && <div style={{ fontSize: '0.75rem', color: '#a7f3d0', marginBottom: 4 }}>📞 {p.telefon}</div>}
+                            {/* [PE-07] TC KİMLİK MASKELİ GÖSTERİM */}
+                            {p.tc_kimlik && <div style={{ fontSize: '0.75rem', color: '#fcd34d', marginBottom: 4 }}>🆔 TCKN: {p.tc_kimlik.slice(0, 3)}*****{p.tc_kimlik.slice(-3)}</div>}
                             {p.ise_giris_tarihi && <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 4 }}>📅 Giriş: {p.ise_giris_tarihi}</div>}
                             <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '0.63rem', color: '#94a3b8', background: '#0b1d1a', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>🕐 Eklenme: {formatTarih(p.created_at)}</span>

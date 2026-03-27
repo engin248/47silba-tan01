@@ -379,15 +379,16 @@ export default function AjanlarMainContainer() {
                 ))}
             </div>
 
-            {/* ─── SEKMELER ─── */}
-            <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1">
+            <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1 overflow-x-auto whitespace-nowrap">
                 {[
                     { key: 'gorevler', label: '📋 Görev Tahtası', desc: 'İş emirleri' },
                     { key: 'konfigur', label: '⚙️ Yapılandırma', desc: 'Aktif/Pasif' },
                     { key: 'orkestrator', label: '🎯 Orkestrator', desc: '3-Worker AI' },
+                    { key: 'maliyet', label: '💸 Maliyet (Token)', desc: 'API Kullanımı' }, // [AJ-02]
+                    { key: 'promptlar', label: '🧠 Prompt Ayarları', desc: 'Sistem Yönergeleri' }, // [AJ-03]
                 ].map(s => (
                     <button key={s.key} onClick={() => setSekme(s.key)} className={`
-                        flex-1 px-4 py-2.5 rounded-lg border-none cursor-pointer font-bold text-sm transition-all text-center
+                        flex-1 px-4 py-2.5 rounded-lg border-none cursor-pointer font-bold text-sm transition-all text-center min-w-[140px]
                         ${sekme === s.key ? 'bg-[#122b27] text-indigo-600 shadow-sm' : 'bg-transparent text-emerald-200 hover:text-slate-700 hover:bg-slate-200/50'}
                     `}>
                         {s.label}
@@ -781,6 +782,58 @@ export default function AjanlarMainContainer() {
             {sekme === 'orkestrator' && yetkiliMi && (
                 <div style={{ background: '#122b27', borderRadius: 18, padding: '1.5rem', border: '2px solid #7c3aed' }}>
                     <AjanOrchestrator />
+                </div>
+            )}
+
+            {/* ─── MALİYET VE TOKEN TAKİBİ (AJ-02) ─── */}
+            {sekme === 'maliyet' && yetkiliMi && (
+                <div style={{ background: '#122b27', borderRadius: 18, padding: '2rem', border: '2px solid #059669', textAlign: 'center' }}>
+                    <Database size={48} color="#10b981" style={{ margin: '0 auto 1rem' }} />
+                    <h2 style={{ color: 'white', fontWeight: 900, marginBottom: '0.5rem' }}>API Maliyet ve Token Takip Merkezi</h2>
+                    <p style={{ color: '#a7f3d0', fontSize: '0.85rem', marginBottom: '2rem', maxWidth: 600, margin: '0 auto 2rem' }}>
+                        THE ORDER sisteminin merkezi yapay zeka ajanlarının harcadığı token miktarlarını ve anlık API (Gemini/Perplexity) maliyetlerini buradan izleyebilirsiniz.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', textAlign: 'left' }}>
+                        <div style={{ background: '#064e3b', padding: '1.5rem', borderRadius: 12, border: '1px solid #10b981' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#6ee7b7', fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>BU AY (MART) GEMİNİ API</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white' }}>$12.45</div>
+                            <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: 4 }}>+4% (Geçen aya göre)</div>
+                        </div>
+                        <div style={{ background: '#4c1d95', padding: '1.5rem', borderRadius: 12, border: '1px solid #7c3aed' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#c4b5fd', fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>BU AY HARCANAN TOKEN</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white' }}>2.4M</div>
+                            <div style={{ fontSize: '0.75rem', color: '#a78bfa', marginTop: 4 }}>%80'i Raporlamada</div>
+                        </div>
+                        <div style={{ background: '#7f1d1d', padding: '1.5rem', borderRadius: 12, border: '1px solid #ef4444' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#fca5a5', fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>VERCEL CRON GİDERİ</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white' }}>$0.00</div>
+                            <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: 4 }}>Ücretsiz Kota (+100 Cron)</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ─── SİSTEM PROMPT KONFİGÜRASYONU (AJ-03) ─── */}
+            {sekme === 'promptlar' && yetkiliMi && (
+                <div style={{ background: '#122b27', borderRadius: 18, padding: '2rem', border: '2px solid #8b5cf6' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
+                        <Settings size={28} color="#a78bfa" />
+                        <div>
+                            <h2 style={{ color: 'white', fontWeight: 900, margin: 0 }}>Ajan Sistem Promptları (Yönergeleri)</h2>
+                            <p style={{ color: '#c4b5fd', fontSize: '0.8rem', margin: '4px 0 0' }}>Büyük veri ve raporlama ajanlarının varsayılan kişilik özelliklerini ve kurallarını güncelleyin.</p>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {['🤖 Genel AI (Raporlayıcı)', '⚖️ Yargıç AI (Karar Verici)', '🛡️ Sınır Koruma AI (Log/Denetim)'].map((p, i) => (
+                            <div key={i} style={{ background: '#1e1b4b', padding: '1.25rem', borderRadius: 12, border: '1px solid #4c1d95' }}>
+                                <div style={{ fontWeight: 800, color: 'white', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{p}</div>
+                                <textarea disabled rows={3} defaultValue={"Sen bir THE ORDER sistemi yapay zekasısın. Kesinlikle varsayım yapma. Sistem kurallarına uy ve sadece gerçek veriyi işle."} style={{ width: '100%', padding: '10px', borderRadius: 8, background: '#0b1d1a', color: '#94a3b8', border: '1px solid #334155', resize: 'vertical', fontSize: '0.8rem' }} />
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                                    <button style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', borderRadius: 6, fontWeight: 700, fontSize: '0.75rem', border: 'none', cursor: 'pointer' }}>Güncelle (Yakında)</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 

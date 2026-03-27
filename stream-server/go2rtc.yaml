@@ -1,36 +1,44 @@
 version: "2"
 
-ffmpeg:
-  bin: "C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe"
+api:
+  origin: "*"
 
 rtsp:
   disable_auth: true
 
-api:
-  origin: "*"
-
 streams:
-  d1_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c1/s0/live#video=h264#audio=opus"
-  d1_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c1/s1/live#video=h264#audio=opus"
-  d2_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c2/s0/live#video=h264#audio=opus"
-  d2_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c2/s1/live#video=h264#audio=opus"
-  d3_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c3/s0/live#video=h264#audio=opus"
-  d3_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c3/s1/live#video=h264#audio=opus"
-  d4_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c4/s0/live#video=h264#audio=opus"
-  d4_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c4/s1/live#video=h264#audio=opus"
-  d5_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c5/s0/live#video=h264#audio=opus"
-  d5_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c5/s1/live#video=h264#audio=opus"
-  d6_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c6/s0/live#video=h264#audio=opus"
-  d6_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c6/s1/live#video=h264#audio=opus"
-  d7_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c7/s0/live#video=h264#audio=opus"
-  d7_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c7/s1/live#video=h264#audio=opus"
-  d8_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c8/s0/live#video=h264#audio=opus"
-  d8_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c8/s1/live#video=h264#audio=opus"
-  d9_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c9/s0/live#video=h264#audio=opus"
-  d9_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c9/s1/live#video=h264#audio=opus"
-  d10_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c10/s0/live#video=h264#audio=opus"
-  d10_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c10/s1/live#video=h264#audio=opus"
-  d11_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c11/s0/live#video=h264#audio=opus"
-  d11_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c11/s1/live#video=h264#audio=opus"
-  d12_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c12/s0/live#video=h264#audio=opus"
-  d12_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c12/s1/live#video=h264#audio=opus"
+  d1_main: "rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=0"
+  d1_sub:  "rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d2_main: "rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=0"
+  d2_sub:  "rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d3_main: "rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=0"
+  d3_sub:  "rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d4_main: "rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=0"
+  d4_sub:  "rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d5_main: "rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=0"
+  d5_sub:  "rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d6_main: "rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=0"
+  d6_sub:  "rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d7_main: "rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=0"
+  d7_sub:  "rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d8_main: "rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=0"
+  d8_sub:  "rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d9_main: "rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=0"
+  d9_sub:  "rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d10_main: "rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=0"
+  d10_sub:  "rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d11_main: "rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=0"
+  d11_sub:  "rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=1"
+  
+  d12_main: "rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=0"
+  d12_sub:  "rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=1"

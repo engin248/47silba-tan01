@@ -290,12 +290,19 @@ export default function DenetmenMainContainer() {
             </div>
 
             {/* SEKMELER */}
-            <div style={{ display: 'flex', gap: 4, marginBottom: '1.25rem', background: '#173a34', borderRadius: 12, padding: 4 }}>
-                <button onClick={() => setAnaSekme('uyarilar')} style={{ flex: 1, padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'uyarilar' ? 'white' : 'transparent', color: anaSekme === 'uyarilar' ? '#7c3aed' : '#64748b', boxShadow: anaSekme === 'uyarilar' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: '1.25rem', background: '#173a34', borderRadius: 12, padding: 4, flexWrap: 'wrap' }}>
+                <button onClick={() => setAnaSekme('uyarilar')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'uyarilar' ? 'white' : 'transparent', color: anaSekme === 'uyarilar' ? '#7c3aed' : '#64748b', boxShadow: anaSekme === 'uyarilar' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
                     🚨 Sistem Uyarıları
                 </button>
-                <button onClick={() => setAnaSekme('buyuk_veri')} style={{ flex: 1, padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'buyuk_veri' ? '#1e1b4b' : 'transparent', color: anaSekme === 'buyuk_veri' ? '#a78bfa' : '#64748b', boxShadow: anaSekme === 'buyuk_veri' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
-                    🧠 Büyük Veri (Big Data) AI Öğrenmesi
+                <button onClick={() => setAnaSekme('buyuk_veri')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'buyuk_veri' ? '#1e1b4b' : 'transparent', color: anaSekme === 'buyuk_veri' ? '#a78bfa' : '#64748b', boxShadow: anaSekme === 'buyuk_veri' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
+                    🧠 Büyük Veri AI
+                </button>
+                {/* [DN] Yeni Denetmen Sekmeleri */}
+                <button onClick={() => setAnaSekme('aql')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'aql' ? '#047857' : 'transparent', color: anaSekme === 'aql' ? 'white' : '#64748b', boxShadow: anaSekme === 'aql' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
+                    📋 AQL Kalite Formu
+                </button>
+                <button onClick={() => setAnaSekme('hata_kod')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'hata_kod' ? '#9f1239' : 'transparent', color: anaSekme === 'hata_kod' ? 'white' : '#64748b', boxShadow: anaSekme === 'hata_kod' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
+                    ❌ Hata Kodları & Pareto
                 </button>
             </div>
 
