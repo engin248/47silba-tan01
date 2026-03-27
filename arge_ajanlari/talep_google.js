@@ -98,7 +98,7 @@ async function bot3GoogleTalepAjani(anahtarKelime, job_id = null, telemetriFnc =
             urun_adi: `Makro Talep: ${anahtarKelime}`,
             ai_satis_karari: geminiSonuc.karar,
             trend_skoru: geminiSonuc.puan,
-            artis_yuzdesi: Math.floor(Math.random() * 20),
+            artis_yuzdesi: null, // [FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Arayış İçindeki Alıcı',
             erken_trend_mi: perplexitySonuc.arama_sicramasi,
             hermania_karar_yorumu: hermaiSebebi.trim(),

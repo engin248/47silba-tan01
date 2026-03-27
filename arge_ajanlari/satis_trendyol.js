@@ -83,7 +83,7 @@ async function bot2TrendyolSatisAjani(aramaKelimesiVeyaLink, job_id = null, tele
             urun_adi: `${hamVeri.marka} - Satış Analizi`,
             ai_satis_karari: karar,
             trend_skoru: karar === 'ACİL_ÜRET' ? 100 : (karar === 'ÇOK_SATAR' ? 90 : 40),
-            artis_yuzdesi: Math.floor(Math.random() * 30) + 15,
+            artis_yuzdesi: null, // [FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Sıcak Alıcılar',
             erken_trend_mi: karar === 'ACİL_ÜRET',
             hermania_karar_yorumu: aciklama,

@@ -107,7 +107,7 @@ async function havaDurumuSatisEtkisi(urunKategorisi, job_id = null, telemetriFnc
             urun_adi: `Sosyo-İklim İstihbaratı: ${urunKategorisi}`,
             ai_satis_karari: karar,
             trend_skoru: iklimSatisSkoru,
-            artis_yuzdesi: Math.floor(Math.random() * 40),
+            artis_yuzdesi: null, // [FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Mevsimsel ve Bütçesi Hazır Alıcı',
             erken_trend_mi: iklimSatisSkoru >= 90,
             hermania_karar_yorumu: yorum,

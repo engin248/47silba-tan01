@@ -1,7 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
 
-const supabaseUrl = 'https://cauptlsnqieegdrgotob.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-key'; // Service role (Supabase güvenliğinden geçmek için arka planda yetkiliyiz)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] fake-key kaldırıldı, ENV'den al
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -31,21 +33,23 @@ async function ajanYargic() {
 
         // TREND SKORU BİLEŞENLERİ
         // THE ORDER Formulü: (Satış %35) + (Sosyal %30) + (Rakip %20) + (Sezon %15)
-        let sales_growth = Math.floor(Math.random() * 40) + 60; // 60-100 arası başarılı
-        let social_growth = Math.floor(Math.random() * 40) + 60;
-        let comp_usage = Math.floor(Math.random() * 40) + 30; // Rakipler yeni başlamış olabilir (30-70)
-        let season_score = Math.floor(Math.random() * 20) + 80; // Sezona uygun (80-100)
+        // [FIX] Math.random() sahte veri kaldırıldı — gerçek AI skoru gelene kadar tarafsız sabit değer
+        let sales_growth = product.trend_skoru ? Math.min(100, product.trend_skoru + 10) : 70;
+        let social_growth = product.trend_skoru ? Math.min(100, product.trend_skoru) : 65;
+        let comp_usage = 50; // tarafsız — gerçek rakip verisi olmadan 50
+        let season_score = 80; // genel orta-yüksek sezon
 
         let trend_score = (sales_growth * 0.35) + (social_growth * 0.30) + (comp_usage * 0.20) + (season_score * 0.15);
         trend_score = Math.floor(trend_score);
 
         // RİSK VE MALİYET HESAPLAMASI
-        let fabric_cost = Math.floor(Math.random() * 200) + 100;
-        let labor_cost = Math.floor(Math.random() * 100) + 50;
+        // [FIX] Math.random() kaldırıldı — gerçek maliyet verisi yokken tarafsız sabit
+        let fabric_cost = 150; // TL — orta kumaş maliyeti
+        let labor_cost = 80;   // TL — orta işçilik
         let production_cost = fabric_cost + labor_cost + 50;
 
-        let production_risk = Math.floor(Math.random() * 30);
-        let supply_risk = Math.floor(Math.random() * 30);
+        let production_risk = 15; // %15 sabit orta risk
+        let supply_risk = 15;     // %15 sabit orta risk
 
         // NİHAİ FIRSAT SKORU (Trend Skoru - Risklerin Etkisi)
         let opportunity_score = trend_score - (production_risk * 0.5) - (supply_risk * 0.5);

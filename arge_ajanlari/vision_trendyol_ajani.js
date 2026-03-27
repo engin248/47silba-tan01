@@ -5,7 +5,7 @@ require('dotenv').config({ path: '../.env.local' });
 
 // Supabase Kurulumu
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] ANON_KEY fallback kaldırıldı
 const supabase = createClient(SUPABASE_URL, SUPABASE_ROLE_KEY);
 
 // Gemini Kurulumu
@@ -131,7 +131,7 @@ async function bot2TrendyolPazarAjani(hedefUrl, job_id = null, telemetriFnc = nu
             urun_adi: `${domVerisi.marka || 'Pazar'} - ${geminiSonuc.kumas_yorumu}`,
             ai_satis_karari: geminiSonuc.karar,
             trend_skoru: geminiSonuc.puan,
-            artis_yuzdesi: Math.floor(Math.random() * 20) + 10,
+            artis_yuzdesi: null, // [FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Pazar Yeri (Trendyol) Alıcısı',
             erken_trend_mi: domVerisi.tukeniyorTag && !geminiSonuc.iade_riski_var_mi && geminiSonuc.yeni_sezon_firsati,
             hermania_karar_yorumu: hermaiSebebi.trim(),

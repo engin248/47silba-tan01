@@ -115,7 +115,7 @@ async function bot7GoogleLensAjani(base64Fotograf, aramaTerimi = "Bilinmeyen Ür
             urun_adi: `Google Lens: ${aramaTerimi}`,
             ai_satis_karari: infazSonuc.karar,
             trend_skoru: perplexitySonuc.telif_ihlali_var_mi ? 0 : infazSonuc.puan,
-            artis_yuzdesi: Math.floor(Math.random() * 15) + 5,
+            artis_yuzdesi: null, // [FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Hukuk Birimi / Pazar',
             erken_trend_mi: perplexitySonuc.satis_onayi,
             hermania_karar_yorumu: hermaiSebebi.trim(),

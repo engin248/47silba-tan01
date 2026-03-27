@@ -141,7 +141,7 @@ export async function GET(req) {
             setTimeout(() => {
                 fetch(`${domain}/api/kopru-ajan`, {
                     method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-                }).catch(e => console.log('Köprü Cron Tetikleme Hatası:', e));
+                }).catch(e => console.error('Köprü Cron Tetikleme Hatası:', e));
             }, 5000);
 
             await supabaseAdmin.from('b1_ajan_gorevler').insert([{

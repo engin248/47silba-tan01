@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = 'https://cauptlsnqieegdrgotob.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake-key'; // Service role (Supabase güvenliğini geçmek için arka planda yetkiliyiz)
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] fake-key kaldırıldı — ENV'den al
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
