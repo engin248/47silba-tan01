@@ -177,7 +177,7 @@ async function dagitModu(gorevler) {
     const domain = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const headers = {
         'Content-Type': 'application/json',
-        'x-internal-api-key': process.env.INTERNAL_API_KEY || 'dev'
+        'x-internal-api-key': process.env.INTERNAL_API_KEY || '' // [FIX] 'dev' fallback kaldırıldı
     };
 
     // Promise.allSettled ile ikisi paralel çalışır
@@ -237,8 +237,7 @@ async function dogrulamaModu(dagitimSonucu) {
 export async function POST(req) {
     try {
         const apiKey = req.headers.get('x-internal-api-key');
-        const yetkili = apiKey === process.env.INTERNAL_API_KEY ||
-            process.env.NODE_ENV === 'development';
+        const yetkili = apiKey === process.env.INTERNAL_API_KEY && !!apiKey; // [FIX] NODE_ENV bypass kaldırıldı
         if (!yetkili) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
         const body = await req.json();

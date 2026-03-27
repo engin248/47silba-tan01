@@ -13,10 +13,8 @@ const execAsync = util.promisify(exec);
 export async function POST(req) {
     try {
         const auth = req.headers.get('Authorization');
-        const devMode = process.env.NODE_ENV === 'development';
-
-        // Sadece Cron veya Yetkili servisle tetiklenebilir
-        if (!devMode && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+        // Sadece Cron veya Yetkili servisle tetiklenebilir — her ortamda geçerli
+        if (auth !== `Bearer ${process.env.CRON_SECRET}`) { // [FIX] devMode bypass kaldırıldı
             return NextResponse.json({ error: 'Siber Zırh: Yetkisiz Tetikleme Yasak' }, { status: 401 });
         }
 

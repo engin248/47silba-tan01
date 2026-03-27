@@ -2,13 +2,23 @@ import 'server-only';
 
 /**
  * Hata Bildirim Modülü — Sunucu tarafı hata formatlama
- * API route'lardan hata yanıtı üretmek için kullanılır.
+ * Geriye dönük uyumlu çift imza:
+ * - Eski: hataBildir('/api/...', error)  → console.error logar, void döner
+ * - Yeni: hataBildir('mesaj', 500, {})  → Response.json döner
  */
 
-export function hataBildir(mesaj, status = 500, ekBilgi = {}) {
-    console.error(`[HATA BİLDİRİM] ${mesaj}`, ekBilgi);
+export async function hataBildir(modulVeyaMesaj, hataVeyaStatus = 500, ekBilgi = {}) {
+    // Eski kullanım: hataBildir('/api/kumas-ekle', error)
+    if (hataVeyaStatus && typeof hataVeyaStatus === 'object' && 'message' in hataVeyaStatus) {
+        // @ts-ignore — JS dosyası, type narrowing kasıtlı
+        console.error(`[HATA BİLDİRİM] Modül: ${modulVeyaMesaj} | Hata: ${hataVeyaStatus.message}`, ekBilgi);
+        return; // Route kendi NextResponse'unu oluşturur
+    }
+    // Yeni kullanım: hataBildir('mesaj', 500) → Response üretir
+    const status = typeof hataVeyaStatus === 'number' ? hataVeyaStatus : 500;
+    console.error(`[HATA BİLDİRİM] ${modulVeyaMesaj}`, ekBilgi);
     return Response.json(
-        { hata: mesaj, basarili: false, ...ekBilgi },
+        { hata: modulVeyaMesaj, basarili: false, ...ekBilgi },
         { status }
     );
 }

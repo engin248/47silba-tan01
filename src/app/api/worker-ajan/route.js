@@ -106,8 +106,7 @@ async function goreviIsle(gorev, workerId) {
 export async function POST(req) {
     try {
         const apiKey = req.headers.get('x-internal-api-key');
-        const yetkili = apiKey === process.env.INTERNAL_API_KEY ||
-            process.env.NODE_ENV === 'development';
+        const yetkili = apiKey === process.env.INTERNAL_API_KEY && !!apiKey; // [FIX] NODE_ENV bypass kaldırıldı
         if (!yetkili) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
         const { worker_id, gorevler } = await req.json();
