@@ -1,0 +1,118 @@
+﻿
+> sil-bastan@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.5.14
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ┬À clientTraceMetadata
+
+   Creating an optimized production build ...
+node.exe : [@sentry/ne
+xtjs] The Sentry SDK h
+as enabled source map 
+generation for your Ne
+xt.js app. If you don'
+t want to serve Source
+ Maps to your users, e
+ither set the `sourcem
+aps.deleteSourcemapsAf
+terUpload` option to t
+rue, or manually delet
+e the source maps afte
+r the build. In future
+ Sentry SDK versions `
+sourcemaps.deleteSourc
+emapsAfterUpload` will
+ default to `true`. If
+ you do not want to ge
+nerate and upload sour
+cemaps, set the `sourc
+emaps.disable` option 
+in `withSentryConfig()
+`.
+At line:1 char:1
++ & "C:\nvm4w\nodejs/n
+ode.exe" "C:\nvm4w\nod
+ejs/node_modules/npm/b
+in/np ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([@sentry/n   
+ extjs...entryConf    
+ig()`.:String) []    ,
+ RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+ Ô£ô Compiled successfully in 9.9s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+[Upstash Redis] The 'u
+rl' property is missin
+g or undefined in your
+ Redis config.
+[Upstash Redis] The 't
+oken' property is miss
+ing or undefined in yo
+ur Redis config.
+[Upstash Redis] The 'u
+rl' property is missin
+g or undefined in your
+ Redis config.
+[Upstash Redis] The 't
+oken' property is miss
+ing or undefined in yo
+ur Redis config.
+[Upstash Redis] The 'u
+rl' property is missin
+g or undefined in your
+ Redis config.
+[Upstash Redis] The 't
+oken' property is miss
+ing or undefined in yo
+ur Redis config.
+   Generating static pages (0/96) ...
+[Upstash Redis] The 'u
+rl' property is missin
+g or undefined in your
+ Redis config.
+[Upstash Redis] The 't
+oken' property is miss
+ing or undefined in yo
+ur Redis config.
+[Upstash Redis] The 'u
+rl' property is missin
+g or undefined in your
+ Redis config.
+[Upstash Redis] The 't
+oken' property is miss
+ing or undefined in yo
+ur Redis config.
+Error occurred prerend
+ering page "/m2-finans
+". Read more: https://
+nextjs.org/docs/messag
+es/prerender-error
+[Error: Element type i
+s invalid: expected a 
+string (for built-in c
+omponents) or a class/
+function (for composit
+e components) but got:
+ object.] {
+  digest: '767839639'
+}
+Export encountered an 
+error on /m2-finans/pa
+ge: /m2-finans, exitin
+g the build.
+ Ô¿» Next.js build wor
+ker exited with code: 
+1 and signal: null
