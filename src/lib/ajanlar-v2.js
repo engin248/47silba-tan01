@@ -5,12 +5,11 @@ import 'server-only';
 // Her ajan kendi bölümünde tanımlı, isimler config'den gelir
 // ============================================================
 // [K-10 FIX] server-only: Bu dosya SERVICE_ROLE_KEY kullanıyor, client bundle'a girmemeli
-import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 
 const sb = createClient(
     (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim(),
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim()
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
 );
 
 // ─── AJAN İSİMLERİ KONFİGÜRASYONU ──────────────────────────
@@ -231,12 +230,12 @@ export async function aksamci() {
 
         // ── KONTROL NOKTASI 3: Günlük Kasa Özeti ────────────
         sonuc.kontrol_sayisi++;
-        const { data: kasaBugün } = await sb.from('b2_kasa_hareketleri')
+        const { data: kasaBugun } = await sb.from('b2_kasa_hareketleri')
             .select('hareket_tipi, tutar')
             .gte('created_at', bugun + 'T00:00:00');
-        if (kasaBugün?.length) {
-            const gelir = kasaBugün.filter(k => k.hareket_tipi === 'gelir').reduce((s, k) => s + (k.tutar || 0), 0);
-            const gider = kasaBugün.filter(k => k.hareket_tipi === 'gider').reduce((s, k) => s + (k.tutar || 0), 0);
+        if (kasaBugun?.length) {
+            const gelir = kasaBugun.filter(k => k.hareket_tipi === 'gelir').reduce((s, k) => s + (k.tutar || 0), 0);
+            const gider = kasaBugun.filter(k => k.hareket_tipi === 'gider').reduce((s, k) => s + (k.tutar || 0), 0);
             sonuc.ozet.push(`💰 Bugün: Gelir ₺${gelir.toFixed(0)} | Gider ₺${gider.toFixed(0)} | Net ₺${(gelir - gider).toFixed(0)}`);
 
             // Muhasebe günlük özet kaydet

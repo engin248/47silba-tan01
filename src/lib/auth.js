@@ -142,7 +142,7 @@ export function AuthProvider({ children }) {
             if (yeniSayi >= 5) {
                 localStorage.setItem('sb47_kilit', JSON.stringify({ kilitBitisTarihi: Date.now() + 30 * 1000 }));
                 localStorage.setItem('sb47_yanlis_pin', JSON.stringify({ sayi: 0 }));
-                return { basarili: false, mesaj: 'Çok fazla hatalı deneme! 30 saniye kilitlendikten sonra tekrar deneyin.' };
+                return { basarili: false, mesaj: 'Çok fazla hatalı deneme! 15 dakika kilitlendikten sonra tekrar deneyin.' };
             } else {
                 localStorage.setItem('sb47_yanlis_pin', JSON.stringify({ sayi: yeniSayi }));
             }

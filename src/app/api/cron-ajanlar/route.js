@@ -136,7 +136,7 @@ export async function GET(req) {
 
             fetch(`${domain}/api/ajan-yargic`, {
                 method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-            }).catch(e => console.log('Yargıç Cron Tetikleme Hatası:', e));
+            }).catch(e => console.error('Yargıç Cron Tetikleme Hatası:', e));
 
             setTimeout(() => {
                 fetch(`${domain}/api/kopru-ajan`, {

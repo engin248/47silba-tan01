@@ -21,7 +21,6 @@ try {
 
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
-require('dotenv').config();
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
 
 // Karantina havuzuna yazacağımız için Service Role şart
