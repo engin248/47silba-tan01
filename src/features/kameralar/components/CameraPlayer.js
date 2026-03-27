@@ -9,11 +9,11 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
     const [isVisible, setIsVisible] = useState(false);
     const containerRef = useRef(null);
 
-    const streamSrc = `${src}_${type}`;
-    // Cloudflare Tunnel tüneli TCP/UDP kısıtlamalarına karşı MSE(Media Source Extensions) modu.
-    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=mse` : '';
+    // Kameralarımız H.265 (HEVC) ürettiği için tarayıcılar (Chrome/Firefox) bunu gösteremiyor.
+    // Bu yüzden go2rtc.yaml'da hazırladığımız H.264 dönüştürülmüş (_web) akışları çağırıyoruz.
+    const streamSrc = `${src}_${type}_web`;
+    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=mse,webrtc` : '';
     const bgColor = type === 'main' ? '#000' : '#020617';
-
     // 1. Lazy Loading (Intersection Observer)
     useEffect(() => {
         if (offline) return;
