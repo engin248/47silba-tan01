@@ -120,12 +120,12 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
                 </div>
             )}
 
-            {/* go2rtc WebRTC iframe */}
+            {/* go2rtc MSE iframe */}
             {isVisible && !error && (
                 <iframe
                     ref={iframeRef}
                     src={streamUrl}
-                    style={{ border: 'none', width: '100%', height: '100%', background: 'transparent', display: loading ? 'none' : 'block' }}
+                    style={{ border: 'none', width: '100%', height: '100%', background: 'transparent', opacity: loading ? 0 : 1, position: loading ? 'absolute' : 'relative', zIndex: 0 }}
                     allow="autoplay; fullscreen; camera; microphone"
                     onLoad={() => setLoading(false)}
                     onError={() => { setLoading(false); setError(true); }}
