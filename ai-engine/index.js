@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { getCameraFrame, analyzeMotion } from './lib/motionDetector.js';
-
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') }); // [H3 FIX] mutlak path
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; // [H4 FIX] ANON_KEY → SERVICE_ROLE_KEY (RLS bypass)
 const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
 const POLLING_INTERVAL = parseInt(process.env.POLLING_INTERVAL || '15000', 10); // 15 Saniye Varsayilan 
 
@@ -45,7 +47,10 @@ async function triggerAnomaly(kamera, reason, photoUrl = null) {
             event_type: 'anomaly',
             video_url: photoUrl
         }]);
-    } catch (e) { /* Tablo eksikse devam et */ }
+    } catch (e) {
+        // [H5 FIX] sessiz catch kaldırıldı — anomali kaybı loglanıyor
+        console.error(`[❌ ANOMALİ KAYIT HATASI] Kamera: ${kamera.name} | Sebep: ${e.message}`);
+    }
 }
 
 /**

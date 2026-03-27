@@ -44,8 +44,7 @@ async function m4Muhasebeİsle(islemTipi, urunAdi_Aciklama, tutarTL, cariHesapIs
             created_at: new Date().toISOString()
         };
 
-        // Şirket Veritabanında (M4 Kasa / M2 Kar Zarar Geçmişi) lokal olarak yedekle
-        // await supabase.from('m4_finansal_kasa_arsivi').insert([muhasebeRaporu]);
+        await supabase.from('m4_finansal_kasa_arsivi').insert([muhasebeRaporu]); // [H6 FIX] INSERT aktif edildi
 
         await telemetriAt(100, `[MUHASEBE GÖREVİ BİTTİ] Vergi ve Kâr/Zarar tabloları otomatik eşitlendi. Şirket bilançosu güvende.`);
 

@@ -32,7 +32,7 @@ async function m4HammaddeSiparisVer(urunAdi, kumasTipi, miktarMetre, toptanciEma
         // Biz sistemi test etmek ve altyapıyı mühürlemek adına Mock ID kullanıyoruz.
 
         const siparisKodu = "MZN-M4-B2B-" + Math.floor(Math.random() * 999999);
-        const tahminiBirimFiyat = 145; // TL
+        const tahminiBirimFiyat = parseFloat(process.env.KUMAS_BIRIM_FIYAT_TL || '145'); // [H7 FIX] hardcoded → env'den dinamik
         const finansalYuku = miktarMetre * tahminiBirimFiyat;
 
         await telemetriAt(70, `[M4 API ONAY] Toptancı Onayladı. ${miktarMetre} metre rezerve edildi. Sipariş Fişi: ${siparisKodu}`);
@@ -48,8 +48,7 @@ async function m4HammaddeSiparisVer(urunAdi, kumasTipi, miktarMetre, toptanciEma
             created_at: new Date().toISOString()
         };
 
-        // Üretim Veritabanına (Muhasebe/Depo sekmesine) işle:
-        // await supabase.from('m4_fiziksel_satin_almalar').insert([fizikselKayit]);
+        await supabase.from('m4_fiziksel_satin_almalar').insert([fizikselKayit]); // [H7 FIX] INSERT aktif edildi
 
         await telemetriAt(100, `[M4 GÖREV BİTTİ] ${finansalYuku} TL değerindeki ham madde siparişi başarıyla fırlatıldı. Satın Alma Departmanı aradan çıkarıldı.`);
 

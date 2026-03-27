@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const sharp = require('sharp');
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') }); // [H3-edge FIX] mutlak path
 
 // ─── NIZAM AKILLI MELEZ (HYBRID) MİMARİ — EDGE WATCHER ──────────
 // SIFIRA YAKIN FİNANSAL YÜK PRENSİBİ İLE ÇALIŞIR
@@ -20,16 +20,18 @@ const MOTION_THRESHOLD = 0.05;
 
 // Karargah Vercel Sunucu URL'i:
 const KARARGAH_API = process.env.KARARGAH_API_URL || 'http://localhost:3000/api/ajan-tetikle';
-const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'internal-sb47-api-key-degistirin-2026-ZpR3nW';
+if (!process.env.INTERNAL_API_KEY) { console.error('❌ INTERNAL_API_KEY eksik! .env.local dosyasına ekleyin.'); process.exit(1); } // [H1 FIX] hardcoded fallback kaldırıldı
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
 // Geçici fotoğraf dizini
 const TEMP_DIR = path.join(__dirname, 'temp');
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
 
-// Örnek Kamera Listesi (Sadece kritik bantları izlemek yeterli)
+// [H2 FIX] RTSP URL'ler .env.local'dan okunuyor — şifreler kod içinde değil
+if (!process.env.RTSP_CAM_2 || !process.env.RTSP_CAM_3) { console.error('❌ RTSP_CAM_2 veya RTSP_CAM_3 .env.local eksik!'); process.exit(1); }
 const KAMERALAR = [
-    { id: 2, nvr: 'D2', name: 'Kesim Masası A', url: 'rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c2/s1/live' },
-    { id: 3, nvr: 'D3', name: 'Dikim Bandı 1', url: 'rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c3/s1/live' },
+    { id: 2, nvr: 'D2', name: 'Kesim Masası A', url: process.env.RTSP_CAM_2 },
+    { id: 3, nvr: 'D3', name: 'Dikim Bandı 1', url: process.env.RTSP_CAM_3 },
 ];
 
 let lastMotionTimes = {};
