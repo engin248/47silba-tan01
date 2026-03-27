@@ -7,7 +7,7 @@ import {
     Activity, Video, Lock, Zap, Eye, TrendingUp, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { supabase } from '@/lib/supabase';
 import { telegramBildirim, telegramFotoGonder } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';

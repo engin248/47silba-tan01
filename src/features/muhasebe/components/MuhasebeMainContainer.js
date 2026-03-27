@@ -5,7 +5,7 @@ import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock,
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/maliyet/services/maliyetApi.js
  * Tablo: b1_maliyet_kayitlari, b1_model_taslaklari
  */

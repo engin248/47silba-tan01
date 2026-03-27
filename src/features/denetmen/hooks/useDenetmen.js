@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/denetmen/hooks/useDenetmen.js
  * M13 Denetmen — Kalite Kontrol & Audit Log

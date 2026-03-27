@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/siparisler/services/siparislerApi.js
  * M10 Siparişler — Supabase Servis Katmanı

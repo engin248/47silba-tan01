@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 /**
  * features/guvenlik/components/GuvenlikMainContainer.js
  * Kaynak: app/guvenlik/page.js → features mimarisine taşındı
  * UI logic burada, state/data → hooks/useGuvenlik.js
  */
 
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { useState, useEffect } from 'react';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { Shield, Clock, RefreshCw, CheckCircle2, AlertTriangle, LogOut } from 'lucide-react';

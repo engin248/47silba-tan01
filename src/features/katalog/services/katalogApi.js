@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/katalog/services/katalogApi.js
  * 
  * Tüm Supabase sorguları tek yer — MainContainer doğrudan supabase.from() çağırmaz.

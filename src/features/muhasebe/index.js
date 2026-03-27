@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 📦 M14 Muhasebe & Final Rapor — Barrel File | Route: /muhasebe
  * Public API:
  *   import { MuhasebeMainContainer } from '@/features/muhasebe';

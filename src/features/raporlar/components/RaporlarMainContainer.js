@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/raporlar/components/RaporlarMainContainer.js
  * [A-01] Recharts grafik motoru eklendi — Bar, Line, Pie charts
@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 
 // CSV Export yardımcı fonksiyonu
 const csvIndir = (baslik, satirlar, dosyaAdi) => {

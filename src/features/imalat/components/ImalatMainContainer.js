@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { Lock } from 'lucide-react';
 import NextLink from 'next/link';
 

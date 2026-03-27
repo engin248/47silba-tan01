@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { rateLimitKontrol } from '@/lib/rateLimit';
 import { isEmriSchema, veriDogrula } from '@/lib/zodSchemas';

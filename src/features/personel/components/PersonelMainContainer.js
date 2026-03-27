@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/personel/components/PersonelMainContainer.js
  * Kaynak: app/personel/page.js → features mimarisine taşındı
@@ -11,7 +11,7 @@ import { Users, Plus, Search, Award, Clock, TrendingUp, Trash2, AlertCircle, Che
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
 

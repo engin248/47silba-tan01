@@ -5,7 +5,7 @@ import { Bot, Plus, Play, Square, CheckCircle2, XCircle, Clock, Loader2, AlertTr
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import AjanKomutaGostergesi from '@/components/AjanKomutaGostergesi';
 import AjanOrchestrator from './AjanOrchestrator';

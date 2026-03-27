@@ -1,4 +1,4 @@
-﻿/**
+/**
  * /api/kur — Günlük Döviz Kuru
  * [A-02] TCMB (Merkez Bankası) Canlı Kuru
  * Supabase'e günlük cache yazılır — aynı gün ikincil istek yapılmaz

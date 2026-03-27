@@ -1,4 +1,4 @@
-﻿// ─── ROOT LAYOUT — SERVER COMPONENT ──────────────────────────
+// ─── ROOT LAYOUT — SERVER COMPONENT ──────────────────────────
 // 'use client' BURADA YOK — Next.js metadata API çalışsın diye
 // Tüm client mantığı (sidebar, auth, offline, realtime) → ClientLayout.js içinde
 import './globals.css';

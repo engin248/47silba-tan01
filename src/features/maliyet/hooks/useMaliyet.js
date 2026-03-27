@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/maliyet/hooks/useMaliyet.js
  * B-06 FIX: maliyetApi.js'e bağlandı — artık boş şablon değil

@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { MessageSquare, Hash, Clock, User, ChevronDown, ChevronUp, ExternalLink, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { formatTarih } from '@/lib/utils';
 
 const ONCELIK_RENK = {

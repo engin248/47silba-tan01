@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 /**
  * features/uretim/components/UretimSayfasi.js
  * Üretim Bandı Sayfası — Tüm UI burada, logic useIsEmri hook'unda
  */
 import { LayoutList, Play, Square, Pause, FileCheck, RefreshCw, AlertTriangle, Plus, Trash2, StopCircle, Clock, Save, DollarSign, Activity, Factory, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { useIsEmri, DEPARTMANLAR, DURUS_KODLARI, MALIYET_TIPLERI, ST_RENK, ST_LABEL, getST_RENK, getST_LABEL } from '@/features/uretim/hooks/useIsEmri';
 import { useUretimRecetesi } from '@/features/uretim/hooks/useUretimRecetesi';
 import M6_KameraSayaci from '@/features/uretim/components/M6_KameraSayaci';

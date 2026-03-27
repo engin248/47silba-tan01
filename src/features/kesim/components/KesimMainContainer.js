@@ -5,7 +5,7 @@ import { Scissors, Plus, Search, CheckCircle2, AlertTriangle, Trash2, ShieldAler
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';

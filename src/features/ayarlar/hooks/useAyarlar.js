@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/ayarlar/hooks/useAyarlar.js
  * M17 Sistem Ayarları — Tüm State & İş Mantığı

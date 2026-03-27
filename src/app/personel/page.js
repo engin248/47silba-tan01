@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/personel/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/personel/components/PersonelMainContainer.js

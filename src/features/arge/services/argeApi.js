@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/arge/services/argeApi.js
  * Tablolar: b1_arge_trendler, b1_agent_loglari
  * Hook: useArge.js (165 satır, zaten tam)

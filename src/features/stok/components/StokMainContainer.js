@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/stok/components/StokMainContainer.js
  * Kaynak: app/stok/page.js → features mimarisine taşındı
@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { Package, Plus, Search, ArrowUpRight, ArrowDownRight, AlertTriangle, ShieldAlert, Boxes, Database, Trash2, ArrowRightLeft } from 'lucide-react';
 import MesajBanner from '@/components/shared/MesajBanner';

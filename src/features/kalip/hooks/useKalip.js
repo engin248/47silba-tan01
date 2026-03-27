@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/kalip/hooks/useKalip.js
  * M16 Kalıp Arşivi — Beden & Desen Yönetimi

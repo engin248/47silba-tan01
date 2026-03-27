@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect } from 'react';
 
 // ─── KÜRESEL ÇÖKME VE ZIRH KALKANI (GLOBAL ERROR BOUNDARY) ───

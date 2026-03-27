@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/gorevler/components/GorevlerMainContainer.js
  * B-06: Sürükle-bırak Kanban Board eklendi (HTML5 Drag-and-Drop tabanlı)
@@ -8,7 +8,7 @@ import { ClipboardList, Plus, CheckCircle2, AlertTriangle, Trash2, LayoutGrid, L
 import { supabase } from '@/lib/supabase';
 import { formatTarih, telegramBildirim } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/raporlar/hooks/useRaporlar.js
  * M11 Raporlar & Analiz — Tüm State & İş Mantığı

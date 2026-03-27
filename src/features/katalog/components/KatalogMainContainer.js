@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/katalog/components/KatalogMainContainer.js
  * Kaynak: app/katalog/page.js → features mimarisine taşındı
@@ -10,7 +10,7 @@ import { BookOpen, ShoppingBag, Plus, RefreshCw, AlertTriangle, CheckCircle2, Qr
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula'; // [B-08 FIX]
 import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';

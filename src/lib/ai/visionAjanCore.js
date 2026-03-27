@@ -1,4 +1,4 @@
-﻿/**
+/**
  * /src/lib/ai/visionAjanCore.js
  * THE ORDER — KÖR NOKTA VİSİON (Görü) ANALİZ MOTORU
  *

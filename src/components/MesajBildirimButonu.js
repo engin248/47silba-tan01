@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * MesajBildirimButonu
  * • Polling YOK — sadece Realtime WebSocket (HTTP quota tüketmez)
@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { MessageSquare, X, ChevronRight, AlertTriangle } from 'lucide-react';
 
 export default function MesajBildirimButonu() {

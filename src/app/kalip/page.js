@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/kalip/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/kalip/components/KalipMainContainer.js

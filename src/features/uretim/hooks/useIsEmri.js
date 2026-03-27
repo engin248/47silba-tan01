@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/uretim/hooks/useIsEmri.js
  * Üretim Bandı — Tüm İş Emri + Maliyet + Devir Mantığı
  * Bu hook, uretim/page.js'ten tüm logic'i taşır.

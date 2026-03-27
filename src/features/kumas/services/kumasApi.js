@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/kumas/services/kumasApi.js
  * Tablolar: b1_kumas_arsivi, b1_aksesuar_arsivi, b2_tedarikciler
  */

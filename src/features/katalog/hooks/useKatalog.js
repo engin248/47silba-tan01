@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/katalog/hooks/useKatalog.js
  * M9 Ürün Kataloğu — Tüm State & İş Mantığı

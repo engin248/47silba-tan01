@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Scan, UserCheck, PackageOpen, CheckCircle, AlertTriangle, Clock, Hammer, X, Play, LogOut, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 
 export default function KioskTerminal() {
     const { lang } = useLang();

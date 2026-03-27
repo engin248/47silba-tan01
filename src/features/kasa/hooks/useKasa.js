@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 // @ts-nocheck
 /**
  * features/kasa/hooks/useKasa.js

@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // 2. EKİP: "MATEMATİKÇİ VE KARAR YARGICI (The Analyst / AI Mastermind)"
 // GÖREVİ: 'b1_arge_products' tablosundaki ham veriyi Gemini AI ile analiz et,
 //          skorla, karar ver ve veritabanına dağıt.

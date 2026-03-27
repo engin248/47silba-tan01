@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/arge/hooks/useArge.js
  * AR-GE Trend Araştırma Sayfası — Tüm Logic
  */

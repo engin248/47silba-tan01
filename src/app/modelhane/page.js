@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/modelhane/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/modelhane/components/ModelhaneMainContainer.js

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/kasa/services/kasaApi.js
  * Tablo: b2_kasa_hareketleri (MainContainer'dan doğrulanan ad)
  */

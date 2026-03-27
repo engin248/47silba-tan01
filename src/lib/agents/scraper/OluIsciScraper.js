@@ -1,4 +1,4 @@
-﻿// ╔══════════════════════════════════════════════════════════════════╗
+// ╔══════════════════════════════════════════════════════════════════╗
 // ║ [ARŞİV] Bu dosya 16.03.2026'da oluisci.js ile birleştirildi.  ║
 // ║ AKTİF DEĞİLDİR. Referans olarak korunmaktadır.                ║
 // ║ Güncel versiyon: src/scripts/scrapers/oluisci.js                ║

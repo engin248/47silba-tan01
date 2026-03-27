@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/ajanlar/hooks/useAjanlar.js
  * M19 AI Ajanlar — Tüm State & İş Mantığı

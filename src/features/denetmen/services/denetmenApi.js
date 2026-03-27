@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/denetmen/services/denetmenApi.js
  * Tablolar: b1_sistem_uyarilari, b1_agent_loglari, b2_urun_katalogu, b1_muhasebe_raporlari
  * (MainContainer'dan doğrulanan gerçek tablo adları)

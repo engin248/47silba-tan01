@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/musteriler/components/MusterilerMainContainer.js
  * Kaynak: app/musteriler/page.js → features mimarisine taşındı
@@ -10,7 +10,7 @@ import { UserCheck, Plus, Phone, Mail, MapPin, Trash2, Lock, Search, Edit3, Aler
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import SilBastanModal from '@/components/ui/SilBastanModal';
 import Link from 'next/link';
 

@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { spamKontrol } from '@/lib/ApiZirhi';
 
 export const dynamic = 'force-dynamic';

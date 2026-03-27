@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { formatTarih, telegramBildirim } from '@/lib/utils';
 import { mesajSifrele, mesajCoz, sifreliMi } from '@/lib/mesajSifrele';
 

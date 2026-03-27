@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/siparisler/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/siparisler/components/SiparislerMainContainer.js

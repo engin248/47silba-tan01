@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
 import { TrendingUp, Plus, ExternalLink, Bot, Zap, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
 

@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { ShieldAlert, CheckCircle, XCircle, RefreshCw, Clock, TrendingUp, Package, AlertTriangle, Lock, Camera, UploadCloud, ScanEye, Database } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { videoVeResimDenetle } from '@/lib/ai/visionAjanCore';
 import SilBastanModal from '@/components/ui/SilBastanModal';
 

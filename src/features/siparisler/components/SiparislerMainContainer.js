@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, CheckCircle2, AlertTriangle, Trash2, ChevronRight, Package, Truck, X, Printer, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { useLang } from '@/lib/langContext';
+import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import { telegramBildirim, formatTarih } from '@/lib/utils';
 import ErisimBariyeri from '@/lib/components/ui/ErisimBariyeri';

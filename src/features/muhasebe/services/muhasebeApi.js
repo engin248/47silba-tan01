@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/muhasebe/services/muhasebeApi.js
  * M14 Muhasebe & Final Rapor — Supabase Servis Katmanı
  */

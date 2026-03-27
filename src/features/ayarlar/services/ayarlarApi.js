@@ -1,4 +1,4 @@
-﻿/**
+/**
  * features/ayarlar/services/ayarlarApi.js
  *
  * Tüm Supabase sorguları tek yer.

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { Package, ChevronRight, AlertTriangle, CheckCircle2, ExternalLink, ArrowRight } from 'lucide-react';
 import NextLink from 'next/link';
 

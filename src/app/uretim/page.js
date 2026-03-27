@@ -1,4 +1,4 @@
-﻿import UretimSayfasi from '@/features/uretim/components/UretimSayfasi';
+import UretimSayfasi from '@/features/uretim/components/UretimSayfasi';
 
 export default function UretimPage() {
     return (

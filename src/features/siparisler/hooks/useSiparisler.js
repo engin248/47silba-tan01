@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 // @ts-nocheck
 /**
  * features/siparisler/hooks/useSiparisler.js

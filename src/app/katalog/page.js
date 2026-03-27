@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/katalog/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/katalog/components/KatalogMainContainer.js

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/stok/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/stok/components/StokMainContainer.js

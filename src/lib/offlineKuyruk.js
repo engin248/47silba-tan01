@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 // ─── OFFLINE (ÇEVRİMDIŞI) VERİTABANI MOTORU (INDEXED-DB) ───
 // İnternet koptuğunda verileri tarayıcı hafızasına (IndexedDB) kilitler ve
 // İnternet geldiğinde Supabase'e gönderir.

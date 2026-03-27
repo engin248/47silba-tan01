@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/muhasebe/hooks/useMuhasebe.js
  * M14 Muhasebe — Tüm State & İş Mantığı

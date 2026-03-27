@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/kumas/hooks/useKumas.js
  * M2 Kumaş & Materyal Arşivi — Tüm State & İş Mantığı

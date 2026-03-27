@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/kumas/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/kumas/components/KumasMainContainer.js

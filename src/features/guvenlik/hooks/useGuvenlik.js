@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * features/guvenlik/hooks/useGuvenlik.js
  * M24 Güvenlik — RBAC + Audit Log + Giriş Kilidi

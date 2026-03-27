@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * app/musteriler/page.js — GİRİŞ NOKTASI (20 satır)
  * Tüm UI   → features/musteriler/components/MusterilerMainContainer.js
