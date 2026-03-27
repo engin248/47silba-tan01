@@ -9,7 +9,16 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
+    // ─── MONITORING TOKEN DOĞRULAMA ───────────────────────────────
+    // Sadece yetkili monitoring servisi (UptimeRobot, Vercel vb.) erişebilir.
+    // Header: x-health-token: <HEALTH_CHECK_TOKEN>
+    const gelenToken = request.headers.get('x-health-token');
+    const beklenenToken = process.env.HEALTH_CHECK_TOKEN;
+    if (beklenenToken && gelenToken !== beklenenToken) {
+        return NextResponse.json({ hata: 'Yetkisiz.' }, { status: 401 });
+    }
+
     const basla = Date.now();
 
     // TM SORGULAR PARALEL — Promise.all() ile eş zamanlı alışır

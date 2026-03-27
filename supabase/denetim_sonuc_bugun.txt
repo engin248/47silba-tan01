@@ -1,0 +1,41 @@
+
+NiZAM TABLO DENETiM RAPORU
+=================================================================
+Tablo Adi                        Durum          Satir Sayisi
+-----------------------------------------------------------------
+b0_sistem_loglari                MEVCUT          6 satir
+b0_arsiv                         MEVCUT          0 satir
+b0_herm_ai_kararlar              MEVCUT          0 satir
+b0_yetki_ayarlari                MEVCUT          18 satir
+b0_bildirim_loglari              MEVCUT          0 satir
+b1_arge_products                 MEVCUT          3 satir
+b1_arge_strategy                 MEVCUT          3 satir
+b1_arge_trend_data               MEVCUT          3 satir
+b1_arge_cost_analysis            MEVCUT          3 satir
+b1_arge_risk_analysis            MEVCUT          3 satir
+b1_arge_trendler                 MEVCUT          20 satir
+b1_agent_loglari                 MEVCUT          56 satir
+b1_ajan_gorevler                 MEVCUT          2 satir
+b1_sistem_uyarilari              MEVCUT          20 satir
+b1_uretim_kayitlari              MEVCUT          0 satir
+b1_muhasebe_raporlari            MEVCUT          0 satir
+b1_personel                      MEVCUT          1 satir
+b1_ai_is_kuyrugu                 MEVCUT          0 satir
+b2_siparisler                    MEVCUT          5 satir
+b2_urun_katalogu                 MEVCUT          2 satir
+b2_kasa_hareketleri              MEVCUT          4 satir
+b3_uretilen_tasarimlar           HATA(PGRST205)  
+m2_finans_veto                   MEVCUT          0 satir
+m2_finansal_kilit                MEVCUT          0 satir
+m4_finansal_kasa_arsivi          MEVCUT          0 satir
+m4_fiziksel_satin_almalar        MEVCUT          0 satir
+m4_yayindaki_vitrin_urunleri     MEVCUT          0 satir
+bot_tracking_logs                MEVCUT          0 satir
+notifications                    MEVCUT          0 satir
+camera_events                    MEVCUT          1 satir
+sistem_parametreleri             MEVCUT          2 satir
+-----------------------------------------------------------------
+TOPLAM: 30 MEVCUT | 0 EKSIK | 1 HATA
+
+SORONLAR:
+  HATA   | b3_uretilen_tasarimlar | Could not find the table 'public.b3_uretilen_tasarimlar' in 
