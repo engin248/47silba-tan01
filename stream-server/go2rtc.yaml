@@ -6,42 +6,39 @@ api:
 rtsp:
   disable_auth: true
 
-ffmpeg:
-  bin: "C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe"
-
 streams:
-  d1_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d1_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d2_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d2_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d3_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d3_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d4_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d4_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d5_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d5_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d6_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d6_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d7_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d7_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d8_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d8_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d9_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d9_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d10_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d10_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d11_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d11_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
-
-  d12_main: "ffmpeg:rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=0#video=copy#hardware"
-  d12_sub:  "ffmpeg:rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=1#video=h264#hardware"
+  d1_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d1_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.201:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d2_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d2_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.202:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d3_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d3_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.203:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d4_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d4_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.204:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d5_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d5_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.205:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d6_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d6_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.206:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d7_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d7_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.207:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d8_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d8_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.208:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d9_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d9_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.209:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d10_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d10_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.210:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d11_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d11_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.211:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  
+  d12_main: "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=0\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
+  d12_sub:  "exec:\"C:\\Users\\Admin\\Desktop\\47_SIL_BASTAN_01\\stream-server\\ffmpeg.exe\" -hide_banner -v error -rtsp_transport tcp -i \"rtsp://admin:tuana1452.@192.168.1.212:554/cam/realmonitor?channel=1&subtype=1\" -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -an -rtsp_transport tcp -f rtsp {output}"
