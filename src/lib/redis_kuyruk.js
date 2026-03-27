@@ -1,5 +1,6 @@
 const { Redis } = require('@upstash/redis');
-require('dotenv').config({ path: '.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env.local') }); // [H10 FIX] göreli path → mutlak path
 const crypto = require('crypto');
 
 // Upstash Redis Connection Config

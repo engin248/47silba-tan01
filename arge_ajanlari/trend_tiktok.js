@@ -124,7 +124,7 @@ async function bot1TiktokTrendAjani(hedefUrlVeyaEtiket, job_id = null, telemetri
             urun_adi: `Sosyal Trend: ${geminiSonuc.kitle_yasi}`,
             ai_satis_karari: nihaiKarar,
             trend_skoru: geminiSonuc.puan + (nihaiKarar === 'ÇOK_SATAR' ? 15 : 0),
-            artis_yuzdesi: Math.floor(Math.random() * 40) + 20,
+            artis_yuzdesi: null, // [H3 FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: geminiSonuc.kitle_yasi,
             erken_trend_mi: perplexitySonuc.global_trend !== 'Düşüşte' && !perplexitySonuc.negatif_linc_var_mi,
             hermania_karar_yorumu: `Rakip Fiyat: ${domVerisi.tespitEdilenRakipFiyati || 'Yok'}. Perplexity Raporu: ${perplexitySonuc.global_trend}`,

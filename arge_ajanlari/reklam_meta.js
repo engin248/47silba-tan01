@@ -109,7 +109,7 @@ async function bot4MetaReklamAjani(hedefMarkaVeyaUrun, job_id = null, telemetriF
             urun_adi: `Meta Reklam Dedektifi: ${hedefMarkaVeyaUrun}`,
             ai_satis_karari: geminiSonuc.karar,
             trend_skoru: geminiSonuc.puan,
-            artis_yuzdesi: Math.floor(Math.random() * 5),
+            artis_yuzdesi: null, // [H3 FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Reklam Hedefli Sürüler',
             erken_trend_mi: perplexitySonuc.organik_mi && metaVerisi.aktifReklamSayisi < 10,
             hermania_karar_yorumu: hermaiSebebi.trim(),

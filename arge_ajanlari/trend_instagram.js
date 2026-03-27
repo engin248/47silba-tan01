@@ -102,7 +102,7 @@ async function bot8InstagramTrendAjani(insPostUrl, job_id = null, telemetriFnc =
             urun_adi: `IG Trend Niyeti: ${igVerisi.izlenme} İzlenme`,
             ai_satis_karari: geminiSonuc.karar,
             trend_skoru: geminiSonuc.puan,
-            artis_yuzdesi: Math.floor(Math.random() * 25) + 5,
+            artis_yuzdesi: null, // [H3 FIX] Math.random() sahte veri kaldırıldı — gerçek veri yokken null
             hedef_kitle: 'Duyarlı / Instagram Kullanıcısı',
             erken_trend_mi: igVerisi.dmIstegi > 5,
             hermania_karar_yorumu: hermaiSebebi.trim(),
