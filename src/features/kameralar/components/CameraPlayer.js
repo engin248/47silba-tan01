@@ -16,7 +16,7 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
 
     const streamSrc = `${src}_${type}`;
     // Ekranda görünürse stream'i başlat (Cloudflare Tunnel uyumu için MSE/WebSocket kullanılır)
-    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=mse` : '';
+    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=webrtc,mse` : '';
     const bgColor = type === 'main' ? '#000' : '#020617';
 
     // 1. Lazy Loading (Intersection Observer)
@@ -43,15 +43,14 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
     }, [offline]);
 
     // 2. Timeout Kontrolü (Connection delay)
-    // FİX: loading state dependency array'den çıkarıldı → sonsuz render döngüsü engellendi
-    // loadingRef.current ile anlık state okunur (stale closure olmadan)
     const loadingRef = useRef(loading);
     useEffect(() => { loadingRef.current = loading; }, [loading]);
 
     useEffect(() => {
         if (!isVisible || offline || error) return;
         setLoading(true);
-        const timeout = type === 'main' ? 5000 : 3000;
+        // Timeout ÇOK KRİTİK: Cloudflare + WebRTC + MSE handhshake süresi 3 saniye değil, 8-12 saniye sürebilir!
+        const timeout = type === 'main' ? 20000 : 15000;
         const timer = setTimeout(() => {
             if (loadingRef.current) {
                 setError(true);
