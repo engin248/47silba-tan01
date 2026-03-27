@@ -83,14 +83,17 @@ export default function KameralarMainContainer() {
         };
         setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
         try {
-            await supabase.from('camera_access_log').insert([{
-                user_id: kullanici?.id || null,
-                kullanici_adi: logEntry.kullanici,
-                islem_tipi: islem,
-                kamera_adi: kameraAdi,
-                ip_adresi: 'client',
-            }]);
-        } catch { /* tablo henüz yoksa sessizce geç */ }
+            await fetch('/api/camera-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: kullanici?.id || null,
+                    kullanici_adi: logEntry.kullanici,
+                    islem_tipi: islem,
+                    kamera_adi: kameraAdi,
+                })
+            });
+        } catch { /* tablo henüz yoksa veya network hatasında sessizce geç */ }
     }, [kullanici]);
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
