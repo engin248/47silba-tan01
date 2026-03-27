@@ -48,7 +48,9 @@ const BOSH_MALIYET_FORM = { order_id: '', maliyet_tipi: 'personel_iscilik', tuta
 
 export function useIsEmri(kullanici) {
     const [dept, setDept] = useState('is_emri');
+    /** @type {[any[], import('react').Dispatch<import('react').SetStateAction<any[]>>]} */
     const [orders, setOrders] = useState([]);
+    /** @type {[any[], import('react').Dispatch<import('react').SetStateAction<any[]>>]} */
     const [personel, setPersonel] = useState([]);
     const [maliyetler, setMaliyetler] = useState([]);
     const [raporlar, setRaporlar] = useState([]);

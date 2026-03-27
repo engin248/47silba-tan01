@@ -149,6 +149,27 @@ export default function SiparislerSayfasi() {
     };
     const kalemSil = (i) => setKalemler(prev => prev.filter((_, idx) => idx !== i));
 
+    const [barkodOkuyucu, setBarkodOkuyucu] = useState('');
+    const handleBarkodOkutma = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (barkodOkuyucu.trim() === '') return;
+            // SI-03 barkod kontrolü
+            const urun = urunler.find(u =>
+                (u.urun_kodu && u.urun_kodu.toLowerCase() === barkodOkuyucu.trim().toLowerCase()) ||
+                (u.barkod && u.barkod === barkodOkuyucu.trim()) ||
+                (u.id === barkodOkuyucu.trim())
+            );
+            if (urun) {
+                setKalemler([...kalemler, { urun_id: urun.id, beden: '', renk: '', adet: 1, birim_fiyat_tl: urun.satis_fiyati_tl, iskonto_pct: 0, kalem_notu: '' }]);
+                goster(`Okundu: ${urun.urun_kodu}`, 'success');
+            } else {
+                goster(`⚠️ Barkod bulunamadı: ${barkodOkuyucu}`, 'error');
+            }
+            setBarkodOkuyucu('');
+        }
+    };
+
     const toplamHesapla = () => kalemler.reduce((s, k) => s + (parseInt(k.adet) || 0) * parseFloat(k.birim_fiyat_tl || 0) * (1 - (parseFloat(k.iskonto_pct) || 0) / 100), 0);
 
     const kaydet = async () => {
@@ -222,7 +243,7 @@ export default function SiparislerSayfasi() {
         setIslemdeId('durum_' + id);
         try {
             // 🛑 U Kriteri: Mükerrer İşlem/Durum Engeli
-            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum, toplam_tutar_tl, siparis_no, musteri_id, odeme_yontemi').eq('id', id).single();
+            const { data: mevcutSiparis } = await supabase.from('b2_siparisler').select('durum, toplam_tutar_tl, siparis_no, musteri_id, odeme_yontemi, acil').eq('id', id).single();
             if (mevcutSiparis && mevcutSiparis.durum === durum) {
                 return goster(`⚠️ Sipariş zaten "${DURUM_LABEL[durum] || durum}" durumunda! Mükerrer işlem engellendi.`, 'error');
             }
@@ -239,12 +260,27 @@ export default function SiparislerSayfasi() {
                         urun_id: k.urun_id, hareket_tipi: 'cikis', adet: k.adet,
                         aciklama: `Sipariş onayı - stok rezervasyonu (Sipariş ID: ${id})`,
                     }]);
-                    const { data: urun } = await supabase.from('b2_urun_katalogu').select('urun_adi, urun_kodu, stok_adeti, min_stok').eq('id', k.urun_id).single();
+                    const { data: urun } = await supabase.from('b2_urun_katalogu').select('urun_adi, urun_kodu, stok_adeti, min_stok, model_id').eq('id', k.urun_id).single();
                     if (urun) {
                         const yeniStok = Math.max(0, (urun.stok_adeti || 0) - k.adet);
+                        const stokFarki = (urun.stok_adeti || 0) - k.adet;
                         await supabase.from('b2_urun_katalogu').update({ stok_adeti: yeniStok }).eq('id', k.urun_id);
-                        if (yeniStok <= (urun.min_stok || 10)) {
-                            telegramBildirim(`🚨 KRİTİK STOK!\nÜrün: ${urun.urun_kodu} | ${urun.urun_adi}\nKalan: ${yeniStok} adet (Rezerve edildi)\nSınır: ${urun.min_stok || 10} — Acil tedarik!`);
+
+                        // [SI-02] Otonom Üretim Emri
+                        if (stokFarki < 0 && urun.model_id) {
+                            const eksikAdet = Math.abs(stokFarki);
+                            try {
+                                await supabase.from('production_orders').insert([{
+                                    model_id: urun.model_id,
+                                    quantity: eksikAdet,
+                                    status: 'pending',
+                                    priority: mevcutSiparis?.acil ? 'high' : 'normal',
+                                    order_code: `SP-${mevcutSiparis?.siparis_no || id}-UR`
+                                }]);
+                                telegramBildirim(`🤖 SİSTEM MÜDAHALESİ!\nSipariş: ${mevcutSiparis?.siparis_no || id}\nÜrün stoku eksiye düştü: ${urun.urun_kodu}\nEksik ➔ ${eksikAdet} adet otonom olarak banda atıldı!`);
+                            } catch (err) { console.error('Otonom üretim emri atılamadı:', err); }
+                        } else if (yeniStok <= (urun.min_stok || 10)) {
+                            telegramBildirim(`🚨 KRİTİK STOK!\nÜrün: ${urun.urun_kodu} | ${urun.urun_adi}\nKalan: ${yeniStok} adet\nSınır: ${urun.min_stok || 10}`);
                         }
                     }
                 }
@@ -344,7 +380,7 @@ export default function SiparislerSayfasi() {
             // [K-14 DÜZELTME - AUDIT LOGU]: Kimin, hangi siparışi sildiği artık kalıcı kaydediliyor
             try {
                 await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: String('b2_siparisler').replace(/['"]/ / g, ''),
+                    tablo_adi: String('b2_siparisler').replace(/['"]/g, ''),
                     islem_tipi: 'SILME',
                     kullanici_adi: kullanici?.ad || kullanici?.email || 'Bilinmeyen Kullanici',
                     eski_veri: {
@@ -552,19 +588,38 @@ export default function SiparislerSayfasi() {
                         <span className="text-sky-500">🏪</span> Mağaza/Kanal Performans Ciro Ölçümü
                     </h3>
                     <div className="flex flex-col gap-3">
-                        {[
-                            { ad: 'Perakende Mağaza', ciro: istatistik.gelir * 0.45, yuzde: 45, color: 'bg-sky-500' },
-                            { ad: 'Toptan Bayiler', ciro: istatistik.gelir * 0.35, yuzde: 35, color: 'bg-emerald-500' },
-                            { ad: 'E-Ticaret', ciro: istatistik.gelir * 0.20, yuzde: 20, color: 'bg-amber-500' },
-                        ].map((m, i) => (
-                            <div key={i} className="flex items-center gap-3">
-                                <div className="w-24 text-xs font-bold text-emerald-300 tracking-tight">{m.ad}</div>
-                                <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
-                                    <div className={`h-full rounded-full ${m.color}`} style={{ width: `${m.yuzde}%` }} />
+                        {(() => {
+                            // [KG-09] Gerçek Zamanlı Sipariş Kanalı Dağılımı
+                            const gecerliSiparisler = siparisler.filter(s => !['iptal', 'iade'].includes(s.durum));
+                            const toplamKanalCiro = gecerliSiparisler.reduce((t, s) => t + parseFloat(s.toplam_tutar_tl || 0), 0);
+
+                            const kanalHesapla = (kAdi) => {
+                                const t = gecerliSiparisler.filter(s => s.kanal === kAdi).reduce((s, z) => s + parseFloat(z.toplam_tutar_tl || 0), 0);
+                                return {
+                                    ciro: t,
+                                    yuzde: toplamKanalCiro > 0 ? (t / toplamKanalCiro * 100) : 0
+                                };
+                            };
+
+                            const magaza = kanalHesapla('magaza');
+                            const toptan = kanalHesapla('toptan');
+                            const b2b = kanalHesapla('b2b');
+                            const eTicaret = { ciro: kanalHesapla('eticaret').ciro + kanalHesapla('trendyol').ciro + kanalHesapla('instagram').ciro + kanalHesapla('diger').ciro, yuzde: kanalHesapla('eticaret').yuzde + kanalHesapla('trendyol').yuzde + kanalHesapla('instagram').yuzde + kanalHesapla('diger').yuzde };
+
+                            return [
+                                { ad: 'Perakende Mağaza', ciro: magaza.ciro, yuzde: magaza.yuzde, color: 'bg-sky-500' },
+                                { ad: 'Toptan & B2B', ciro: toptan.ciro + b2b.ciro, yuzde: toptan.yuzde + b2b.yuzde, color: 'bg-emerald-500' },
+                                { ad: 'E-Ticaret & Sosyal', ciro: eTicaret.ciro, yuzde: eTicaret.yuzde, color: 'bg-amber-500' },
+                            ].map((m, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <div className="w-24 text-xs font-bold text-emerald-300 tracking-tight leading-tight">{m.ad}</div>
+                                    <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                                        <div className={`h-full rounded-full ${m.color}`} style={{ width: `${m.yuzde}%` }} />
+                                    </div>
+                                    <div className="text-xs font-black text-white w-[70px] text-right">₺{(m.ciro || 0).toFixed(0)}</div>
                                 </div>
-                                <div className="text-xs font-black text-white w-16 text-right">₺{(m.ciro || 0).toFixed(0)}</div>
-                            </div>
-                        ))}
+                            ));
+                        })()}
                     </div>
                 </div>
             </div>
@@ -641,6 +696,18 @@ export default function SiparislerSayfasi() {
                         <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-3xl bg-emerald-100/50"></div>
                         <div className="flex flex-wrap justify-between items-center mb-4 gap-3 border-b-2 border-slate-100 pb-3">
                             <label className="font-black text-slate-700 text-sm m-0 uppercase flex items-center gap-2"><ShoppingCart size={16} className="text-emerald-600" /> Ürün Kalemleri *</label>
+                            {/* [SI-03] Barkod Okuyucu Donanımı Seçme/Okutma Alanı */}
+                            <div className="flex flex-1 max-w-[200px] ml-auto relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2">🔫</span>
+                                <input
+                                    value={barkodOkuyucu}
+                                    onChange={e => setBarkodOkuyucu(e.target.value)}
+                                    onKeyDown={handleBarkodOkutma}
+                                    placeholder="Barkod veya Kod (Enter)"
+                                    className="w-full pl-9 pr-3 py-1.5 bg-[#0d1117] border border-amber-500/50 focus:border-amber-400 rounded-lg text-xs font-bold text-amber-100 outline-none focus:shadow-[0_0_10px_rgba(251,191,36,0.2)] transition-shadow"
+                                    title="Barkod okuyucu tabanca ile okuttuğunuzda otomatik olarak sepete eklenir"
+                                />
+                            </div>
                             <div className="flex gap-4 items-center">
                                 <span className="font-black text-emerald-600 text-lg bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">Toplam: ₺{toplamHesapla().toFixed(2)}</span>
                                 <button type="button" onClick={kalemEkle} className="bg-slate-800 hover:bg-black text-emerald-400 border-0 px-4 py-2 rounded-lg font-bold text-xs cursor-pointer shadow-md transition-all flex items-center gap-1">

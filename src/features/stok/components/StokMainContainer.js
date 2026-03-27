@@ -301,12 +301,37 @@ export default function StokDepoKarargahi() {
                 </button>
             </div>
 
-            {/* ARAMA VE FİLTRE */}
-            <div style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: 450 }}>
-                <Search size={18} style={{ position: 'absolute', right: isAR ? 14 : 'auto', left: isAR ? 'auto' : 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                <input type="text" value={arama} onChange={e => setArama(e.target.value)}
-                    placeholder={isAR ? 'ابحث عن المنتج برمز المنتج...' : 'Ürün Kodu ile Stokta Ara...'}
-                    style={{ ...inp, paddingLeft: isAR ? 14 : 42, paddingRight: isAR ? 42 : 14 }} />
+            {/* ARAMA VE FİLTRE VE BARKOD (ST-06) */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: 1, minWidth: 280, maxWidth: 450 }}>
+                    <Search size={18} style={{ position: 'absolute', right: isAR ? 14 : 'auto', left: isAR ? 'auto' : 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    <input type="text" value={arama} onChange={e => setArama(e.target.value)}
+                        placeholder={isAR ? 'ابحث عن المنتج برمز المنتج...' : 'Ürün Kodu ile Stokta Ara...'}
+                        style={{ ...inp, paddingLeft: isAR ? 14 : 42, paddingRight: isAR ? 42 : 14 }} />
+                </div>
+                {erisim === 'full' && (
+                    <div style={{ position: 'relative', flex: 1, minWidth: 280, maxWidth: 300 }}>
+                        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>|\||</span>
+                        <input type="text" placeholder="Barkod Okut (ST-06)..."
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const val = e.currentTarget.value.trim();
+                                    if (!val) return;
+                                    const urun = stokEnvanteri.find(u => u.urun_kodu?.toLowerCase() === val.toLowerCase() || u.urun_adi?.toLowerCase() === val.toLowerCase());
+                                    if (urun) {
+                                        setYeniHareket({ ...BOSH_HAREKET, urun_id: urun.id });
+                                        setFormAcik(true);
+                                        showMessage(`Barkod Okundu: ${urun.urun_adi}`);
+                                    } else {
+                                        showMessage('⚠️ Ürün bulunamadı!', 'error');
+                                    }
+                                    e.currentTarget.value = '';
+                                }
+                            }}
+                            style={{ ...inp, paddingLeft: 42, border: '2px solid #0ea5e9', background: '#f0f9ff', color: '#0f172a' }} />
+                    </div>
+                )}
             </div>
 
             {formAcik && erisim === 'full' && (

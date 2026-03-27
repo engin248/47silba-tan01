@@ -96,10 +96,11 @@ export default function UretimSayfasi() {
                         { label: '⏳ Bekliyor', val: orders.filter(o => o.status === 'pending').length, color: '#d97706', bg: '#fffbeb' },
                         { label: '⚡ Üretimde', val: orders.filter(o => o.status === 'in_progress').length, color: '#2563eb', bg: '#eff6ff' },
                         { label: '✅ Tamamlandı', val: orders.filter(o => o.status === 'completed').length, color: '#059669', bg: '#f0fdf4' },
+                        { label: '⚙️ Kapasite (UR-03)', val: orders.filter(o => ['pending', 'in_progress'].includes(o.status)).reduce((acc, curr) => acc + (Number(curr.quantity) || 0), 0) + ' Adet', color: '#8b5cf6', bg: '#f5f3ff' },
                     ].map((s, i) => (
                         <div key={i} style={{ background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 12, padding: '0.875rem' }}>
                             <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</div>
-                            <div style={{ fontWeight: 900, fontSize: '1.3rem', color: s.color }}>{s.val}</div>
+                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: s.color, whiteSpace: 'nowrap' }}>{s.val}</div>
                         </div>
                     ))}
                 </div>
@@ -319,29 +320,50 @@ export default function UretimSayfasi() {
                                             )}
                                         </div>
                                     )}
-                                    {gorunenler.map(o => (
-                                        <div key={o.id} style={{ background: 'white', border: '2px solid', borderColor: o.status === 'completed' ? '#10b981' : seciliSiparisler.includes(o.id) ? '#34d399' : '#f1f5f9', borderRadius: 14, padding: '1.25rem' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                                                    <input type="checkbox" checked={seciliSiparisler.includes(o.id)} onChange={() => toggleSiparisSec(o.id)} style={{ width: 22, height: 22, cursor: 'pointer', accentColor: '#047857' }} />
-                                                    <div>
-                                                        <div style={{ display: 'flex', gap: 6, marginBottom: '0.375rem', flexWrap: 'wrap' }}>
-                                                            <span style={{ fontSize: '0.65rem', background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: 4, fontWeight: 800 }}>{o.b1_model_taslaklari?.model_kodu}</span>
-                                                            <span style={{ fontSize: '0.65rem', background: '#0f172a', color: 'white', padding: '2px 8px', borderRadius: 4, fontWeight: 800 }}>{o.quantity} adet</span>
-                                                            <DurumBadge durum={o.status} renkMap={ST_RENK} etiketMap={ST_LABEL} kucuk />
+                                    {gorunenler.map(o => {
+                                        const isGecikmeli = o.planned_end_date && new Date(o.planned_end_date) < new Date(); // UR-01
+                                        const pt = maliyetler.filter(m => m.order_id === o.id).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0); // UR-04
+                                        const asama = o.status === 'pending' ? 1 : o.status === 'in_progress' ? 2 : 4; // UR-02 (kalite vs eksikse 1/2/4 diye geçici eşleşme)
+                                        return (
+                                            <div key={o.id} style={{ background: 'white', border: '2px solid', borderColor: o.status === 'completed' ? '#10b981' : seciliSiparisler.includes(o.id) ? '#34d399' : (isGecikmeli ? '#fca5a5' : '#f1f5f9'), borderRadius: 14, padding: '1.25rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                                                        <input type="checkbox" checked={seciliSiparisler.includes(o.id)} onChange={() => toggleSiparisSec(o.id)} style={{ width: 22, height: 22, cursor: 'pointer', accentColor: '#047857', marginTop: 4 }} />
+                                                        <div>
+                                                            <div style={{ display: 'flex', gap: 6, marginBottom: '0.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                                <span style={{ fontSize: '0.65rem', background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: 4, fontWeight: 800 }}>{o.b1_model_taslaklari?.model_kodu}</span>
+                                                                <span style={{ fontSize: '0.65rem', background: '#0f172a', color: 'white', padding: '2px 8px', borderRadius: 4, fontWeight: 800 }}>{o.quantity} adet</span>
+                                                                <DurumBadge durum={o.status} renkMap={ST_RENK} etiketMap={ST_LABEL} kucuk />
+                                                                {/* [UR-01] Termin Alarmı */}
+                                                                {isGecikmeli && <span style={{ fontSize: '0.65rem', background: '#fef2f2', color: '#ef4444', border: '1px solid #fca5a5', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }} className="animate-pulse">🚨 GECİKME!</span>}
+                                                                {/* [UR-04] Gerçek Maliyet Takibi */}
+                                                                <span style={{ fontSize: '0.65rem', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>💰 MLT: ₺{pt.toFixed(2)}</span>
+                                                            </div>
+                                                            <h3 style={{ fontWeight: 800, margin: 0, color: '#0f172a' }}>{o.b1_model_taslaklari?.model_adi}</h3>
+
+                                                            {/* [UR-02] Aşama Bazlı İlerleme Çubuğu */}
+                                                            <div style={{ display: 'flex', gap: 4, marginTop: 12, width: '200px' }}>
+                                                                {['Kesim', 'İmalat', 'Kalite', 'Sevk'].map((adim, idx) => (
+                                                                    <div key={idx} style={{ flex: 1, height: 6, borderRadius: 3, background: asama >= (idx + 1) ? '#10b981' : '#e2e8f0', position: 'relative' }} title={adim} />
+                                                                ))}
+                                                            </div>
+                                                            <div style={{ display: 'flex', gap: 24, fontSize: '0.6rem', color: '#94a3b8', fontWeight: 800, marginTop: 4, textTransform: 'uppercase' }}>
+                                                                <span>Kes</span><span>İml</span><span>Klt</span><span>Svk</span>
+                                                            </div>
                                                         </div>
-                                                        <h3 style={{ fontWeight: 800, margin: 0, color: '#0f172a' }}>{o.b1_model_taslaklari?.model_adi}</h3>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexDirection: 'column' }}>
+                                                        <div style={{ display: 'flex', gap: 6 }}>
+                                                            {o.status === 'pending' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'in_progress')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>▶ Başlat</button>}
+                                                            {o.status === 'in_progress' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'completed')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>✅ Tamamla</button>}
+                                                            <button onClick={() => duzenleIsEmri(o)} style={{ background: '#fefce8', border: '1px solid #fde68a', color: '#d97706', padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>✏️</button>
+                                                        </div>
+                                                        <button disabled={islemdeId === 'sil_' + o.id} onClick={() => silIsEmri(o.id)} style={{ width: '100%', background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 8, cursor: islemdeId === 'sil_' + o.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + o.id ? 0.5 : 1 }}><Trash2 size={12} className="mx-auto" /></button>
                                                     </div>
                                                 </div>
-                                                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                    {o.status === 'pending' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'in_progress')} style={{ padding: '6px 14px', background: '#047857', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>▶ Başlat</button>}
-                                                    {o.status === 'in_progress' && <button disabled={islemdeId === 'durum_' + o.id} onClick={() => durumGuncelle(o.id, 'completed')} style={{ padding: '6px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: islemdeId === 'durum_' + o.id ? 'wait' : 'pointer', fontSize: '0.78rem', opacity: islemdeId === 'durum_' + o.id ? 0.5 : 1 }}>✅ Tamamla</button>}
-                                                    <button onClick={() => duzenleIsEmri(o)} style={{ background: '#fefce8', border: '1px solid #fde68a', color: '#d97706', padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>✏️</button>
-                                                    <button disabled={islemdeId === 'sil_' + o.id} onClick={() => silIsEmri(o.id)} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '6px 10px', borderRadius: 8, cursor: islemdeId === 'sil_' + o.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + o.id ? 0.5 : 1 }}><Trash2 size={14} /></button>
-                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                     {orders.length === 0 && <div style={{ textAlign: 'center', padding: '4rem', background: '#f8fafc', borderRadius: 16 }}><Factory size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} /><p style={{ color: '#94a3b8', fontWeight: 700 }}>İş emri yok.</p></div>}
                                 </>
                             );

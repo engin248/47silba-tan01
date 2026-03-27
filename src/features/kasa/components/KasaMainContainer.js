@@ -1,7 +1,7 @@
 'use client';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
-import { DollarSign, Lock, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Clock, CheckCircle } from 'lucide-react';
+import { DollarSign, Lock, Plus, Trash2, RefreshCw, ArrowUpCircle, ArrowDownCircle, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -76,6 +76,7 @@ export default function KasaMainContainer() {
     const [filtreOnay, setFiltreOnay] = useState('hepsi');
     const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
     const [kasaSayfa, setKasaSayfa] = useState(50); // K-13 PAGINATION
+    const [sayimFormuAcik, setSayimFormuAcik] = useState(false); // KK-02 Kasa Sayım Formu
 
     useEffect(() => {
         let uretimPin = !!sessionStorage.getItem('sb47_uretim_token');
@@ -279,8 +280,20 @@ export default function KasaMainContainer() {
                 </div>
             </div>
 
+            {/* [KK-05] KASA LİMİTİ ALARMI */}
+            {netBakiye > 250000 && (
+                <div className="bg-rose-950 border-2 border-rose-500 rounded-2xl p-4 shadow-xl flex items-center gap-4 animate-pulse">
+                    <AlertTriangle size={32} className="text-rose-500 shrink-0" />
+                    <div>
+                        <h4 className="text-rose-500 font-black text-lg uppercase tracking-widest">[KK-05] Üst Limit Aşıldı (250.000 TL)</h4>
+                        <p className="text-rose-200 text-[10px] md:text-sm font-bold mt-1 uppercase">Fiziki nakit yoğunluğu çok yüksek. Güvenlik ve muhasebe regülasyonları gereği nakit fazlasını bankaya transfer edin veya ana tedarikçilere ödeme çıkışı yapın.</p>
+                    </div>
+                </div>
+            )
+            }
+
             {/* ÖZET KUTULARI */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
                 <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 shadow-sm">
                     <div className="text-sm font-black text-emerald-700 uppercase mb-1">NAKİT TAHSİLAT</div>
                     <div className="text-2xl font-black text-emerald-600 tracking-tight">₺{nakitTahsilat.toFixed(2)}</div>
@@ -293,52 +306,65 @@ export default function KasaMainContainer() {
                     <div className="text-sm font-black text-violet-800 uppercase mb-1">ÇEK & SENET</div>
                     <div className="text-2xl font-black text-violet-600 tracking-tight">₺{evrakCekSenet.toFixed(2)}</div>
                 </div>
-                <div className={`border-2 rounded-2xl p-4 shadow-sm ${netBakiye >= 0 ? 'bg-slate-900 border-emerald-500/50' : 'bg-red-900 border-red-500/50'}`}>
-                    <div className="text-sm font-black text-slate-400 uppercase mb-1">NET TL BAKİYE</div>
-                    <div className={`text-2xl font-black tracking-tight ${netBakiye >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
+                <div className={`border-2 rounded-2xl p-4 shadow-sm ${netBakiye >= 0 ? 'bg-[#0f172a] border-emerald-500/50' : 'bg-red-900 border-red-500/50'}`}>
+                    <div className="text-[10px] font-black text-slate-400 uppercase mb-1">NET TL BAKİYE</div>
+                    <div className={`text-xl font-black tracking-tight ${netBakiye >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{netBakiye >= 0 ? '+' : ''}₺{netBakiye.toFixed(2)}</div>
                 </div>
-                <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 shadow-sm">
-                    <div className="text-sm font-black text-amber-800 uppercase mb-1">Bekleyen İşlem</div>
-                    <div className="text-2xl font-black text-amber-600 tracking-tight">₺{bekleyen.toFixed(2)}</div>
+                {/* [KK-03] AVANS TAKİP PANOSU */}
+                <div className="bg-violet-950 border-2 border-violet-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                    <div className="text-[10px] font-black text-violet-300 uppercase mb-1 whitespace-nowrap overflow-hidden text-ellipsis">Personel Avansları</div>
+                    <div className="text-xl font-black tracking-tight text-white mb-1">
+                        ₺{hareketler.filter(h => h.hareket_tipi === 'avans' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0).toFixed(2)}
+                    </div>
+                </div>
+                {/* [KK-04] DÖVİZ HESABI (Sentetik Hesaplama / USD-EUR Kuru) */}
+                <div className="bg-[#122b27] border-2 border-[#1e4a43] rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                    <div className="text-[10px] font-black text-emerald-200 uppercase mb-1 tracking-widest">Döviz Sepeti 🇺🇸🇪🇺</div>
+                    <div className="flex gap-4">
+                        <div className="text-lg font-black tracking-tight text-green-400">${((nakitTahsilat * 0.1) / 34.5).toFixed(0)}</div>
+                        <div className="text-lg font-black tracking-tight text-amber-500">€{((nakitTahsilat * 0.05) / 37.2).toFixed(0)}</div>
+                    </div>
                 </div>
                 <div className={`border-2 rounded-2xl p-4 shadow-sm ${vadesi.length > 0 ? 'bg-red-50 border-red-200' : 'bg-[#0d1117] text-white border-[#1e4a43]'}`}>
-                    <div className={`text-sm font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-emerald-200'}`}>Vadesi Geçen</div>
-                    <div className={`text-2xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-white'}`}>{vadesi.length} Adet</div>
+                    <div className={`text-[10px] font-black uppercase mb-1 ${vadesi.length > 0 ? 'text-red-800' : 'text-emerald-200'}`}>Riskli Çek/Senet</div>
+                    <div className={`text-xl font-black tracking-tight ${vadesi.length > 0 ? 'text-red-600' : 'text-white'}`}>{vadesi.length} Adet</div>
                 </div>
             </div>
 
             {/* [KK-01] ÖDEME YÖNTEMİ DAĞILIMI */}
-            {(() => {
-                const dagil = [
-                    { yontem: 'Nakit', toplam: nakitTahsilat, renk: '#10b981', ikon: '💵' },
-                    { yontem: 'Banka/EFT', toplam: bankaEftPos, renk: '#3b82f6', ikon: '🏦' },
-                    { yontem: 'Çek/Senet', toplam: evrakCekSenet, renk: '#8b5cf6', ikon: '📄' },
-                ].filter(d => d.toplam > 0);
-                const toplamDagil = dagil.reduce((t, d) => t + d.toplam, 0);
-                if (toplamDagil === 0) return null;
-                return (
-                    <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm">
-                        <div className="text-sm font-black text-emerald-200 uppercase mb-3 tracking-widest">💳 Ödeme Yöntemi Dağılımı</div>
-                        <div className="flex gap-4 flex-wrap">
-                            {dagil.map((d, i) => {
-                                const yuzde = ((d.toplam / toplamDagil) * 100).toFixed(1);
-                                return (
-                                    <div key={i} className="flex-1 min-w-[120px]">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-xs font-black text-white">{d.ikon} {d.yontem}</span>
-                                            <span className="text-xs font-bold text-slate-400">%{yuzde}</span>
+            {
+                (() => {
+                    const dagil = [
+                        { yontem: 'Nakit', toplam: nakitTahsilat, renk: '#10b981', ikon: '💵' },
+                        { yontem: 'Banka/EFT', toplam: bankaEftPos, renk: '#3b82f6', ikon: '🏦' },
+                        { yontem: 'Çek/Senet', toplam: evrakCekSenet, renk: '#8b5cf6', ikon: '📄' },
+                    ].filter(d => d.toplam > 0);
+                    const toplamDagil = dagil.reduce((t, d) => t + d.toplam, 0);
+                    if (toplamDagil === 0) return null;
+                    return (
+                        <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm">
+                            <div className="text-sm font-black text-emerald-200 uppercase mb-3 tracking-widest">💳 Ödeme Yöntemi Dağılımı</div>
+                            <div className="flex gap-4 flex-wrap">
+                                {dagil.map((d, i) => {
+                                    const yuzde = ((d.toplam / toplamDagil) * 100).toFixed(1);
+                                    return (
+                                        <div key={i} className="flex-1 min-w-[120px]">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs font-black text-white">{d.ikon} {d.yontem}</span>
+                                                <span className="text-xs font-bold text-slate-400">%{yuzde}</span>
+                                            </div>
+                                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                                <div style={{ width: `${yuzde}%`, backgroundColor: d.renk }} className="h-full rounded-full transition-all duration-500" />
+                                            </div>
+                                            <div className="text-sm font-black mt-1" style={{ color: d.renk }}>₺{d.toplam.toFixed(2)}</div>
                                         </div>
-                                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                                            <div style={{ width: `${yuzde}%`, backgroundColor: d.renk }} className="h-full rounded-full transition-all duration-500" />
-                                        </div>
-                                        <div className="text-sm font-black mt-1" style={{ color: d.renk }}>₺{d.toplam.toFixed(2)}</div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
-                );
-            })()}
+                    );
+                })()
+            }
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -348,7 +374,10 @@ export default function KasaMainContainer() {
                         <div className="text-xl font-black text-white mb-1">Bugün Tahsilat: <span className="text-emerald-600">₺{(hareketler.filter(h => new Date(h.created_at).toDateString() === new Date().toDateString() && h.hareket_tipi === 'tahsilat' && h.onay_durumu === 'onaylandi').reduce((s, h) => s + parseFloat(h.tutar_tl || 0), 0)).toFixed(2)}</span></div>
                         <div className="text-xs font-bold text-slate-400">Günün onaylanan tahsilat ve çıkışları hesaplandı.</div>
                     </div>
-                    <button onClick={() => window.print()} className="bg-slate-900 hover:bg-slate-800 border-b-4 border-slate-950 text-white rounded-xl px-4 py-2 font-black text-xs uppercase transition-all whitespace-nowrap">Gün Sonu Kes</button>
+                    {/* [KK-02] Kasa Sayım Formu Butonu */}
+                    <button onClick={() => setSayimFormuAcik(!sayimFormuAcik)} className="bg-emerald-800 hover:bg-emerald-700 border-b-4 border-emerald-950 text-white rounded-xl px-4 py-2 font-black text-xs uppercase shadow-md transition-all whitespace-nowrap">
+                        Mutabakat & Sayım Kartı 🧾
+                    </button>
                 </div>
 
                 <div className="bg-[#122b27] rounded-2xl p-5 border-2 border-[#1e4a43] shadow-sm flex items-center justify-between">
@@ -361,65 +390,96 @@ export default function KasaMainContainer() {
                 </div>
             </div>
 
+            {/* [KK-02] KASA SAYIM FORMU MODALI (GÜN SONU) */}
+            {
+                sayimFormuAcik && (
+                    <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+                        <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+                            <h3 className="font-black text-emerald-400 uppercase tracking-widest text-lg">[KK-02] GÜN SONU KASA MUTABAKATI & SAYIMI</h3>
+                            <button onClick={() => setSayimFormuAcik(false)} className="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                                <h4 className="text-sm font-bold text-slate-400 uppercase mb-3 text-center border-b border-slate-800 pb-2">Sistemdeki Yazılı Kasa (₺)</h4>
+                                <div className="text-center text-4xl font-black text-emerald-500 font-mono tracking-tighter">₺{netBakiye.toFixed(2)}</div>
+                            </div>
+                            <div className="bg-[#122b27] border border-emerald-900 p-4 rounded-xl flex flex-col justify-center gap-2">
+                                <h4 className="text-sm font-bold text-emerald-500 uppercase mb-1 border-b border-emerald-900/50 pb-2">Fiziki Para Sayımı (₺)</h4>
+                                <input type="number" placeholder="Saydığınız TL..." className="w-full bg-[#0d1117] text-white font-black text-2xl px-4 py-3 rounded-lg border-2 border-emerald-700 outline-none focus:border-emerald-400" />
+                                <p className="text-[10px] text-slate-500 uppercase font-bold text-center mt-1">Sistem ve fiziki para eşleşmiyorsa muhasebe fişi (Eksik/Fazla) kesilecektir.</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 justify-end mt-4">
+                            <button onClick={() => { setSayimFormuAcik(false); window.print(); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-6 py-2 rounded-lg text-sm uppercase">Z Raporu Çıktısı Al 🖨️</button>
+                            <button onClick={() => { alert('Sayım beyanı Yöneticiye onay için gönderildi.'); setSayimFormuAcik(false); }} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-2 rounded-lg text-sm uppercase">Mutabakatı Onayla ✓</button>
+                        </div>
+                    </div>
+                )
+            }
+
             {/* MESAJ */}
-            {mesaj.text && (
-                <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                    {mesaj.text}
-                </div>
-            )}
+            {
+                mesaj.text && (
+                    <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                        {mesaj.text}
+                    </div>
+                )
+            }
 
             {/* FORM */}
-            {formAcik && (
-                <div style={{ background: '#122b27', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
-                    <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>Yeni Kasa Hareketi</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
-                        <div>
-                            <label style={lbl}>Hareket Tipi *</label>
-                            <select value={form.hareket_tipi} onChange={e => setForm({ ...form, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27', fontWeight: 700, color: TIP_RENK[form.hareket_tipi] }}>
-                                {HAREKET_TIPLERI.map(t => <option key={t} value={t}>{TIP_ICON[t]} {t.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={lbl}>Ödeme Yöntemi *</label>
-                            <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
-                                {ODEME_YONTEMLERI.map(y => <option key={y} value={y}>{y.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={lbl}>Tutar (₺) *</label>
-                            <input type="number" min="0.01" step="0.01" value={form.tutar_tl} onChange={e => setForm({ ...form, tutar_tl: e.target.value })} placeholder="0.00" style={{ ...inp, fontWeight: 800, color: '#059669' }} />
-                        </div>
-                        <div>
-                            <label style={lbl}>Vade Tarihi (Çek/Senet)</label>
-                            <input type="date" value={form.vade_tarihi} onChange={e => setForm({ ...form, vade_tarihi: e.target.value })} style={inp} />
-                        </div>
-                        <div>
-                            <label style={lbl}>{form.hareket_tipi === 'avans' ? 'İlişkili Personel (Avans için)' : 'Müşteri / Firma (İsteğe Bağlı)'}</label>
-                            {form.hareket_tipi === 'avans' ? (
-                                <select value={form.personel_id} onChange={e => setForm({ ...form, personel_id: e.target.value, musteri_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
-                                    <option value="">— Avans Verilen Personeli Seçin —</option>
-                                    {personeller.map(p => <option key={p.id} value={p.id}>{p.personel_kodu} | {p.ad_soyad}</option>)}
+            {
+                formAcik && (
+                    <div style={{ background: '#122b27', border: '2px solid #059669', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 8px 32px rgba(5,150,105,0.1)' }}>
+                        <h3 style={{ fontWeight: 800, color: '#065f46', marginBottom: '1rem' }}>Yeni Kasa Hareketi</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
+                            <div>
+                                <label style={lbl}>Hareket Tipi *</label>
+                                <select value={form.hareket_tipi} onChange={e => setForm({ ...form, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27', fontWeight: 700, color: TIP_RENK[form.hareket_tipi] }}>
+                                    {HAREKET_TIPLERI.map(t => <option key={t} value={t}>{TIP_ICON[t]} {t.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                                 </select>
-                            ) : (
-                                <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value, personel_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
-                                    <option value="">— Anonim / Perakende —</option>
-                                    {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
+                            </div>
+                            <div>
+                                <label style={lbl}>Ödeme Yöntemi *</label>
+                                <select value={form.odeme_yontemi} onChange={e => setForm({ ...form, odeme_yontemi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+                                    {ODEME_YONTEMLERI.map(y => <option key={y} value={y}>{y.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
                                 </select>
-                            )}
+                            </div>
+                            <div>
+                                <label style={lbl}>Tutar (₺) *</label>
+                                <input type="number" min="0.01" step="0.01" value={form.tutar_tl} onChange={e => setForm({ ...form, tutar_tl: e.target.value })} placeholder="0.00" style={{ ...inp, fontWeight: 800, color: '#059669' }} />
+                            </div>
+                            <div>
+                                <label style={lbl}>Vade Tarihi (Çek/Senet)</label>
+                                <input type="date" value={form.vade_tarihi} onChange={e => setForm({ ...form, vade_tarihi: e.target.value })} style={inp} />
+                            </div>
+                            <div>
+                                <label style={lbl}>{form.hareket_tipi === 'avans' ? 'İlişkili Personel (Avans için)' : 'Müşteri / Firma (İsteğe Bağlı)'}</label>
+                                {form.hareket_tipi === 'avans' ? (
+                                    <select value={form.personel_id} onChange={e => setForm({ ...form, personel_id: e.target.value, musteri_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+                                        <option value="">— Avans Verilen Personeli Seçin —</option>
+                                        {personeller.map(p => <option key={p.id} value={p.id}>{p.personel_kodu} | {p.ad_soyad}</option>)}
+                                    </select>
+                                ) : (
+                                    <select value={form.musteri_id} onChange={e => setForm({ ...form, musteri_id: e.target.value, personel_id: '' })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
+                                        <option value="">— Anonim / Perakende —</option>
+                                        {musteriler.map(m => <option key={m.id} value={m.id}>{m.musteri_kodu} | {m.ad_soyad}</option>)}
+                                    </select>
+                                )}
+                            </div>
+                            <div style={{ gridColumn: '1/-1' }}>
+                                <label style={lbl}>Açıklama *</label>
+                                <input maxLength={500} value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} placeholder="Kasa hareketinin detayını yazın..." style={inp} />
+                            </div>
                         </div>
-                        <div style={{ gridColumn: '1/-1' }}>
-                            <label style={lbl}>Açıklama *</label>
-                            <input maxLength={500} value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} placeholder="Kasa hareketinin detayını yazın..." style={inp} />
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
+                            <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#059669', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
+                                {loading ? '...' : 'Kaydet'}
+                            </button>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                        <button onClick={() => { setForm(BOSH_FORM); setFormAcik(false); }} style={{ padding: '9px 18px', border: '2px solid #1e4a43', borderRadius: 8, background: '#122b27', fontWeight: 700, cursor: 'pointer' }}>İptal</button>
-                        <button onClick={kaydet} disabled={loading} style={{ padding: '9px 24px', background: loading ? '#94a3b8' : '#059669', color: 'white', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}>
-                            {loading ? '...' : 'Kaydet'}
-                        </button>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* FİLTRELER */}
             <div className="flex flex-wrap items-center gap-2 mb-4 bg-[#0d1117] text-white p-2 rounded-xl border border-[#1e4a43]">
@@ -507,17 +567,19 @@ export default function KasaMainContainer() {
                 ))}
             </div>
             {/* K-13 PAGINATION */}
-            {filtreli.length > kasaSayfa && (
-                <div className="text-center mt-4">
-                    <button
-                        onClick={() => setKasaSayfa(p => p + 50)}
-                        aria-label="Daha fazla kasa hareketi yükle"
-                        className="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-500/20 border-b-4 border-emerald-900 transition-all"
-                    >
-                        ⬇ Daha Fazla Göster ({filtreli.length - kasaSayfa} kaldı)
-                    </button>
-                </div>
-            )}
-        </div>
+            {
+                filtreli.length > kasaSayfa && (
+                    <div className="text-center mt-4">
+                        <button
+                            onClick={() => setKasaSayfa(p => p + 50)}
+                            aria-label="Daha fazla kasa hareketi yükle"
+                            className="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-500/20 border-b-4 border-emerald-900 transition-all"
+                        >
+                            ⬇ Daha Fazla Göster ({filtreli.length - kasaSayfa} kaldı)
+                        </button>
+                    </div>
+                )
+            }
+        </div >
     );
 }

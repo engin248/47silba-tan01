@@ -21,6 +21,7 @@ export default function MuhasebeMainContainer() {
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [raporsizemOrders, setRaporsizemOrders] = useState(/** @type {any[]} */([]));
     const [aramaMetni, setAramaMetni] = useState('');
+    const [muhasebeSekmesi, setMuhasebeSekmesi] = useState('uretim'); // 'uretim' | 'cari' | 'fatura' | 'banka'
     const [duzenleModal, setDuzenleModal] = useState(/** @type {any} */(null)); // { id, zayiat_adet, hedeflenen_maliyet_tl, notlar }
     const [duzenleForm, setDuzenleForm] = useState(/** @type {any} */({ zayiat_adet: '', hedeflenen_maliyet_tl: '', notlar: '', ek_maliyet_tl: '' }));
     const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
@@ -398,302 +399,330 @@ export default function MuhasebeMainContainer() {
                 </div>
             </div>
 
-            {/* İSTATİSTİK KARTLARI */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* SEKMELER (MU-02, MU-03, MU-04, MU-05) */}
+            <div className="flex flex-wrap gap-2 mb-4 mt-2 bg-[#122b27] p-2 rounded-xl border border-[#1e4a43]">
                 {[
-                    { label: 'Toplam Rapor', val: istatistik.toplam, colorClass: 'text-emerald-700', bgClass: 'bg-emerald-50 border-emerald-200' },
-                    { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-200' },
-                    { label: '✅ Onaylı', val: istatistik.onaylandi, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
-                    { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-white', bgClass: 'bg-[#0d1117] text-white border-[#1e4a43]' },
-                ].map((s, i) => (
-                    <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
-                        <div className="text-sm text-emerald-200 font-black uppercase mb-1 tracking-widest">{s.label}</div>
-                        <div className={`font-black text-2xl ${s.colorClass}`}>{s.val}</div>
-                    </div>
+                    { id: 'uretim', label: 'Maliyet Z-Raporları' },
+                    { id: 'cari', label: 'Cari Hesaplar (MU-02)' },
+                    { id: 'fatura', label: 'Faturalar & KDV (MU-03, MU-04)' },
+                    { id: 'banka', label: 'Banka Ekstresi (MU-05)' }
+                ].map(s => (
+                    <button key={s.id} onClick={() => setMuhasebeSekmesi(s.id)}
+                        className={`px-5 py-2.5 rounded-lg text-sm font-black transition-all ${muhasebeSekmesi === s.id ? 'bg-emerald-600 text-white shadow-lg' : 'bg-transparent text-emerald-200/60 hover:bg-emerald-900/30'}`}>
+                        {s.label}
+                    </button>
                 ))}
             </div>
 
-            {/* ARAMA */}
-            <div className="relative max-w-md">
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
-                    placeholder="Model kodu veya adına göre ara..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" />
-            </div>
-
-            {mesaj.text && (
-                <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                    {mesaj.text}
+            {muhasebeSekmesi !== 'uretim' && (
+                <div className="p-12 text-center bg-[#122b27] border border-dashed border-[#1e4a43] rounded-2xl">
+                    <h3 className="text-xl font-black text-emerald-500 mb-2 uppercase">ERP Finans Entegrasyonu Bekleniyor</h3>
+                    <p className="text-emerald-200/70 font-bold max-w-xl mx-auto">
+                        Cari Hesap (Müşteri/Tedarikçi Borç-Alacak dengesi), Fatura ve KDV yönetimi ile otomatik Banka Ekstresi entegrasyonu (b2_cari_hesap, b2_faturalar) güvenlik nedeniyle **API 2.0 fazına** taşınmıştır. Veritabanı tabloları eklendiğinde bu modül otonom çalışacaktır.
+                    </p>
                 </div>
             )}
 
-            {/* ÜRETİMDEN OTOMATIK RAPOR OLUŞTUR */}
-            {raporsizemOrders.length > 0 && (
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-2xl p-5 shadow-sm">
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xl">⚡</span>
-                        <span className="font-black text-amber-900 text-sm uppercase tracking-wider">
-                            {raporsizemOrders.length} Tamamlanmış Üretim — Muhasebe Raporu Bekliyor!
-                        </span>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        {raporsizemOrders.map(o => (
-                            <div key={o.id} className="flex justify-between items-center bg-[#122b27] rounded-xl p-3 border-2 border-amber-200 shadow-sm">
-                                <div>
-                                    <span className="text-xs font-black bg-amber-200 text-amber-900 px-2 py-1 rounded inline-block mr-2 uppercase">{o.model_kodu}</span>
-                                    <span className="font-bold text-white text-sm uppercase">{o.model_adi || 'Model'}</span>
-                                    <span className="text-xs font-bold text-slate-400 ml-2">{o.hedef_adet} adet</span>
-                                </div>
-                                <button onClick={() => uretimdenRaporOlustur(o)} disabled={loading}
-                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap">
-                                    📋 Rapor Oluştur
-                                </button>
+            {muhasebeSekmesi === 'uretim' && (
+                <>
+                    {/* İSTATİSTİK KARTLARI */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                            { label: 'Toplam Rapor', val: istatistik.toplam, colorClass: 'text-emerald-700', bgClass: 'bg-emerald-50 border-emerald-200' },
+                            { label: '⏳ Onay Bekl.', val: istatistik.bekleyen, colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-200' },
+                            { label: '✅ Onaylı', val: istatistik.onaylandi, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
+                            { label: '🔒 Kilitli', val: istatistik.kilitli, colorClass: 'text-white', bgClass: 'bg-[#0d1117] text-white border-[#1e4a43]' },
+                        ].map((s, i) => (
+                            <div key={i} className={`${s.bgClass} border-2 rounded-2xl p-4 shadow-sm`}>
+                                <div className="text-sm text-emerald-200 font-black uppercase mb-1 tracking-widest">{s.label}</div>
+                                <div className={`font-black text-2xl ${s.colorClass}`}>{s.val}</div>
                             </div>
                         ))}
                     </div>
-                </div>
-            )}
 
-
-            {/* [KRİTİK EKSİK] M8  BÜTÇE vs GERÇEK DASHBOARD */}
-            {raporlar.length > 0 && (() => {
-                const toplamHedef = raporlar.reduce((s, r) => s + parseFloat(r.hedeflenen_maliyet_tl || 0), 0);
-                const toplamGercek = raporlar.reduce((s, r) => s + parseFloat(r.gerceklesen_maliyet_tl || 0), 0);
-                const fark = toplamGercek - toplamHedef;
-                const pct = toplamHedef > 0 ? ((fark / toplamHedef) * 100).toFixed(1) : 0;
-                return (
-                    <div className={`border-2 rounded-2xl p-5 shadow-sm ${fark > 0 ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300'}`}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-xl">{fark > 0 ? '⚠️' : '✅'}</span>
-                            <span className={`font-black uppercase tracking-widest text-sm ${fark > 0 ? 'text-red-800' : 'text-emerald-800'}`}>
-                                BÜTÇE vs GERÇEK ANALİZİ — {raporlar.length} Rapor
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
-                                <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
-                            </div>
-                            <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
-                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
-                            </div>
-                            <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
-                                <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Sapma</div>
-                                <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{/** @type {any} */ (fark) > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({/** @type {any} */ (pct) > 0 ? '+' : ''}{pct}%)</div>
-                            </div>
-                        </div>
+                    {/* ARAMA */}
+                    <div className="relative max-w-md">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input value={aramaMetni} onChange={e => setAramaMetni(e.target.value)}
+                            placeholder="Model kodu veya adına göre ara..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-[#122b27] border-2 border-[#1e4a43] rounded-xl font-bold text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" />
                     </div>
-                );
-            })()}
 
-            {/* DEVİR GEÇİŞ KAPISI */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700 flex items-center gap-4">
-                <div className="text-3xl">🚪</div>
-                <div className="flex-1">
-                    <div className="font-black text-white text-sm tracking-wide">2. Birime Geçiş Kapısı</div>
-                    <div className="text-xs text-slate-400 font-bold mt-1">Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
-                </div>
-                <div className="text-center bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                    <div className="text-sm text-slate-400 font-black tracking-widest uppercase mb-1">Kilitli Rapor</div>
-                    <div className="font-black text-emerald-400 text-3xl leading-none">{istatistik.kilitli}</div>
-                </div>
-            </div>
+                    {mesaj.text && (
+                        <div className={`p-4 rounded-xl font-bold flex items-center shadow-sm border-2 ${mesaj.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                            {mesaj.text}
+                        </div>
+                    )}
 
-            <div className="flex flex-wrap lg:flex-nowrap gap-6 items-start">
-                {/* RAPOR LİSTESİ */}
-                <div className="w-full lg:w-1/2 xl:w-5/12 shrink-0">
-                    <div className="flex flex-col gap-3">
-                        {!loading && filtreliRaporlar.length === 0 && (
-                            <div className="text-center p-12 bg-[#0d1117] text-white rounded-2xl border-2 border-dashed border-[#1e4a43]">
-                                <FileCheck size={40} className="text-slate-200 mb-3 mx-auto" />
-                                <p className="text-slate-400 font-bold">
-                                    {aramaMetni ? 'Arama sonucu bulunamadı.' : 'Final rapor yok. M6 Üretim Bandından devir başlatın.'}
-                                </p>
+                    {/* ÜRETİMDEN OTOMATIK RAPOR OLUŞTUR */}
+                    {raporsizemOrders.length > 0 && (
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-2xl p-5 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xl">⚡</span>
+                                <span className="font-black text-amber-900 text-sm uppercase tracking-wider">
+                                    {raporsizemOrders.length} Tamamlanmış Üretim — Muhasebe Raporu Bekliyor!
+                                </span>
                             </div>
-                        )}
-                        {filtreliRaporlar.map(r => {
-                            const pct = parseFloat(/** @type {any} */(asimPct(r)));
-                            const kilitli = r.rapor_durumu === 'kilitlendi';
-                            const isSelected = secilenRapor?.id === r.id;
-
-                            return (
-                                <div key={r.id}
-                                    onClick={() => raporSec(r)}
-                                    className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-emerald-50 border-emerald-600 shadow-md shadow-emerald-600/10' : kilitli ? 'bg-[#122b27] border-slate-800 hover:border-slate-800 shadow-sm' : 'bg-[#122b27] border-slate-100 hover:border-emerald-300 hover:shadow-sm'}`}>
-                                    <div className="flex justify-between items-start mb-3">
+                            <div className="flex flex-col gap-2">
+                                {raporsizemOrders.map(o => (
+                                    <div key={o.id} className="flex justify-between items-center bg-[#122b27] rounded-xl p-3 border-2 border-amber-200 shadow-sm">
                                         <div>
-                                            <div className="flex gap-2 mb-2">
-                                                <span className="text-sm font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase tracking-wider">
-                                                    {r.model_kodu || r.id?.slice(0, 8) || 'Rapor'}
-                                                </span>
-                                                <span className="text-sm font-black px-2 py-0.5 rounded tracking-wider uppercase" style={{ background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
-                                                    {DURUM_LABEL[r.rapor_durumu]}
-                                                </span>
-                                            </div>
-                                            <div className="font-black text-white text-sm tracking-tight uppercase">
-                                                {r.model_adi || r.model_kodu || 'Model'}
-                                            </div>
+                                            <span className="text-xs font-black bg-amber-200 text-amber-900 px-2 py-1 rounded inline-block mr-2 uppercase">{o.model_kodu}</span>
+                                            <span className="font-bold text-white text-sm uppercase">{o.model_adi || 'Model'}</span>
+                                            <span className="text-xs font-bold text-slate-400 ml-2">{o.hedef_adet} adet</span>
                                         </div>
-                                        <div className="flex flex-col gap-2 items-end">
-                                            <div className={`font-black text-sm flex items-center gap-1 ${pct > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                {pct > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} %{Math.abs(pct)}
-                                            </div>
-                                            {/* Eylem butonları */}
-                                            {!kilitli ? (
-                                                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                                                    <button onClick={() => duzenleAc(r)}
-                                                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg flex items-center justify-center transition-colors">
-                                                        <Edit2 size={13} />
-                                                    </button>
-                                                    <button disabled={islemdeId === 'sil_' + r.id} onClick={() => raporSil(r)}
-                                                        className={`bg-red-50 text-red-600 hover:bg-red-100 p-1.5 rounded-lg flex items-center justify-center transition-colors ${islemdeId === 'sil_' + r.id ? 'opacity-50 cursor-wait' : ''}`}>
-                                                        <Trash2 size={13} />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div onClick={e => e.stopPropagation()}>
-                                                    <button onClick={() => zeyilnameAc(r)}
-                                                        className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-lg font-black text-sm uppercase tracking-wider transition-colors">
-                                                        ➕ Zeyilname (Ek)
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
+                                        <button onClick={() => uretimdenRaporOlustur(o)} disabled={loading}
+                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap">
+                                            📋 Rapor Oluştur
+                                        </button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                        <div className="bg-[#0d1117] text-white rounded-xl p-2.5 border border-slate-100">
-                                            <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
-                                            <div className="font-black text-slate-700 text-sm">₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
-                                        </div>
-                                        <div className={`rounded-xl p-2.5 border ${pct > 10 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                                            <div className={`text-sm font-black uppercase tracking-widest mb-1 ${pct > 10 ? 'text-red-500' : 'text-emerald-600'}`}>Gerçek Toplam</div>
-                                            <div className={`font-black text-sm ${pct > 10 ? 'text-red-600' : 'text-emerald-700'}`}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
-                                        </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* [KRİTİK EKSİK] M8  BÜTÇE vs GERÇEK DASHBOARD */}
+                    {raporlar.length > 0 && (() => {
+                        const toplamHedef = raporlar.reduce((s, r) => s + parseFloat(r.hedeflenen_maliyet_tl || 0), 0);
+                        const toplamGercek = raporlar.reduce((s, r) => s + parseFloat(r.gerceklesen_maliyet_tl || 0), 0);
+                        const fark = toplamGercek - toplamHedef;
+                        const pct = toplamHedef > 0 ? ((fark / toplamHedef) * 100).toFixed(1) : 0;
+                        return (
+                            <div className={`border-2 rounded-2xl p-5 shadow-sm ${fark > 0 ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300'}`}>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-xl">{fark > 0 ? '⚠️' : '✅'}</span>
+                                    <span className={`font-black uppercase tracking-widest text-sm ${fark > 0 ? 'text-red-800' : 'text-emerald-800'}`}>
+                                        BÜTÇE vs GERÇEK ANALİZİ — {raporlar.length} Rapor
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                        <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Hedef</div>
+                                        <div className="font-black text-slate-700 text-xl mt-1">₺{toplamHedef.toFixed(0)}</div>
+                                    </div>
+                                    <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                        <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Toplam Gerçek</div>
+                                        <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>₺{toplamGercek.toFixed(0)}</div>
+                                    </div>
+                                    <div className="bg-[#122b27] rounded-xl p-4 text-center border-2 border-slate-100 shadow-sm">
+                                        <div className="text-sm font-black text-slate-400 uppercase tracking-widest">Sapma</div>
+                                        <div className={`font-black text-xl mt-1 ${fark > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{/** @type {any} */ (fark) > 0 ? '+' : ''}{fark.toFixed(0)} ₺ ({/** @type {any} */ (pct) > 0 ? '+' : ''}{pct}%)</div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        );
+                    })()}
+
+                    {/* DEVİR GEÇİŞ KAPISI */}
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700 flex items-center gap-4">
+                        <div className="text-3xl">🚪</div>
+                        <div className="flex-1">
+                            <div className="font-black text-white text-sm tracking-wide">2. Birime Geçiş Kapısı</div>
+                            <div className="text-xs text-slate-400 font-bold mt-1">Sadece KİLİTLİ raporlar 2. Birime geçer. Yönetici onayı gereklidir.</div>
+                        </div>
+                        <div className="text-center bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
+                            <div className="text-sm text-slate-400 font-black tracking-widest uppercase mb-1">Kilitli Rapor</div>
+                            <div className="font-black text-emerald-400 text-3xl leading-none">{istatistik.kilitli}</div>
+                        </div>
                     </div>
-                </div>
 
-                {/* SEÇİLEN RAPOR DETAY */}
-                {secilenRapor && (
-                    <div className="w-full lg:w-1/2 xl:w-7/12 shrink-0 bg-[#122b27] border-4 border-emerald-600 rounded-3xl p-6 lg:sticky lg:top-6 shadow-2xl shadow-emerald-900/10">
-                        <div className="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4">
-                            <h2 className="font-black text-white text-lg uppercase tracking-wider flex items-center gap-2 m-0"><span className="text-xl">📊</span> Rapor Detayı (Z-Raporu)</h2>
-                            <button onClick={() => setSecilenRapor(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-emerald-200 rounded-lg transition-colors">✕</button>
+                    <div className="flex flex-wrap lg:flex-nowrap gap-6 items-start">
+                        {/* RAPOR LİSTESİ */}
+                        <div className="w-full lg:w-1/2 xl:w-5/12 shrink-0">
+                            <div className="flex flex-col gap-3">
+                                {!loading && filtreliRaporlar.length === 0 && (
+                                    <div className="text-center p-12 bg-[#0d1117] text-white rounded-2xl border-2 border-dashed border-[#1e4a43]">
+                                        <FileCheck size={40} className="text-slate-200 mb-3 mx-auto" />
+                                        <p className="text-slate-400 font-bold">
+                                            {aramaMetni ? 'Arama sonucu bulunamadı.' : 'Final rapor yok. M6 Üretim Bandından devir başlatın.'}
+                                        </p>
+                                    </div>
+                                )}
+                                {filtreliRaporlar.map(r => {
+                                    const pct = parseFloat(/** @type {any} */(asimPct(r)));
+                                    const kilitli = r.rapor_durumu === 'kilitlendi';
+                                    const isSelected = secilenRapor?.id === r.id;
+
+                                    return (
+                                        <div key={r.id}
+                                            onClick={() => raporSec(r)}
+                                            className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-emerald-50 border-emerald-600 shadow-md shadow-emerald-600/10' : kilitli ? 'bg-[#122b27] border-slate-800 hover:border-slate-800 shadow-sm' : 'bg-[#122b27] border-slate-100 hover:border-emerald-300 hover:shadow-sm'}`}>
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <div className="flex gap-2 mb-2">
+                                                        <span className="text-sm font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                            {r.model_kodu || r.id?.slice(0, 8) || 'Rapor'}
+                                                        </span>
+                                                        <span className="text-sm font-black px-2 py-0.5 rounded tracking-wider uppercase" style={{ background: `${DURUM_RENK[r.rapor_durumu]}20`, color: DURUM_RENK[r.rapor_durumu] }}>
+                                                            {DURUM_LABEL[r.rapor_durumu]}
+                                                        </span>
+                                                    </div>
+                                                    <div className="font-black text-white text-sm tracking-tight uppercase">
+                                                        {r.model_adi || r.model_kodu || 'Model'}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col gap-2 items-end">
+                                                    <div className={`font-black text-sm flex items-center gap-1 ${pct > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                        {pct > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} %{Math.abs(pct)}
+                                                    </div>
+                                                    {/* Eylem butonları */}
+                                                    {!kilitli ? (
+                                                        <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                                                            <button onClick={() => duzenleAc(r)}
+                                                                className="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg flex items-center justify-center transition-colors">
+                                                                <Edit2 size={13} />
+                                                            </button>
+                                                            <button disabled={islemdeId === 'sil_' + r.id} onClick={() => raporSil(r)}
+                                                                className={`bg-red-50 text-red-600 hover:bg-red-100 p-1.5 rounded-lg flex items-center justify-center transition-colors ${islemdeId === 'sil_' + r.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div onClick={e => e.stopPropagation()}>
+                                                            <button onClick={() => zeyilnameAc(r)}
+                                                                className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-lg font-black text-sm uppercase tracking-wider transition-colors">
+                                                                ➕ Zeyilname (Ek)
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                <div className="bg-[#0d1117] text-white rounded-xl p-2.5 border border-slate-100">
+                                                    <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">Hedef</div>
+                                                    <div className="font-black text-slate-700 text-sm">₺{parseFloat(r.hedeflenen_maliyet_tl || 0).toFixed(2)}</div>
+                                                </div>
+                                                <div className={`rounded-xl p-2.5 border ${pct > 10 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
+                                                    <div className={`text-sm font-black uppercase tracking-widest mb-1 ${pct > 10 ? 'text-red-500' : 'text-emerald-600'}`}>Gerçek Toplam</div>
+                                                    <div className={`font-black text-sm ${pct > 10 ? 'text-red-600' : 'text-emerald-700'}`}>₺{parseFloat(r.gerceklesen_maliyet_tl || 0).toFixed(2)}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                            {[
-                                { label: 'Hedef Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-slate-700' },
-                                { label: 'Gerçekleşen', val: `₺${(parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) + parseFloat(secilenRapor.ek_maliyet_tl || 0)).toFixed(2)}`, colorClass: (parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) - parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0)) > 0 ? 'text-red-600' : 'text-emerald-600' },
-                                { label: 'Zeyilname (Ek)', val: `₺${parseFloat(secilenRapor.ek_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-amber-700' },
-                                { label: 'Birim Adet Mal.', val: `₺${birimMaliyet(secilenRapor)}`, colorClass: 'text-amber-500' },
-                                { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, colorClass: 'text-emerald-600' },
-                                { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, colorClass: 'text-red-500' },
-                            ].map((m, i) => (
-                                <div key={i} className="bg-[#0d1117] text-white border border-slate-100 rounded-xl p-3">
-                                    <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
-                                    <div className={`font-black text-base ${m.colorClass}`}>{m.val}</div>
+                        {/* SEÇİLEN RAPOR DETAY */}
+                        {secilenRapor && (
+                            <div className="w-full lg:w-1/2 xl:w-7/12 shrink-0 bg-[#122b27] border-4 border-emerald-600 rounded-3xl p-6 lg:sticky lg:top-6 shadow-2xl shadow-emerald-900/10">
+                                <div className="flex justify-between items-center mb-6 border-b-2 border-slate-100 pb-4">
+                                    <h2 className="font-black text-white text-lg uppercase tracking-wider flex items-center gap-2 m-0"><span className="text-xl">📊</span> Rapor Detayı (Z-Raporu)</h2>
+                                    <button onClick={() => setSecilenRapor(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-emerald-200 rounded-lg transition-colors">✕</button>
                                 </div>
-                            ))}
-                        </div>
 
-                        {secilenRapor.notlar && (
-                            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6 text-sm font-bold text-amber-900 shadow-inner">
-                                <span className="mr-2">📝</span> {secilenRapor.notlar}
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                                    {[
+                                        { label: 'Hedef Maliyet', val: `₺${parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-slate-700' },
+                                        { label: 'Gerçekleşen', val: `₺${(parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) + parseFloat(secilenRapor.ek_maliyet_tl || 0)).toFixed(2)}`, colorClass: (parseFloat(secilenRapor.gerceklesen_maliyet_tl || 0) - parseFloat(secilenRapor.hedeflenen_maliyet_tl || 0)) > 0 ? 'text-red-600' : 'text-emerald-600' },
+                                        { label: 'Zeyilname (Ek)', val: `₺${parseFloat(secilenRapor.ek_maliyet_tl || 0).toFixed(2)}`, colorClass: 'text-amber-700' },
+                                        { label: 'Birim Adet Mal.', val: `₺${birimMaliyet(secilenRapor)}`, colorClass: 'text-amber-500' },
+                                        { label: 'Üretilen Adet', val: secilenRapor.net_uretilen_adet, colorClass: 'text-emerald-600' },
+                                        { label: 'Zayiat', val: `${secilenRapor.zayiat_adet} adet`, colorClass: 'text-red-500' },
+                                    ].map((m, i) => (
+                                        <div key={i} className="bg-[#0d1117] text-white border border-slate-100 rounded-xl p-3">
+                                            <div className="text-sm text-slate-400 font-black uppercase tracking-widest mb-1">{m.label}</div>
+                                            <div className={`font-black text-base ${m.colorClass}`}>{m.val}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {secilenRapor.notlar && (
+                                    <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6 text-sm font-bold text-amber-900 shadow-inner">
+                                        <span className="mr-2">📝</span> {secilenRapor.notlar}
+                                    </div>
+                                )}
+
+                                {ilgiliMaliyetler.length > 0 && (() => {
+                                    const uMaliyetData = ilgiliMaliyetler.reduce((acc, curr) => {
+                                        const tip = curr.maliyet_tipi || 'diger';
+                                        acc[tip] = (acc[tip] || 0) + parseFloat(curr.tutar_tl || 0);
+                                        return acc;
+                                    }, {});
+                                    const totalUI = Object.values(uMaliyetData).reduce((a, b) => a + b, 0);
+                                    const mRenkBg = { personel_iscilik: 'bg-blue-500', isletme_gideri: 'bg-amber-500', fason_islem: 'bg-purple-500', hammadde: 'bg-emerald-500', diger: 'bg-slate-400' };
+                                    const mRenkBorder = { personel_iscilik: 'border-blue-500', isletme_gideri: 'border-amber-500', fason_islem: 'border-purple-500', hammadde: 'border-emerald-500', diger: 'border-slate-400' };
+
+                                    return (
+                                        <div className="mb-6 bg-[#0d1117] text-white p-5 border-2 border-[#1e4a43] rounded-2xl">
+                                            <div className="font-black text-emerald-300 text-sm mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
+
+                                            {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
+                                            <div className="flex h-5 rounded-lg overflow-hidden mb-4 shadow-inner">
+                                                {Object.entries(uMaliyetData).map(([tip, miktar]) => {
+                                                    const w = Math.max((miktar / (totalUI || 1)) * 100, 1); // min 1% for visibility
+                                                    return <div key={tip} style={{ width: `${w}%` }} className={`${mRenkBg[tip] || mRenkBg.diger} opacity-95 hover:opacity-100 transition-opacity cursor-help`} title={`${MALIYET_LABEL[tip] || tip}: ₺${miktar.toFixed(2)}`} />;
+                                                })}
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {Object.entries(uMaliyetData).map(([tip, miktar]) => {
+                                                    const yuzdeUi = ((miktar / (totalUI || 1)) * 100).toFixed(1);
+                                                    return (
+                                                        <div key={tip} className="text-xs text-emerald-300 font-bold bg-[#122b27] px-3 py-1.5 rounded-lg border border-[#1e4a43] shadow-sm flex items-center gap-2">
+                                                            <span className={`inline-block w-2.5 h-2.5 rounded-full ${mRenkBg[tip] || mRenkBg.diger}`} />
+                                                            {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-sm">(%{yuzdeUi})</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <div className="h-0.5 bg-slate-200 my-4" />
+                                            <h5 className="my-3 text-white text-xs font-black uppercase tracking-wider">Maliyet Detay Dökümü</h5>
+                                            <div className="max-h-[300px] overflow-y-auto pr-2 space-y-1.5 custom-scrollbar">
+                                                {ilgiliMaliyetler.map((m, idx) => (
+                                                    <div key={m.id || idx} className={`flex justify-between items-center p-3 rounded-xl bg-[#122b27] border-l-4 border-r border-y border-slate-100 shadow-sm hover:shadow-md transition-shadow ${mRenkBorder[m.maliyet_tipi] || mRenkBorder.diger}`}>
+                                                        <span className="text-xs text-slate-700 font-bold">{m.kalem_aciklama}</span>
+                                                        <span className="font-black text-white text-sm">₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                <div className="flex flex-col gap-3">
+                                    {secilenRapor.rapor_durumu === 'taslak' && (
+                                        <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
+                                            className={`p-3 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                            {islemdeId === secilenRapor.id ? 'İşleniyor...' : '📤 Şef Onayına Gönder'}
+                                        </button>
+                                    )}
+                                    {secilenRapor.rapor_durumu === 'sef_onay_bekliyor' && (
+                                        <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'onaylandi')}
+                                            className={`p-3 bg-emerald-500 hover:bg-emerald-600 border-b-4 border-emerald-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                            {islemdeId === secilenRapor.id ? 'İşleniyor...' : '✅ Şef Onayı Ver'}
+                                        </button>
+                                    )}
+                                    {secilenRapor.rapor_durumu === 'onaylandi' && (
+                                        <button disabled={islemdeId === 'devir_' + secilenRapor.id} onClick={() => devirKapat(secilenRapor)}
+                                            className={`p-4 bg-slate-900 hover:bg-black border-l-8 border-emerald-500 text-white rounded-xl font-black flex items-center justify-center gap-3 transition-all ${islemdeId === 'devir_' + secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
+                                            <Lock size={18} /> {islemdeId === 'devir_' + secilenRapor.id ? 'Kilitleniyor...' : 'Kilitle & 2. Birime Devret'}
+                                        </button>
+                                    )}
+                                    {secilenRapor.rapor_durumu === 'kilitlendi' && (
+                                        <div className="p-4 bg-slate-900 border-l-8 border-emerald-500 text-emerald-400 rounded-xl font-black text-center flex items-center justify-center gap-3 shadow-inner">
+                                            <Lock size={18} /> KİLİTLİ — 2. BİRİMDE
+                                        </div>
+                                    )}
+                                    {secilenRapor.rapor_durumu !== 'kilitlendi' && (
+                                        <button onClick={() => duzenleAc(secilenRapor)}
+                                            className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors">
+                                            <Edit2 size={16} /> Zayiat / Hedef / Not Düzenle
+                                        </button>
+                                    )}
+                                    {/* [A-04] Yazdır / PDF */}
+                                    <button
+                                        onClick={() => window.print()}
+                                        className="p-3 bg-[#0d1117] text-white hover:bg-slate-100 border-2 border-[#1e4a43] text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors mt-2">
+                                        🖨️ Raporu Yazdır / PDF
+                                    </button>
+                                </div>
                             </div>
                         )}
-
-                        {ilgiliMaliyetler.length > 0 && (() => {
-                            const uMaliyetData = ilgiliMaliyetler.reduce((acc, curr) => {
-                                const tip = curr.maliyet_tipi || 'diger';
-                                acc[tip] = (acc[tip] || 0) + parseFloat(curr.tutar_tl || 0);
-                                return acc;
-                            }, {});
-                            const totalUI = Object.values(uMaliyetData).reduce((a, b) => a + b, 0);
-                            const mRenkBg = { personel_iscilik: 'bg-blue-500', isletme_gideri: 'bg-amber-500', fason_islem: 'bg-purple-500', hammadde: 'bg-emerald-500', diger: 'bg-slate-400' };
-                            const mRenkBorder = { personel_iscilik: 'border-blue-500', isletme_gideri: 'border-amber-500', fason_islem: 'border-purple-500', hammadde: 'border-emerald-500', diger: 'border-slate-400' };
-
-                            return (
-                                <div className="mb-6 bg-[#0d1117] text-white p-5 border-2 border-[#1e4a43] rounded-2xl">
-                                    <div className="font-black text-emerald-300 text-sm mb-4 uppercase tracking-widest">💰 Cerrahi Dağılım (Maliyet Breakdown)</div>
-
-                                    {/* M8 Stratejik Zırh: Pie Bar Breakdown */}
-                                    <div className="flex h-5 rounded-lg overflow-hidden mb-4 shadow-inner">
-                                        {Object.entries(uMaliyetData).map(([tip, miktar]) => {
-                                            const w = Math.max((miktar / (totalUI || 1)) * 100, 1); // min 1% for visibility
-                                            return <div key={tip} style={{ width: `${w}%` }} className={`${mRenkBg[tip] || mRenkBg.diger} opacity-95 hover:opacity-100 transition-opacity cursor-help`} title={`${MALIYET_LABEL[tip] || tip}: ₺${miktar.toFixed(2)}`} />;
-                                        })}
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {Object.entries(uMaliyetData).map(([tip, miktar]) => {
-                                            const yuzdeUi = ((miktar / (totalUI || 1)) * 100).toFixed(1);
-                                            return (
-                                                <div key={tip} className="text-xs text-emerald-300 font-bold bg-[#122b27] px-3 py-1.5 rounded-lg border border-[#1e4a43] shadow-sm flex items-center gap-2">
-                                                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${mRenkBg[tip] || mRenkBg.diger}`} />
-                                                    {MALIYET_LABEL[tip] || tip}: ₺{miktar.toFixed(0)} <span className="text-slate-400 text-sm">(%{yuzdeUi})</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    <div className="h-0.5 bg-slate-200 my-4" />
-                                    <h5 className="my-3 text-white text-xs font-black uppercase tracking-wider">Maliyet Detay Dökümü</h5>
-                                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-1.5 custom-scrollbar">
-                                        {ilgiliMaliyetler.map((m, idx) => (
-                                            <div key={m.id || idx} className={`flex justify-between items-center p-3 rounded-xl bg-[#122b27] border-l-4 border-r border-y border-slate-100 shadow-sm hover:shadow-md transition-shadow ${mRenkBorder[m.maliyet_tipi] || mRenkBorder.diger}`}>
-                                                <span className="text-xs text-slate-700 font-bold">{m.kalem_aciklama}</span>
-                                                <span className="font-black text-white text-sm">₺{parseFloat(m.tutar_tl).toFixed(2)}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-
-                        <div className="flex flex-col gap-3">
-                            {secilenRapor.rapor_durumu === 'taslak' && (
-                                <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'sef_onay_bekliyor')}
-                                    className={`p-3 bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
-                                    {islemdeId === secilenRapor.id ? 'İşleniyor...' : '📤 Şef Onayına Gönder'}
-                                </button>
-                            )}
-                            {secilenRapor.rapor_durumu === 'sef_onay_bekliyor' && (
-                                <button disabled={islemdeId === secilenRapor.id} onClick={() => durumGuncelle(secilenRapor.id, 'onaylandi')}
-                                    className={`p-3 bg-emerald-500 hover:bg-emerald-600 border-b-4 border-emerald-700 text-white rounded-xl font-black transition-all ${islemdeId === secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
-                                    {islemdeId === secilenRapor.id ? 'İşleniyor...' : '✅ Şef Onayı Ver'}
-                                </button>
-                            )}
-                            {secilenRapor.rapor_durumu === 'onaylandi' && (
-                                <button disabled={islemdeId === 'devir_' + secilenRapor.id} onClick={() => devirKapat(secilenRapor)}
-                                    className={`p-4 bg-slate-900 hover:bg-black border-l-8 border-emerald-500 text-white rounded-xl font-black flex items-center justify-center gap-3 transition-all ${islemdeId === 'devir_' + secilenRapor.id ? 'opacity-50 cursor-wait' : ''}`}>
-                                    <Lock size={18} /> {islemdeId === 'devir_' + secilenRapor.id ? 'Kilitleniyor...' : 'Kilitle & 2. Birime Devret'}
-                                </button>
-                            )}
-                            {secilenRapor.rapor_durumu === 'kilitlendi' && (
-                                <div className="p-4 bg-slate-900 border-l-8 border-emerald-500 text-emerald-400 rounded-xl font-black text-center flex items-center justify-center gap-3 shadow-inner">
-                                    <Lock size={18} /> KİLİTLİ — 2. BİRİMDE
-                                </div>
-                            )}
-                            {secilenRapor.rapor_durumu !== 'kilitlendi' && (
-                                <button onClick={() => duzenleAc(secilenRapor)}
-                                    className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors">
-                                    <Edit2 size={16} /> Zayiat / Hedef / Not Düzenle
-                                </button>
-                            )}
-                            {/* [A-04] Yazdır / PDF */}
-                            <button
-                                onClick={() => window.print()}
-                                className="p-3 bg-[#0d1117] text-white hover:bg-slate-100 border-2 border-[#1e4a43] text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors mt-2">
-                                🖨️ Raporu Yazdır / PDF
-                            </button>
-                        </div>
                     </div>
-                )}
-            </div>
+                </>
+            )}
 
             {/* DÜZENLE MODAL */}
             {duzenleModal && (

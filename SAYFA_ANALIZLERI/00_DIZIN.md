@@ -50,6 +50,21 @@
 
 ---
 
+## 🔗 YENİ TESPİTLER: SİSTEM & AI KOPUKLUK HARİTASI (10 BÜYÜK AÇIK)
+
+1. **Ar-Ge Trendyol / TikTok Ajanları Bağlantısı:** Redis kuyruğu (Workerlar) analiz sonucunu NIZAM Pano'sundaki `b1_arge_trendler` tablosuna (INSERT ile) kaydetmiyor. 
+2. **Çöplük Arşivi (Retrospektif Depo) Yazılmamış:** Reddedilen ürünleri 45 gün boyunca takip edip öğrenecek olan o algoritmanız için o çöp (big data) havuzunun tablosu ve aktarım kodu yok.
+3. **Zincirci Ajanı İş Fişi Yetkisizliği:** `M3 (Kalıp)` tamamlandığında, `M4'e (Modelhane)` yeni görev satırı eklemiyor. Sadece "Tamamlandı" diye mesaj atıyor (Otonomi kopukluğu).
+4. **Sipariş (M9) ve Kasa (M6) Muhasebe Kopukluğu:** Alınan siparişin ödemesi (veya avansı) otomatik olarak `b2_kasa_hareketleri` tablosuna "Gelir" fişi oluşturmuyor. Kasa verisi manuel ilerliyor.
+5. **Müşterilerde (M10) Cari Hesap Yokluğu:** M10 modülü sadece telefon defteri gibi yapılmış. Firmanın müşteriden ne kadar Borç veya Alacağı var tutulmuyor.
+6. **Raporların (M15) Yanlış Ciro Vermesi:** Raporlar sayfasında veriler veritabanından `limit(200)` kısıtlamasıyla çekildiği için NIZAM, yüksek işlem hacminde geçmiş ciro ve istatistikleri YALANLIYOR.
+7. **Personel Maaşları Geriye Dönük Bozma Tehlikesi:** Sistem Ayarlarından "Ücret / Prim" oranı değiştirildiği an, geçmiş aylarda ödenen bordrolar dondurulmadığı için yeni kurdan hesaplanarak finansal tarihi bozuyor.
+8. **Kesim Kumaşı Depodan Düşmüyor:** Kesimhane (M5) modülünde "kullanılan_kumaş_mt" girilmesine rağmen, Kumaş (M2) envanterindeki top metrajından bu miktar düşmüyor.
+9. **Kamera (Vision AI) Kumaş Fire Uyumsuzluğu:** M4 kamerasının tespit ettiği "DEFOLU" kumaş firesi, tespit edildiği an üretim stoğundan "Çıktı (Fire)" olarak depodan eksilmiyor, sadece uyarı veriyor.
+10. **Katalog (M12) İle Stok (M11) Uyumsuzluğu:** Depo stoğu M11'de sıfırlandığı an, M12 Kataloğuna bağlantı çekilmediği için otomatik olarak "Tükendi" ibaresi yansımıyor.
+
+---
+
 ## 📊 MODÜL OLGUNLUK DERECESİ
 
 | Kategori | Modüller | Durum |
