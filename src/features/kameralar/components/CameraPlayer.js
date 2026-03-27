@@ -1,22 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CameraOff, Loader2, WifiOff, EyeOff } from 'lucide-react';
+import { WifiOff, EyeOff } from 'lucide-react';
 
-const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
+const GO2RTC_URL = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984') : 'http://localhost:1984';
 
 export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offline = false }) {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const [retryCount, setRetryCount] = useState(0);
-
     const containerRef = useRef(null);
-    const iframeRef = useRef(null);
 
     const streamSrc = `${src}_${type}`;
-    // Ekranda görünürse stream'i başlat (Cloudflare Tunnel uyumu için MSE/WebSocket kullanılır)
-    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=webrtc,mse` : '';
+    // Cloudflare Tunnel tüneli TCP/UDP kısıtlamalarına karşı MSE(Media Source Extensions) modu.
+    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=mse` : '';
     const bgColor = type === 'main' ? '#000' : '#020617';
 
     // 1. Lazy Loading (Intersection Observer)
@@ -27,9 +22,8 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
                 if (entry.isIntersecting) {
                     setIsVisible(true);
                 } else {
-                    // Ekrandan çıkınca askıya al (suspend)
+                    // Ekrandan çıkınca yayını durdur (suspend stream)
                     setIsVisible(false);
-                    setLoading(true);
                 }
             },
             { threshold: 0.1 }
@@ -41,44 +35,6 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
 
         return () => observer.disconnect();
     }, [offline]);
-
-    // 2. Timeout Kontrolü (Connection delay)
-    const loadingRef = useRef(loading);
-    useEffect(() => { loadingRef.current = loading; }, [loading]);
-
-    useEffect(() => {
-        if (!isVisible || offline || error) return;
-        setLoading(true);
-        // Timeout ÇOK KRİTİK: Cloudflare + WebRTC + MSE handhshake süresi 3 saniye değil, 8-12 saniye sürebilir!
-        const timeout = type === 'main' ? 20000 : 15000;
-        const timer = setTimeout(() => {
-            if (loadingRef.current) {
-                setError(true);
-                setLoading(false);
-            }
-        }, timeout);
-        return () => clearTimeout(timer);
-    }, [isVisible, type, retryCount, offline, error]);
-
-    // 3. Auto-Reconnect / Self Healing
-    useEffect(() => {
-        if (error && isVisible) {
-            const reconnectDelay = Math.min(1000 * Math.pow(2, retryCount), 15000); // 1s, 2s, 4s, 8s, 15s max
-            const retryTimer = setTimeout(() => {
-                setError(false);
-                setLoading(true);
-                setRetryCount((prev) => prev + 1);
-            }, reconnectDelay);
-            return () => clearTimeout(retryTimer);
-        }
-    }, [error, isVisible, retryCount]);
-
-    useEffect(() => {
-        if (!error && isVisible) {
-            setRetryCount(0); // Bağlantı kurulunca retry sıfırla
-        }
-    }, [error, isVisible]);
-
 
     if (offline) {
         return (
@@ -101,44 +57,15 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
                 </div>
             )}
 
-            {/* Yükleniyor spinner */}
-            {isVisible && loading && !error && (
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: bgColor, color: '#38bdf8', zIndex: 2 }}>
-                    <Loader2 size={28} style={{ marginBottom: 6, animation: 'camSpin 1.2s linear infinite' }} />
-                    <span style={{ fontSize: '0.7rem', fontWeight: 700 }}>Bağlanıyor...</span>
-                    {retryCount > 0 && <span style={{ fontSize: '0.6rem', color: '#f59e0b', marginTop: 3 }}>Yeniden Deneniyor ({retryCount})</span>}
-                </div>
-            )}
-
-            {/* Hata durumu */}
-            {isVisible && error && (
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: bgColor, color: '#ef4444', zIndex: 2 }}>
-                    <CameraOff size={28} style={{ marginBottom: 6 }} />
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>Stream Hatası</span>
-                    <span style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: 2 }}>Otomatik bağlanılacak... ({retryCount})</span>
-                </div>
-            )}
-
-            {/* go2rtc MSE iframe */}
-            {isVisible && !error && (
+            {/* go2rtc Native IFrame - Tüm Yükleme ve Hata Yönetimini Kendi İçinde Yapar */}
+            {isVisible && (
                 <iframe
-                    ref={iframeRef}
                     src={streamUrl}
-                    style={{ border: 'none', width: '100%', height: '100%', background: 'transparent', opacity: loading ? 0 : 1, position: loading ? 'absolute' : 'relative', zIndex: 0 }}
+                    style={{ border: 'none', width: '100%', height: '100%', background: 'transparent', display: 'block', position: 'relative', zIndex: 0 }}
                     allow="autoplay; fullscreen; camera; microphone"
-                    onLoad={() => setLoading(false)}
-                    onError={() => { setLoading(false); setError(true); }}
                     title={kameraAdi || src}
                 />
             )}
-
-            <style>{`
-                @keyframes camSpin {
-                    from { transform: rotate(0deg); }
-                    to   { transform: rotate(360deg); }
-                }
-            `}</style>
         </div>
     );
 }
-
