@@ -65,7 +65,7 @@ export default function KalipMainContainer() {
                 const [modellerRes, trendlerRes] = await Promise.race([
                     Promise.all([
                         supabase.from('b1_model_taslaklari').select('*').order('created_at', { ascending: false }).limit(200),
-                        supabase.from('b1_arge_products').select('id,urun_adi').in('ai_satis_karari', ['ÇOK_SATAR', 'BİNGO']).limit(100)
+                        supabase.from('b1_arge_products').select('id,product_name').in('ai_satis_karari', ['ÇOK_SATAR', 'BİNGO']).limit(100)
                     ]),
                     timeout
                 ]);
@@ -311,7 +311,7 @@ export default function KalipMainContainer() {
                                 <label className="block text-sm font-black text-[#8b949e] mb-1 uppercase tracking-widest">İlgili Trend (M1 İstihbaratı)</label>
                                 <select className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-xs text-white focus:border-amber-500 outline-none" value={formModel.trend_id} onChange={e => setFormModel({ ...formModel, trend_id: e.target.value })}>
                                     <option value="">— M1 Trendlerinden Seç —</option>
-                                    {trendler.map(t => <option key={t.id} value={t.id}>{t.urun_adi?.substring(0, 50)}</option>)}
+                                    {trendler.map(t => <option key={t.id} value={t.id}>{t.product_name?.substring(0, 50)}</option>)}
                                 </select>
                             </div>
                             <div>
