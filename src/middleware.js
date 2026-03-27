@@ -57,13 +57,7 @@ async function jwtDogrula(token, sirri) {
     }
 }
 
-// ─── PUBLIC (korumasız) API ROUTE'LAR ──────────────────────────
-const PUBLIC_API_ROTALAR = [
-    '/api/pin-dogrula',
-    '/api/telegram-bildirim',
-    // [GÜVENLİK A4]: /api/cron-ajanlar PUBLIC listesinden çıkarıldı
-    // Artık x-internal-api-key header'ı zorunlu (aşağıdaki korunanApiRotalar'a eklendi)
-];
+
 
 // ─── HONEYPOT / WORDPRESS BOT ENGELİ ────────────────────────────
 const HONEYPOT_YOLLARI = [
@@ -134,34 +128,29 @@ export async function middleware(request) {
         }
     }
 
-    // ─── 2. KORUNAN API ROUTE'LAR — JWT Zorunlu ───────────────
-    const korunanApiRotalar = [
-        '/api/ajan-calistir',
-        '/api/ajan-tetikle',
-        '/api/musteri-ekle',
-        '/api/siparis-ekle',
-        '/api/stok-hareket-ekle',
-        '/api/gorev-ekle',
-        '/api/is-emri-ekle',
-        '/api/kumas-ekle',
-        '/api/personel-ekle',
-        '/api/stok-alarm',
-        '/api/cron-ajanlar', // [A4]: Cron artık x-internal-api-key zorunlu
+    // ─── 2. DEFAULT DENY — Tüm /api/ rotaları korumalı ───────────
+    // OWASP / Zero Trust standardı: İzin verilmeyenler yasaktır.
+    // Public listede olmayan her /api/ rotası JWT veya x-internal-api-key zorunludur.
+    const PUBLIC_API_ROTALAR = [
+        '/api/pin-dogrula',       // Giriş endpoint'i — JWT yok henüz
+        '/api/health',            // Uptime monitor — kamuya açık
+        '/api/telegram-webhook',  // Telegram imzası route içinde doğrulanır
+        '/api/kur',               // Kamuya açık döviz verisi
+        '/api/stream-durum',      // Kamera durum paneli
+        '/api/telegram-bildirim', // İç Telegram bildirimi
     ];
-    const apiKorumalı = korunanApiRotalar.some(r => url.startsWith(r));
+
+    const apiKorumalı = url.startsWith('/api/') && !PUBLIC_API_ROTALAR.some(r => url.startsWith(r));
 
     if (apiKorumalı) {
-        // İç servis anahtarı varsa — geç (cron, sunucu-sunucu çağrıları, edge-watcher)
+        // İç servis anahtarı varsa — geç (cron, sunucu-sunucu çağrıları)
         const dahiliKey = request.headers.get('x-internal-api-key');
-        // ─── MİMARİ DÜZELTME: Hardcoded fallback kaldırıldı ───────────────────
-        // ESKİ: process.env.INTERNAL_API_KEY || 'NIZAM_LOKAL_GIZLI_ANAHTAR_47'
-        // Bu plain-text değer herkes tarafından bilinebilirdi → tüm API bypass.
         const sunucuGecerliKey = process.env.INTERNAL_API_KEY?.replace(/[\\r\\n'"]/g, '').trim();
 
         if (dahiliKey && sunucuGecerliKey && dahiliKey === sunucuGecerliKey) {
-            // ─── İç servis çağrısı (cron, edge-watcher) — JWT atla ───
+            // İç servis çağrısı — JWT atla
         } else {
-            // ─── Dışarıdan gelen istek — JWT doğrulama zorunlu ────────
+            // Dışarıdan gelen istek — JWT doğrulama zorunlu
             const authHeader = request.headers.get('authorization') || '';
             const cookieToken = request.cookies.get('sb47_jwt_token')?.value;
             const token = authHeader.replace('Bearer ', '') || cookieToken;
@@ -169,6 +158,7 @@ export async function middleware(request) {
             const sirri = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
             const payload = await jwtDogrula(token, sirri);
 
+            // Rol bazlı kısıtlama: Sadece "tam" yetkisi gereken rotalar
             const sadeceTamRotalar = ['/api/ajan-calistir', '/api/ajan-tetikle'];
             const sadeceTam = sadeceTamRotalar.some(r => url.startsWith(r));
             const yetkiliGrup = sadeceTam
@@ -183,6 +173,7 @@ export async function middleware(request) {
             }
         }
     }
+
 
     // ─── 3. KORUNAN SAYFA ROUTE'LAR — Cookie Auth ─────────────
     const korunanSayfaRotalar = [
