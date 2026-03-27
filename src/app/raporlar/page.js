@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
 
-const formatTarih = (iso) => { if (!iso) return '&#x20BA;&#x20BA; const d = new Date(iso); return d.toLocaleDateString('tr-TR'); };
+const formatTarih = (iso) => { if (!iso) return '-'; const d = new Date(iso); return d.toLocaleDateString('tr-TR'); };
 
 // CSV Export yardmc fonksiyonu
 const csvIndir = (baslik, satirlar, dosyaAdi) => {
@@ -135,7 +135,7 @@ export default function RaporlarSayfasi() {
                 const s = parseFloat(p.saatlik_ucret_tl || 0);
                 const dk = parseInt(p.gunluk_calisma_dk || 480);
                 const gunluk = s * dk / 60;
-                const devam = devamGrup[p.id] || { calisti: 0, izinli: 0, hastalik: 0, GELMEDIi: 0 };
+                const devam = devamGrup[p.id] || { calisti: 0, izinli: 0, hastalik: 0, gelmedi: 0 };
                 const toplamKayit = Object.values(devam).reduce((a, b) => a + b, 0);
                 const devamOrani = toplamKayit > 0 ? Math.round((devam.calisti / toplamKayit) * 100) : 100;
                 return { ...p, gunluk, aylik: gunluk * 22, devam, devamOrani };
@@ -466,11 +466,11 @@ export default function RaporlarSayfasi() {
                                 </div>
                                 <div style={{ textAlign: 'center', background: '#f8fafc', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>DEVAM %</div>
-                                    <div style={{ fontWeight: 900, color: p.devamlilk >= 90 ? '#059669' : p.devamlilk >= 75 ? '#f59e0b' : '#ef4444' }}>%{p.devamlilk}</div>
+                                    <div style={{ fontWeight: 900, color: p.devamOrani >= 90 ? '#059669' : p.devamOrani >= 75 ? '#f59e0b' : '#ef4444' }}>%{p.devamOrani}</div>
                                 </div>
-                                <div style={{ textAlign: 'center', background: p.devam.GELMEDIi > 2 ? '#fef2f2' : '#f8fafc', borderRadius: 10, padding: '8px' }}>
+                                <div style={{ textAlign: 'center', background: p.devam.gelmedi > 2 ? '#fef2f2' : '#f8fafc', borderRadius: 10, padding: '8px' }}>
                                     <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700 }}>GELMEDI</div>
-                                    <div style={{ fontWeight: 900, color: p.devam.GELMEDIi > 0 ? '#ef4444' : '#059669' }}>{p.devam.GELMEDIi || 0} gn</div>
+                                    <div style={{ fontWeight: 900, color: p.devam.gelmedi > 0 ? '#ef4444' : '#059669' }}>{p.devam.gelmedi || 0} gn</div>
                                 </div>
                             </div>
                         ))}
