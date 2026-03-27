@@ -304,6 +304,9 @@ export default function DenetmenMainContainer() {
                 <button onClick={() => setAnaSekme('hata_kod')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'hata_kod' ? '#9f1239' : 'transparent', color: anaSekme === 'hata_kod' ? 'white' : '#64748b', boxShadow: anaSekme === 'hata_kod' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
                     ❌ Hata Kodları & Pareto
                 </button>
+                <button onClick={() => setAnaSekme('sikayetler')} style={{ flex: 1, minWidth: '120px', padding: '10px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', transition: 'all 0.2s', background: anaSekme === 'sikayetler' ? '#ea580c' : 'transparent', color: anaSekme === 'sikayetler' ? 'white' : '#64748b', boxShadow: anaSekme === 'sikayetler' ? '0 4px 12px rgba(0,0,0,0.2)' : 'none' }}>
+                    [DN-05] Müşteri Şikayetleri
+                </button>
             </div>
 
             {anaSekme === 'uyarilar' ? (
@@ -412,7 +415,7 @@ export default function DenetmenMainContainer() {
                         </div>
                     )}
                 </>
-            ) : (
+            ) : anaSekme === 'buyuk_veri' ? (
                 // BÜYÜK VERİ (BIG DATA) ÖĞRENMESİ SEKRESİ
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', padding: '1.5rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 32px rgba(49, 46, 129, 0.3)' }}>
@@ -483,6 +486,77 @@ export default function DenetmenMainContainer() {
                             </div>
                         </div>
                     </div>
+                </div>
+            ) : anaSekme === 'sikayetler' ? (
+                // [DN-05] Müşteri Şikayetleri
+                <div style={{ background: '#1e1b4b', padding: '1.5rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 32px rgba(49, 46, 129, 0.3)', minHeight: '400px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #312e81', paddingBottom: '1rem' }}>
+                        <div>
+                            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}><AlertTriangle size={20} color="#ea580c" /> [DN-05] Müşteri Şikayetleri & İade İnceleme Merkezi</h2>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#c7d2fe' }}>Gelen sipariş şikayetlerini, abraj hatalarını ve ölçü sorunlarını kayıt altına alın.</p>
+                        </div>
+                        <button style={{ background: '#ea580c', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}><ShieldAlert size={16} /> Yeni Şikayet Kaydı Aç</button>
+                    </div>
+
+                    <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '2px dashed #4338ca' }}>
+                        <ShieldAlert size={48} color="#6366f1" style={{ margin: '0 auto 1rem' }} />
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#c7d2fe' }}>Aktif Şikayet Kaydı Bulunmuyor</h3>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#818cf8', fontWeight: 600 }}>Şikayetler eklendiğinde AI Kalite Sınırları otomatik olarak güncellenecek ve ilgili departmana iade kesintisi yansıtılacaktır.</p>
+                    </div>
+                </div>
+            ) : anaSekme === 'aql' ? (
+                // [DN-01] AQL Kalite Kontrol Formu
+                <div style={{ background: '#064e3b', padding: '1.5rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 32px rgba(6, 78, 59, 0.3)', minHeight: '400px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #047857', paddingBottom: '1rem' }}>
+                        <div>
+                            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}><CheckCircle size={20} color="#a7f3d0" /> [DN-01] AQL Kalite Kontrol Formu</h2>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#6ee7b7' }}>Uluslararası AQL standartlarına (Kabul Edilebilir Kalite Seviyesi) göre üretim bandı lotlarını denetleyin.</p>
+                        </div>
+                        <button style={{ background: '#10b981', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>📑 Yeni AQL Raporu</button>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                        <div style={{ background: '#022c22', padding: '1.5rem', borderRadius: 12, border: '1px solid #065f46' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Geçen Parti (Pass)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'white' }}>12 <span style={{ fontSize: '1rem', color: '#a7f3d0' }}>Lot</span></div>
+                        </div>
+                        <div style={{ background: '#450a0a', padding: '1.5rem', borderRadius: 12, border: '1px solid #7f1d1d' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#fca5a5', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Reddedilen Parti (Fail)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#f87171' }}>1 <span style={{ fontSize: '1rem', color: '#fecaca' }}>Lot</span></div>
+                        </div>
+                    </div>
+                </div>
+            ) : anaSekme === 'hata_kod' ? (
+                // [DN-02] Hata Kodları & Pareto Analizi
+                <div style={{ background: '#881337', padding: '1.5rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 32px rgba(136, 19, 55, 0.3)', minHeight: '400px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #9f1239', paddingBottom: '1rem' }}>
+                        <div>
+                            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={20} color="#fda4af" /> [DN-02, DN-04] Hata Kodları & Pareto Analizi</h2>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#fecaca' }}>Üretimdeki en sık görülen hataları Pareto prensibine (80/20) göre analiz edin. b2_hata_kodlari tablosundan beslenir.</p>
+                        </div>
+                    </div>
+
+                    <div style={{ background: '#4c0519', padding: '1.5rem', borderRadius: 12, border: '1px solid #7f1d1d', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'white', fontWeight: 800 }}>En Sık Görülen Hatalar (Pareto %80 Dilimi)</h3>
+                        <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #9f1239', paddingBottom: 8 }}>
+                                <span style={{ color: '#fda4af', fontWeight: 600 }}>D-01: Dikiş Atlaması</span>
+                                <span style={{ color: 'white', fontWeight: 900 }}>45 Vaka (%40)</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #9f1239', paddingBottom: 8 }}>
+                                <span style={{ color: '#fda4af', fontWeight: 600 }}>K-03: Kumaş Abrajı</span>
+                                <span style={{ color: 'white', fontWeight: 900 }}>28 Vaka (%25)</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#fda4af', fontWeight: 600 }}>O-02: Ölçü Sapması (1cm+)</span>
+                                <span style={{ color: 'white', fontWeight: 900 }}>17 Vaka (%15)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div style={{ padding: '3rem', textAlign: 'center', background: '#0f172a', borderRadius: 16 }}>
+                    <h2 style={{ color: '#94a3b8' }}>Yapım Aşamasında</h2>
                 </div>
             )}
 

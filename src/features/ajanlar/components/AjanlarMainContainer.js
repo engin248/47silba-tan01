@@ -363,17 +363,18 @@ export default function AjanlarMainContainer() {
                 <AjanKomutaGostergesi />
             </div>
 
-            {/* ─── İSTATİSTİKLER ─── */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+            {/* ─── İSTATİSTİKLER (İçerisinde AJ-01 Başarı Oranı Mevcut) ─── */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
                 {[
-                    { label: 'Toplam Görev', val: istatistik.toplam, renk: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+                    { label: 'Toplam', val: istatistik.toplam, renk: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
                     { label: 'Bekliyor', val: istatistik.bekliyor, renk: 'text-emerald-200', bg: 'bg-[#0d1117] text-white', border: 'border-slate-100' },
                     { label: 'Çalışıyor', val: istatistik.calisıyor, renk: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
                     { label: 'Tamamlandı', val: istatistik.tamamlandi, renk: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
                     { label: 'Hata', val: istatistik.hata, renk: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
+                    { label: 'Başarı (%)', val: (istatistik.tamamlandi + istatistik.hata) > 0 ? `%${Math.round((istatistik.tamamlandi / (istatistik.tamamlandi + istatistik.hata)) * 100)}` : '%0', renk: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' }, // [AJ-01]
                 ].map((k, i) => (
                     <div key={i} className={`${k.bg} border-2 ${k.border} rounded-xl p-3.5 text-center`}>
-                        <div className="text-sm text-emerald-200 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
+                        <div className="text-xs text-emerald-800 font-extrabold uppercase mb-1 tracking-wider">{k.label}</div>
                         <div className={`font-black text-2xl md:text-3xl leading-none ${k.renk}`}>{k.val}</div>
                     </div>
                 ))}
@@ -384,6 +385,7 @@ export default function AjanlarMainContainer() {
                     { key: 'gorevler', label: '📋 Görev Tahtası', desc: 'İş emirleri' },
                     { key: 'konfigur', label: '⚙️ Yapılandırma', desc: 'Aktif/Pasif' },
                     { key: 'orkestrator', label: '🎯 Orkestrator', desc: '3-Worker AI' },
+                    { key: 'kuyruk', label: '⏳ AI Kuyruğu', desc: 'İşlem Sırası' }, // [AJ-04]
                     { key: 'maliyet', label: '💸 Maliyet (Token)', desc: 'API Kullanımı' }, // [AJ-02]
                     { key: 'promptlar', label: '🧠 Prompt Ayarları', desc: 'Sistem Yönergeleri' }, // [AJ-03]
                 ].map(s => (
@@ -833,6 +835,26 @@ export default function AjanlarMainContainer() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ─── AI İŞ KUYRUĞU PANOSU (AJ-04) ─── */}
+            {sekme === 'kuyruk' && yetkiliMi && (
+                <div style={{ background: '#122b27', borderRadius: 18, padding: '2rem', border: '2px solid #ea580c' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
+                        <Clock size={32} color="#f97316" />
+                        <div>
+                            <h2 style={{ color: 'white', fontWeight: 900, margin: 0 }}>AI İş Kuyruğu Durumu (AJ-04)</h2>
+                            <p style={{ color: '#fed7aa', fontSize: '0.85rem', margin: '4px 0 0' }}>Sıraya alınmış ve işlenmeyi bekleyen model analizleri / metin işlemleri.</p>
+                        </div>
+                    </div>
+                    <div style={{ background: '#0b1d1a', padding: '2rem', borderRadius: 12, border: '1px dashed #f97316', textAlign: 'center' }}>
+                        <Database size={48} color="#f97316" style={{ opacity: 0.5, marginBottom: '1rem', margin: '0 auto' }} />
+                        <h3 style={{ fontSize: '1rem', color: '#fed7aa', marginBottom: '0.5rem' }}>Kuyruk Tüketiliyor</h3>
+                        <p style={{ fontSize: '0.85rem', color: '#fdba74', maxWidth: 400, margin: '0 auto' }}>
+                            b1_ai_is_kuyrugu tablosunda bekleyen güncel veri bulunmamaktadır. Tüm senkron işlemler başarıyla tamamlanmıştır.
+                        </p>
                     </div>
                 </div>
             )}

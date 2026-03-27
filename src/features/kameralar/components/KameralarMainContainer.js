@@ -139,8 +139,9 @@ export default function KameralarMainContainer() {
 
     // ── Yetki Kontrolü ─────────────────────────────────────────
     useEffect(() => {
-        // sisteme giriş yapmış herhangi bir kullanıcı erişebilir
-        const yetkiliGrup = !!kullanici;
+        // Sadece KOORDİNATÖR veya ADMİN rolüne sahip olanlar kameralara erişebilir!
+        const yetkiliGrup = kullanici && (kullanici.rol === 'admin' || kullanici.rol === 'kordinator' || kullanici.gosterge === '👑' || kullanici.gosterge === '🦅');
+
         if (yetkiliGrup) {
             setYetkili(true);
             kameraErisimLogAt('SİSTEM GİRİŞİ');

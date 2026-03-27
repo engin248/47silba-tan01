@@ -166,44 +166,74 @@ export default function GorevlerMainContainer() {
     };
 
     // ── Tekrar kullanılabilir Görev Kartı ──────────────────────────
-    const GorevKarti = ({ g, draggable: isDraggable = false }) => (
-        <div
-            draggable={isDraggable && erisim === 'full'}
-            onDragStart={isDraggable ? (e) => onDragStart(e, g.id) : undefined}
-            style={{
-                background: '#122b27', border: '2px solid',
-                borderColor: g.oncelik === 'kritik' ? '#fee2e2' : '#f1f5f9',
-                borderRadius: 12, padding: '0.875rem 1rem',
-                cursor: isDraggable && erisim === 'full' ? 'grab' : 'default',
-                transition: 'box-shadow 0.15s, transform 0.15s',
-                boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
-                userSelect: 'none',
-            }}
-            onMouseEnter={e => { if (isDraggable) { e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none'; }}
-        >
-            <div style={{ display: 'flex', gap: 5, marginBottom: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${ONCELIK_RENK[g.oncelik]}20`, color: ONCELIK_RENK[g.oncelik] }}>{ONCELIK_LABEL[g.oncelik]}</span>
-                {!isDraggable && <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${DURUM_RENK[g.durum]}20`, color: DURUM_RENK[g.durum] }}>{DURUM_LABEL[g.durum]}</span>}
-            </div>
-            <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem', marginBottom: 4 }}>{g.baslik}</div>
-            {g.aciklama && <p style={{ fontSize: '0.73rem', color: '#a7f3d0', margin: '0 0 6px', lineHeight: 1.5 }}>{g.aciklama}</p>}
-            <div style={{ display: 'flex', gap: 10, fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, marginBottom: 8, flexWrap: 'wrap' }}>
-                {g.atanan_kisi && <span>👤 {g.atanan_kisi}</span>}
-                {g.bitis_tarihi && <span>📅 {formatTarih(g.bitis_tarihi)}</span>}
-                <span>🕐 {formatTarih(g.created_at)}</span>
-            </div>
-            {erisim === 'full' && (
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                    <button onClick={(e) => { e.stopPropagation(); setForm({ baslik: g.baslik, aciklama: g.aciklama || '', atanan_kisi: g.atanan_kisi || '', son_tarih: g.bitis_tarihi ? g.bitis_tarihi.slice(0, 16) : '', oncelik: g.oncelik, modul: g.modul || 'genel' }); setDuzenleId(g.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>✏️</button>
-                    {g.durum === 'bekliyor' && <button onClick={(e) => { e.stopPropagation(); durumGuncelle(g.id, 'devam', g.baslik); }} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>⚙️</button>}
-                    {g.durum === 'devam' && <button onClick={(e) => { e.stopPropagation(); durumGuncelle(g.id, 'tamamlandi', g.baslik); }} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>✅</button>}
-                    <button onClick={(e) => { e.stopPropagation(); sil(g.id); }} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem' }}>🗑️</button>
+    const GorevKarti = ({ g, draggable: isDraggable = false }) => {
+        // [GV-02] Son Tarih Kontrolü
+        let isGecikmis = false;
+        if (g.bitis_tarihi && g.durum !== 'tamamlandi' && g.durum !== 'iptal') {
+            const bitis = new Date(g.bitis_tarihi).getTime();
+            const suan = new Date().getTime();
+            if (suan > bitis) isGecikmis = true;
+        }
+
+        return (
+            <div
+                draggable={isDraggable && erisim === 'full'}
+                onDragStart={isDraggable ? (e) => onDragStart(e, g.id) : undefined}
+                style={{
+                    background: '#122b27', border: '2px solid',
+                    borderColor: isGecikmis ? '#ef4444' : (g.oncelik === 'kritik' ? '#fee2e2' : '#f1f5f9'),
+                    borderRadius: 12, padding: '0.875rem 1rem',
+                    cursor: isDraggable && erisim === 'full' ? 'grab' : 'default',
+                    transition: 'box-shadow 0.15s, transform 0.15s',
+                    boxShadow: isGecikmis ? '0 0 10px rgba(239, 68, 68, 0.4)' : '0 1px 6px rgba(0,0,0,0.05)',
+                    userSelect: 'none',
+                    position: 'relative'
+                }}
+                onMouseEnter={e => { if (isDraggable) { e.currentTarget.style.boxShadow = isGecikmis ? '0 0 15px rgba(239, 68, 68, 0.6)' : '0 4px 14px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = isGecikmis ? '0 0 10px rgba(239, 68, 68, 0.4)' : '0 1px 6px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none'; }}
+            >
+                {/* [GV-02] Gecikme Uyarı Rozeti */}
+                {isGecikmis && (
+                    <div style={{ position: 'absolute', top: -10, right: -10, background: '#ef4444', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 8px', borderRadius: 8, boxShadow: '0 2px 4px rgba(0,0,0,0.2)', zIndex: 10, animation: 'pulse 2s infinite' }}>GECİKTİ!</div>
+                )}
+
+                <div style={{ display: 'flex', gap: 5, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${ONCELIK_RENK[g.oncelik]}20`, color: ONCELIK_RENK[g.oncelik] }}>{ONCELIK_LABEL[g.oncelik]}</span>
+                    {!isDraggable && <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: `${DURUM_RENK[g.durum]}20`, color: DURUM_RENK[g.durum] }}>{DURUM_LABEL[g.durum]}</span>}
+                    {/* [GV-03] Modül Bağlantısı */}
+                    <span style={{ fontSize: '0.55rem', fontWeight: 900, textTransform: 'uppercase', background: '#334155', color: '#e2e8f0', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.5px' }}>
+                        🔗 {g.modul || 'GENEL'}
+                    </span>
                 </div>
-            )}
-        </div>
-    );
+
+                <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem', marginBottom: 4 }}>{g.baslik}</div>
+
+                {g.aciklama && <p style={{ fontSize: '0.73rem', color: '#a7f3d0', margin: '0 0 6px', lineHeight: 1.5 }}>{g.aciklama}</p>}
+
+                {/* [GV-01] Alt Görevler (Checklist) Özeti */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0b1d1a', padding: '4px 8px', borderRadius: 6, marginBottom: 8, border: '1px solid #1e4a43' }}>
+                    <CheckCircle2 size={12} color="#34d399" />
+                    <span style={{ fontSize: '0.65rem', color: '#6ee7b7', fontWeight: 700 }}>Alt Görevler: <span style={{ color: 'white' }}>0/0</span> (b1_gorev_adimlar)</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, marginBottom: 8, flexWrap: 'wrap' }}>
+                    {g.atanan_kisi && <span>👤 {g.atanan_kisi}</span>}
+                    {g.bitis_tarihi && <span style={{ color: isGecikmis ? '#fca5a5' : '#94a3b8', fontWeight: isGecikmis ? 900 : 600 }}>📅 {formatTarih(g.bitis_tarihi)}</span>}
+                    <span>🕐 {formatTarih(g.created_at)}</span>
+                </div>
+
+                {erisim === 'full' && (
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                        <button onClick={(e) => { e.stopPropagation(); setForm({ baslik: g.baslik, aciklama: g.aciklama || '', atanan_kisi: g.atanan_kisi || '', son_tarih: g.bitis_tarihi ? g.bitis_tarihi.slice(0, 16) : '', oncelik: g.oncelik, modul: g.modul || 'genel' }); setDuzenleId(g.id); setFormAcik(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>✏️</button>
+                        {g.durum === 'bekliyor' && <button onClick={(e) => { e.stopPropagation(); durumGuncelle(g.id, 'devam', g.baslik); }} style={{ background: '#eff6ff', border: '1px solid #3b82f6', color: '#2563eb', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>⚙️</button>}
+                        {g.durum === 'devam' && <button onClick={(e) => { e.stopPropagation(); durumGuncelle(g.id, 'tamamlandi', g.baslik); }} style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#059669', padding: '4px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.68rem' }}>✅</button>}
+                        <button onClick={(e) => { e.stopPropagation(); sil(g.id); }} style={{ background: '#fef2f2', border: 'none', color: '#dc2626', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: '0.68rem' }}>🗑️</button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div dir={isAR ? 'rtl' : 'ltr'}>

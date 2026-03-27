@@ -43,6 +43,7 @@ const NAV_ITEMS = [
     { href: '/raporlar', icon: PieChart, labelTR: 'Analitik Raporlar', labelAR: 'التقارير', badge: 'M16', group: 'yonetim' },
 
     // SİSTEM
+    { href: '/kameralar', icon: Camera, labelTR: 'Kameralar (Vizyon)', labelAR: 'الكاميرات', badge: 'M18', group: 'sistem' },
     { href: '/ajanlar', icon: Zap, labelTR: '🤖 AI Komuta Merkezi', labelAR: 'قيادة الوكلاء', group: 'sistem' },
 
     { href: '/denetmen', icon: Bot, labelTR: 'Müfettiş & Öğrenme', labelAR: 'المفتش', group: 'sistem' },

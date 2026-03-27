@@ -321,6 +321,60 @@ export default function AyarlarMainContainer() {
                     ))}
                 </div>
             </div>
+
+            {/* [AY-02] SMS / E-Mail API Altyapısı */}
+            <div style={{ marginTop: '1.25rem', background: '#2e1065', border: '2px solid #5b21b6', borderRadius: 16, padding: '1.5rem' }}>
+                <h2 style={{ fontWeight: 900, fontSize: '1.1rem', color: '#c4b5fd', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Globe size={18} color="#a855f7" /> [AY-02] Dış API Servisleri (SMS/Email)
+                </h2>
+                <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: '#a78bfa' }}>Mailjet, SendGrid, Twilio entegrasyon ayarları (Müşteri Bildirimleri).</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5 }}>SMS API KEY</label>
+                        <input type="password" value="************************" readOnly style={{ width: '100%', padding: '9px 12px', border: '2px solid #4c1d95', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', background: '#1e1b4b', color: '#8b5cf6' }} />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5 }}>SMTP EMAIL ŞİFRESİ</label>
+                        <input type="password" value="************************" readOnly style={{ width: '100%', padding: '9px 12px', border: '2px solid #4c1d95', borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: 'border-box', background: '#1e1b4b', color: '#8b5cf6' }} />
+                    </div>
+                </div>
+                <div style={{ marginTop: 12, background: '#4c1d95', display: 'inline-block', padding: '6px 12px', borderRadius: 6, fontSize: '0.7rem', color: '#ddd6fe', fontWeight: 800 }}>Durum: Hazırlık Aşamasında (v2.1)</div>
+            </div>
+
+            {/* [GU-01] & [GU-02] GÜVENLİK */}
+            <div style={{ marginTop: '1.25rem', background: '#450a0a', border: '2px solid #7f1d1d', borderRadius: 16, padding: '1.5rem' }}>
+                <h2 style={{ fontWeight: 900, fontSize: '1.1rem', color: '#fca5a5', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Lock size={18} color="#ef4444" /> [GU-01, GU-02] Güvenlik & Oturum Merkezi
+                </h2>
+                <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: '#f87171' }}>Sistemdeki aktif oturumlar ve 2 Adımlı Doğrulama (2FA).</p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#171717', border: '1px solid #7f1d1d', padding: '12px 16px', borderRadius: 10, marginBottom: '1rem' }}>
+                    <div>
+                        <div style={{ color: '#fca5a5', fontWeight: 800, fontSize: '0.85rem' }}>İki Adımlı Doğrulama (2FA) Altyapısı</div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.72rem', marginTop: 4 }}>Yetkili girişlerinde OTP (Tek Kullanımlık Şifre) istenir.</div>
+                    </div>
+                    <button style={{ padding: '6px 14px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}>Aktifleştir</button>
+                </div>
+
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: 'white', fontWeight: 800 }}>Aktif Oturum Listesi</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', background: '#262626', padding: '10px 14px', borderRadius: 8, borderLeft: '4px solid #10b981' }}>
+                        <div>
+                            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>Bu Cihaz (Chrome, Windows)</span>
+                            <div style={{ color: '#94a3b8', fontSize: '0.7rem', marginTop: 2 }}>IP: 192.168.1.1 — Son İşlem: Az Önce</div>
+                        </div>
+                        <span style={{ color: '#10b981', fontWeight: 900, fontSize: '0.75rem' }}>Aktif</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', background: '#262626', padding: '10px 14px', borderRadius: 8, borderLeft: '4px solid #f59e0b' }}>
+                        <div>
+                            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>M1 Üretim Terminali (Tablet)</span>
+                            <div style={{ color: '#94a3b8', fontSize: '0.7rem', marginTop: 2 }}>IP: 192.168.1.45 — Son İşlem: 14 dk önce</div>
+                        </div>
+                        <button style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', borderRadius: 4, padding: '4px 10px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Sonlandır</button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

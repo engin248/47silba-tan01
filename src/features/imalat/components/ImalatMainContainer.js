@@ -601,6 +601,52 @@ export default function ImalatMainContainer() {
                         </div>
                     </div>
 
+                    {/* IM-02 & IM-04 OPERASYON BAZLI İZLEME VE QC GEÇİTLERİ (MOCKUP) */}
+                    <div className="bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 mb-6 shadow-xl text-white">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-black flex items-center gap-2 text-blue-400 tracking-widest text-sm uppercase">
+                                <ShieldCheck size={18} /> [IM-02] & [IM-04] ZORUNLU İSTASYON GEÇİŞLERİ VE QC BARKODLARI
+                            </h3>
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold uppercase transition">Toplu Pas Geç (Admin)</button>
+                        </div>
+                        <div className="flex flex-col md:flex-row gap-4 items-center">
+                            <div className="flex-1 w-full bg-[#122b27] border border-[#1e4a43] p-4 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <div className="text-emerald-400 font-black text-xs uppercase mb-1 drop-shadow-md">İstasyon 1 / Operasyon</div>
+                                    <div className="text-white font-black text-[1.1rem]">🧵 DİKİŞ HATTI</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs font-bold text-slate-400 mb-1">Geçen Ürün</div>
+                                    <div className="text-xl font-mono font-black text-emerald-400">1,250</div>
+                                </div>
+                            </div>
+                            <div className="text-slate-500 font-black">➔</div>
+                            <div className="flex-[1.5] w-full bg-[#1e1b4b] border-2 border-purple-500/50 p-4 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.15)] relative overflow-hidden">
+                                <div className="absolute -right-6 top-2 bg-purple-600 text-[9px] font-black uppercase text-white px-8 py-1 rotate-45">QC-01 GEÇİDİ</div>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-purple-300 font-black text-[10px] uppercase tracking-widest mb-1 drop-shadow-md flex gap-1 items-center"><ShieldCheck size={12} /> KALİTE KONTROL 1</div>
+                                        <div className="text-white font-black text-[1.1rem]">🔥 ÜTÜ / LEKE KONTROL</div>
+                                        <div className="text-[10px] text-purple-200 mt-1 opacity-80">(Reddedilen: 14 Adet — Fasona Döndü)</div>
+                                    </div>
+                                    <button className="bg-purple-600 hover:bg-purple-700 text-white font-black px-4 py-2 rounded-lg text-sm border-b-2 border-purple-800 active:border-b-0 active:translate-y-[2px] shadow-md transition">Bant Onayı</button>
+                                </div>
+                            </div>
+                            <div className="text-slate-500 font-black">➔</div>
+                            <div className="flex-[1.5] w-full bg-[#312e81] border-2 border-indigo-500/50 p-4 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] relative overflow-hidden">
+                                <div className="absolute -right-6 top-2 bg-indigo-600 text-[9px] font-black uppercase text-white px-8 py-1 rotate-45">QC-02 FİNAL</div>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-indigo-300 font-black text-[10px] uppercase tracking-widest mb-1 drop-shadow-md flex gap-1 items-center"><CheckCircle2 size={12} /> FİNAL KONTROL</div>
+                                        <div className="text-white font-black text-[1.1rem]">📦 PAKET VE KOLİLEME</div>
+                                        <div className="text-[10px] text-indigo-200 mt-1 opacity-80">(Hazır: 1,236 Adet — Depoya Gidiyor)</div>
+                                    </div>
+                                    <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2 rounded-lg text-sm border-b-2 border-indigo-800 active:border-b-0 active:translate-y-[2px] shadow-md transition">Depoya Gönder</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* KANBAN BOARD */}
                     {imalatGorunum === 'kanban' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

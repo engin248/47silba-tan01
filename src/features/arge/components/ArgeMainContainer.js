@@ -346,6 +346,23 @@ export default function ArgeMainContainer() {
                                             </div>
                                         </div>
 
+                                        {/* [AR-05] MALİYET ÖN HESABI MOCKUP */}
+                                        <div className="mt-3 bg-[#111827] border border-[#1f2937] rounded-lg p-3 flex justify-between items-center">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-blue-900/30 p-2 rounded-lg border border-blue-500/30">
+                                                    <BarChart3 size={16} className="text-blue-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-0.5">[AR-05] ÜRETİM MALİYETİ TAHMİNİ (AI)</div>
+                                                    <div className="text-xs text-gray-400">Kumaş, Kalıp ve İşçilik öngörüsü (±%5 yanılma payı)</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-lg font-black text-white font-mono">₺{(Math.random() * (450 - 150) + 150).toFixed(0)} <span className="text-xs text-gray-500">/Birim</span></div>
+                                                <div className="text-[9px] text-emerald-400 font-black uppercase tracking-widest">Kâr Potansiyeli: %{(Math.random() * (120 - 40) + 40).toFixed(0)}</div>
+                                            </div>
+                                        </div>
+
                                         {/* G BLOK: KARAR PANELİ (ÖLÜMCÜL NOKTA) */}
                                         <div className="mt-4 flex flex-col md:flex-row justify-between items-center bg-[#161b22] border-t border-[#30363d] pt-4">
                                             <div className="text-sm text-gray-500 mb-3 md:mb-0">

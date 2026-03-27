@@ -434,6 +434,8 @@ export default function PersonelMainContainer() {
                     <button onClick={() => setSekme('liste')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'liste' ? '#047857' : '#e5e7eb', background: sekme === 'liste' ? '#047857' : 'white', color: sekme === 'liste' ? 'white' : '#374151' }}>👥 Personel</button>
                     <button onClick={() => setSekme('devam')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'devam' ? '#f59e0b' : '#e5e7eb', background: sekme === 'devam' ? '#f59e0b' : 'white', color: sekme === 'devam' ? 'white' : '#374151' }}>📅 Devam</button>
                     <button onClick={() => setSekme('prim')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'prim' ? '#059669' : '#e5e7eb', background: sekme === 'prim' ? '#059669' : 'white', color: sekme === 'prim' ? 'white' : '#374151' }}>💰 Prim</button>
+                    <button onClick={() => setSekme('vardiya')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'vardiya' ? '#7c3aed' : '#e5e7eb', background: sekme === 'vardiya' ? '#7c3aed' : 'white', color: sekme === 'vardiya' ? 'white' : '#374151' }}>🏗️ Vardiya</button>
+                    <button onClick={() => setSekme('performans')} style={{ padding: '8px 14px', borderRadius: 8, border: '2px solid', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', borderColor: sekme === 'performans' ? '#2563eb' : '#e5e7eb', background: sekme === 'performans' ? '#2563eb' : 'white', color: sekme === 'performans' ? 'white' : '#374151' }}>📊 Performans</button>
                     {sekme === 'liste' && <button onClick={() => { setForm(BOSH_FORM); setDuzenleId(null); setFormAcik(!formAcik); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#047857', color: 'white', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.35)', fontSize: '0.85rem' }}>
                         <Plus size={16} /> {isAR ? 'موظف جديد' : 'Yeni Personel'}
@@ -815,6 +817,50 @@ export default function PersonelMainContainer() {
                                 Aktif personel bulunmuyor.
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+            {/* ══ M1-PE-03 VARDİYA PLANI (MOCKUP) ══ */}
+            {sekme === 'vardiya' && (
+                <div style={{ background: '#1e1b4b', borderRadius: 16, padding: '2rem', border: '2px solid #7c3aed', color: 'white' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
+                        <span style={{ fontSize: '2rem' }}>🏗️</span>
+                        <div>
+                            <h2 style={{ margin: 0, fontWeight: 900, fontSize: '1.2rem', color: '#c4b5fd' }}>Haftalık Vardiya Yönetimi (PE-03)</h2>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#a78bfa' }}>Dikiş ve Paketleme hatları için çalışma vardiyaları planlaması (Yakında b2_vardiya tablosu ile aktifleşecek).</p>
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                        <div style={{ background: '#2e1065', padding: '1.5rem', borderRadius: 12, border: '1px solid #6d28d9' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#a78bfa', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Gündüz Vardiyası (08:00 - 18:00)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'white' }}>14 <span style={{ fontSize: '1rem', color: '#c4b5fd' }}>Kişi</span></div>
+                            <button style={{ marginTop: 12, width: '100%', padding: '8px', background: '#4c1d95', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>Planı Görüntüle</button>
+                        </div>
+                        <div style={{ background: '#0f172a', padding: '1.5rem', borderRadius: 12, border: '1px solid #334155' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Gece Vardiyası (18:00 - 02:00)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'white' }}>0 <span style={{ fontSize: '1rem', color: '#64748b' }}>Kişi</span></div>
+                            <button style={{ marginTop: 12, width: '100%', padding: '8px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 8, cursor: 'not-allowed', fontWeight: 700 }}>Aktif Değil</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══ M1-PE-01 GÜNLÜK ÜRETİM PERFORMANSI (MOCKUP) ══ */}
+            {sekme === 'performans' && (
+                <div style={{ background: '#1e3a8a', borderRadius: 16, padding: '2rem', border: '2px solid #3b82f6', color: 'white' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
+                        <span style={{ fontSize: '2rem' }}>📊</span>
+                        <div>
+                            <h2 style={{ margin: 0, fontWeight: 900, fontSize: '1.2rem', color: '#bfdbfe' }}>Personel Üretim Analitiği (PE-01)</h2>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#93c5fd' }}>Modeller, operasyonlar ve personelin hız/kaliye metrikleriyle analiz edilmesi.</p>
+                        </div>
+                    </div>
+                    <div style={{ background: '#172554', padding: '2rem', borderRadius: 12, border: '1px dashed #60a5fa', textAlign: 'center' }}>
+                        <TrendingUp size={48} color="#60a5fa" style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                        <h3 style={{ fontSize: '1rem', color: '#bfdbfe', marginBottom: '0.5rem' }}>İmalat Performansı</h3>
+                        <p style={{ fontSize: '0.85rem', color: '#93c5fd', maxWidth: 400, margin: '0 auto' }}>
+                            "b2_uretim_emirleri" işlemi tam olarak üretim panosuna (M1) aktarıldığında bu ekranda otomatik Dikiş, Ütü ve Paket bant hızları gösterilecektir.
+                        </p>
                     </div>
                 </div>
             )}

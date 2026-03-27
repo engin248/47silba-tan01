@@ -458,7 +458,21 @@ export default function RaporlarMainContainer() {
             {/* KAR & ZARAR SEKMESİ */}
             {
                 aktifSekme === 'pl' && (
-                    <div>
+                    <div className="animate-fade-in mb-8">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: '#2e1065', padding: '1rem', borderRadius: 12, border: '2px solid #6b21a8' }}>
+                            <div>
+                                <h2 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <TrendingUp size={20} color="#c084fc" /> [RP-04] Maliyet vs Satış Karlılık Raporu
+                                </h2>
+                                <p style={{ color: '#d8b4fe', fontSize: '0.8rem', margin: '4px 0 0 0' }}>Üretim maliyetleri ile sipariş satış (fatura) oranının karlılık analizi.</p>
+                            </div>
+                            <button onClick={() => {
+                                const dataLines = [['Gelir (Satis)', 'Gider (Maliyet)', 'Net Kar', 'Kar Marji'], [plRaporu.gelir, plRaporu.gider, plRaporu.kar, plRaporu.marj]];
+                                csvIndir('P&L Pivot Export', dataLines, 'RP04_Pivot_Tablo');
+                            }} style={{ background: '#10b981', color: 'white', padding: '10px 16px', borderRadius: 8, fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Download size={16} /> [RP-05] Pivot Tablo İçin İndir (CSV)
+                            </button>
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                             {[
                                 { label: '📥 Toplam Gelir (Teslim)', val: `₺${plRaporu.gelir.toFixed(2)}`, color: '#10b981', bg: '#ecfdf5', desc: 'Teslim edilen siparişlerin toplamı' },
