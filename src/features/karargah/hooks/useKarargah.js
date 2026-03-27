@@ -132,8 +132,8 @@ export function useKarargah() {
                 if (ALARM_AKTIF) {
                     const { data: uyarilar } = await supabase
                         .from('b1_sistem_uyarilari')
-                        .select('id, mesaj, uyari_tipi, created_at')
-                        .order('created_at', { ascending: false }).limit(10);
+                        .select('id, mesaj, uyari_tipi, olusturma, neden, potansiyel_zarar')
+                        .order('olusturma', { ascending: false }).limit(10);
                     if (uyarilar && uyarilar.length > 0) {
                         setAlarms(uyarilar.map(u => ({
                             id: u.id, text: u.mesaj || 'Sistem uyarısı',
@@ -228,7 +228,7 @@ export function useKarargah() {
         veriCek();
         const kanal = supabase.channel('karargah-realtime')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_kasa_hareketleri' }, () => { if (!document.hidden) veriCek(); })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_uyarilari' }, () => { if (!document.hidden) veriCek(); }) // olusturma kolonu
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_agent_loglari' }, () => { if (!document.hidden) veriCek(); })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, () => { if (!document.hidden) veriCek(); })
             .subscribe();
