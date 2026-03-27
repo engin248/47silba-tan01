@@ -72,7 +72,7 @@ export default function ArgeIstihbaratPanel() {
         try {
             const [stratejiRes, trendRes, logRes, canliRes] = await Promise.allSettled([
                 supabase.from('b1_arge_products')
-                    .select('id, urun_adi, trend_skoru, artis_yuzdesi, ai_satis_karari, rekabet_durumu, erken_trend_mi, hermania_karar_yorumu, ai_guven_skoru, created_at')
+                    .select('id, product_name, trend_skoru, artis_yuzdesi, ai_satis_karari, rekabet_durumu, erken_trend_mi, hermania_karar_yorumu, ai_guven_skoru, created_at')
                     .order('trend_skoru', { ascending: false })
                     .limit(20),
                 supabase.from('b1_arge_trendler')
@@ -443,7 +443,7 @@ export default function ArgeIstihbaratPanel() {
                                                         <span style={{ background: '#f59e0b', color: '#fff', padding: '3px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 900 }}>👁 İZLE</span>
                                                     )}
                                                     <span style={{ color: renkler.text, fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                                                        {s.urun_adi}
+                                                        {s.product_name}
                                                     </span>
                                                     {s.erken_trend_mi && <ErkenGirBadge />}
                                                 </div>
@@ -458,7 +458,7 @@ export default function ArgeIstihbaratPanel() {
                                                     <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
                                                         <button
                                                             onClick={() => {
-                                                                if (confirm(`"${s.urun_adi}" için M2 Kumaş Kartelası açılıp üretim (M3) için kalıphaneye sevk edilsin mi? (Depodaki stok aranmaksızın piyasadan numune kartelası eşleşmesi aranacak)`)) {
+                                                                if (confirm(`"${s.product_name}" için M2 Kumaş Kartelası açılıp üretim (M3) için kalıphaneye sevk edilsin mi? (Depodaki stok aranmaksızın piyasadan numune kartelası eşleşmesi aranacak)`)) {
                                                                     alert('PATRON EMRİ ALINDI! Ürün Kalıphaneye ve Numune Kumaş Alımına Düştü.');
                                                                 }
                                                             }}

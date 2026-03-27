@@ -119,7 +119,7 @@ export default function M1IstihbaratPaneli() {
 
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <h3 className="font-bold text-lg text-white mb-2">{product.urun_adi}</h3>
+                                            <h3 className="font-bold text-lg text-white mb-2">{product.product_name}</h3>
                                             <p className="text-sm text-gray-400 mb-3 leading-relaxed">
                                                 <span className="text-emerald-400 font-semibold mr-2">{product.trend_skoru}/100 Puan</span>
                                                 {product.hermania_karar_yorumu || "AI Kararı Bekleniyor..."}
