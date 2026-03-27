@@ -1,4 +1,4 @@
-﻿/**
+/**
  * lib/dipArsiv.js — KN-6: Dip Arşiv Katmanı
  *
  * Her HARD DELETE öncesi veriyi b0_arsiv tablosuna kopyalar.
