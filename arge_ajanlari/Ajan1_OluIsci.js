@@ -1,6 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
 
-const supabaseUrl = 'https://cauptlsnqieegdrgotob.supabase.co';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''; // [FIX] hardcoded URL kaldırıldı
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] fake-key kaldırıldı — ENV'den al
 
 const supabase = createClient(supabaseUrl, supabaseKey);
