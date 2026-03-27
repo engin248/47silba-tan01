@@ -22,7 +22,7 @@ export const faturaYazdir = (siparis) => {
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
             <h1>📄 FATURA / İRSALİYE</h1>
-            <p style="color:#64748b;margin:4px 0;font-size:13px">47 Sil Baştan Tekstil Sistemi</p>
+            <p style="color:#64748b;margin:4px 0;font-size:13px">Mizanet Sistemi</p>
         </div>
         <div style="text-align:right;font-size:13px">
             <div><b>Sipariş No:</b> ${siparis.siparis_no}</div>
@@ -42,7 +42,7 @@ export const faturaYazdir = (siparis) => {
         <b>GENEL TOPLAM: ₺${parseFloat(siparis.toplam_tutar_tl || 0).toFixed(2)}</b>
     </div>
     ${siparis.notlar ? `<p style="margin-top:16px;font-size:12px;color:#64748b">Not: ${siparis.notlar}</p>` : ''}
-    <p style="margin-top:30px;font-size:11px;color:#94a3b8">Bu belge 47 Sil Baştan Sistemi tarafından otomatik oluşturulmuştur.</p>
+    <p style="margin-top:30px;font-size:11px;color:#94a3b8">Bu belge Mizanet Sistemi tarafından otomatik oluşturulmuştur.</p>
     <script>window.onload = function() { window.print(); }</script>
     </body></html>`;
 

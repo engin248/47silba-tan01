@@ -1,5 +1,5 @@
 export const metadata = {
-    title: 'M18 Kameralar | 47 Sil Baştan',
+    title: 'M18 Kameralar | Mizanet',
     description: 'AI Destekli retim Analiz Platformu ve Kamera İzleme',
 };
 

@@ -73,7 +73,7 @@ export async function POST(request) {
         if (text === '/start') {
             await botLog(chat_id, '/start', 'BASARILI');
             await telegramMesaj(chat_id,
-                '👋 <b>47 Sil Baştan — Fotoğraf Botu</b>\n\n' +
+                '👋 <b>Mizanet Sistemi — Fotoğraf Botu</b>\n\n' +
                 'Atlye fotoğraflarını direkt buradan sisteme ykle!\n\n' +
                 '📷 <b>Nasıl kullanılır?</b>\n' +
                 '1. Fotoğrafı bu sohbete gnder\n' +

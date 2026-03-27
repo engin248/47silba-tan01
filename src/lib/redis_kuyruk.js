@@ -9,12 +9,15 @@ function getRedis() {
     if (_redis) return _redis;
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    if (!url || !token) {
-        console.warn('[REDIS] UPSTASH_REDIS_REST_URL veya TOKEN tanımlı değil — Redis devre dışı.');
+    if (!url || !token || url === '' || token === '') {
+        return null; // Build sırasındaki spamları Sustur
+    }
+    try {
+        _redis = new Redis({ url, token });
+        return _redis;
+    } catch (e) {
         return null;
     }
-    _redis = new Redis({ url, token });
-    return _redis;
 }
 
 /**

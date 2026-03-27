@@ -7,58 +7,51 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 
-//  UPSTASH RATE LIMIT 
-// [NIZAM FIX] Upstash free tier 'evalsha' iznini reddediyor → 500 crash.
-// zm: in-memory rate limit kullan. Paid plan olursa aşağıdaki bloğu a.
-let ratelimit = null;
-/*
-// Paid plan iin aşağıdaki bloğu aktifleştir:
-try {
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-        const { Ratelimit } = await import('@upstash/ratelimit');
-        const { Redis } = await import('@upstash/redis');
-        const redis = new Redis({
-            url: process.env.UPSTASH_REDIS_REST_URL,
-            token: process.env.UPSTASH_REDIS_REST_TOKEN,
-        });
-        ratelimit = new Ratelimit({
-            redis,
-            limiter: Ratelimit.slidingWindow(5, '15m'),
-            analytics: false,
-            prefix: 'pin_giris',
-        });
-    }
-} catch (upstashHata) { console.warn('[PIN] Upstash hatası, in-memory aktif:', upstashHata.message); }
-*/
+//  UPSTASH REDIS MÜDAHALESİ (RATE LIMIT) 
+// [Mizanet FIX] Free tier 'evalsha' hatasından kaçınmak ve serverless bellek 
+// kilitlenmesini önlemek için saf Redis 'INCR' ve 'EXPIRE' komutlarını kullanıyoruz.
+import { Redis } from '@upstash/redis';
 
-
-// In-memory fallback (Upstash olmadığında)
-const BELLEK_KILIT = new Map();
-const MAX_DENEME = 5;
-const KILIT_SURESI_MS = 15 * 60 * 1000; // 15 dakika
-
-function belleKileKontrol(ip) {
-    const simdi = Date.now();
-    const kayit = BELLEK_KILIT.get(ip);
-    if (!kayit) return { izinli: true };
-    if (kayit.kilitBitis && simdi < kayit.kilitBitis) {
-        const kalanSaniye = Math.ceil((kayit.kilitBitis - simdi) / 1000);
-        return { izinli: false, kalanSaniye };
-    }
-    if (kayit.kilitBitis && simdi >= kayit.kilitBitis) BELLEK_KILIT.delete(ip);
-    return { izinli: true };
+let _redisInstance = null;
+function getRedisClient() {
+    if (_redisInstance) return _redisInstance;
+    const url = process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_TOKEN;
+    if (!url || !token) return null; // Sessiz ve güvenli reddetme
+    _redisInstance = new Redis({ url, token });
+    return _redisInstance;
 }
 
-function bellekHataliDeneme(ip) {
-    const simdi = Date.now();
-    const kayit = BELLEK_KILIT.get(ip) || { sayi: 0 };
-    kayit.sayi += 1;
-    if (kayit.sayi >= MAX_DENEME) {
-        kayit.kilitBitis = simdi + KILIT_SURESI_MS;
-        kayit.sayi = 0;
+async function checkFailedAttempts(ip) {
+    const redis = getRedisClient();
+    if (!redis) return { isLocked: false };
+
+    try {
+        const key = `pin_hatali:${ip}`;
+        const count = await redis.get(key);
+        if (count && parseInt(count) >= 5) {
+            const ttl = await redis.ttl(key);
+            return { isLocked: true, timeLeft: ttl };
+        }
+        return { isLocked: false };
+    } catch {
+        return { isLocked: false };
     }
-    BELLEK_KILIT.set(ip, kayit);
-    return MAX_DENEME - kayit.sayi;
+}
+
+async function recordFailedAttempt(ip) {
+    const redis = getRedisClient();
+    if (!redis) return;
+
+    try {
+        const key = `pin_hatali:${ip}`;
+        const count = await redis.incr(key);
+        if (count === 1) {
+            await redis.expire(key, 900); // 15 dakika kilit süresi
+        }
+    } catch (e) {
+        // Sessizce hatayı geç, asıl akışı bozma
+    }
 }
 
 //  JWT YARDIMCILARI 
@@ -106,24 +99,13 @@ export async function POST(request) {
             || request.headers.get('x-real-ip')
             || 'bilinmeyen';
 
-        //  Rate Limit Kontrol 
-        if (ratelimit) {
-            const { success } = await ratelimit.limit(`ip:${ip}`);
-            if (!success) {
-                return NextResponse.json(
-                    { hata: 'ok fazla hatalı deneme. 15 dakika bekleyin.', kalanDeneme: 0 },
-                    { status: 429 }
-                );
-            }
-        } else {
-            // In-memory fallback
-            const durum = belleKileKontrol(ip);
-            if (!durum.izinli) {
-                return NextResponse.json(
-                    { hata: `ok fazla hatalı deneme. ${Math.ceil((durum.kalanSaniye ?? 60) / 60)} dakika bekleyin.`, kalanDeneme: 0 },
-                    { status: 429 }
-                );
-            }
+        //  Rate Limit Kontrol (Kaba Kuvvet Engelleme)
+        const limitDurum = await checkFailedAttempts(ip);
+        if (limitDurum.isLocked) {
+            return NextResponse.json(
+                { hata: `ok fazla hatalı deneme. Yaklaşık ${Math.ceil(limitDurum.timeLeft / 60)} dakika bekleyin.`, kalanDeneme: 0 },
+                { status: 429 }
+            );
         }
 
         //  İstek Gvdesi 
@@ -156,7 +138,7 @@ export async function POST(request) {
 
         if (!grup) {
             // Hatalı deneme kaydet
-            if (!ratelimit) bellekHataliDeneme(ip);
+            await recordFailedAttempt(ip);
 
             // Hatalı girişi logla — fire-and-forget
             (async () => {

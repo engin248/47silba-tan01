@@ -7,7 +7,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export default function M2FinansPaneli() {
+const M2FinansPaneli = () => {
     const [finansVerileri, setFinansVerileri] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -114,3 +114,5 @@ export default function M2FinansPaneli() {
         </div>
     );
 }
+
+export default M2FinansPaneli;

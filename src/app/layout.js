@@ -6,7 +6,7 @@ import ClientLayout from './ClientLayout';
 
 //  NEXT.JS METADATA API (Doğru Kullanım) 
 export const metadata = {
-    title: '47 Sil Baştan — retim & Mağaza Sistemi',
+    title: 'Mizanet — retim & Mağaza Sistemi',
     description: 'THE ORDER NIZAM — Adil Dzen, Şeffaf Maliyet, Adaletli Dağıtım. Fason ve rn Ynetim Sistemi.',
     manifest: '/manifest.json',
     keywords: ['retim', 'fason', 'tekstil', 'stok', 'muhasebe', 'nizam'],
@@ -21,7 +21,7 @@ export const metadata = {
         googleBot: { index: false, follow: false },
     },
     openGraph: {
-        title: '47 Sil Baştan — THE ORDER NIZAM',
+        title: 'Mizanet — THE ORDER NIZAM',
         description: 'Adil Dzen  Şeffaf Maliyet  Adaletli Dağıtım',
         locale: 'tr_TR',
         type: 'website',
