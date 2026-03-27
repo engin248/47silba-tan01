@@ -15,8 +15,8 @@ export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offlin
     const iframeRef = useRef(null);
 
     const streamSrc = `${src}_${type}`;
-    // Ekranda görünürse stream'i başlat (WebRTC ile 0 gecikme)
-    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=webrtc` : '';
+    // Ekranda görünürse stream'i başlat (Cloudflare Tunnel uyumu için MSE/WebSocket kullanılır)
+    const streamUrl = isVisible ? `${GO2RTC_URL}/stream.html?src=${streamSrc}&mode=mse` : '';
     const bgColor = type === 'main' ? '#000' : '#020617';
 
     // 1. Lazy Loading (Intersection Observer)
