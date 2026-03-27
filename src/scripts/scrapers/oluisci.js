@@ -187,7 +187,7 @@ async function rakipVerisiKazi(kategoriUrl, markaKategoriAdi) {
 
         // 3. ADIM: M1 Motoruna ateşle
         if (islenenler.length > 0) {
-            const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mizanet.com'; // [DOMAIN FIX]
             for (let payload of islenenler) {
                 try {
                     console.log(`[ÖLÜ İŞÇİ] M1 Motoruna yollanıyor: ${payload.urunBasligi}`);

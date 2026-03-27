@@ -15,10 +15,10 @@
 /**
  * Modelin tüm geçmiş notlarını okur ve ajan için öğrenme analizi döndürür.
  * @param {{ model_id?: string, model_kodu?: string, sadece_kritik?: boolean }} params
- * @returns {Promise<ModelHafizasi>}
+ * @returns {Promise<object>}
  */
 export async function modelHafizasiOku({ model_id, model_kodu, sadece_kritik = false }) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mizanet.com'; // [DOMAIN FIX] NEXT_PUBLIC_APP_URL → SITE_URL, standart domain
     const params = new URLSearchParams();
 
     if (model_id) params.set('model_id', model_id);
@@ -36,7 +36,7 @@ export async function modelHafizasiOku({ model_id, model_kodu, sadece_kritik = f
  *
  * @param {{ model_kodu: string, model_id?: string }} params
  * @param {Function} telegramBildirimFn - mevcut telegramBildirim utility
- * @returns {Promise<{ devamEdebilir: boolean, uyariMesaji: string | null }>}
+ * @returns {Promise<object>}
  */
 export async function uretimOncesiModelKontrolu({ model_kodu, model_id }, telegramBildirimFn) {
     try {

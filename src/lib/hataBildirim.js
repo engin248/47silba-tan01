@@ -43,7 +43,7 @@ export async function hataBildir(modul, hata, ekBilgi = '') {
             ekBilgi ? `ℹ️ <b>Bilgi:</b> ${ekBilgi}` : '',
             `🕐 <b>Saat:</b> ${saat}`,
             ``,
-            `<i>the-order-nizam.vercel.app</i>`,
+            `<i>mizanet.com</i>`, // [DOMAIN FIX] eski vercel adresi güncellendi
         ].filter(Boolean).join('\n');
 
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
