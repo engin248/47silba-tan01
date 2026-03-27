@@ -218,14 +218,12 @@ function LayoutInner({ children }) {
         }
     }, [kullanici, yukleniyor, pathname]);
 
-    // KÖKLÜ ÇÖZÜM: SSR Hydration çakışmasına sebep olan "SİSTEME BAĞLANILIYOR" tam ekran kilidi KURTARILDI.
-    // Artık sistem client tarafında React'i dondurmayacak, direkt render edilecek.
-    if (isGiris || (!kullanici && yukleniyor === false)) {
+    // KÖKLÜ ÇÖZÜM: Kullanıcı yoksa bile içeriği çiz ki Kameralar paneli giriş izni kilidini kullanabilsin.
+    // Eğer direkt null dönerseniz tamamen SİYAH ekran hatası oluyordu!
+    if (!kullanici) {
         return <>{children}</>;
     }
 
-    // SSR ve mount sırasında UI uyuşmazlığını engellemek için, giriş yapılmamışsa (kullanici == null) arayüzü çizme
-    if (!kullanici) return null;
 
     return (
         <div className="layout-container" style={{ flexDirection: isAR ? 'row-reverse' : 'row' }}>
