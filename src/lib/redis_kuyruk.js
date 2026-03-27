@@ -3,16 +3,26 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env.local') }); // [H10 FIX] göreli path → mutlak path
 const crypto = require('crypto');
 
-// Upstash Redis Connection Config
-const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+// Lazy Redis bağlantısı — modül yüklenirken değil, kullanıldığında bağlan
+let _redis = null;
+function getRedis() {
+    if (_redis) return _redis;
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) {
+        console.warn('[REDIS] UPSTASH_REDIS_REST_URL veya TOKEN tanımlı değil — Redis devre dışı.');
+        return null;
+    }
+    _redis = new Redis({ url, token });
+    return _redis;
+}
 
 /**
  * Görevi (Job) belirtilen kuyruğa ekler.
  */
 async function KuyrugaEkle(queueName, jobData) {
+    const redis = getRedis();
+    if (!redis) return null;
     try {
         const dataString = JSON.stringify({
             id: crypto.randomUUID(),
@@ -25,7 +35,7 @@ async function KuyrugaEkle(queueName, jobData) {
         return length;
     } catch (error) {
         console.error(`[REDIS ERROR] KuyrugaEkle başarısız:`, error);
-        throw error;
+        return null;
     }
 }
 
@@ -33,8 +43,9 @@ async function KuyrugaEkle(queueName, jobData) {
  * Belirtilen kuyruktan işlenecek ilk görevi alır (Listeden çıkarır).
  */
 async function KuyruktanAl(queueName) {
+    const redis = getRedis();
+    if (!redis) return null;
     try {
-        // FIFO yapısı
         const jobString = await redis.rpop(queueName);
         if (!jobString) return null;
         return JSON.parse(jobString);
@@ -45,6 +56,8 @@ async function KuyruktanAl(queueName) {
 }
 
 async function KuyrukUzunlugu(queueName) {
+    const redis = getRedis();
+    if (!redis) return 0;
     try {
         return await redis.llen(queueName);
     } catch (error) {
