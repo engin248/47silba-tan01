@@ -6,7 +6,7 @@ import { Lock, Eye, EyeOff, LogIn, ShieldAlert } from 'lucide-react';
 import { T, langDir } from '@/lib/lang';
 
 const MAX_DENEME = 5;
-const KILIT_SURE_SN = 30;
+const KILIT_SURE_SN = 900; // 15 dakika — sunucu rate limit ile tutarlı
 const DEPO_ANAHTAR = 'sb47_giris_kilit';
 
 export default function GirisSayfasi() {
@@ -179,7 +179,7 @@ export default function GirisSayfasi() {
                 </div>
 
                 <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#e2e8f0', marginTop: '1.25rem', fontWeight: 600 }}>
-                    {dil === 'ar' ? `الجلسة صالحة لمدة 4 ساعات • ${MAX_DENEME} محاولات خاطئة قفل ${KILIT_SURE_SN} ثانية` : `Oturum 4 saat geçerlidir • ${MAX_DENEME} yanlış denemede ${KILIT_SURE_SN}s kilit`}
+                    {dil === 'ar' ? `الجلسة صالحة لمدة 4 ساعات • ${MAX_DENEME} محاولات خاطئة = قفل 15 دقيقة` : `Oturum 8 saat geçerlidir • ${MAX_DENEME} yanlış denemede 15 dk kilit`}
                 </p>
             </div>
 
