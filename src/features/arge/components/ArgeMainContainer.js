@@ -358,8 +358,8 @@ export default function ArgeMainContainer() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-lg font-black text-white font-mono">₺{(Math.random() * (450 - 150) + 150).toFixed(0)} <span className="text-xs text-gray-500">/Birim</span></div>
-                                                <div className="text-[9px] text-emerald-400 font-black uppercase tracking-widest">Kâr Potansiyeli: %{(Math.random() * (120 - 40) + 40).toFixed(0)}</div>
+                                                <div className="text-lg font-black text-white font-mono">{p.teorik_maliyet ? `₺${Number(p.teorik_maliyet).toFixed(0)}` : 'Hesaplanmadi'} <span className="text-xs text-gray-500">/Birim</span></div>
+                                                <div className="text-[9px] text-emerald-400 font-black uppercase tracking-widest">Firsat Skoru: %{p.satar_satmaz_skoru ? Number(p.satar_satmaz_skoru).toFixed(0) : '?'}</div>
                                             </div>
                                         </div>
 

@@ -108,22 +108,26 @@ Aşağıdaki JSON formatında skorları dön (SADECE JSON, açıklama yazma):
 
 // ─── YEDEK MOTOR (MOCK) — Gemini çökerse devreye girer ────────
 function mockAnaliz(fiyatStr) {
-    const baseScore = Math.random() * 40 + 50;
+    // [FIX] Math.random() kaldırıldı — sahte analiz skoru üretilmiyor
+    // Mock modda tarafsız sabit değerler kullanılır, 'mock_islendi' olarak işaretlenir
+    // Gemini bağlandığında yeniden işlenecek
+    const sabitSkor = 50; // Tarafsız orta değer
     return {
-        satis_buyumesi: Math.min(100, baseScore + (Math.random() * 20 - 10)),
-        sosyal_medya_etkisi: Math.min(100, baseScore + (Math.random() * 30 - 10)),
-        rakip_kullanim_hizi: Math.min(100, baseScore + (Math.random() * 15)),
-        sezon_uyumu: Math.min(100, baseScore + (Math.random() * 40 - 20)),
-        teorik_maliyet: (fiyatStr ? fiyatStr * 0.35 : (Math.random() * 200 + 100)).toFixed(2),
-        kumas_turu: 'Pamuk / Sentetik Karışımı (Mock Tahmin)',
-        iscilik_zorlugu: ['Kolay', 'Orta', 'Zor'][Math.floor(Math.random() * 3)],
-        tedarik_riski_puani: Math.floor(Math.random() * 40 + 10),
-        uretim_karma_puani: Math.floor(Math.random() * 50 + 10),
-        risk_ozeti: 'Mock mod — gerçek risk analizi yapılamadı.',
-        agent_notu: 'Mock mod aktif. Gemini API bağlantısı kurulduğunda gerçek analiz yapılacak.',
+        satis_buyumesi: sabitSkor,
+        sosyal_medya_etkisi: sabitSkor,
+        rakip_kullanim_hizi: sabitSkor,
+        sezon_uyumu: sabitSkor,
+        teorik_maliyet: (fiyatStr ? (fiyatStr * 0.35).toFixed(2) : '150.00'),
+        kumas_turu: 'Bilinmiyor (Gemini Baglantisi Gerekli)',
+        iscilik_zorlugu: 'Orta', // sabit — Math.random() kaldırıldı
+        tedarik_riski_puani: 25, // sabit orta — Math.random() kaldırıldı
+        uretim_karma_puani: 30,  // sabit orta — Math.random() kaldırıldı
+        risk_ozeti: 'Mock mod — gercek risk analizi yapılamadı. Gemini API gerekli.',
+        agent_notu: 'Mock mod aktif. Gemini API baglantisi kuruldugunda gercek analiz yapilacak.',
         kaynak: 'mock'
     };
 }
+
 
 // ─── ANA YARGILAMA MOTORU ─────────────────────────────────────
 async function yargilamayiBaslat() {
