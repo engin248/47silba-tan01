@@ -120,12 +120,15 @@ export default function GirisSayfasi() {
 
                 {/* PIN Kartı */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.75rem' }}>
-                    <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
+                    <label htmlFor="pin-giris" style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.625rem' }}>
                         {dil === 'ar' ? 'رمز الوصول' : 'Erişim Kodu'}
                     </label>
 
                     <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
                         <input
+                            id="pin-giris"
+                            name="pin"
+                            autoComplete="current-password"
                             type={kilitliSaniye > 0 ? 'password' : (goster ? 'text' : 'password')}
                             value={pin}
                             onChange={e => { if (kilitliSaniye > 0) return; setPin(e.target.value); setHata(''); }}
