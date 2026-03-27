@@ -7,10 +7,11 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '../.env.local' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env.local') }); // [FIX] kısmi yol → mutlak yol
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // [FIX] undefined lint
 const supabase = createClient(SUPABASE_URL, SUPABASE_ROLE_KEY);
 
 async function m2KarKilidiHesapla(urun_id, kumas_mt_fiyat, kumas_sarfiyat_mt, iscililik_fiyati) {
