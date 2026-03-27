@@ -11,9 +11,9 @@ from ultralytics import YOLO
 # Vercel paneline (Supabase'e) yükler. Ekran kartının tam gücünü kullanır.
 
 # --- AYARLAR ---
-# Cihazınız Neutron olduğu için model bağlanan RTSP Linki
-RTSP_URL = "rtsp://admin:tuana1452.@192.168.1.200:554/cam/realmonitor?channel=1&subtype=0" 
-NIZAM_API_URL = "https://sizin-vercel-api.com/api/uretim-senkronize"
+# Ekiplerin başarıyla açtığı Go2rtc (Şifresiz, Saf) Yerel Ağ Kanalından D2 kamerasını okuma
+RTSP_URL = "http://127.0.0.1:1984/api/stream.mjpeg?src=d2_sub" 
+NIZAM_API_URL = "https://mizanet.com/api/uretim-senkronize"
 
 # Ekran Kartının gücünü sonuna kadar kullanan Model
 print("[YAPAY ZEKA] YOLOv8 Göz Motoru Belleğe Yükleniyor... Lütfen Bekleyin.")
