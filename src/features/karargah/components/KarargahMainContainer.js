@@ -6,19 +6,19 @@ import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useRef } from 'react';
 
 // ████████████████████████████████████████████████████████████████████████
-// [ NİZAM ] SİBER KARARGAH — V2.3 GERÇEK ASKERİ (OLIVE DRAB & SAGE GREEN)
+// [ NİZAM ] SİBER KARARGAH — V2.4 GERÇEK ASKERİ (SON GÖRSEL BİREBİR)
 // ████████████████████████████████████████████████████████████████████████
 
 // GÖZ YORMAYAN, UZUN SÜRELİ İZLEMEYE UYGUN GERÇEK ASKERİ RENKLER
 const MILITARY = {
-    bg: "bg-[#0B100B]",                    // Zemin: Çok koyu, griye çalan zeytin siyahı
-    panel: "bg-[#111A13] border-[#2E4031]",// Paneller: Kamuflaj yeşili koyu ton
-    text: "text-[#9EB5A2]",                // Genel Yazı: Göz yormayan Adaçayı Yeşili (Sage Green)
-    header: "text-[#69F0AE] font-semibold tracking-widest drop-shadow-[0_0_2px_#69F0AE]", // Başlıklar
-    accent: "text-[#81C784]",              // Vurgu Yeşili
-    amber: "text-[#FFD54F]",               // Telsiz/Analiz/Para Rengi
-    red: "text-[#E57373]",                 // Alarm (Çok parlak olmayan operasyonel kırmızı)
-    cyan: "text-[#81D4FA]"                 // Veri İşleme
+    bg: "bg-[#0B100B]",
+    panel: "bg-[#111A13] border-[#2E4031]",
+    text: "text-[#9EB5A2]",
+    header: "text-[#69F0AE] font-semibold tracking-widest drop-shadow-[0_0_2px_#69F0AE]",
+    accent: "text-[#81C784]",
+    amber: "text-[#FFD54F]",
+    red: "text-[#E57373]",
+    cyan: "text-[#81D4FA]"
 };
 
 const MILITARY_NAV = [
@@ -56,10 +56,8 @@ const TUM_AJANLAR = [
 const RadarDisplay = ({ ajanlar }) => {
     return (
         <div className={`relative w-full aspect-square border ${MILITARY.panel} flex items-center justify-center p-3 shadow-[inset_0_0_30px_rgba(46,64,49,0.5)] overflow-hidden`}>
-            {/* Arka Plan Radar Ağı (Daha yumuşak) */}
             <div className={`absolute inset-0 opacity-10`} style={{ backgroundImage: 'radial-gradient(circle at center, #9EB5A2 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
-            {/* Halkalar (Olive Drab) */}
             <div className={`absolute inset-[10%] border border-[#2E4031] rounded-full`} />
             <div className={`absolute inset-[30%] border border-[#2E4031] rounded-full`} />
             <div className={`absolute inset-[50%] border border-[#2E4031] rounded-full`} />
@@ -72,7 +70,6 @@ const RadarDisplay = ({ ajanlar }) => {
                 <Target size={18} className="text-[#81C784] opacity-40" />
             </div>
 
-            {/* Sweep */}
             <div className="absolute inset-0 rounded-full origin-center animate-[spin_5s_linear_infinite] mix-blend-screen"
                 style={{ background: 'conic-gradient(from 0deg, transparent 60%, rgba(129, 199, 132, 0.25) 100%)' }} />
 
@@ -150,7 +147,7 @@ export function KarargahMainContainer() {
     return (
         <div className={`min-h-screen ${MILITARY.bg} font-mono p-4 flex flex-col`} style={{ userSelect: 'none' }}>
 
-            {/* ÜST BAŞLIK (Daha sofistike askeri yeşil) */}
+            {/* ÜST BAŞLIK */}
             <div className={`flex items-center justify-between border-b-2 border-[#2E4031] pb-2 mb-4 bg-gradient-to-r from-[#0B100B] via-[#152319] to-[#0B100B]`}>
                 <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 bg-[#81C784] rounded-full animate-pulse shadow-[0_0_8px_rgba(129,199,132,0.6)]`} />
@@ -166,7 +163,7 @@ export function KarargahMainContainer() {
                 </div>
             </div>
 
-            {/* İLK METRİK SATIRI (Daha okunabilir) */}
+            {/* İLK METRİK SATIRI */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
                 <div className={`border ${MILITARY.panel} p-2 flex flex-col justify-between`}>
                     <div className={`text-[11px] ${MILITARY.header} border-b border-[#2E4031] pb-1 mb-2 uppercase`}>[ SIFIR İNİSİYATİF ]</div>
@@ -212,7 +209,7 @@ export function KarargahMainContainer() {
                     <div className={`text-[11px] ${MILITARY.header} border-b border-[#2E4031] pb-1 mb-2 flex justify-between uppercase`}>
                         <span>[ İŞLETME MALİYETİ ]</span> <span className="text-[#FFD54F] font-bold">₺16.6K</span>
                     </div>
-                    {/* Okunabilir (Bar Çubuklu) Maliyet Analizi */}
+                    {/* Okunabilir Maliyet Analizi */}
                     <div className="space-y-1.5 flex-1 pr-1 h-[45px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#2E4031]">
                         {maliyetDagilimi.map((m, i) => (
                             <div key={i} className="flex flex-col gap-0.5">
@@ -278,7 +275,6 @@ export function KarargahMainContainer() {
                         <div className="absolute inset-0 left-7 bottom-5 top-8 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 30px, #7C9882 30px, #7C9882 31px), repeating-linear-gradient(0deg, transparent, transparent 15px, #7C9882 15px, #7C9882 16px)' }} />
 
                         <svg className="absolute inset-0 left-7 bottom-5 top-8 w-[calc(100%-2rem)] h-[calc(100%-3rem)] transition-all" preserveAspectRatio="none" viewBox="0 0 100 40">
-                            {/* Çok yumuşak akış (SAGE GREEN THEME) */}
                             <path d="M0,25 C15,20 30,35 45,25 C60,15 75,35 90,25 C100,20 100,20 100,20" fill="none" stroke="#81d4fa" strokeWidth="1" className="animate-[dash_8s_linear_infinite]" strokeDasharray="300" />
                             <path d="M0,15 C20,30 35,10 50,20 C65,30 80,10 100,25" fill="none" stroke="#FFD54F" strokeWidth="1" className="animate-[dash_12s_linear_infinite] opacity-80" strokeDasharray="300" />
                             <path d="M0,35 C20,20 40,40 60,15 C80,-5 90,30 100,10" fill="none" stroke="#E57373" strokeWidth="1" className="opacity-60" />
@@ -286,10 +282,10 @@ export function KarargahMainContainer() {
                     </div>
                 </div>
 
-                {/* 3. SÜTUN: ÜRETİM (GERİ DÖNEN HERMES KUTUSU), KAMERA VE TELSİZ */}
+                {/* 3. SÜTUN: ÜRETİM, KAMERA VE TELSİZ */}
                 <div className="flex flex-col gap-3">
 
-                    {/* ÜRETİM PANELİ & HERMES GEMİNİ KUTUSU (GERİ GELDİ!) */}
+                    {/* ÜRETİM PANELİ & HERMES KUTUSU BİREBİR GÖRSELDEKİ */}
                     <div className={`border ${MILITARY.panel} p-2 flex flex-col`}>
                         <div className="flex justify-between items-end border-b border-[#2E4031] pb-1 mb-2">
                             <h2 className={`text-[12px] ${MILITARY.header} text-[#FFD54F]`}>ÜRETİM PANELİ</h2>
@@ -299,7 +295,8 @@ export function KarargahMainContainer() {
                             <div className="flex justify-between bg-[#1A261D] px-1 py-0.5"><span className="uppercase">Üretimde:</span> <span className="text-[#81C784] font-semibold">847 Adet</span></div>
                             <div className="flex justify-between bg-[#1A261D] px-1 py-0.5"><span className="uppercase">Hazır:</span> <span className="text-[#FFD54F] font-semibold">312 Adet</span></div>
                         </div>
-                        {/* HERMES + GEMINI ONAY KUTUSU (Göz Yormayan Askeri Gri-Sarı tonu) */}
+
+                        {/* HERMES + GEMINI ONAY KUTUSU (Göz Yormayan) */}
                         <div className="border border-[#4A5D23] bg-[#1E2615] p-2 mt-1">
                             <div className="flex items-center gap-1 text-[9px] text-[#DCE775] font-bold border-b border-[#4A5D23] pb-1 mb-1 uppercase tracking-widest"><Cpu size={12} /> HERMES+GEMİNİ KARAR MERKEZİ</div>
                             <div className="text-[8px] text-[#9EB5A2] leading-tight mb-2 uppercase">
@@ -326,7 +323,6 @@ export function KarargahMainContainer() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20"><Crosshair size={40} className="text-[#81C784]" /></div>
                     </div>
 
-                    {/* ACİL UYARI BANDI (Okunabilir, abartısız) */}
                     <div className="border border-[#EF5350]/40 bg-[#EF5350]/5 p-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <AlertTriangle size={14} className="text-[#E57373]" />
@@ -337,15 +333,14 @@ export function KarargahMainContainer() {
 
                 </div>
 
-                {/* 4. SÜTUN: PERSONEL, TERMİNAL VE ADALETLİ ÜCRET DİBİ */}
+                {/* 4. SÜTUN: PERSONEL & TELSİZ */}
                 <div className="flex flex-col gap-3">
 
-                    {/* PERSONEL LİSTESİ (Çifte Başlıklı - Yumuşatılmış) */}
                     <div className={`border ${MILITARY.panel} bg-[#0D140D] flex-1 flex flex-col p-2`}>
                         <div className="flex-1 mb-1">
                             <h2 className={`text-[11px] font-semibold text-center uppercase tracking-widest bg-[#1A261D] mb-2 py-0.5 text-[#A3C293]`}>🏆 GÜNÜN İLK 10 PERSONELİ</h2>
                             <div className="space-y-1 text-[9px] font-medium pb-1 pr-1">
-                                {gununPersonelleri10.slice(0, 8).map((p, i) => ( // Ekrana sığması için 8 yaptık
+                                {gununPersonelleri10.slice(0, 8).map((p, i) => (
                                     <div key={i} className="flex justify-between border-b border-[#2E4031]/50 pb-0.5">
                                         <span className={i < 3 ? "text-[#81C784] font-semibold" : "text-[#7C9882]"}>{i + 1}. {p.n}</span>
                                         <span className="flex gap-2"><span className="text-[#526054]">[{p.birim}]</span> <span className={MILITARY.cyan}>{p.s}P</span></span>
@@ -355,7 +350,7 @@ export function KarargahMainContainer() {
                         </div>
 
                         <div className="flex-1 border-t border-[#2E4031] pt-2">
-                            <h2 className={`text-[11px] font-semibold text-center uppercase tracking-widest bg-[#1A261D] mb-2 py-0.5 text-[#FFD54F]/90`}>🌟 HAFTANIN İLK 10 PERSONELİ</h2>
+                            <h2 className={`text-[11px] font-semibold text-center uppercase tracking-widest bg-[#1A261D] mb-2 py-0.5 text-[#FFD54F]/90`}>🌟 HAFTALIK TOP 10 PERSONEL</h2>
                             <div className="space-y-1 text-[9px] font-medium pr-1">
                                 {haftaninPersonelleri10.slice(0, 8).map((p, i) => (
                                     <div key={i} className="flex justify-between border-b border-[#2E4031]/50 pb-0.5">
@@ -367,7 +362,6 @@ export function KarargahMainContainer() {
                         </div>
                     </div>
 
-                    {/* OKUNABİLİR VE NOSTALJİK NİZAM TELSİZ LOG (TERMINAL) */}
                     <div className="border border-[#2E4031] bg-[#000000] p-2 relative h-28 flex flex-col">
                         <div className="text-[9px] text-[#526054] font-semibold uppercase border-b border-[#2E4031] pb-1 mb-1 tracking-widest flex justify-between">
                             <span>NİZAM TELSİZ</span> <span>[LOG]</span>
@@ -385,7 +379,6 @@ export function KarargahMainContainer() {
                         </div>
                     </div>
 
-                    {/* ADALETLİ ÜCRET TAM SAĞ DİPTE (Göz yormayan sarı tonu) */}
                     <div className={`border border-[#4A5D23] p-2 text-center bg-[#1A180E]`}>
                         <div className="text-[11px] font-semibold uppercase text-[#FFD54F] border-b border-[#4A5D23]/50 pb-1 mb-1 tracking-widest">[ ADALETLİ ÜCRET ]</div>
                         <div className="text-[9px] text-[#A1A28A] uppercase tracking-widest mt-1">Sistemsel Aylık Hak Ediş</div>
@@ -394,7 +387,7 @@ export function KarargahMainContainer() {
                 </div>
             </div>
 
-            {/* ALT YÖNETİM BUTONLARI (Daha oturaklı ve okunaklı) */}
+            {/* ALT YÖNETİM BUTONLARI */}
             <div className={`mt-2 pt-2 border-t border-[#2E4031]`}>
                 <div className="grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-2 pb-4">
                     {MILITARY_NAV.map((mod, i) => (
@@ -409,9 +402,6 @@ export function KarargahMainContainer() {
                 </div>
             </div>
 
-            <style jsx global>{`
-                @keyframes dash { to { stroke-dashoffset: -600; } }
-            `}</style>
         </div>
     );
 }
