@@ -6,19 +6,25 @@ import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useRef } from 'react';
 
 // ████████████████████████████████████████████████████████████████████████
-// [ NİZAM ] SİBER KARARGAH — V2.5 GERÇEK ASKERİ (SON ONAYLI YAPILANDIRMA)
+// [ NİZAM ] SİBER KARARGAH — V2.6 PHOSPHOR CRT GREEN (BİREBİR GÖRSEL RENGİ)
 // ████████████████████████████████████████████████████████████████████████
 
-// GÖZ YORMAYAN, UZUN SÜRELİ İZLEMEYE UYGUN GERÇEK ASKERİ RENKLER
-const MILITARY = {
-    bg: "bg-[#0B100B]",
-    panel: "bg-[#111A13] border-[#2E4031]",
-    text: "text-[#9EB5A2]",
-    header: "text-[#69F0AE] font-semibold tracking-widest drop-shadow-[0_0_2px_#69F0AE]",
-    accent: "text-[#81C784]",
-    amber: "text-[#FFD54F]",
-    red: "text-[#E57373]",
-    cyan: "text-[#81D4FA]"
+// TAM GÖRSELDEKİ "SARIYA ÇALAN ASKERİ YEŞİL" (PHOSPHOR MIX)
+const COLORS = {
+    bg: "bg-[#070A06]",                      // En koyu dış zemin
+    panel: "bg-[#0F140A] border-[#698E2A]",  // Panel zemini ve ince sarımtırak-yeşil çerçevesi
+    borderStrong: "border-[#8CAE36]",        // Kalın/Vurgulu çerçeveler (Görseldeki gibi)
+    borderDim: "border-[#3A5018]",           // İçi sönük bölücü çizgiler
+
+    textTitle: "text-[#D1EF53] drop-shadow-[0_0_8px_rgba(209,239,83,0.3)]", // Orijinal resimdeki ana başlık fosforik sarı/yeşili
+    textMain: "text-[#9CBF48]",              // Genel veri yazıları
+    textDim: "text-[#6E8F3D]",               // Kutu altlarındaki "Hazırlık Skoru", "Altyapı" gibi sönük açıklamalar
+
+    red: "text-[#E84C3D]",                   // Yıpranmış / CRT Kırmızısı (3 HATA rengi)
+    redBg: "bg-[#E84C3D]",
+    amber: "text-[#F1C40F]",                 // ADALETLİ ÜCRET ve Para rengi
+    amberBg: "bg-[#F1C40F]",
+    cyan: "text-[#4DB6AC]"                   // Grafikler / Mavi veriler
 };
 
 const MILITARY_NAV = [
@@ -55,23 +61,23 @@ const TUM_AJANLAR = [
 
 const RadarDisplay = ({ ajanlar }) => {
     return (
-        <div className={`relative w-full aspect-square border ${MILITARY.panel} flex items-center justify-center p-3 shadow-[inset_0_0_30px_rgba(46,64,49,0.5)] overflow-hidden`}>
-            <div className={`absolute inset-0 opacity-10`} style={{ backgroundImage: 'radial-gradient(circle at center, #9EB5A2 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+        <div className={`relative w-full aspect-square border ${COLORS.borderStrong} ${COLORS.bg} flex items-center justify-center p-3 overflow-hidden`}>
+            <div className={`absolute inset-0 opacity-10`} style={{ backgroundImage: 'radial-gradient(circle at center, #9CBF48 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
-            <div className={`absolute inset-[10%] border border-[#2E4031] rounded-full`} />
-            <div className={`absolute inset-[30%] border border-[#2E4031] rounded-full`} />
-            <div className={`absolute inset-[50%] border border-[#2E4031] rounded-full`} />
-            <div className={`absolute inset-[70%] border border-[#2E4031] rounded-full`} />
+            <div className={`absolute inset-[10%] border ${COLORS.borderDim} rounded-full`} />
+            <div className={`absolute inset-[30%] border ${COLORS.borderDim} rounded-full`} />
+            <div className={`absolute inset-[50%] border ${COLORS.borderDim} rounded-full`} />
+            <div className={`absolute inset-[70%] border ${COLORS.borderDim} rounded-full`} />
 
-            <div className={`absolute w-full h-[1px] bg-[#2E4031]`} />
-            <div className={`absolute h-full w-[1px] bg-[#2E4031]`} />
+            <div className={`absolute w-full h-[1px] bg-[#3A5018]`} />
+            <div className={`absolute h-full w-[1px] bg-[#3A5018]`} />
 
             <div className="absolute flex items-center justify-center">
-                <Target size={18} className="text-[#81C784] opacity-40" />
+                <Target size={18} className="text-[#8CAE36] opacity-40" />
             </div>
 
             <div className="absolute inset-0 rounded-full origin-center animate-[spin_5s_linear_infinite] mix-blend-screen"
-                style={{ background: 'conic-gradient(from 0deg, transparent 60%, rgba(129, 199, 132, 0.25) 100%)' }} />
+                style={{ background: 'conic-gradient(from 0deg, transparent 60%, rgba(156, 191, 72, 0.25) 100%)' }} />
 
             {TUM_AJANLAR.map((a, i) => {
                 const angle = (i * 36 + 15) * (Math.PI / 180);
@@ -79,15 +85,15 @@ const RadarDisplay = ({ ajanlar }) => {
                 const top = 50 + radius * Math.sin(angle);
                 const left = 50 + radius * Math.cos(angle);
 
-                let colorClass = "#81C784";
-                if (a.tip === 'hata') colorClass = "#E57373";
-                if (a.tip === 'analiz' || a.tip === 'finans') colorClass = "#FFD54F";
+                let colorHex = "#9CBF48";
+                if (a.tip === 'hata') colorHex = "#E84C3D";
+                if (a.tip === 'analiz' || a.tip === 'finans') colorHex = "#F1C40F";
 
                 return (
                     <div key={i} className={`absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 transition-all duration-1000 z-10`}
                         style={{ top: `${top}%`, left: `${left}%` }}>
-                        <div className={`w-2 h-2 rounded-full shadow-[0_0_5px_currentColor] ${a.aktif ? 'animate-[pulse_2s_infinite]' : 'opacity-40'}`} style={{ backgroundColor: colorClass, color: colorClass }} />
-                        <span className="absolute left-3 whitespace-nowrap text-[7px] font-medium tracking-wide drop-shadow-[0_1px_1px_black]" style={{ color: colorClass }}>
+                        <div className={`w-2 h-2 rounded-full shadow-[0_0_5px_currentColor] ${a.aktif ? 'animate-[pulse_2s_infinite]' : 'opacity-40'}`} style={{ backgroundColor: colorHex, color: colorHex }} />
+                        <span className="absolute left-3 whitespace-nowrap text-[7px] font-medium tracking-wide drop-shadow-[0_1px_1px_black]" style={{ color: colorHex }}>
                             [{a.lokasyon}]
                         </span>
                     </div>
@@ -145,79 +151,71 @@ export function KarargahMainContainer() {
     ];
 
     return (
-        <div className={`min-h-screen ${MILITARY.bg} font-mono p-4 flex flex-col`} style={{ userSelect: 'none' }}>
+        <div className={`min-h-screen ${COLORS.bg} font-mono p-4 flex flex-col`} style={{ userSelect: 'none' }}>
 
-            {/* ÜST BAŞLIK */}
-            <div className={`flex items-center justify-between border-b-2 border-[#2E4031] pb-2 mb-4 bg-gradient-to-r from-[#0B100B] via-[#152319] to-[#0B100B]`}>
+            {/* ÜST BAŞLIK (Phosphor Yellow-Green) */}
+            <div className={`flex items-center justify-between border-b border-[#3A5018] pb-2 mb-4 bg-gradient-to-r from-[#070A06] via-[#12180C] to-[#070A06]`}>
                 <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 bg-[#81C784] rounded-full animate-pulse shadow-[0_0_8px_rgba(129,199,132,0.6)]`} />
-                    <span className={`text-xs ${MILITARY.text} tracking-widest font-semibold`}>OTURUM AKTİF</span>
+                    <span className={`w-2.5 h-2.5 bg-[#D1EF53] rounded-full animate-pulse shadow-[0_0_8px_rgba(209,239,83,0.6)]`} />
+                    <span className={`text-[10px] ${COLORS.textTitle} tracking-[0.2em] font-bold`}>AKTİF OTURUM</span>
                 </div>
-                <h1 className="text-xl md:text-2xl font-bold uppercase tracking-[0.2em] text-[#A3C293] text-center flex-1 drop-shadow-[0_1px_2px_#000]">
-                    KARARGAH OPERASYON HAREKAT MERKEZİ
+                <h1 className={`text-xl md:text-3xl font-black uppercase tracking-[0.1em] text-center flex-1 ${COLORS.textTitle}`}>
+                    KARARGAH OPERASYON HAREKAT KOMUTA MERKEZİ
                 </h1>
-                <div className={`flex items-center gap-3 text-xs tracking-widest ${MILITARY.text}`}>
-                    <span className={`px-2 py-0.5 border border-[#2E4031] bg-[#111A13]`}>{saat}</span>
-                    <span className={`px-2 py-0.5 border border-[#2E4031] bg-[#111A13]`}>PING {ping}ms</span>
-                    <span className="text-[#81C784] font-semibold border border-[#2E4031] px-2 py-0.5">TR-AR</span>
+                <div className={`flex items-center gap-3 text-xs tracking-widest ${COLORS.textMain} font-bold`}>
+                    <span className={`px-2 py-0.5 border border-[#3A5018] bg-[#0F140A]`}>{saat}</span>
+                    <span className={`px-2 py-0.5 border border-[#3A5018] bg-[#0F140A]`}>PING:{ping}ms</span>
+                    <span className="text-[#D1EF53] border border-[#3A5018] px-2 py-0.5">TR AR</span>
                 </div>
             </div>
 
-            {/* İLK METRİK SATIRI */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
-                <div className={`border ${MILITARY.panel} p-2 flex flex-col justify-between`}>
-                    <div className={`text-[11px] ${MILITARY.header} border-b border-[#2E4031] pb-1 mb-2 uppercase`}>[ SIFIR İNİSİYATİF ]</div>
-                    <div className="flex justify-between items-center text-[#FFD54F] px-1">
-                        <span className="text-lg tracking-widest drop-shadow-[0_1px_2px_black]">★★★★<span className="opacity-30">★</span></span>
-                        <span className="text-[10px] text-[#9EB5A2]">HAZIRLIK</span>
+            {/* İLK METRİK SATIRI (Visual Colors) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                <div className={`border ${COLORS.borderStrong} p-2 flex flex-col justify-between ${COLORS.bg}`}>
+                    <div className={`text-[12px] ${COLORS.textMain} font-bold border-b ${COLORS.borderDim} pb-1 mb-2 uppercase`}>[ SIFIR İNİSİYATİF ]</div>
+                    <div className="flex justify-between items-center text-[#9CBF48] px-1 text-lg tracking-widest">
+                        ★★★★<span className="opacity-30">★</span>
                     </div>
-                    <div className="h-1 w-full bg-[#1A261D] mt-1"><div className="h-full bg-[#81C784]" style={{ width: '85%' }}></div></div>
+                    <div className="h-1.5 w-full bg-[#1A2612] mt-1"><div className="h-full bg-[#E84C3D]" style={{ width: '85%' }}></div></div>
+                    <div className={`text-[10px] text-center mt-2 font-bold ${COLORS.textDim}`}>Hazırlık skoru</div>
                 </div>
 
-                <div className={`border ${MILITARY.panel} p-2 text-center`}>
-                    <div className={`text-[11px] ${MILITARY.header} border-b border-[#2E4031] pb-1 mb-2 uppercase`}>[ ADİL DÜZEN ]</div>
-                    <div className="flex justify-around items-center h-8">
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#81C784]" /><span className="text-[#9EB5A2] text-sm font-semibold">%94 (Uyum)</span></div>
-                        <div className="w-[1px] h-full bg-[#2E4031]" />
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FFD54F]" /><span className="text-[#FFD54F] text-sm font-semibold">%71 (Kapasite)</span></div>
+                <div className={`border ${COLORS.borderStrong} p-2 text-center ${COLORS.bg}`}>
+                    <div className={`text-[12px] ${COLORS.textMain} font-bold border-b ${COLORS.borderDim} pb-1 mb-2 uppercase`}>[ ADİL DÜZEN ]</div>
+                    <div className="flex justify-around items-center h-10">
+                        <div className="relative w-10 h-10"><svg className="w-full h-full -rotate-[135deg]"><circle cx="18" cy="18" r="16" fill="none" stroke="#253A15" strokeWidth="4" /><circle cx="18" cy="18" r="16" fill="none" stroke="#9CBF48" strokeWidth="4" strokeDasharray="100" strokeDashoffset={6} /></svg><div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#9CBF48]">94%</div></div>
+                        <div className="w-[1px] h-full bg-[#3A5018]" />
+                        <div className="relative w-10 h-10"><svg className="w-full h-full -rotate-[135deg]"><circle cx="18" cy="18" r="16" fill="none" stroke="#253A15" strokeWidth="4" /><circle cx="18" cy="18" r="16" fill="none" stroke="#F1C40F" strokeWidth="4" strokeDasharray="100" strokeDashoffset={29} /></svg><div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F1C40F]">71%</div></div>
                     </div>
+                    <div className={`text-[10px] text-center mt-1 font-bold ${COLORS.textDim}`}>Kapasite oranı</div>
                 </div>
 
-                <div className={`border border-[#4A644E] bg-[#152319] p-2 text-center relative`}>
-                    <div className={`text-[12px] font-bold text-[#A3C293] border-b border-[#2E4031] pb-1 mb-1 tracking-widest uppercase`}>[ SATIŞ KANALLARI ]</div>
-                    <div className="grid grid-cols-4 text-left mt-2 px-1">
-                        <div className="border-r border-[#2E4031] pr-1">
-                            <div className="text-[8px] uppercase text-[#7C9882]">E-TİCARET</div>
-                            <div className="text-[12px] font-semibold text-[#FFD54F]">₺234K</div>
+                <div className={`border ${COLORS.borderStrong} p-2 text-center ${COLORS.bg}`}>
+                    <div className={`flex justify-between items-center border-b ${COLORS.borderDim} pb-1 mb-2`}>
+                        <div className={`text-[12px] font-bold ${COLORS.textTitle} uppercase`}>[ ADALETLİ ÜCRET ]</div>
+                    </div>
+                    <div className="text-xl md:text-2xl font-black text-[#D1EF53] drop-shadow-[0_1px_2px_black] mt-3">₺5.5M <span className="text-[#9CBF48]">| ₺1.2M</span></div>
+                    <div className={`text-[10px] text-center mt-2 font-bold ${COLORS.textDim}`}>Maaş ödenek</div>
+                </div>
+
+                <div className={`border ${COLORS.borderStrong} p-2 text-center ${COLORS.bg} flex flex-col justify-between`}>
+                    <div className={`text-[12px] font-bold ${COLORS.textMain} border-b ${COLORS.borderDim} pb-1 mb-1 uppercase`}>[ SATIŞ KANALLARI ]</div>
+                    <div className="grid grid-cols-3 text-left mt-1 px-1">
+                        <div className="border-r border-[#3A5018] pr-1">
+                            <div className={`text-[8px] uppercase ${COLORS.textDim}`}>E-TİCARET</div>
+                            <div className="text-[11px] font-semibold text-[#D1EF53]">₺234K</div>
                         </div>
-                        <div className="border-r border-[#2E4031] px-1">
-                            <div className="text-[8px] uppercase text-[#7C9882]">MAĞAZA</div>
-                            <div className="text-[12px] font-semibold text-[#81C784]">₺87K</div>
-                        </div>
-                        <div className="border-r border-[#2E4031] px-1">
-                            <div className="text-[8px] uppercase text-[#7C9882]">TOPTAN</div>
-                            <div className="text-[12px] font-semibold text-[#81D4FA]">₺112K</div>
+                        <div className="border-r border-[#3A5018] px-1">
+                            <div className={`text-[8px] uppercase ${COLORS.textDim}`}>MAĞAZA</div>
+                            <div className="text-[11px] font-semibold text-[#9CBF48]">₺87K</div>
                         </div>
                         <div className="pl-1">
-                            <div className="text-[8px] uppercase text-[#7C9882]">CİRO</div>
-                            <div className="text-[13px] font-bold text-[#69F0AE] drop-shadow-[0_1px_2px_black]">₺433K</div>
+                            <div className={`text-[8px] uppercase ${COLORS.textDim}`}>TOPLAM</div>
+                            <div className="text-[12px] font-bold text-[#D1EF53]">₺321K</div>
                         </div>
                     </div>
-                </div>
-
-                <div className={`border ${MILITARY.panel} p-2 flex flex-col`}>
-                    <div className={`text-[11px] ${MILITARY.header} border-b border-[#2E4031] pb-1 mb-2 flex justify-between uppercase`}>
-                        <span>[ İŞLETME MALİYETİ ]</span> <span className="text-[#FFD54F] font-bold">₺16.6K</span>
-                    </div>
-                    {/* Okunabilir Maliyet Analizi */}
-                    <div className="space-y-1.5 flex-1 pr-1 h-[45px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#2E4031]">
-                        {maliyetDagilimi.map((m, i) => (
-                            <div key={i} className="flex flex-col gap-0.5">
-                                <div className="flex justify-between text-[9px] text-[#9EB5A2] font-medium"><span>{m.alan}</span><span className={m.yuzde > 25 ? "text-[#E57373]" : "text-[#9EB5A2]"}>₺{m.gider}</span></div>
-                                <div className="h-[2px] w-full bg-[#1A261D] rounded"><div className="h-full rounded bg-[#4A644E]" style={{ width: `${m.yuzde}%` }} /></div>
-                            </div>
-                        ))}
-                    </div>
+                    <div className="text-[7px] text-[#D1EF53] font-bold mt-2 text-center tracking-widest">[KENDİ] | [TRENDYOL] | [INSTAGRAM]</div>
+                    <div className={`text-[10px] text-center mt-1 font-bold ${COLORS.textDim}`}>Kanal bazlı satış</div>
                 </div>
             </div>
 
@@ -226,182 +224,186 @@ export function KarargahMainContainer() {
 
                 {/* 1. SÜTUN: RADAR */}
                 <div className="flex flex-col gap-3">
-                    <div className={`border ${MILITARY.panel} p-2 flex-1 flex flex-col`}>
-                        <h2 className={`text-[12px] ${MILITARY.header} text-center border-b border-[#2E4031] pb-1 mb-3 uppercase bg-[#2E4031]/30`}>RADAR / NİŞANGAH</h2>
+                    <div className={`border ${COLORS.borderStrong} p-2 flex-1 flex flex-col ${COLORS.panel}`}>
+                        <h2 className={`text-[12px] ${COLORS.textMain} font-bold text-center border-b ${COLORS.borderDim} pb-1 mb-3 uppercase`}>RADAR / NİŞANGAH</h2>
                         <RadarDisplay ajanlar={TUM_AJANLAR} />
 
-                        <div className="mt-3 text-[9px] font-medium space-y-1 pr-1 h-[190px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#2E4031]">
-                            <div className="sticky top-0 bg-[#111A13] border-b border-[#2E4031] pb-1 mb-1 text-[#7C9882] uppercase text-center font-semibold">SİSTEM BİLEŞENLERİ ({TUM_AJANLAR.length})</div>
+                        <div className="mt-3 text-[9px] font-medium space-y-1 pr-1 h-[190px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#3A5018]">
+                            <div className="sticky top-0 bg-[#0F140A] border-b border-[#3A5018] pb-1 mb-1 text-[#9CBF48] uppercase text-center font-bold">AJAN DURUMU</div>
                             {TUM_AJANLAR.map((a, i) => (
-                                <div key={i} className={`flex justify-between items-center bg-[#0B100B] px-1.5 py-1 mb-1 border-l-2 ${a.aktif ? 'border-[#4A644E]' : 'border-[#2E4031]'} text-[#9EB5A2]`}>
-                                    <span className="flex items-center gap-1.5 uppercase"><span className={`w-1 h-1 rounded flex-shrink-0 ${a.aktif ? 'bg-[#81C784]' : 'bg-[#526054]'}`} /> {a.isim}</span>
+                                <div key={i} className={`flex justify-between items-center px-1.5 py-1 mb-1 border-l-2 ${a.aktif ? 'border-[#8CAE36]' : 'border-[#3A5018]'} ${COLORS.textMain} font-bold`}>
+                                    <span className="flex items-center gap-1.5 uppercase tracking-wide"><span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${a.aktif ? 'bg-[#D1EF53]' : 'bg-[#526054]'}`} /> {a.isim}</span>
+                                    <span className={a.aktif ? 'text-[#D1EF53]' : 'text-[#6E8F3D]'}>— AKTİF</span>
                                 </div>
                             ))}
                         </div>
+                        <div className={`text-[10px] text-center mt-2 font-bold ${COLORS.textDim}`}>Aktif/Planlı ajan izleme</div>
                     </div>
                 </div>
 
-                {/* 2. SÜTUN: İSTİHBARAT & TREND */}
+                {/* 2. SÜTUN: TRENDLER VE GRAFİK */}
                 <div className="flex flex-col gap-3">
-                    <div className={`border ${MILITARY.panel} p-2`}>
-                        <h2 className={`text-[11px] ${MILITARY.header} text-center border-b border-[#2E4031] pb-1 mb-2 uppercase`}>GÜNÜN TRENDLERİ (TOP 10)</h2>
-                        <div className="text-[10px] font-medium pl-1 space-y-1.5 mt-2">
+                    <div className={`border ${COLORS.borderStrong} p-2 ${COLORS.bg}`}>
+                        <h2 className={`text-[11px] ${COLORS.textMain} font-bold text-center border-b ${COLORS.borderDim} pb-1 mb-2 uppercase`}>GÜNÜN TRENDLERİ</h2>
+                        <div className="text-[10px] font-bold pl-1 space-y-1 mt-2">
                             {trendler.map((t, idx) => (
-                                <div key={idx} className={`flex justify-between items-center border-b border-[#2E4031]/50 pb-1 cursor-default ${idx < 3 ? 'text-[#A3C293] font-semibold' : 'text-[#7C9882]'}`}>
+                                <div key={idx} className={`flex justify-between items-center border-b border-[#3A5018] pb-1 cursor-default ${idx < 3 ? 'text-[#D1EF53]' : 'text-[#9CBF48]'}`}>
                                     <span>{t.id} {t.up ? '↑' : '↓'} {t.isim}</span>
-                                    <span className="text-[#FFD54F]/70 text-[10px] tracking-widest">{"■".repeat(t.level)}{"□".repeat(5 - t.level)}</span>
+                                    <span className="text-[#9CBF48] text-[10px] tracking-widest">{"●".repeat(t.level)}{"⃝".repeat(5 - t.level)}</span>
                                 </div>
                             ))}
                         </div>
+                        <div className={`text-[10px] text-center mt-2 font-bold ${COLORS.textDim}`}>Günlük platform trendi</div>
                     </div>
 
-                    <div className={`border ${MILITARY.panel} p-2 h-44 relative flex flex-col group`}>
-                        <div className="flex justify-between items-center border-b border-[#2E4031] pb-1 z-10 bg-[#111A13]">
-                            <h2 className={`text-[10px] ${MILITARY.header}`}>KAYNAK TRENDİ CANLI</h2>
-                            <div className="flex gap-2 text-[8px] font-medium">
-                                <span className={MILITARY.cyan}>— İŞÇİLİK</span>
-                                <span className={MILITARY.amber}>— MALZM</span>
-                                <span className={MILITARY.red}>— FİRE</span>
-                            </div>
+                    <div className={`border ${COLORS.borderStrong} p-2 h-44 relative flex flex-col group ${COLORS.bg}`}>
+                        <div className={`flex justify-center items-center border-b ${COLORS.borderDim} pb-1 z-10 bg-[#070A06]`}>
+                            <h2 className={`text-[11px] ${COLORS.textMain} font-bold uppercase`}>KAYNAK KULLANIMI</h2>
+                        </div>
+                        <div className="flex justify-center gap-2 text-[8px] font-bold mt-1 z-10 text-[#9CBF48]">
+                            <span>— İşçilik</span>
+                            <span className="text-[#4DB6AC]">— Malzeme</span>
+                            <span className="text-[#E84C3D]">— Fire</span>
                         </div>
 
-                        <div className="absolute left-1 top-8 bottom-4 w-5 flex flex-col justify-between text-[7px] text-[#7C9882] font-semibold z-10">
-                            <span>15K</span><span>10K</span><span>5K</span><span>0</span>
-                        </div>
-                        <div className="absolute bottom-1 left-7 right-2 flex justify-between text-[7px] text-[#7C9882] font-semibold z-10 border-t border-[#2E4031] pt-1">
-                            <span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span><span>CANLI</span>
-                        </div>
+                        <div className="absolute inset-0 left-7 bottom-5 top-12 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 30px, #9CBF48 30px, #9CBF48 31px), repeating-linear-gradient(0deg, transparent, transparent 15px, #9CBF48 15px, #9CBF48 16px)' }} />
 
-                        <div className="absolute inset-0 left-7 bottom-5 top-8 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 30px, #7C9882 30px, #7C9882 31px), repeating-linear-gradient(0deg, transparent, transparent 15px, #7C9882 15px, #7C9882 16px)' }} />
-
-                        <svg className="absolute inset-0 left-7 bottom-5 top-8 w-[calc(100%-2rem)] h-[calc(100%-3rem)] transition-all" preserveAspectRatio="none" viewBox="0 0 100 40">
-                            <path d="M0,25 C15,20 30,35 45,25 C60,15 75,35 90,25 C100,20 100,20 100,20" fill="none" stroke="#81d4fa" strokeWidth="1" className="animate-[dash_8s_linear_infinite]" strokeDasharray="300" />
-                            <path d="M0,15 C20,30 35,10 50,20 C65,30 80,10 100,25" fill="none" stroke="#FFD54F" strokeWidth="1" className="animate-[dash_12s_linear_infinite] opacity-80" strokeDasharray="300" />
-                            <path d="M0,35 C20,20 40,40 60,15 C80,-5 90,30 100,10" fill="none" stroke="#E57373" strokeWidth="1" className="opacity-60" />
+                        <svg className="absolute inset-0 left-7 bottom-5 top-12 w-[calc(100%-2rem)] h-[calc(100%-3rem)] transition-all z-20" preserveAspectRatio="none" viewBox="0 0 100 40">
+                            <path d="M0,25 C15,20 30,35 45,25 C60,15 75,35 90,25 C100,20 100,20 100,20" fill="none" stroke="#D1EF53" strokeWidth="1.5" className="animate-[dash_8s_linear_infinite]" strokeDasharray="300" />
+                            <path d="M0,15 C20,30 35,10 50,20 C65,30 80,10 100,25" fill="none" stroke="#4DB6AC" strokeWidth="1.5" className="animate-[dash_12s_linear_infinite] opacity-80" strokeDasharray="300" />
+                            <path d="M0,35 C20,20 40,40 60,15 C80,-5 90,30 100,10" fill="none" stroke="#E84C3D" strokeWidth="1.5" className="opacity-80" />
                         </svg>
+
+                        <div className={`absolute bottom-2 left-0 right-0 text-[10px] text-center font-bold ${COLORS.textDim}`}>Her kalem ayrı kaynak trendi</div>
                     </div>
                 </div>
 
-                {/* 3. SÜTUN: ÜRETİM, KAMERA VE TELSİZ */}
+                {/* 3. SÜTUN: MALİYET VE ÜRETİM VE KAMERA */}
                 <div className="flex flex-col gap-3">
 
-                    {/* ÜRETİM PANELİ & HERMES KUTUSU (Göz Yormaz Tema) */}
-                    <div className={`border ${MILITARY.panel} p-2 flex flex-col`}>
-                        <div className="flex justify-between items-end border-b border-[#2E4031] pb-1 mb-2">
-                            <h2 className={`text-[12px] ${MILITARY.header} text-[#FFD54F]`}>ÜRETİM PANELİ</h2>
-                            <span className="text-[9px] text-[#A3C293]">Doluluk: %85</span>
+                    {/* Birebir görseldeki gibi Bar tipli MALİYET ANALİZİ */}
+                    <div className={`border ${COLORS.borderStrong} p-2 flex flex-col ${COLORS.bg}`}>
+                        <div className={`text-[11px] ${COLORS.textMain} font-bold text-center border-b ${COLORS.borderDim} pb-1 mb-1 uppercase`}>MALİYET ANALİZİ</div>
+                        <div className="text-center text-[8px] font-bold text-[#9CBF48] mb-2">[İŞLETME][PERSONEL][MAĞAZA][MODELHANE]</div>
+                        {/* Bar grafikleri simülasyonu */}
+                        <div className="flex items-end justify-between px-2 h-14 gap-1 border-b border-[#3A5018] pb-1">
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '50%' }}></div>
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '30%' }}></div>
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '80%' }}></div>
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '40%' }}></div>
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '90%' }}></div>
+                            <div className="w-1/6 bg-[#9CBF48]" style={{ height: '20%' }}></div>
                         </div>
-                        <div className="text-[10px] font-medium space-y-1 mb-2 text-[#9EB5A2]">
-                            <div className="flex justify-between bg-[#1A261D] px-1 py-0.5"><span className="uppercase">Üretimde:</span> <span className="text-[#81C784] font-semibold">847 Adet</span></div>
-                            <div className="flex justify-between bg-[#1A261D] px-1 py-0.5"><span className="uppercase">Hazır:</span> <span className="text-[#FFD54F] font-semibold">312 Adet</span></div>
-                        </div>
+                        <div className="text-center text-[#D1EF53] font-bold text-[12px] mt-1">TOPLAM ₺65.700</div>
+                        <div className={`text-[10px] text-center mt-1 font-bold ${COLORS.textDim}`}>Bölüm ve dönem bazlı maliyet</div>
+                    </div>
 
-                        {/* HERMES + GEMINI ONAY KUTUSU */}
-                        <div className="border border-[#4A5D23] bg-[#1E2615] p-2 mt-1">
-                            <div className="flex items-center gap-1 text-[9px] text-[#DCE775] font-bold border-b border-[#4A5D23] pb-1 mb-1 uppercase tracking-widest"><Cpu size={12} /> HERMES+GEMİNİ KARAR MERKEZİ</div>
-                            <div className="text-[8px] text-[#9EB5A2] leading-tight mb-2 uppercase">
-                                "Örme Modal Takım Elbise" | Yargıç: Onaylandı <br />
-                                <span className="text-[#E57373]">Neden: Sosyal Medya Yüksek</span> | Risk: Tedarik Orta
+                    {/* ÜRETİM VE HERMES BİREBİR GÖRSEL */}
+                    <div className={`border ${COLORS.borderStrong} p-2 flex flex-col ${COLORS.bg}`}>
+                        <h2 className={`text-[11px] ${COLORS.textMain} font-bold text-center border-b ${COLORS.borderDim} pb-1 mb-1 uppercase`}>ÜRETİM PANELİ</h2>
+                        <div className="text-center text-[9px] font-bold text-[#D1EF53] mb-1">[GÜNLÜK][HAFTALIK][AYLIK]</div>
+                        <div className="text-center text-xl font-bold text-[#D1EF53] tracking-widest">847 | 312 | 535</div>
+                        <div className="relative w-full h-1.5 bg-[#1F2E14] border border-[#3A5018] mt-1">
+                            <div className="absolute top-0 left-0 h-full bg-[#D1EF53]" style={{ width: '63%' }}></div>
+                        </div>
+                        <div className={`text-[10px] text-center mt-2 font-bold ${COLORS.textDim} mb-2`}>Üretim istatistikleri</div>
+
+                        {/* HERMES + GEMINI ONAY KUTUSU (Görsel birebir zeytin sarısı) */}
+                        <div className="border border-[#B3A030] bg-[#1C1808] p-2">
+                            <div className="text-[10px] text-[#F1C40F] font-bold border-b border-[#B3A030] pb-1 mb-1 text-center">HERMES+GEMİNİ KARAR MERKEZİ</div>
+                            <div className="text-[8px] text-[#9CBF48] leading-relaxed mb-2 uppercase text-center font-bold">
+                                "Örme Modal Takım Elbise" | Yargıç: <span className="text-[#D1EF53]">ÜRETİM √</span> | GEMİNİ: 87/100<br />
+                                <span className="text-[#9CBF48]">NEDEN: Sosyal Medya yüksek | RİSK: Tedarik Orta</span>
                             </div>
-                            <div className="flex gap-2">
-                                <div className="bg-[#558B2F] flex-1 text-center text-[9px] text-white font-bold py-1 uppercase opacity-90 cursor-default">[ ÜRETİME AL ]</div>
-                                <div className="bg-[#424242] flex-1 text-center text-[9px] text-[#BDBDBD] font-bold py-1 uppercase cursor-default border border-[#616161]">[ BEKLET ]</div>
+                            <div className="flex justify-center gap-2">
+                                <div className="bg-[#9CBF48] px-3 py-1 text-[10px] text-[#0A0D08] font-bold uppercase rounded-sm">[ ÜRETİME AL ]</div>
+                                <div className="bg-[#F1C40F] px-3 py-1 text-[10px] text-[#0A0D08] font-bold uppercase rounded-sm border border-[#0A0D08]">[ BEKLET ]</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* MERKEZ KAMERA MATRİKSİ */}
-                    <div className={`border border-[#2E4031] bg-[#020302] aspect-video relative flex items-center justify-center overflow-hidden`}>
-                        <div className="absolute inset-0 bg-[#4A644E]/5 mix-blend-color-burn" />
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyIiBoZWlnaHQ9IjIiPgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSJyZ2JhKDAsMCwwLDApIiAvPgo8cGF0aCBkPSJNMCAwTDAgMkMwIDIgMiAyIDIgMkwwIDAiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMikiIC8+Cjwvc3ZnPg==')] pointer-events-none opacity-50" />
-                        <div className="grid grid-cols-2 grid-rows-2 w-full h-full p-0.5 gap-0.5">
-                            <div className="border border-[#2E4031]/50 bg-[#0B100B] flex items-start p-1"><span className="text-[7px] text-[#7C9882] font-semibold bg-black/50 px-1">CAM-01 [DEPO]</span></div>
-                            <div className="border border-[#2E4031]/50 bg-[#0B100B] flex items-start p-1 relative"><span className="text-[7px] text-[#7C9882] font-semibold bg-black/50 px-1">CAM-02 [KESİM]</span><div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#E57373] rounded-full animate-pulse blur-[1px]" /></div>
-                            <div className="border border-[#2E4031]/50 bg-[#0B100B] flex items-start p-1"><span className="text-[7px] text-[#7C9882] font-semibold bg-black/50 px-1">CAM-03 [ÜRETİM]</span></div>
-                            <div className="border border-[#2E4031]/50 bg-[#0B100B] flex items-start p-1"><span className="text-[7px] text-[#7C9882] font-semibold bg-black/50 px-1">CAM-04 [DIŞ]</span></div>
+                    {/* KRİTİK ALARM BİREBİR */}
+                    <div className="border border-[#E84C3D] bg-[#220D0D] p-2 mt-auto">
+                        <div className="flex items-center justify-center gap-1 border-b border-[#E84C3D]/50 pb-1 mb-1">
+                            <AlertTriangle size={12} className="text-[#E84C3D] animate-ping absolute" />
+                            <AlertTriangle size={12} className="text-[#E84C3D] relative" />
+                            <span className="text-[12px] font-bold text-[#E84C3D] uppercase tracking-widest pl-1">KRİTİK ALARM</span>
                         </div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20"><Crosshair size={40} className="text-[#81C784]" /></div>
-                    </div>
-
-                    <div className="border border-[#EF5350]/40 bg-[#EF5350]/5 p-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle size={14} className="text-[#E57373]" />
-                            <span className="text-[10px] font-bold text-[#E57373] uppercase tracking-widest">Kritik Alarm:</span>
-                            <span className="text-[10px] text-[#E57373]/80 font-medium">Sipariş 4892 gecikmesi</span>
+                        <div className="text-[10px] font-bold text-[#E84C3D] pl-2 uppercase">
+                            <div>• 3 HATA</div>
+                            <div>• 3 HATA</div>
+                            <div>• 3 HATA</div>
                         </div>
                     </div>
 
                 </div>
 
-                {/* 4. SÜTUN: PERSONEL & TELSİZ */}
+                {/* 4. SÜTUN: PERSONEL & TERMİNAL LOG (Görsel Dağılım) */}
                 <div className="flex flex-col gap-3">
 
-                    <div className={`border ${MILITARY.panel} bg-[#0D140D] flex-1 flex flex-col p-2`}>
-                        <div className="flex-1 mb-1">
-                            <h2 className={`text-[11px] font-semibold text-center uppercase tracking-widest bg-[#1A261D] mb-2 py-0.5 text-[#A3C293]`}>🏆 GÜNÜN İLK 10 PERSONELİ</h2>
-                            <div className="space-y-1 text-[9px] font-medium pb-1 pr-1">
-                                {gununPersonelleri10.slice(0, 8).map((p, i) => (
-                                    <div key={i} className="flex justify-between border-b border-[#2E4031]/50 pb-0.5">
-                                        <span className={i < 3 ? "text-[#81C784] font-semibold" : "text-[#7C9882]"}>{i + 1}. {p.n}</span>
-                                        <span className="flex gap-2"><span className="text-[#526054]">[{p.birim}]</span> <span className={MILITARY.cyan}>{p.s}P</span></span>
+                    <div className={`border ${COLORS.borderStrong} bg-[#0A0D08] flex-1 flex flex-col p-2`}>
+                        <h2 className={`text-[11px] font-bold text-center uppercase tracking-widest border-b ${COLORS.borderDim} mb-2 pb-1 ${COLORS.textMain}`}>PERSONEL LİSTESİ</h2>
+                        <div className="space-y-1.5 text-[10px] font-bold pb-1 text-[#9CBF48]">
+                            {gununPersonelleri10.slice(0, 7).map((p, i) => (
+                                <div key={i} className="flex justify-between items-center px-1">
+                                    <span>{i + 1}.</span>
+                                    <div className="flex gap-1">
+                                        <div className="w-2 h-2 rounded-full bg-[#E84C3D]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#F1C40F]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#9CBF48]" />
                                     </div>
-                                ))}
-                            </div>
+                                    <span className="opacity-80">adet ↺</span>
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="flex-1 border-t border-[#2E4031] pt-2">
-                            <h2 className={`text-[11px] font-semibold text-center uppercase tracking-widest bg-[#1A261D] mb-2 py-0.5 text-[#FFD54F]/90`}>🌟 HAFTALIK TOP 10 PERSONEL</h2>
-                            <div className="space-y-1 text-[9px] font-medium pr-1">
-                                {haftaninPersonelleri10.slice(0, 8).map((p, i) => (
-                                    <div key={i} className="flex justify-between border-b border-[#2E4031]/50 pb-0.5">
-                                        <span className={i < 3 ? "text-[#FFD54F] font-semibold" : "text-[#7C9882]"}>{i + 1}. {p.n}</span>
-                                        <span className="flex gap-2"><span className="text-[#526054]">[{p.birim}]</span> <span className={MILITARY.amber}>{p.s}P</span></span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <div className={`text-[10px] text-center mt-auto font-bold ${COLORS.textDim}`}>Personel ve üretim adetleri</div>
                     </div>
 
-                    <div className="border border-[#2E4031] bg-[#000000] p-2 relative h-28 flex flex-col">
-                        <div className="text-[9px] text-[#526054] font-semibold uppercase border-b border-[#2E4031] pb-1 mb-1 tracking-widest flex justify-between">
-                            <span>NİZAM TELSİZ</span> <span>[LOG]</span>
+                    {/* TERMINAL LOG GÖRSEL RENK */}
+                    <div className={`border ${COLORS.borderStrong} bg-[#0A0D08] p-2 relative flex-1 flex flex-col max-h-56`}>
+                        <h2 className={`text-[11px] font-bold uppercase tracking-widest text-[#9CBF48] border-b ${COLORS.borderDim} pb-1 mb-2 text-center`}>TERMİNAL LOG</h2>
+                        <div className="text-[9px] font-mono leading-tight overflow-y-auto scrollbar-none text-[#6E8F3D]">
+                            {[...Array(15)].map((_, i) => (
+                                <div key={i} className={`flex gap-1`}>
+                                    <span>[02:21]</span>
+                                    <span className={i % 3 === 0 ? 'text-[#E84C3D]' : 'text-[#8CAE36]'}>Critical</span>
+                                    <span className={i % 3 === 0 ? 'text-[#E84C3D]' : ''}>{i % 3 === 0 ? 'critical' : ''}</span>
+                                </div>
+                            ))}
                         </div>
-                        <div className="text-[9px] font-mono leading-relaxed overflow-y-auto scrollbar-none text-[#7C9882]">
-                            {terminalLoglar.map((l, i) => {
-                                const isAlert = l.includes('KAMERA') || l.includes('YARGIÇ');
-                                return (
-                                    <div key={i} className={`truncate ${isAlert ? 'text-[#FFD54F]' : ''}`}>
-                                        <span className="opacity-50 inline-block w-12">{l.split(' ')[0]}</span>
-                                        {l.substring(l.indexOf(' ') + 1)}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                    <div className={`border border-[#4A5D23] p-2 text-center bg-[#1A180E]`}>
-                        <div className="text-[11px] font-semibold uppercase text-[#FFD54F] border-b border-[#4A5D23]/50 pb-1 mb-1 tracking-widest">[ ADALETLİ ÜCRET ]</div>
-                        <div className="text-[9px] text-[#A1A28A] uppercase tracking-widest mt-1">Sistemsel Aylık Hak Ediş</div>
-                        <div className="text-xl md:text-2xl font-bold text-[#FFD54F] mt-1 drop-shadow-[0_1px_1px_black]">₺1.2M</div>
+                        <div className={`text-[10px] text-center mt-auto pt-2 font-bold ${COLORS.textDim}`}>Canlı sistem akışı</div>
                     </div>
                 </div>
             </div>
 
-            {/* ALT YÖNETİM BUTONLARI */}
-            <div className={`mt-2 pt-2 border-t border-[#2E4031]`}>
-                <div className="grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-2 pb-4">
-                    {MILITARY_NAV.map((mod, i) => (
-                        <Link href={mod.link} key={i}>
-                            <div className={`border bg-[#0B100B] text-[10px] md:text-xs font-semibold uppercase text-center py-2 transition-all cursor-pointer relative
-                                ${['İSTİHBARAT', 'ÜRETİM', 'SİPARİŞLER'].includes(mod.name) ? 'border-[#4A5D23] text-[#FFD54F] hover:bg-[#1A180E]' :
-                                    'border-[#2E4031] text-[#9EB5A2] hover:bg-[#111A13] hover:border-[#4A644E] hover:text-[#A3C293]'}`}>
-                                <span className={MILITARY.header.includes('drop') ? '' : 'drop-shadow-[0_1px_1px_#000]'}>{mod.name}</span>
-                            </div>
-                        </Link>
-                    ))}
+            {/* ALT YÖNETİM BUTONLARI (Orijinal GÖRSELE GÖRE BİREBİR) */}
+            <div className={`mt-2 pb-4`}>
+                {/* Visual has 2 columns of blocky buttons and some smaller ones */}
+                <div className="flex flex-wrap justify-between gap-1 mb-2">
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>AJANLAR</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>AR-GE</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>DENETÇİ</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>KAMERALAR</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>HABERLEŞME</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>İSTİHBARAT</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>AYARLAR</div>
+                </div>
+                <div className="flex flex-wrap justify-between gap-1">
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>MODELHANE</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>KALIP</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>KUMAŞ</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>KESİM</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>ÜRETİM</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>SİPARİŞLER</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>MALİYET</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-1`}>MUHASEBE</div>
+                    <div className={`border border-[#8CAE36] px-4 py-1.5 text-[11px] font-bold text-[#8CAE36] bg-[#0F140A] text-center flex-[0.8]`}>STOK</div>
                 </div>
             </div>
 
+            <style jsx global>{`
+                @keyframes dash { to { stroke-dashoffset: -600; } }
+            `}</style>
         </div>
     );
 }
