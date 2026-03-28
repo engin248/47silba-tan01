@@ -2,8 +2,16 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { Scan, UserCheck, PackageOpen, CheckCircle, AlertTriangle, Clock, Hammer, X, Play, LogOut, Search } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { useLang } from '@/context/langContext';
+import {
+    kioskPersonelSorgula,
+    kioskPersonelAylikPerformansGetir,
+    kioskAktifIsGetir,
+    kioskSiparisIsYadaOperasyonSorgula,
+    kioskModelOperasyonlariGetir,
+    kioskIsBaslat,
+    kioskIsTamamla
+} from '../services/kioskApi';
 
 export default function KioskTerminal() {
     const { lang } = useLang();
@@ -75,11 +83,7 @@ export default function KioskTerminal() {
         try {
             // DURUM 1: Henüz personel okutulmadı
             if (!personel) {
-                const { data: pData, error: pErr } = await supabase
-                    .from('b1_personel')
-                    .select('*')
-                    .or(`barkod_no.eq.${kod},personel_kodu.eq.${kod}`)
-                    .single();
+                const { pData, pErr } = await kioskPersonelSorgula(kod);
 
                 if (pErr || !pData) {
                     goster('Personel kartı bulunamadı (Bilinmeyen Kullanıcı). Tekrar okutun.', 'error');
@@ -91,11 +95,7 @@ export default function KioskTerminal() {
                     const date = new Date();
                     const ilkGun = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
 
-                    const { data: perfData } = await supabase
-                        .from('b1_personel_performans')
-                        .select('isletmeye_katilan_deger')
-                        .eq('personel_id', pData.id)
-                        .gte('created_at', ilkGun);
+                    const perfData = await kioskPersonelAylikPerformansGetir(pData.id, ilkGun);
 
                     const t_deger = perfData ? perfData.reduce((acc, curr) => acc + (Number(curr.isletmeye_katilan_deger) || 0), 0) : 0;
 
@@ -112,12 +112,7 @@ export default function KioskTerminal() {
 
             // DURUM 2: Personel belli, işlem okunuyor
             // Önce Aktif bir işi (henüz bitmemiş, saati işleyen) var mı kontrol et
-            const { data: aktifIs } = await supabase
-                .from('b1_personel_performans')
-                .select('*, b1_uretim_operasyonlari(*)')
-                .eq('personel_id', personel.id)
-                .is('bitis_saati', null)
-                .single();
+            const aktifIs = await kioskAktifIsGetir(personel.id);
 
             // Eğer kod aktif işin ID'si, operasyon ID'si veya Sipariş ID'si ise, Bitirme Ekranı aç
             if (aktifIs && (aktifIs.id === kod || aktifIs.operasyon_id === kod || aktifIs.order_id === kod)) {
@@ -137,25 +132,20 @@ export default function KioskTerminal() {
             }
 
             // YENİ UX: Yeni Bir İş Sepeti (Sipariş) Barkodu Okutuldu!
-            let { data: ordData, error: ordErr } = await supabase
-                .from('production_orders')
-                .select('id, quantity, model_id, order_code')
-                .eq('id', kod)
-                .single();
+            const sorguSonucu = await kioskSiparisIsYadaOperasyonSorgula(kod);
 
-            if (ordErr || !ordData) {
-                // Alternatif (Belki operasyon barkodu okutmuştur diye)
-                let { data: dirOp } = await supabase.from('b1_operasyon_tanimlari').select('id, operasyon_adi').eq('id', kod).single();
-                if (dirOp) {
-                    goster(`Ürün sepeti barkodu okutulmadan doğrudan ${dirOp.operasyon_adi} başlatılamaz! Lütfen sepeti okutun.`, 'error');
+            if (sorguSonucu.type === 'operasyon') {
+                if (sorguSonucu.data) {
+                    goster(`Ürün sepeti barkodu okutulmadan doğrudan ${sorguSonucu.data.operasyon_adi} başlatılamaz! Lütfen sepeti okutun.`, 'error');
                 } else {
                     goster('Geçersiz İş/Sepet Barkodu! Sistemde bulunamadı.', 'error');
                 }
             } else {
+                const ordData = sorguSonucu.data;
                 // Sipariş bulundu! Siparişe (Modele) ait reçeteleri bul ekrana yansıt:
-                if (ordData.model_id) {
+                if (ordData?.model_id) {
                     // YENİ: b1_operasyon_tanimlari kullanılarak reçete/SOP yüklenir
-                    let { data: ops } = await supabase.from('b1_operasyon_tanimlari').select('*').order('sira_no', { ascending: true });
+                    const ops = await kioskModelOperasyonlariGetir();
                     if (!ops || ops.length === 0) {
                         goster(`Bu modelin reçetesi (operasyonları) henüz tanımlanmamış. Devam edemezsiniz.`, 'error');
                     } else {
@@ -180,24 +170,20 @@ export default function KioskTerminal() {
         // İlgili operasyon bilgilerini modelOperasyonlari dizisinden bul (prim/maliyet hesaplaması için)
         const opData = modelOperasyonlari.find(o => o.id === op_id);
 
-        const { data, error } = await supabase
-            .from('b1_personel_performans')
-            .insert([{
-                personel_id: personel.id,
-                operasyon_id: op_id,
-                order_id: ord_id, // Geri uyumluluk için order_id
-                imalat_id: ord_id, // Yeni sistem b1_imalat_emirleri referansı için imalat_id
-                is_barkodu: is_barkodu,
-                hedef_adet: miktar,
-                uretilen_adet: 0,
-                fire_adet: 0,
-                baslangic_saati: new Date().toISOString(),
-                otonom_tespit: false,
-                kaynak_cihaz: 'M6-Tablet',
-                // Değerler iş bittiğinde doldurulacak, şimdilik null/0
-            }])
-            .select('*, b1_operasyon_tanimlari(*)')
-            .single();
+        const { data, error } = await kioskIsBaslat({
+            personel_id: personel.id,
+            operasyon_id: op_id,
+            order_id: ord_id, // Geri uyumluluk için order_id
+            imalat_id: ord_id, // Yeni sistem b1_imalat_emirleri referansı için imalat_id
+            is_barkodu: is_barkodu,
+            hedef_adet: miktar,
+            uretilen_adet: 0,
+            fire_adet: 0,
+            baslangic_saati: new Date().toISOString(),
+            otonom_tespit: false,
+            kaynak_cihaz: 'M6-Tablet',
+            // Değerler iş bittiğinde doldurulacak, şimdilik null/0
+        });
 
         if (error) {
             goster('İş başlatılamadı: ' + error.message, 'error');
@@ -236,23 +222,18 @@ export default function KioskTerminal() {
                 kazanilanPrimGuncel = (islemdekiIs.b1_uretim_operasyonlari?.parca_basi_deger_tl || 0) * uretimAdet;
             }
 
-            const { error } = await supabase
-                .from('b1_personel_performans')
-                .update({
-                    bitis_saati: new Date().toISOString(),
-                    fire_adet: fireAdet,
-                    uretilen_adet: uretimAdet,
-                    adet: uretimAdet, // Yeni sisteme compat
-                    kalite_puani: kalitePuani,
-                    hiza_gore_prim_tl: kazanilanPrimGuncel, // Geri uyumluluk alanı
-                    kazanilan_prim: kazanilanPrimGuncel, // Yeni Akıllı MES alanı
-                    isletmeye_katilan_deger: kazanilanDeğer,
-                    zaman_asimi_durus: zamanAsimi,
-                    onay_durumu: 'onaylandi'
-                })
-                .eq('id', islemdekiIs.id);
-
-            if (error) throw error;
+            await kioskIsTamamla(islemdekiIs.id, {
+                bitis_saati: new Date().toISOString(),
+                fire_adet: fireAdet,
+                uretilen_adet: uretimAdet,
+                adet: uretimAdet, // Yeni sisteme compat
+                kalite_puani: kalitePuani,
+                hiza_gore_prim_tl: kazanilanPrimGuncel, // Geri uyumluluk alanı
+                kazanilan_prim: kazanilanPrimGuncel, // Yeni Akıllı MES alanı
+                isletmeye_katilan_deger: kazanilanDeğer,
+                zaman_asimi_durus: zamanAsimi,
+                onay_durumu: 'onaylandi'
+            });
 
             if (kazanilanPrimGuncel > 0) {
                 goster(`İşlem Bitti! Hedefinizi aştınız. +${kazanilanPrimGuncel} TL PRİM kazandınız! 🔥`, 'success');

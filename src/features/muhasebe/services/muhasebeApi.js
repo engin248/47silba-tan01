@@ -5,17 +5,30 @@
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { telegramBildirim } from '@/lib/utils';
+import { idb } from '@/lib/idbKalkan';
 
 export async function fetchMuhasebeVerileri() {
-    const [rRes, mRes] = await Promise.allSettled([
-        supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(200),
-        supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi,hedef_adet').eq('durum', 'tamamlandi').order('created_at', { ascending: false }).limit(200),
-    ]);
-    const raporlar = rRes.status === 'fulfilled' ? (rRes.value.data || []) : [];
-    const tumModeller = mRes.status === 'fulfilled' ? (mRes.value.data || []) : [];
-    const raporOrderIds = new Set(raporlar.map(r => r.order_id));
-    const raporsizemOrders = tumModeller.filter(o => !raporOrderIds.has(o.id));
-    return { raporlar, raporsizemOrders };
+    const otonomSync = async () => {
+        const [rRes, mRes] = await Promise.allSettled([
+            supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(200),
+            supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi,hedef_adet').eq('durum', 'tamamlandi').order('created_at', { ascending: false }).limit(200),
+        ]);
+        const raporlar = rRes.status === 'fulfilled' ? (rRes.value.data || []) : [];
+        const tumModeller = mRes.status === 'fulfilled' ? (mRes.value.data || []) : [];
+        if (raporlar.length > 0) await idb.bulkUpsert('m14_muhasebe', raporlar);
+
+        const raporOrderIds = new Set(raporlar.map(r => r.order_id));
+        const raporsizemOrders = tumModeller.filter(o => !raporOrderIds.has(o.id));
+        return { raporlar, raporsizemOrders };
+    };
+
+    const localData = await idb.getAllWithLimit('m14_muhasebe', 200, 0);
+    if (!localData || localData.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync(); // UI bloklamadan arka planda güncelle (Lazy fetch)
+        return { raporlar: localData, raporsizemOrders: [] }; // Mock boş döner ilk saniyede, sonra dolacak
+    }
 }
 
 export async function fetchIlgiliMaliyetler(orderId) {

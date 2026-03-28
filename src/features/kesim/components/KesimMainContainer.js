@@ -2,7 +2,6 @@
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Scissors, Plus, Search, CheckCircle2, AlertTriangle, Trash2, ShieldAlert, QrCode } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
@@ -10,6 +9,10 @@ import SilBastanModal from '@/components/ui/SilBastanModal';
 import FizikselQRBarkod from '@/lib/components/barkod/FizikselQRBarkod';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
+import {
+    kesimVerileriniGetir, kesimKaydet, uretimIsEmriOlustur,
+    kesimDurumunuGuncelleVeStokDus, kesimSilVeArsivle, kesimKanaliKur
+} from '../services/kesimApi';
 
 const BOSH_KESIM = {
     model_taslak_id: '', pastal_kat_sayisi: '', kesilen_net_adet: '',
@@ -49,12 +52,10 @@ export default function KesimMainContainer() {
 
         let kanal;
         if (erisebilir) {
-            kanal = supabase.channel('islem-gercek-zamanli-ai-kesim')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_kesim_operasyonlari' }, () => { yukle(); })
-                .subscribe();
+            kanal = kesimKanaliKur(yukle);
         }
         yukle();
-        return () => { if (kanal) supabase.removeChannel(kanal); };
+        return () => { if (kanal) kanal.unsubscribe(); };
     }, [kullanici?.id, kullanici?.grup]);
 
     // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
@@ -66,14 +67,10 @@ export default function KesimMainContainer() {
     const yukle = async () => {
         setLoading(true);
         try {
-            const p1 = supabase.from('b1_kesim_operasyonlari').select('*, b1_model_taslaklari(model_kodu, model_adi)').order('created_at', { ascending: false }).limit(200);
-            const p2 = supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi').eq('durum', 'uretime_hazir').limit(500);
-            const p3 = supabase.from('b1_kumas_arsivi').select('id, kumas_kodu, renk_tanimi').limit(200);
-            const res = await Promise.race([Promise.allSettled([p1, p2, p3]), timeoutPromise()]);
-            const [kesimRes, modelRes, kumasRes] = res;
-            if (kesimRes.status === 'fulfilled' && kesimRes.value.data) setKesimler(kesimRes.value.data);
-            if (modelRes.status === 'fulfilled' && modelRes.value.data) setModeller(modelRes.value.data);
-            if (kumasRes && kumasRes.status === 'fulfilled' && kumasRes.value.data) setKumaslar(kumasRes.value.data);
+            const data = await Promise.race([kesimVerileriniGetir(), timeoutPromise()]);
+            setKesimler(data.kesimler);
+            setModeller(data.modeller);
+            setKumaslar(data.kumaslar);
         } catch (error) {
             goster('Bağlantı/Zaman aşımı hatası: ' + error.message, 'error');
         }
@@ -107,17 +104,13 @@ export default function KesimMainContainer() {
         }
 
         try {
-            if (duzenleId) {
-                const { error } = await supabase.from('b1_kesim_operasyonlari').update(payload).eq('id', duzenleId);
-                if (error) throw error;
+            const result = await kesimKaydet(payload, duzenleId);
+            if (result.isUpdate) {
                 goster('✅ Kesim güncellendi!');
             } else {
-                const { error } = await supabase.from('b1_kesim_operasyonlari').insert([payload]);
-                if (!error) {
-                    const seciliModel = modeller.find(m => m.id === form.model_taslak_id);
-                    goster('✅ Kesim operasyonu kaydedildi!');
-                    telegramBildirim(`✂️ YENİ KESİM OPERASYONU\nModel: ${seciliModel?.model_kodu}\nKesimci: ${form.kesimci_adi || '—'}\nPastal: ${form.pastal_kat_sayisi} kat\nNet Adet: ${form.kesilen_net_adet}\nBeden: ${form.beden_dagilimi || '—'}`);
-                } else throw error;
+                const seciliModel = modeller.find(m => m.id === form.model_taslak_id);
+                goster('✅ Kesim operasyonu kaydedildi!');
+                telegramBildirim(`✂️ YENİ KESİM OPERASYONU\nModel: ${seciliModel?.model_kodu}\nKesimci: ${form.kesimci_adi || '—'}\nPastal: ${form.pastal_kat_sayisi} kat\nNet Adet: ${form.kesilen_net_adet}\nBeden: ${form.beden_dagilimi || '—'}`);
             }
             setForm(BOSH_KESIM); setFormAcik(false); setDuzenleId(null);
             yukle();
@@ -154,64 +147,7 @@ export default function KesimMainContainer() {
         setLoading(true);
         setIslemdeId('emr_' + k.id);
         try {
-            const { data: mevcut } = await supabase.from('production_orders')
-                .select('id').eq('model_id', k.model_taslak_id).in('status', ['pending', 'in_progress']);
-            if (mevcut && mevcut.length > 0) {
-                setLoading(false);
-                setIslemdeId(null);
-                return goster('⚠️ Bu model için zaten aktif bir iş emri var!', 'error');
-            }
-
-            // OTOMATİK İŞ EMRİ OLUŞTURMA: V1 Tablosu V2'ye Yönlendirildi
-            const { data: yeniEmir, error } = await supabase.from('production_orders').insert([{
-                order_code: 'KSM-ORD-' + Date.now(),
-                model_id: k.model_taslak_id,
-                quantity: k.kesilen_net_adet || 0,
-                status: 'pending'
-            }]).select().single();
-            if (error) throw error;
-
-            // FİRE MALİYETİ AKTARIMI: Kesim Firesi Otomatik Maliyete Yansıtılıyor (Maliyet Sapması Algoritması)
-            const fireYuzde = parseFloat(k.fire_orani) || 0;
-            if (fireYuzde > 0) {
-                const toplamKumasMt = parseFloat(k.kullanilan_kumas_mt) || 0;
-                let kayipKumasMt = 0;
-                // Kumaş harcaması girildiyse yüzdesini al, girilmediyse pastal başı 1.2mt ortalamasından yola çık
-                if (toplamKumasMt > 0) kayipKumasMt = (toplamKumasMt * fireYuzde) / 100;
-                else kayipKumasMt = (k.kesilen_net_adet * 1.2 * fireYuzde) / 100;
-
-                let kumasMtFiyat = 250; // Varsayılan yedek fiyat tahmini
-                try {
-                    if (k.kumas_topu_no) {
-                        const { data: kmData } = await supabase.from('b1_kumas_arsivi')
-                            .select('birim_maliyet_tl')
-                            .eq('kumas_kodu', k.kumas_topu_no.trim())
-                            .single();
-                        if (kmData && parseFloat(kmData.birim_maliyet_tl) > 0) kumasMtFiyat = parseFloat(kmData.birim_maliyet_tl);
-                    }
-                } catch (e) { console.warn("Dinamik kumaş fiyatı çekilemedi, varsayılana dönüldü."); }
-
-                const gercekZararTl = kayipKumasMt * kumasMtFiyat;
-
-                await supabase.from('b1_maliyet_kayitlari').insert([{
-                    order_id: yeniEmir.id,
-                    maliyet_tipi: 'fire_kaybi',
-                    kalem_aciklama: `KSM-${k.id} Kesim Firesi (%${fireYuzde.toFixed(1)}) — ${kayipKumasMt.toFixed(1)} MT Kumaş Kaybı`,
-                    tutar_tl: gercekZararTl > 0 ? gercekZararTl : fireYuzde,
-                    onay_durumu: 'hesaplandi'
-                }]);
-
-                // 🔴 AKILLI ALARM: Fire %5'i geçerse Sistem Uyarılarına "Kök Neden" tebligatı fırlat
-                if (fireYuzde > 5) {
-                    await supabase.from('b1_sistem_uyarilari').insert([{
-                        baslik: `🚨 Kritik Kesim Firesi (%${fireYuzde.toFixed(1)}) - Model: ${k.b1_model_taslaklari?.model_kodu || 'Bilinmiyor'}`,
-                        mesaj: `${k.kesilen_net_adet} adetlik kesimde ${kayipKumasMt.toFixed(1)} metre kumaş israf oldu. Beklenmeyen Zarar Tutarı: ₺${gercekZararTl.toFixed(0)}.\n\nKÖK NEDEN TAHMİNLERİ:\n1. Pastal yerleşim optimizasyonu verimsiz yapıldı.\n2. Kumaş eni modele uygun gelmediği için boşluklar metrajı artırdı.\n3. Defolu kumaş kısımları freze edildiği için eksilmeler yükseldi.`,
-                        onem_derecesi: 'yuksek',
-                        durum: 'aktif'
-                    }]);
-                }
-            }
-
+            await uretimIsEmriOlustur(k);
             goster(`✅ M6 Üretim İş Emri oluşturuldu! ${k.b1_model_taslaklari?.model_kodu} — ${k.kesilen_net_adet} adet`);
             telegramBildirim(`🔗 M5→M6 KÖPRÜ\nKesimden Üretime: ${k.b1_model_taslaklari?.model_kodu}\nAdet: ${k.kesilen_net_adet}\nİş emri "Bekliyor" olarak açıldı.`);
         } catch (error) { goster('İş emri hatası: ' + error.message, 'error'); }
@@ -224,27 +160,12 @@ export default function KesimMainContainer() {
         if (!navigator.onLine) return goster('İnternet Yok: Durum güncellemesi sadece online iken yapılabilir!', 'error');
         setIslemdeId('durum_' + id);
         try {
-            await supabase.from('b1_kesim_operasyonlari').update({ durum: yeniDurum }).eq('id', id);
+            const sonuc = await kesimDurumunuGuncelleVeStokDus(id, yeniDurum);
             yukle();
             if (yeniDurum === 'tamamlandi') {
                 telegramBildirim(`✂️ KESİM TAMAMLANDI\nModel: ${model_kodu} için kesim işlemi tamamlandı. Üretim Bandına (M6) sevke hazır.`);
-
-                // OTOMATİK STOK DÜŞÜMÜ: Kumaş M2 Stoktan Otomatik Düşülecek! (M5->M2 Entegrasyonu)
-                try {
-                    const { data: kData } = await supabase.from('b1_kesim_operasyonlari').select('kumas_topu_no, kullanilan_kumas_mt').eq('id', id).single();
-                    if (kData && kData.kumas_topu_no && parseFloat(kData.kullanilan_kumas_mt) > 0) {
-                        const kumasKodu = kData.kumas_topu_no.trim();
-                        const dusulecek = parseFloat(kData.kullanilan_kumas_mt);
-
-                        const { data: kumas } = await supabase.from('b1_kumas_arsivi').select('id, stok_mt').eq('kumas_kodu', kumasKodu).single();
-                        if (kumas) {
-                            const yeniStok = Math.max(0, parseFloat(kumas.stok_mt || 0) - dusulecek);
-                            await supabase.from('b1_kumas_arsivi').update({ stok_mt: yeniStok }).eq('id', kumas.id);
-                            telegramBildirim(`📉 M5 KESİM STOK DÜŞÜMÜ\nKumaş Kodu: ${kumasKodu}\nDüşülen: ${dusulecek} mt\nKalan Stok: ${yeniStok} mt`);
-                        }
-                    }
-                } catch (stokHata) {
-                    console.error("Stok düşme hatası (Kumaş kaydı olmayabilir):", stokHata);
+                if (sonuc.stokDusuldu) {
+                    telegramBildirim(`📉 M5 KESİM STOK DÜŞÜMÜ\nKumaş Kodu: ${sonuc.kumasKodu}\nDüşülen: ${sonuc.dusulecek} mt\nKalan Stok: ${sonuc.yeniStok} mt`);
                 }
             }
         } catch (error) { goster('Durum güncellenemedi!', 'error'); }
@@ -260,13 +181,7 @@ export default function KesimMainContainer() {
         if (!yetkili) { setIslemdeId(null); return goster(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
         if (!confirm('Bu kesim kaydını fiziksel silmek yerine arşive (iptal) kaldırmak istediğinize emin misiniz?')) { setIslemdeId(null); return; }
         try {
-            try {
-                await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b1_kesim_operasyonlari', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi M5',
-                    eski_veri: { durum: 'Soft Delete / Arşive alındı.', model_kodu: m_kodu, id: id }
-                }]);
-            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: KesimMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
-            await supabase.from('b1_kesim_operasyonlari').update({ durum: 'iptal' }).eq('id', id);
+            await kesimSilVeArsivle(id, m_kodu, 'Saha Yetkilisi M5');
             yukle(); goster('Kayıt arşive (iptal durumuna) alındı.');
             telegramBildirim(`🗑️ KESİM İPTAL EDİLDİ\n${m_kodu} modeline ait kesim kaydı yönetici onayıyla arşive kaldırıldı.`);
         } catch (error) { goster('Silme/Arşivleme hatası: ' + error.message, 'error'); }

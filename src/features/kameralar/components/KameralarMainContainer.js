@@ -8,12 +8,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
-import { supabase } from '@/lib/supabase';
-import { telegramBildirim, telegramFotoGonder } from '@/lib/utils';
 import CameraPlayer from './CameraPlayer';
 import useMotionDetection from '../hooks/useMotionDetection';
+import {
+    logCameraAccess, checkStreamStatus, fetchCameras,
+    fetchAIEvents, subscribeCameraEvents, sendCameraSnapshot
+} from '../services/kameralarApi';
 
-const GO2RTC_URL = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_GO2RTC_URL) || 'http://localhost:1984';
+const GO2RTC_URL = 'https://expanding-sept-safer-pages.trycloudflare.com';
 
 // ── NVR Gerçek Kamera Listesi (Neutron NEU-NVR116-SHD @ 192.168.1.200) ──
 // RTSP: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c{n}/s{0=main,1=sub}/live
@@ -82,29 +84,18 @@ export default function KameralarMainContainer() {
             zaman: new Date().toISOString(),
         };
         setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
-        try {
-            await fetch('/api/camera-log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: kullanici?.id || null,
-                    kullanici_adi: logEntry.kullanici,
-                    islem_tipi: islem,
-                    kamera_adi: kameraAdi,
-                })
-            });
-        } catch { /* tablo henüz yoksa veya network hatasında sessizce geç */ }
+        await logCameraAccess({
+            user_id: kullanici?.id || null,
+            kullanici_adi: logEntry.kullanici,
+            islem_tipi: islem,
+            kamera_adi: kameraAdi,
+        });
     }, [kullanici]);
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
     const streamDurumKontrol = useCallback(async () => {
-        try {
-            const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-            const data = await res.json();
-            setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
-        } catch {
-            setStreamDurum('kapali');
-        }
+        const d = await checkStreamStatus();
+        setStreamDurum(d);
     }, []);
 
     // ── Gözetim Optimizasyonu (Visibility & Idle Track) ────────
@@ -158,18 +149,8 @@ export default function KameralarMainContainer() {
         if (!yetkili) return;
         const kameraYukle = async () => {
             setLoading(true);
-            try {
-                const { data, error } = await supabase
-                    .from('cameras')
-                    .select('*')
-                    .order('id', { ascending: true });
-                if (!error && data && data.length > 0) {
-                    setKameralar(data);
-                }
-                // Tablo yoksa veya boşsa VARSAYILAN_KAMERALAR kullanılmaya devam eder
-            } catch (e) {
-                // Tablo henüz oluşturulmamış — varsayılan kullan
-            }
+            const data = await fetchCameras();
+            if (data) setKameralar(data);
             setLoading(false);
         };
         kameraYukle();
@@ -189,15 +170,8 @@ export default function KameralarMainContainer() {
     useEffect(() => {
         if (!yetkili) return;
         const aiOlaylariGetir = async () => {
-            try {
-                const { data } = await supabase
-                    .from('camera_events')
-                    .select('*')
-                    .in('event_type', ['motion_detected', 'anomaly'])
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                if (data) setAiOlaylar(data);
-            } catch { /* tablo yoksa sessizce geç */ }
+            const data = await fetchAIEvents();
+            if (data) setAiOlaylar(data);
         };
         aiOlaylariGetir();
     }, [yetkili]);
@@ -206,34 +180,28 @@ export default function KameralarMainContainer() {
     useEffect(() => {
         if (!yetkili) return;
 
-        const anomalyListener = supabase.channel('ai-anomaly-channel')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'camera_events' }, (payload) => {
-                // Hem anomaly hem motion_detected yakalanır
-                if (['anomaly', 'motion_detected'].includes(payload.new.event_type)) {
-                    const kam = kameralar.find(k => k.id === payload.new.camera_id);
-                    const kName = kam ? kam.name : `Kamera #${payload.new.camera_id}`;
+        const cb = (payload) => {
+            if (['anomaly', 'motion_detected'].includes(payload.new.event_type)) {
+                const kam = kameralar.find(k => k.id === payload.new.camera_id);
+                const kName = kam ? kam.name : `Kamera #${payload.new.camera_id}`;
 
-                    goster(`🚨 AI TESPİTİ: ${kName} — Bant Hareketsizliği!`, 'error');
+                goster(`🚨 AI TESPİTİ: ${kName} — Bant Hareketsizliği!`, 'error');
 
-                    // Erişim loguna ekle
-                    const logEntry = {
-                        kullanici: '🤖 NİZAM AI',
-                        islem: 'ANOMALİ TESPİTİ (BANT HAREKETSİZLİĞİ)',
-                        kamera: kName,
-                        zaman: payload.new.created_at || new Date().toISOString(),
-                    };
-                    setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
+                const logEntry = {
+                    kullanici: '🤖 NİZAM AI',
+                    islem: 'ANOMALİ TESPİTİ (BANT HAREKETSİZLİĞİ)',
+                    kamera: kName,
+                    zaman: payload.new.created_at || new Date().toISOString(),
+                };
+                setErisimLog(prev => [logEntry, ...prev].slice(0, 50));
+                setAiOlaylar(prev => [payload.new, ...prev].slice(0, 5));
+            }
+        };
 
-                    // AI Olay panelini de güncelle
-                    setAiOlaylar(prev => [payload.new, ...prev].slice(0, 5));
-
-                    return;
-                }
-            })
-            .subscribe();
+        const sub = subscribeCameraEvents(cb);
 
         return () => {
-            supabase.removeChannel(anomalyListener);
+            sub.unsubscribe();
         };
     }, [yetkili]);
 
@@ -250,38 +218,18 @@ export default function KameralarMainContainer() {
 
         goster(`📸 ${kam.name} bağından anlık görüntü çekiliyor...`, 'success');
 
-        try {
-            // go2rtc API üzerinden Native Frame okuma
-            const frameUrl = `${GO2RTC_URL}/api/frame.jpeg?src=${kam.src}_main`;
-            const req = await fetch(frameUrl, { cache: 'no-store' });
+        const result = await sendCameraSnapshot(kam, GO2RTC_URL);
 
-            if (!req.ok) throw new Error('Frame alınamadı');
-
-            const blob = await req.blob();
-            const caption = `🚨 KAMERA SNAPSHOT\nKamera: ${kam.name}\nKonum: ${kam.work_center || '—'}\nTarih: ${new Date().toLocaleString('tr-TR')}\n\n⚠️ Görüntü go2rtc native frame üzerinden aktarılmıştır.`;
-
-            const result = await telegramFotoGonder(blob, caption);
-
-            if (result.success) {
-                goster(`✅ Görüntü Telegram'a iletildi!`, 'success');
-                kameraErisimLogAt('SNAPSHOT TELEGRAM', kam.name);
+        if (result.success) {
+            goster(`✅ Görüntü Telegram'a iletildi!`, 'success');
+            kameraErisimLogAt('SNAPSHOT TELEGRAM', kam.name);
+        } else {
+            if (result.error) {
+                goster(`⚠️ Sadece metin uyarısı tetiklendi.`, 'error');
             } else {
                 goster(`❌ Görüntü gönderilemedi!`, 'error');
             }
-        } catch (error) {
-            // Hata düşerse fallback (Eski yazılı usül)
-            goster(`⚠️ Sadece metin uyarısı tetiklendi (Frame Hatası).`, 'error');
-            telegramBildirim(`🚨 KAMERA (GÖRÜNTÜ ALINAMADI)\nKamera: ${kam.name}\nTarih: ${new Date().toLocaleString('tr-TR')}\nHata: NVR Frame timeout.`);
         }
-
-        // DB'ye event log
-        try {
-            await supabase.from('camera_events').insert([{
-                camera_id: kam.id,
-                event_type: 'snapshot',
-                video_url: null,
-            }]);
-        } catch { /* tablo yoksa geç */ }
 
         setIslemdeId(null);
     };

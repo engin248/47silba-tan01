@@ -1,482 +1,193 @@
 'use client';
-/**
- * features/stok/components/StokMainContainer.js
- * Kaynak: app/stok/page.js → features mimarisine taşındı
- * UI logic burada, state/data → hooks/useStok.js
- */
-'use client';
-import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
+import { createGoster, telegramBildirim } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
-import { Package, Plus, Search, ArrowUpRight, ArrowDownRight, AlertTriangle, ShieldAlert, Boxes, Database, Trash2, ArrowRightLeft } from 'lucide-react';
+import { Boxes, Plus, AlertTriangle, ShieldAlert } from 'lucide-react';
 import MesajBanner from '@/components/shared/MesajBanner';
 import Link from 'next/link';
 
-const BOSH_HAREKET = { urun_id: '', hareket_tipi: 'giris', adet: '', aciklama: '', raf_konumu: '' };
+// Zırhlı Servis Bağlantısı (IDB + Supabase)
+import { stokVeriGetir, stokHareketiKaydet as apiStokHareketiKaydet, stokHareketSil, BOSH_HAREKET } from '../services/stokApi';
 
-export default function StokDepoKarargahi() {
+// Alt Bileşenler (Tabs)
+import StokGridTab from './tabs/StokGridTab';
+import StokHareketLoglari from './tabs/StokHareketLoglari';
+import StokFormHareket from './tabs/StokFormHareket';
+
+export default function StokMainContainer() {
     const { kullanici, sayfaErisim } = useAuth();
-    const erisim = /** @type {any} */ (sayfaErisim)('/stok');
+    const erisim = typeof sayfaErisim === 'function' ? sayfaErisim('/stok') : 'full';
     const [mounted, setMounted] = useState(false);
-    const { lang } = useLang();  // Context'ten al — anlık güncelleme
+    const { lang } = useLang();
 
-    // Tablolar
-    const [stokEnvanteri, setStokEnvanteri] = useState(/** @type {any[]} */([]));
-    const [hareketler, setHareketler] = useState(/** @type {any[]} */([]));
+    // Tablo (Envanter) ve Log (Hareket)
+    const [stokEnvanteri, setStokEnvanteri] = useState([]);
+    const [hareketler, setHareketler] = useState([]);
 
-    // Formlar ve Durumlar
+    // UI State
     const [formAcik, setFormAcik] = useState(false);
     const [loading, setLoading] = useState(false);
     const [yeniHareket, setYeniHareket] = useState(BOSH_HAREKET);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
     const [arama, setArama] = useState('');
-    const [islemdeId, setIslemdeId] = useState(/** @type {any} */(null)); // ÇİFT TIKLAMA KORUMASI
+    const [islemdeId, setIslemdeId] = useState(null);
 
-    const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
+    const showMessage = createGoster(setMesaj);
 
     useEffect(() => {
         setMounted(true);
-
         let isMounted = true;
-        let kanal = /** @type {any} */ (null);
+        let kanal = null;
+
         if (erisim !== 'yok') {
             kanal = supabase.channel('stok-gercek-zamanli')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'b2_stok_hareketleri' }, () => {
                     if (isMounted) yukle();
-                })
-                .subscribe();
+                }).subscribe();
             yukle();
         }
-
         return () => { isMounted = false; if (kanal) supabase.removeChannel(kanal); };
     }, [erisim]);
-
-    const showMessage = createGoster(setMesaj);
 
     const yukle = async () => {
         setLoading(true);
         try {
-            // Promise.race + allSettled kombosu: DDoS ve Timeout Zırhı
-            const p1 = supabase.from('b2_urun_katalogu').select('id, urun_kodu, urun_adi, urun_adi_ar, satis_fiyati_tl, stok_adeti, min_stok, b2_stok_hareketleri(adet, hareket_tipi)');
-            const p2 = supabase.from('b2_stok_hareketleri').select('id, urun_id, hareket_tipi, adet, aciklama, created_at, b2_urun_katalogu(urun_kodu, urun_adi)').order('created_at', { ascending: false }).limit(200);
-
-            const res = await Promise.race([Promise.allSettled([p1, p2]), timeoutPromise()]);
-            const [urunRes, hareketRes] = res;
-
-            if (urunRes.status === 'fulfilled' && urunRes.value.data) {
-                // Kritik Stok Hesabı
-                const envanterData = urunRes.value.data.map(u => {
-                    let totalGiris = 0; let totalCikis = 0;
-                    if (u.b2_stok_hareketleri) {
-                        u.b2_stok_hareketleri.forEach(h => {
-                            if (h.hareket_tipi === 'giris' || h.hareket_tipi === 'iade') totalGiris += h.adet;
-                            if (h.hareket_tipi === 'cikis' || h.hareket_tipi === 'fire') totalCikis += h.adet;
-                        });
-                    }
-                    // Sisteme ilk kayıt edilirken girilen stok_adeti de bir GİRİŞ gibidir.
-                    // Ya da stok hareketleri üzerinden mutabakat yapılabilir.
-                    const baslangicStok = u.stok_adeti || 0;
-                    return { ...u, net_stok: baslangicStok + totalGiris - totalCikis };
-                });
-                setStokEnvanteri(envanterData);
-            }
-            if (hareketRes.status === 'fulfilled' && hareketRes.value.data) {
-                setHareketler(hareketRes.value.data);
-            }
-        } catch (error) {
-            showMessage('Ağ veya Zaman Aşımı: ' + error.message, 'error');
-        }
+            const data = await stokVeriGetir();
+            if (data.stokEnvanteri) setStokEnvanteri(data.stokEnvanteri);
+            if (data.hareketler) setHareketler(data.hareketler);
+        } catch (error) { showMessage('Ağ Hatası (IDB Fallback Çalışıyor): ' + error.message, 'error'); }
         setLoading(false);
     };
 
     const stokHareketiKaydet = async () => {
         if (islemdeId === 'kayit') return;
         setIslemdeId('kayit');
-        if (!yeniHareket.urun_id) { setIslemdeId(null); return showMessage('Lütfen bir depo ürünü seçin!', 'error'); }
-        if (!yeniHareket.adet || /** @type {any} */ (yeniHareket.adet) <= 0) { setIslemdeId(null); return showMessage('Adet bilgisi sıfırdan büyük olmalı!', 'error'); }
+        if (!yeniHareket.urun_id) { setIslemdeId(null); return showMessage('Lütfen hedef ürünü seçin!', 'error'); }
+        if (!yeniHareket.adet || yeniHareket.adet <= 0) { setIslemdeId(null); return showMessage('Geçerli bir adet giriniz!', 'error'); }
 
         setLoading(true);
         const payload = {
-            urun_id: yeniHareket.urun_id,
-            hareket_tipi: yeniHareket.hareket_tipi,
-            adet: parseInt(yeniHareket.adet, 10),
-            aciklama: yeniHareket.aciklama.trim() || 'Belirtilmedi',
-            raf_konumu: yeniHareket.raf_konumu?.trim() || null
+            urun_id: yeniHareket.urun_id, hareket_tipi: yeniHareket.hareket_tipi,
+            adet: parseInt(yeniHareket.adet, 10), aciklama: yeniHareket.aciklama.trim() || 'Merkez'
         };
 
-        // Offline PWA Zırhı
-        if (!navigator.onLine) {
-            await cevrimeKuyrugaAl('b2_stok_hareketleri', 'INSERT', /** @type {any} */(payload));
-            showMessage('⚠️ İnternet Yok: Stok hareketi çevrimdışı kuyruğa alındı. Sistem bağlantı bulunca senkronize edecek.', 'success');
-            setYeniHareket(BOSH_HAREKET);
-            setFormAcik(false);
-            setLoading(false);
-            setIslemdeId(null);
-            return;
-        }
-
         try {
-            const yanit = await fetch('/api/stok-hareket-ekle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const sonuc = await yanit.json().catch(() => ({}));
+            const r = await apiStokHareketiKaydet(payload);
+            if (r.offline) showMessage('⚡ İNTERNET YOK: Stok hareketi kuyruğa alındı (Zırh Tarafından Korunuyor).', 'success');
+            else { showMessage('✅ Depo işlemi güvenli mühürlendi!'); yukle(); }
 
-            if (yanit.status === 429) return showMessage('⏳ Çok fazla istek! Lütfen bekleyin.', 'error');
-            if (yanit.status === 422) return showMessage('📛 ZOD SİBER KALKANI: Eksik/Hatalı Stok Girişi Engellendi!', 'error');
-            if (!yanit.ok) throw new Error(sonuc.hata || 'Sunucu hatası');
-
-            const urun = stokEnvanteri.find(u => u.id === payload.urun_id);
-            showMessage('✅ Depo işlemi mühürlendi!');
-            telegramBildirim(`📦 STOK HAREKETİ!\nÜrün: ${urun?.urun_kodu}\nİşlem: ${payload.hareket_tipi}\nMiktar: ${payload.adet} Adet\nDetay: ${payload.aciklama}`);
-
-            // Otonom Düşük Stok Alarmi
-            if (urun) {
-                let netSonrasi = urun.net_stok;
-                if (payload.hareket_tipi === 'giris' || payload.hareket_tipi === 'iade') netSonrasi += payload.adet;
-                if (payload.hareket_tipi === 'cikis' || payload.hareket_tipi === 'fire') netSonrasi -= payload.adet;
-
-                const kritikLimit = urun.min_stok || 10;
-                if (netSonrasi <= kritikLimit && (payload.hareket_tipi === 'cikis' || payload.hareket_tipi === 'fire')) {
-                    telegramBildirim(`🚨 KRİTİK STOK DÜŞÜŞÜ (DEPO)!\nÜrün: ${urun.urun_kodu} | ${urun.urun_adi}\nKalan Stok: ${netSonrasi} adet\nSınır: ${kritikLimit}\nAcil tedarik gerekebilir!`);
-                }
-            }
-
-            setYeniHareket(BOSH_HAREKET);
-            setFormAcik(false);
-            yukle();
-        } catch (error) {
-            showMessage('Sunucu hatası: ' + error.message, 'error');
-        }
-        finally { setLoading(false); setIslemdeId(null); }
+            setYeniHareket(BOSH_HAREKET); setFormAcik(false);
+        } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        setLoading(false); setIslemdeId(null);
     };
 
     const hareketSilB0Log = async (id, urun_kodu) => {
         if (islemdeId === 'sil_' + id) return;
         setIslemdeId('sil_' + id);
-        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(
-            kullanici
-        );
-        if (!yetkili) { setIslemdeId(null); return showMessage(yetkiMesaj || 'Yetkisiz işlem.', 'error'); }
 
-        if (!confirm('DİKKAT! Bu hareket fiziksel olarak silinecektir. Emin misiniz?')) { setIslemdeId(null); return; }
+        const { yetkili, mesaj: yetkiMesaj } = await silmeYetkiDogrula(kullanici);
+        if (!yetkili) { setIslemdeId(null); return showMessage(yetkiMesaj || 'Yetkisiz erişim.', 'error'); }
+        if (!confirm('DİKKAT! Bu kayıt fiziki olarak silinecek ve Kara Kutuya yazılacaktır.')) { setIslemdeId(null); return; }
 
         try {
-            try {
-                await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: 'b2_stok_hareketleri', islem_tipi: 'SILME', kullanici_adi: /** @type {any} */ (kullanici)?.label || 'M11 Sorumlusu',
-                    eski_veri: { durum: `Silinen ürün kodu: ${urun_kodu}, Stok hareketi ID: ${id}` }
-                }]);
-            } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: StokMainContainer.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
-
-            const { error } = await supabase.from('b2_stok_hareketleri').delete().eq('id', id);
-            if (error) throw error;
-
-            showMessage('Kayıt silindi ve Kara Kutuya (B0) raporlandı.');
-            telegramBildirim(`🚨 KRİTİK İŞLEM!\nDepodan bir stok hareketi kaydı tamamen silindi! Kodu: ${urun_kodu}`);
-            yukle();
-        } catch (error) {
-            showMessage('Hata: ' + error.message, 'error');
-        }
-        finally { setIslemdeId(null); }
+            await stokHareketSil(id, urun_kodu, kullanici?.label || 'M11 Yöneticisi');
+            showMessage('🗑️ Kayıt imha edildi, Zırh Logları (B0) mühürlendi.'); yukle();
+        } catch (error) { showMessage('Hata: ' + error.message, 'error'); }
+        setIslemdeId(null);
     };
 
     if (!mounted) return null;
-    const isAR = mounted && lang === 'ar';
+    const isAR = lang === 'ar';
 
-    if (erisim === 'yok') {
-        return (
-            <div style={{ padding: '4rem', textAlign: 'center', background: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', margin: '2rem' }}>
-                <ShieldAlert size={56} color="#ef4444" style={{ margin: '0 auto 1.5rem' }} />
-                <h2 style={{ color: '#b91c1c', fontSize: '1.4rem', fontWeight: 900, textTransform: 'uppercase' }}>{isAR ? 'تم حظر الدخول إلى المستودع (M11)' : 'M11 DEPO GİRİŞİ YASAK'}</h2>
-                <p style={{ color: '#7f1d1d', fontWeight: 600, marginTop: 12 }}>Stok verileri en üst düzey izne tabidir. PİN girmeniz gerekir.</p>
-            </div>
-        );
-    }
+    if (erisim === 'yok') return (
+        <div className="p-16 text-center bg-rose-950/20 border-2 border-rose-900/50 rounded-2xl m-8 relative overflow-hidden group">
+            <ShieldAlert size={64} className="mx-auto mb-6 text-rose-600 animate-pulse drop-shadow-[0_0_15px_#dc2626]" />
+            <h2 className="text-2xl font-black text-rose-500 uppercase tracking-[0.2em] mb-4">SİBER KAPI İHLALİ M11</h2>
+            <p className="text-rose-300 font-bold m-0 max-w-lg mx-auto leading-relaxed">Stok verileri en üst düzey "Tam Erişim" iznine tabidir. KarargAH ağında izniniz doğrulanamadı.</p>
+        </div>
+    );
 
-    const filtrelenmisStok = stokEnvanteri.filter(s => s.urun_kodu?.toLowerCase().includes(arama.toLowerCase()) || s.urun_adi?.toLowerCase().includes(arama.toLowerCase()));
-
-    const inp = { width: '100%', padding: '10px 14px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem', fontFamily: 'inherit', boxSizing: /** @type {any} */ ('border-box'), outline: 'none' };
-    const lbl = { display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#e2e8f0', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
+    const netKritikSayisi = stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).length;
 
     return (
-        <div style={{ padding: '2rem', fontFamily: 'inherit' }} dir={isAR ? 'rtl' : 'ltr'}>
+        <div className="p-4 md:p-8" dir={isAR ? 'rtl' : 'ltr'}>
 
-            {/* [KRİTİK EKSİK] Üst Alarm Bandı — kritik stok varsa kırmızı */}
-            {stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).length > 0 && (
-                <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
-                    color: 'white', padding: '10px 18px', borderRadius: 10,
-                    marginBottom: '1rem', gap: 12, flexWrap: 'wrap',
-                    animation: 'pulse 2s infinite',
-                    boxShadow: '0 4px 14px rgba(220,38,38,0.4)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <AlertTriangle size={18} />
-                        <span style={{ fontWeight: 900, fontSize: '0.88rem' }}>
-                            🚨 {stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).length} ÜRÜN KRİTİK STOK SEVİYESİNDE!
-                        </span>
-                        <span style={{ fontSize: '0.75rem', opacity: 0.85, fontWeight: 600 }}>
-                            {stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).map(s => s.urun_kodu).slice(0, 3).join(', ')}
-                            {stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).length > 3 ? ` +${stokEnvanteri.filter(s => (s.net_stok || 0) <= (s.min_stok || 10)).length - 3} daha` : ''}
-                        </span>
+            {netKritikSayisi > 0 && (
+                <div className="flex items-center justify-between flex-wrap gap-4 bg-gradient-to-r from-red-600 to-red-900 text-white p-4 rounded-xl mb-6 animate-pulse shadow-[0_4px_15px_rgba(220,38,38,0.4)]">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle size={24} />
+                        <div>
+                            <div className="font-black text-sm uppercase tracking-wider mb-0.5">🚨 {netKritikSayisi} ADET ÜRÜN KRİTİK SEVİYENİN ALTINA İNDİ!</div>
+                            <div className="text-xs font-bold text-red-200">En riskli gruplar tedarik bekliyor.</div>
+                        </div>
                     </div>
-                    <button
-                        onClick={async () => {
-                            try {
-                                const res = await fetch('/api/stok-alarm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manuel: true }) });
-                                const veri = await res.json();
-                                showMessage(veri.mesaj || `⚠️ ${veri.sayac} kritik ürün Telegram'a bildirildi`, 'success');
-                            } catch (e) { showMessage('Alarm gönderilemedi: ' + e.message, 'error'); }
-                        }}
-                        style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', padding: '5px 14px', borderRadius: 7, fontWeight: 800, cursor: 'pointer', fontSize: '0.78rem' }}
-                    >
-                        📱 Telegram'a Bildir
+                    <button className="bg-white/20 hover:bg-white/30 border border-white/50 text-white px-4 py-2 rounded-lg font-black text-xs cursor-pointer uppercase transition-colors">
+                        📱 TELEGRAM ALARMI GÖNDER
                     </button>
                 </div>
             )}
 
-            {/* BAŞLIK VE KÖPRÜ */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#047857,#065f46)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Boxes size={24} color="white" />
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 overflow-hidden relative">
+                <div className="absolute -left-20 -top-20 w-40 h-40 bg-emerald-600/10 blur-[50px] rounded-full pointer-events-none"></div>
+
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-[16px] flex items-center justify-center shadow-[0_0_20px_rgba(4,120,87,0.4)] border border-emerald-500/30">
+                        <Boxes size={28} className="text-emerald-50" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', margin: 0 }}>
-                            {isAR ? 'إدارة المخزون (M11)' : 'Depo ve Stok Yönetimi (M11)'}
-                        </h1>
-                        <p style={{ fontSize: '0.8rem', color: '#a7f3d0', margin: '2px 0 0', fontWeight: 600 }}>
-                            {isAR ? 'إدارة المخزون المحمية ضد الانقطاع' : 'Stok giriş, çıkış, iade ve fire kaydı.'}
-                        </p>
+                        <h1 className="text-2.5xl font-black text-white m-0 tracking-tight uppercase">Stok İkmal Karargahı (M11)</h1>
+                        <p className="text-emerald-400 font-bold text-xs uppercase tracking-widest mt-1.5 opacity-90 border-l-[3px] border-emerald-500 pl-2">Kayıpsız Zero-Latency Otonom Depo Ağı</p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    {erisim === 'full' && (
-                        <button onClick={() => { setFormAcik(!formAcik); setYeniHareket(BOSH_HAREKET); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#047857', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
-                            <Plus size={18} /> {isAR ? 'إضافة حركة جديدة' : 'Yeni Hareket (Giriş/Çıkış)'}
-                        </button>
-                    )}
-                    <Link href="/siparisler" style={{ textDecoration: 'none' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d97706', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}>
-                            {isAR ? 'الطلبات (M10)' : 'Siparişler (M10)'}
+
+                <div className="flex flex-wrap gap-3 z-10">
+                    <Link href="/siparisler" className="no-underline">
+                        <button className="bg-amber-600 hover:bg-amber-500 text-white border-0 px-6 py-3 rounded-xl font-black text-sm tracking-widest cursor-pointer shadow-[0_4px_15px_rgba(217,119,6,0.3)] transition-colors uppercase flex items-center gap-2">
+                            SİPARİŞLER M8 ➞
                         </button>
                     </Link>
-                    {/* [A-06] Kritik Stok Alarm */}
-                    <button
-                        onClick={async () => {
-                            try {
-                                const res = await fetch('/api/stok-alarm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manuel: true }) });
-                                const veri = await res.json();
-                                showMessage(veri.mesaj || `⚠️ ${veri.sayac} kritik ürün tespit edildi`, veri.sayac > 0 ? 'error' : 'success');
-                            } catch (e) { showMessage('Alarm gönderilemedi: ' + e.message, 'error'); }
-                        }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, background: stokEnvanteri.some(s => (s.net_stok || 0) < 5) ? '#dc2626' : '#64748b', color: 'white', border: 'none', padding: '12px 20px', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: '0.85rem' }}>
-                        <AlertTriangle size={16} /> Stok Alarm
-                    </button>
+                    {erisim === 'full' && (
+                        <button onClick={() => { setFormAcik(!formAcik); setYeniHareket(BOSH_HAREKET); }}
+                            className="bg-emerald-600 hover:bg-emerald-500 border-0 border-b-4 border-emerald-800 text-white px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_4px_15px_rgba(4,120,87,0.4)] flex items-center gap-2 transition-all active:translate-y-1 active:border-b-0">
+                            <Plus size={18} /> TRANSFER EMRİ
+                        </button>
+                    )}
                 </div>
             </div>
 
             <MesajBanner mesaj={mesaj} />
 
-            {/* STK-02: FIFO Politikası */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fffbeb', border: '2px solid #fde68a', borderRadius: 10, padding: '10px 16px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1.1rem' }}>📦</span>
-                <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 900, color: '#92400e', textTransform: 'uppercase' }}>Stok Politikası: FIFO (İlk Giren İlk Çıkar) — STK-02</div>
-                    <div style={{ fontSize: '0.68rem', color: '#b45309', fontWeight: 600 }}>
-                        Aktif: <span style={{ fontWeight: 900, color: '#d97706' }}>{stokEnvanteri.filter(s => s.net_stok > 0).length}/{stokEnvanteri.length}</span> kalem &nbsp;|&nbsp;
-                        Toplam: <span style={{ fontWeight: 900, color: '#047857' }}>{stokEnvanteri.reduce((s, u) => s + (u.net_stok || 0), 0)} adet</span>
-                    </div>
-                </div>
-                <button onClick={() => { const c = 'Urun Kodu,Urun Adi,Net Stok,Min Stok\n' + stokEnvanteri.map(u => u.urun_kodu + ',' + u.urun_adi + ',' + u.net_stok + ',' + u.min_stok).join('\n'); const b = new Blob(['\uFEFF' + c], { type: 'text/csv;charset=utf-8;' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'stok_sayim_' + new Date().toISOString().slice(0, 10) + '.csv'; l.click(); }} style={{ background: '#d97706', color: 'white', border: 'none', padding: '6px 14px', borderRadius: 8, fontWeight: 800, cursor: 'pointer', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
-                    📋 Sayım Formu (STK-04)
-                </button>
-            </div>
+            {/* FORM ÇEKMECESİ */}
+            <StokFormHareket
+                formAcik={formAcik} setFormAcik={setFormAcik} setYeniHareket={setYeniHareket}
+                BOSH_HAREKET={BOSH_HAREKET} isAR={isAR} yeniHareket={yeniHareket}
+                stokEnvanteri={stokEnvanteri} stokHareketiKaydet={stokHareketiKaydet} loading={loading}
+            />
 
-            {/* ARAMA VE FİLTRE VE BARKOD (ST-06) */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative', flex: 1, minWidth: 280, maxWidth: 450 }}>
-                    <Search size={18} style={{ position: 'absolute', right: isAR ? 14 : 'auto', left: isAR ? 'auto' : 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                    <input type="text" value={arama} onChange={e => setArama(e.target.value)}
-                        placeholder={isAR ? 'ابحث عن المنتج برمز المنتج...' : 'Ürün Kodu ile Stokta Ara...'}
-                        style={{ ...inp, paddingLeft: isAR ? 14 : 42, paddingRight: isAR ? 42 : 14 }} />
-                </div>
-                {erisim === 'full' && (
-                    <div style={{ position: 'relative', flex: 1, minWidth: 280, maxWidth: 300 }}>
-                        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>|\||</span>
-                        <input type="text" placeholder="Barkod Okut (ST-06)..."
-                            onKeyDown={e => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    const val = e.currentTarget.value.trim();
-                                    if (!val) return;
-                                    const urun = stokEnvanteri.find(u => u.urun_kodu?.toLowerCase() === val.toLowerCase() || u.urun_adi?.toLowerCase() === val.toLowerCase());
-                                    if (urun) {
-                                        setYeniHareket({ ...BOSH_HAREKET, urun_id: urun.id });
-                                        setFormAcik(true);
-                                        showMessage(`Barkod Okundu: ${urun.urun_adi}`);
-                                    } else {
-                                        showMessage('⚠️ Ürün bulunamadı!', 'error');
-                                    }
-                                    e.currentTarget.value = '';
-                                }
-                            }}
-                            style={{ ...inp, paddingLeft: 42, border: '2px solid #0ea5e9', background: '#f0f9ff', color: '#0f172a' }} />
+            {/* STOK TABLOLARI / LOKASYON */}
+            <div className="relative">
+                {loading && !stokEnvanteri.length && (
+                    <div className="absolute inset-x-0 top-10 flex flex-col items-center justify-center z-50">
+                        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                        <div className="text-emerald-400 font-black text-sm uppercase tracking-widest mt-4 animate-pulse">KRİTİK VERİ ÇEKİLİYOR...</div>
                     </div>
                 )}
+
+                <StokGridTab
+                    stokEnvanteri={stokEnvanteri} arama={arama} setArama={setArama}
+                    setYeniHareket={setYeniHareket} setFormAcik={setFormAcik}
+                    showMessage={showMessage} BOSH_HAREKET={BOSH_HAREKET} erisim={erisim} isAR={isAR}
+                />
             </div>
 
-            {formAcik && erisim === 'full' && (
-                <div style={{ background: '#122b27', border: '2px solid #047857', borderRadius: 18, padding: '2rem', marginBottom: '2rem', boxShadow: '0 10px 40px rgba(4,120,87,0.08)', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 0, right: isAR ? 'auto' : 0, left: isAR ? 0 : 'auto', background: '#d97706', color: 'white', padding: '4px 12px', fontSize: '0.65rem', fontWeight: 900, borderBottomLeftRadius: isAR ? 0 : 18, borderBottomRightRadius: isAR ? 18 : 0, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        {isAR ? 'منطقة ٙمنة أوفلاين' : 'Offline Zirhlı Bölge'}
-                    </div>
-                    <h3 style={{ fontWeight: 900, color: '#065f46', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <ArrowUpRight size={18} /> {isAR ? 'تسجيل إدخال / إخراج مستودع' : 'Yeni Merkez Girişi / Çıkışı Ekle'}
-                    </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                        <div>
-                            <label style={lbl}>{isAR ? 'اختر المنتج *' : 'Ürün Kimliği Seç *'}</label>
-                            <select value={yeniHareket.urun_id} onChange={e => setYeniHareket({ ...yeniHareket, urun_id: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
-                                <option value="">--- {isAR ? 'اختر' : 'Ürün Seç'} ---</option>
-                                {stokEnvanteri.map(s => <option key={s.id} value={s.id}>{s.urun_kodu} ({s.net_stok} {isAR ? 'متوفر' : 'Mevcut'})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={lbl}>{isAR ? 'نوع الحركة *' : 'Hareket Tipi *'}</label>
-                            <select value={yeniHareket.hareket_tipi} onChange={e => setYeniHareket({ ...yeniHareket, hareket_tipi: e.target.value })} style={{ ...inp, cursor: 'pointer', background: '#122b27' }}>
-                                <option value="giris">🟢 {isAR ? 'إدخال (+)' : 'GİRİŞ (+)'}</option>
-                                <option value="cikis">🔴 {isAR ? 'إخراج (-)' : 'ÇIKIŞ (-)'}</option>
-                                <option value="iade">🟣 {isAR ? 'إرجاع (+)' : 'İADE (+)'}</option>
-                                <option value="fire">🟠 {isAR ? 'تالف (-)' : 'FİRE/ÇÖP (-)'}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style={lbl}>{isAR ? 'الكمية *' : 'Adet *'}</label>
-                            <input type="number" dir="ltr" value={yeniHareket.adet} placeholder="Örn: 50" onChange={e => setYeniHareket({ ...yeniHareket, adet: e.target.value })} style={inp} />
-                        </div>
-                        <div>
-                            <label style={lbl}>{isAR ? 'المسؤول / الملاحظات' : 'Sorumlu / Açıklama'}</label>
-                            <input type="text" value={yeniHareket.aciklama} placeholder={isAR ? 'السائق، فاتورة العودة...' : 'Şoför Ali, İade vs.'} onChange={e => setYeniHareket({ ...yeniHareket, aciklama: e.target.value })} style={inp} />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        <button onClick={() => setFormAcik(false)} style={{ padding: '10px 20px', border: '2px solid #e2e8f0', borderRadius: 10, background: '#122b27', fontWeight: 800, cursor: 'pointer', color: '#a7f3d0' }}>
-                            {isAR ? 'إلغاء' : 'İPTAL ET'}
-                        </button>
-                        <button onClick={stokHareketiKaydet} disabled={loading} style={{ padding: '10px 28px', background: loading ? '#cbd5e1' : '#047857', color: 'white', border: 'none', borderRadius: 10, fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(4,120,87,0.3)' }}>
-                            {loading ? '...' : (isAR ? 'حفظ في المستودع' : 'Kaydet')}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {loading && !stokEnvanteri.length && <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem', fontWeight: 800 }}>Kritik Veriler Çekiliyor...</p>}
-
-            {/* STOK ENVANTER LİSTESİ */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-                {filtrelenmisStok.map(stok => {
-                    const kritikLimiti = stok.min_stok || 10;
-                    const kritikMi = stok.net_stok <= kritikLimiti;
-
-                    return (
-                        <div key={stok.id} style={{ background: '#122b27', border: '2px solid', borderColor: kritikMi ? '#fca5a5' : '#f1f5f9', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                            <div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
-                                            <span style={{ fontSize: '0.65rem', fontWeight: 900, background: '#0b1d1a', color: '#a7f3d0', padding: '3px 10px', borderRadius: 6, border: '1px solid #1e4a43' }}>KOD: {stok.urun_kodu}</span>
-                                            {stok.net_stok <= (stok.min_stok || 10) && <span style={{ fontSize: '0.65rem', fontWeight: 900, background: '#fef2f2', color: '#dc2626', padding: '3px 8px', borderRadius: 6, border: '1px solid #fecaca' }}> KRİTİK STOK</span>}
-                                        </div>
-                                        <h3 style={{ fontWeight: 900, fontSize: '1.1rem', color: 'white', margin: '8px 0 0' }}>{stok.urun_adi}</h3>
-                                        {isAR && stok.urun_adi_ar && <p style={{ margin: '2px 0 0', color: '#a7f3d0', fontSize: '0.8rem' }}>{stok.urun_adi_ar}</p>}
-                                    </div>
-                                    {kritikMi && <AlertTriangle color="#ef4444" size={24} />}
-                                </div>
-                            </div>
-                            <div style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.6rem', color: '#a7f3d0', fontWeight: 800, letterSpacing: '0.05em', marginBottom: 4 }}>
-                                        {isAR ? 'المخزون الفعلي' : 'GERÇEK ZAMANLI STOK'}
-                                    </div>
-                                    <div style={{ fontWeight: 900, fontSize: '2rem', color: kritikMi ? '#dc2626' : '#059669', lineHeight: 1 }}>
-                                        {stok.net_stok} <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{isAR ? 'قطعة' : 'Adet'}</span>
-                                    </div>
-                                    {kritikMi && <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 800, marginTop: 4 }}>
-                                        {isAR ? 'المخزون حرج!' : 'Kritik Stok Uyarısı!'}
-                                    </div>}
-                                </div>
-                                <div style={{ textAlign: isAR ? 'left' : 'right' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, marginBottom: 4 }}>{isAR ? 'السعر' : 'Maliyet/Fiyat'}</div>
-                                    <div style={{ fontWeight: 900, color: 'white', fontSize: '1rem' }}>{stok.satis_fiyati_tl || 0} ₺</div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* SON HAREKETLER (LOG BÖLÜMÜ) */}
-            <div style={{ background: '#122b27', border: '2px solid #1e4a43', borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                <div style={{ background: '#0b1d1a', padding: '1.25rem', borderBottom: '2px solid #f1f5f9' }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-                        <ArrowRightLeft color="#6366f1" size={20} /> {isAR ? 'الحركات الأخيرة في المستودع' : 'SON HAREKETLER (KARA KUTU)'}
-                    </h2>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, margin: '4px 0 0', color: '#a7f3d0' }}>
-                        {isAR ? 'بيانات المستودع مقفلة ضد التلاعب' : 'Sistemdeki lojistik veriler manipülasyona karşı kilitlidir.'}
-                    </p>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
-                        <thead>
-                            <tr style={{ background: '#0b1d1a', color: '#a7f3d0', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'الكود' : 'Ürün Kodu'}</th>
-                                <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'نوع العملية' : 'İşlem Yönü'}</th>
-                                <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'left' : 'right' }}>{isAR ? 'الكمية' : 'Miktar'}</th>
-                                <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'الملاحظات' : 'Açıklama / Fiş'}</th>
-                                <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: isAR ? 'right' : 'left' }}>{isAR ? 'الوقت' : 'Zaman'}</th>
-                                {erisim === 'full' && <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{isAR ? 'حذف' : 'Sil'}</th>}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {hareketler.map(h => {
-                                const isGiris = h.hareket_tipi === 'giris' || h.hareket_tipi === 'iade';
-                                return (
-                                    <tr key={h.id}>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: 900, fontSize: '0.85rem' }}>{h.b2_urun_katalogu?.urun_kodu || '?'}</td>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: isGiris ? '#ecfdf5' : '#fef2f2', color: isGiris ? '#059669' : '#dc2626', border: `1px solid ${isGiris ? '#a7f3d0' : '#fecaca'}`, padding: '4px 8px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 900 }}>
-                                                {isGiris ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />} {h.hareket_tipi}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontWeight: 900, textAlign: isAR ? 'left' : 'right', fontSize: '1rem', color: isGiris ? '#059669' : '#dc2626' }} dir="ltr">
-                                            {isGiris ? '+' : '-'}{h.adet}
-                                        </td>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#a7f3d0', fontWeight: 700 }}>{h.aciklama}</td>
-                                        <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(h.created_at).toLocaleString('tr-TR')}</td>
-                                        {erisim === 'full' && (
-                                            <td style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>
-                                                <button disabled={islemdeId === 'sil_' + h.id} onClick={() => hareketSilB0Log(h.id, h.b2_urun_katalogu?.urun_kodu)} style={{ background: '#fef2f2', border: 'none', color: '#ef4444', padding: '6px', borderRadius: 6, cursor: islemdeId === 'sil_' + h.id ? 'wait' : 'pointer', opacity: islemdeId === 'sil_' + h.id ? 0.5 : 1 }}>
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </td>
-                                        )}
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+            <StokHareketLoglari
+                hareketler={hareketler} erisim={erisim} islemdeId={islemdeId}
+                hareketSilB0Log={hareketSilB0Log} isAR={isAR}
+            />
         </div>
     );
 }

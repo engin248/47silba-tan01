@@ -4,12 +4,11 @@
  * M7 İmalat Emirleri — Üretim Takibi
  */
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import {
     imalatEmirleriGetir, imalatEmriKaydet as apiKaydet,
     imalatDurumGuncelle, imalatEmriSil as apiSil,
-    imalatKanaliKur, BOSH_FORM, DURUMLAR, DURUM_RENK,
+    imalatKanaliKur, imalatKanaliKapat, BOSH_FORM, DURUMLAR, DURUM_RENK,
 } from '../services/imalatApi';
 
 export function useImalat(kullanici) {
@@ -36,7 +35,7 @@ export function useImalat(kullanici) {
     useEffect(() => {
         const kanal = imalatKanaliKur(yukle);
         yukle();
-        return () => { supabase.removeChannel(kanal); };
+        return () => { imalatKanaliKapat(kanal); };
     }, [yukle]);
 
     const kaydet = async () => {

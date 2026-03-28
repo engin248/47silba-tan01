@@ -1,150 +1,152 @@
-/**
- * features/uretim/services/uretimApi.js
- * Üretim Bandı — API / Veri Çekme Katmanı
- * Tüm Supabase çağrıları burada, hook veya component'te doğrudan Supabase çağrısı yapılmaz.
- */
 import { supabase } from '@/lib/supabase';
+import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { idb } from '@/lib/idbKalkan';
 
-const TIMEOUT_MS = 10000;
-const timeout = (ms) => new Promise((_, r) => setTimeout(() => r(new Error('Zaman aşımı')), ms));
+export async function uretimKismiVeriGetir(dept) {
+    const limits = { model: 500, orders: 200, personel: 100, log: 200, rapor: 100, perf: 100 };
 
-/** Modeller, iş emirleri, personel — ana sayfa verileri */
-export async function fetchUretimVerileri() {
-    const [mRes, oRes, pRes] = await Promise.all([
-        Promise.race([supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500), timeout(TIMEOUT_MS)]),
-        Promise.race([supabase.from('production_orders').select('*').order('created_at', { ascending: false }).limit(200), timeout(TIMEOUT_MS)]),
-        Promise.race([supabase.from('b1_personel').select('id,personel_kodu,ad_soyad,rol,durum,saatlik_ucret_tl').eq('durum', 'aktif').order('ad_soyad').limit(100), timeout(TIMEOUT_MS)]),
-    ]);
-    const modellerData = mRes.data || [];
-    const ordersData = (oRes.data || []).map(o => ({
-        ...o,
-        b1_model_taslaklari: modellerData.find(m => m.id === o.model_id) || { model_kodu: '?', model_adi: 'Model bulunamadı' }
-    }));
-    return { modeller: modellerData, orders: ordersData, personel: pRes.data || [] };
+    const otonomSync = async () => {
+        const [mRes, oRes, pRes] = await Promise.allSettled([
+            supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi,talep_skoru').limit(limits.model),
+            supabase.from('production_orders').select('*').order('created_at', { ascending: false }).limit(limits.orders),
+            supabase.from('b1_personel').select('id,personel_kodu,ad_soyad,rol,durum,saatlik_ucret_tl').eq('durum', 'aktif').order('ad_soyad').limit(limits.personel),
+        ]);
+
+        const resObj = {
+            modeller: mRes.status === 'fulfilled' ? (mRes.value.data || []) : [],
+            orders: oRes.status === 'fulfilled' ? (oRes.value.data || []) : [],
+            personeller: pRes.status === 'fulfilled' ? (pRes.value.data || []) : [],
+            maliyetler: [], raporlar: [], aktifOperasyonlar: []
+        };
+
+        if (dept === 'maliyet' || dept === 'devir' || dept === 'kesim') {
+            const [malRes, rRes, perfRes] = await Promise.allSettled([
+                supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(limits.log),
+                supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(limits.rapor),
+                supabase.from('b1_personel_performans').select('*, b1_personel(ad_soyad)').is('bitis_saati', null).limit(limits.perf),
+            ]);
+            if (malRes.status === 'fulfilled') resObj.maliyetler = malRes.value.data || [];
+            if (rRes.status === 'fulfilled') resObj.raporlar = rRes.value.data || [];
+            if (perfRes.status === 'fulfilled') resObj.aktifOperasyonlar = perfRes.value.data || [];
+        }
+
+        // IndexedDB Senkronizasyonu (Otonom)
+        if (resObj.orders.length > 0) await idb.bulkUpsert('m7_uretim', resObj.orders);
+
+        return resObj;
+    };
+
+    // Önce Local IDB Zırhından oku
+    const localUretim = await idb.getAllWithLimit('m7_uretim', limits.orders, 0);
+
+    if (!localUretim || localUretim.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync(); // Arka planda güncelle
+
+        // Sadece IDB'den gelen siparişleri alıp, diğerleri için şimdilik boş dön. 
+        // Modülün tamamında Offline zırh için "personeller, maliyetler" vs de idb'ye eklenebilir.
+        return {
+            modeller: [],
+            orders: localUretim,
+            personeller: [],
+            maliyetler: [], raporlar: [], aktifOperasyonlar: []
+        };
+    }
 }
 
-/** Maliyet ve muhasebe raporları (maliyet/devir sekmesi için) */
-export async function fetchMaliyetVerileri() {
-    const [malRes, rRes] = await Promise.all([
-        Promise.race([supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200), timeout(TIMEOUT_MS)]),
-        Promise.race([supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(100), timeout(TIMEOUT_MS)]),
-    ]);
-    return { maliyetler: malRes.data || [], raporlar: rRes.data || [] };
-}
-
-/** İş emri oluştur */
-export async function createIsEmri({ model_id, quantity, planned_start_date, planned_end_date }) {
-    // Mükerrer kontrol
-    const { data: mevcut } = await supabase.from('production_orders')
-        .select('id').eq('model_id', model_id).in('status', ['pending', 'in_progress']);
-    if (mevcut?.length > 0) throw new Error('Bu model için bekleyen/üretimdeki iş emri mevcut!');
-    const { error } = await supabase.from('production_orders').insert([{
-        model_id, quantity: parseInt(quantity), status: 'pending',
-        planned_start_date: planned_start_date || null,
-        planned_end_date: planned_end_date || null,
-    }]);
-    if (error) throw error;
-}
-
-/** İş emri güncelle */
-export async function updateIsEmri(id, { model_id, quantity, planned_start_date, planned_end_date }) {
-    const { data: eskiKayit } = await supabase.from('production_orders').select('status').eq('id', id).single();
-    if (eskiKayit?.status === 'completed') throw new Error('🔒 DİJİTAL ADALET: Tamamlanmış iş emri güncellenemez.');
-    const { error } = await supabase.from('production_orders').update({
-        model_id, quantity: parseInt(quantity),
-        planned_start_date: planned_start_date || null,
-        planned_end_date: planned_end_date || null,
-    }).eq('id', id);
-    if (error) throw error;
-}
-
-/** Durum güncelle */
-export async function updateIsEmriDurum(id, status) {
+export async function durumGuncelleApi(id, status) {
+    if (!navigator.onLine) {
+        await cevrimeKuyrugaAl('production_orders', 'UPDATE', { id, status });
+        return { offline: true };
+    }
     const { error } = await supabase.from('production_orders').update({ status }).eq('id', id);
     if (error) throw error;
+    return { offline: false };
 }
 
-/** Toplu durum güncelle */
-export async function batchUpdateDurum(ids, status) {
+export async function uretimMaliyetEkle(payload) {
+    const { error } = await supabase.from('b1_maliyet_kayitlari').insert([payload]);
+    if (error) throw error;
+}
+
+export async function uretimPersonelPerformansGuncelle(id, veriler) {
+    if (!navigator.onLine) {
+        await cevrimeKuyrugaAl('b1_personel_performans', 'UPDATE', { id, ...veriler });
+        return { offline: true };
+    }
+    const { error } = await supabase.from('b1_personel_performans').update(veriler).eq('id', id);
+    if (error) throw error;
+    return { offline: false };
+}
+
+export async function uretimPersonelPerformansBaslat(veriler) {
+    if (!navigator.onLine) {
+        await cevrimeKuyrugaAl('b1_personel_performans', 'INSERT', veriler);
+        return { offline: true };
+    }
+    const { error } = await supabase.from('b1_personel_performans').insert([veriler]);
+    if (error) throw error;
+    return { offline: false };
+}
+
+export async function uretimIsEmriSorgulaOluştur(model_id, veriler) {
+    const { data: mevcut } = await supabase.from('production_orders')
+        .select('id').eq('model_id', model_id).in('status', ['pending', 'in_progress']);
+
+    if (mevcut && mevcut.length > 0) throw new Error('⚠️ Bu model için bekleyen/üretimdeki iş emri mevcut!');
+
+    const { error } = await supabase.from('production_orders').insert([veriler]);
+    if (error) throw error;
+}
+
+export async function uretimIsEmriKaydet(veriler, id = null) {
+    const { data: eskiKayit } = await supabase.from('production_orders').select('status').eq('id', id).single();
+    if (eskiKayit?.status === 'completed') throw new Error('🔒 DİJİTAL ADALET: Tamamlanmış paket güncellenemez.');
+    const { error } = await supabase.from('production_orders').update(veriler).eq('id', id);
+    if (error) throw error;
+}
+
+export async function uretimTopluDurumGuncelle(ids, status) {
     const { error } = await supabase.from('production_orders').update({ status }).in('id', ids);
     if (error) throw error;
 }
 
-/** İş emri arşivle (soft delete) */
-export async function archiveIsEmri(id, kullaniciAd) {
-    await supabase.from('b0_sistem_loglari').insert([{
-        tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME',
-        kullanici_adi: kullaniciAd || 'Saha Yetkilisi',
-        eski_veri: { is_emri_id: id }
-    }]);
+export async function uretimIsEmriArsivle(id, kullaniciAdi) {
+    try {
+        await supabase.from('b0_sistem_loglari').insert([{
+            tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME',
+            kullanici_adi: kullaniciAdi, eski_veri: { is_emri_id: id }
+        }]);
+    } catch (e) { }
     const { error } = await supabase.from('production_orders').update({ status: 'cancelled' }).eq('id', id);
     if (error) throw error;
 }
 
-/** Maliyet kaydet */
-export async function saveMaliyet({ order_id, maliyet_tipi, tutar_tl, kalem_aciklama }) {
-    const { error } = await supabase.from('b1_maliyet_kayitlari').insert([{
-        order_id, maliyet_tipi, tutar_tl: parseFloat(tutar_tl),
-        kalem_aciklama: kalem_aciklama.trim(), onay_durumu: 'hesaplandi'
-    }]);
-    if (error) throw error;
-}
-
-/** Kronometre maliyet kaydet */
-export async function saveKronometerMaliyet({ order_id, sureDk, zorlukKatsayisi, liyakat, sureSaniye }) {
-    const dakikaUcret = parseFloat(process.env.NEXT_PUBLIC_DAKIKA_UCRETI || '2.50');
-    const tutar = sureDk * dakikaUcret * zorlukKatsayisi;
-    if (sureDk <= 0) return;
-    const { error } = await supabase.from('b1_maliyet_kayitlari').insert([{
-        order_id, maliyet_tipi: 'personel_iscilik', tutar_tl: tutar,
-        kalem_aciklama: `Kronometre: ${Math.floor(sureSaniye / 60)}:${String(sureSaniye % 60).padStart(2, '0')} (${sureDk} dk) | x${zorlukKatsayisi.toFixed(1)} - ${liyakat}`,
-        onay_durumu: 'hesaplandi'
-    }]);
-    if (error) throw error;
-}
-
-/** Devir yap */
-export async function devirYap(orderId, maliyetler) {
+export async function uretimDevirBaslat(orderId, pt, quantity) {
     const { data: mevcut } = await supabase.from('b1_muhasebe_raporlari').select('id').eq('order_id', orderId);
-    if (mevcut?.length > 0) throw new Error('⚠️ Bu iş emri için devir raporu zaten mevcut!');
-    const pt = maliyetler.filter(m => m.order_id === orderId).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
+    if (mevcut && mevcut.length > 0) throw new Error('⚠️ Bu iş emri için devir raporu zaten mevcut!');
+
+    const netAdet = quantity ? parseInt(quantity) : 1;
+
     const { error } = await supabase.from('b1_muhasebe_raporlari').insert([{
-        order_id: orderId, gerceklesen_maliyet_tl: pt,
-        net_uretilen_adet: 0, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
+        order_id: orderId, gerceklesen_maliyet_tl: pt, net_uretilen_adet: netAdet, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
     }]);
     if (error) throw error;
 }
 
-/** [UR-01] Termin Alarm Kontrolü — geciken aktif iş emirlerini tespit et + Telegram bildir */
-export async function terminAlarmKontrol() {
-    const bugun = new Date().toISOString().split('T')[0];
-    const { data: gecikenler, error } = await supabase
-        .from('production_orders')
-        .select('id, siparis_no, planned_end_date, status, b1_model_taslaklari:model_id(model_kodu, model_adi)')
-        .lt('planned_end_date', bugun)
-        .in('status', ['pending', 'in_progress'])
-        .order('planned_end_date', { ascending: true });
-
-    if (error || !gecikenler?.length) return { gecikenSayisi: 0, gecikenler: [] };
-
-    // Telegram bildirimi (fire-and-forget)
-    try {
-        const liste = gecikenler.slice(0, 5).map(g => {
-            const model = Array.isArray(g.b1_model_taslaklari) ? g.b1_model_taslaklari[0] : g.b1_model_taslaklari;
-            const gunFark = Math.ceil((Number(new Date(bugun)) - Number(new Date(g.planned_end_date))) / (1000 * 60 * 60 * 24));
-            return `• ${model?.model_kodu || '?'} — ${gunFark} GÜN GECİKMİŞ`;
-        }).join('\n');
-
-        await fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                mesaj: `⚠️ TERMİN ALARMI!\n${gecikenler.length} iş emri gecikiyor:\n${liste}`,
-                kategori: 'uretim_alarm'
-            })
-        });
-    } catch { /* Telegram hatası üretimi bloke etmez */ }
-
-    return { gecikenSayisi: gecikenler.length, gecikenler };
+export async function uretimOperasyonlariGetir(okunanBarkod) {
+    const { data } = await supabase.from('b1_uretim_operasyonlari').select('id, model_id').eq('id', okunanBarkod).single();
+    return data;
 }
 
+export async function defaultUretimOperasyonuGetir() {
+    const { data } = await supabase.from('b1_uretim_operasyonlari').select('id').limit(1).single();
+    return data;
+}
+
+export function uretimKanaliKur(onChange) {
+    return supabase.channel('islem-gercek-zamanli-uretim')
+        .on('postgres_changes', { event: '*', schema: 'public' }, onChange)
+        .subscribe();
+}

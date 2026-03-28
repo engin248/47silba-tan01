@@ -1,104 +1,68 @@
-/**
- * features/arge/services/argeApi.js
- * Tablolar: b1_arge_trendler, b1_agent_loglari
- * Hook: useArge.js (165 satır, zaten tam)
- */
 import { supabase } from '@/lib/supabase';
-import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
-const SAYFA_BOYUTU = 50;
-
-// ─── OKUMA ────────────────────────────────────────────────────────
-export async function trendleriGetir(sayfa = 0) {
-    const from = sayfa * SAYFA_BOYUTU;
-    const to = from + SAYFA_BOYUTU - 1;
-    const [trendRes, logRes] = await Promise.allSettled([
+// Tm AR-GE Istihbarat Verilerini Tek Seferde eker (Data Access Layer)
+export const fetchArgeVerileri = async () => {
+    const [stratejiRes, trendRes, logRes, canliRes] = await Promise.allSettled([
+        supabase.from('b1_arge_products')
+            .select('id, product_name, trend_skoru, artis_yuzdesi, ai_satis_karari, rekabet_durumu, erken_trend_mi, hermania_karar_yorumu, ai_guven_skoru, created_at')
+            .order('trend_skoru', { ascending: false })
+            .limit(20),
         supabase.from('b1_arge_trendler')
-            .select('*', { count: 'exact' })
-            .order('created_at', { ascending: false }).range(from, to),
+            .select('id, baslik, platform, kategori, talep_skoru, zorluk_derecesi, durum, created_at')
+            .order('talep_skoru', { ascending: false })
+            .limit(50),
         supabase.from('b1_agent_loglari')
-            .select('id, ajan_adi, mesaj, sonuc, created_at')
-            .eq('ajan_adi', 'Trend Kâşifi')
-            .order('created_at', { ascending: false }).limit(5),
+            .select('id, ajan_adi, islem_tipi, mesaj, sonuc, created_at')
+            .in('ajan_adi', ['Trend K\u015Fifi', 'Yarg\u0131 (Matematiki)', 'BATCH_GEMINI', 'Darbo\u011Faz Te\u015Fhiscisi'])
+            .order('created_at', { ascending: false })
+            .limit(15),
+        supabase.from('bot_tracking_logs')
+            .select('*')
+            .order('son_guncelleme', { ascending: false })
+            .limit(6)
     ]);
+
     return {
-        trendler: trendRes.status === 'fulfilled' ? (trendRes.value.data || []) : [],
-        toplamSayisi: trendRes.status === 'fulfilled' ? (trendRes.value.count || 0) : 0,
-        sayfaBoyutu: SAYFA_BOYUTU,
-        agentLoglari: logRes.status === 'fulfilled' ? (logRes.value.data || []) : [],
+        strateji: stratejiRes.status === 'fulfilled' ? stratejiRes.value.data || [] : [],
+        trendler: trendRes.status === 'fulfilled' ? trendRes.value.data || [] : [],
+        ajanLog: logRes.status === 'fulfilled' ? logRes.value.data || [] : [],
+        canliGorevler: canliRes.status === 'fulfilled' ? canliRes.value.data || [] : []
     };
-}
+};
 
-// ─── YAZMA ────────────────────────────────────────────────────────
-export async function trendKaydet(payload, duzenleId) {
-    if (!navigator.onLine) {
-        await cevrimeKuyrugaAl('b1_arge_trendler', duzenleId ? 'UPDATE' : 'INSERT',
-            duzenleId ? { ...payload, id: duzenleId } : payload);
-        return { offline: true };
-    }
-    const { error } = duzenleId
-        ? await supabase.from('b1_arge_trendler').update(payload).eq('id', duzenleId)
-        : await supabase.from('b1_arge_trendler').insert([payload]);
-    if (error) throw error;
-    return { offline: false };
-}
-
-export async function aiTrendKaydet(sonuc) {
-    const { data: mevcutlar } = await supabase
-        .from('b1_arge_trendler').select('id').eq('baslik', sonuc.baslik);
-    if (mevcutlar?.length > 0) throw new Error('Bu trend zaten sisteme kaydedilmiş!');
-    const { error } = await supabase.from('b1_arge_trendler').insert([{
-        baslik: sonuc.baslik,
-        platform: ['trendyol', 'amazon', 'instagram', 'pinterest', 'diger'].includes(sonuc.platform) ? sonuc.platform : 'diger',
-        kategori: 'diger', hedef_kitle: 'kadın',
-        talep_skoru: parseInt(sonuc.talep_skoru) || 5,
-        zorluk_derecesi: 5,
-        referans_linkler: sonuc.kaynak ? [sonuc.kaynak] : null,
-        aciklama: sonuc.aciklama || null,
-        durum: 'inceleniyor',
-    }]);
-    if (error) throw error;
-}
-
-export async function durumGuncelle(id, yeniDurum) {
-    const { error } = await supabase.from('b1_arge_trendler')
-        .update({ durum: yeniDurum }).eq('id', id);
-    if (error) throw error;
-}
-
-export async function trendSil(id, kullaniciAd) {
-    if (!navigator.onLine) {
-        await cevrimeKuyrugaAl('b1_arge_trendler', 'DELETE', { id });
-        return { offline: true };
-    }
-    const { data: silinecek } = await supabase.from('b1_arge_trendler').select('*').eq('id', id).single();
-    if (silinecek) {
-        await supabase.from('b0_sistem_loglari').insert([{
-            tablo_adi: 'b1_arge_trendler', islem_tipi: 'SILME',
-            eski_veri: silinecek, kullanici_adi: kullaniciAd || 'Atölye Lideri'
-        }]);
-    }
-    const { error } = await supabase.from('b1_arge_trendler').delete().eq('id', id);
-    if (error) throw error;
-    return { offline: false };
-}
-
-// ─── TREND ARAMA (Perplexity API) ────────────────────────────────
-export async function trendAra(sorgu) {
-    const controller = new AbortController();
-    const tId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch('/api/trend-ara', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sorgu }), signal: controller.signal,
+// Google Trends / Google Alisveris API (SerpAPI) Cagrisi
+export const searchSerp = async (sorgu) => {
+    const res = await fetch('/api/serp-trend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sorgu }),
+        signal: AbortSignal.timeout(15000),
     });
-    clearTimeout(tId);
-    const data = await res.json();
-    return data;
-}
+    if (!res.ok) throw new Error('API Hatas.');
+    return await res.json();
+};
 
-// ─── REALTIME ─────────────────────────────────────────────────────
-export function argeKanaliKur(onChange) {
-    return supabase.channel('arge-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_arge_trendler' }, onChange)
-        .subscribe();
-}
+// DeepSeek AI Pazar Analiz ars
+export const searchDeepseek = async (urunAdi) => {
+    const res = await fetch('/api/deepseek-analiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urunAdi }),
+        signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error('Derin analiz hatas.');
+    return await res.json();
+};
+
+// Beyaz Saha Ajanlarini (Botlari) Manuel Tetikleme
+export const triggerBeyazAjan = async (hedefParametre) => {
+    const res = await fetch('/api/beyaz-saha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ajanTipi: 'MANUEL_HEDEF',
+            hedefParametre: hedefParametre || 'GENEL SAHA TARAMASI'
+        })
+    });
+    return await res.json();
+};

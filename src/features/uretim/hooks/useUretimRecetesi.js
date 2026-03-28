@@ -1,9 +1,8 @@
 'use client';
 // @ts-nocheck
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { createGoster } from '@/lib/utils';
-import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { receteVerileriniGetir, makineKaydetApi, makineSilApi, operasyonKaydetApi, operasyonSilApi } from '../services/receteApi';
 
 export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
     const [makineler, setMakineler] = useState([]);
@@ -24,12 +23,9 @@ export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
         if (aktifSekme !== 'receteler') return; // Sadece o sekmedeyken datayı çek
         setLoading(true);
         try {
-            const [mRes, oRes] = await Promise.all([
-                supabase.from('b1_makineler').select('*').order('created_at', { ascending: true }),
-                supabase.from('b1_uretim_operasyonlari').select('*, b1_model_taslaklari(model_kodu, model_adi), b1_makineler(makine_kodu, makine_adi)').order('model_id').order('sira_no', { ascending: true })
-            ]);
-            if (mRes.data) setMakineler(mRes.data);
-            if (oRes.data) setOperasyonlar(oRes.data);
+            const data = await receteVerileriniGetir();
+            setMakineler(data.makineler);
+            setOperasyonlar(data.operasyonlar);
         } catch (e) {
             goster('Reçete/Makine yükleme hatası: ' + e.message, 'error');
         }
@@ -46,15 +42,10 @@ export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
         setLoading(true);
         try {
             const islem = { makine_kodu: frmMakine.makine_kodu.toUpperCase(), makine_adi: frmMakine.makine_adi, durum: frmMakine.durum };
-            if (frmMakine.id) {
-                const { error } = await supabase.from('b1_makineler').update(islem).eq('id', frmMakine.id);
-                if (error) throw error;
-                goster('Makine güncellendi.');
-            } else {
-                const { error } = await supabase.from('b1_makineler').insert([islem]);
-                if (error) throw error;
-                goster('Yeni makine eklendi.');
-            }
+            const result = await makineKaydetApi(islem, frmMakine.id);
+            if (result.isUpdate) goster('Makine güncellendi.');
+            else goster('Yeni makine eklendi.');
+
             setFrmMakine({ makine_kodu: '', makine_adi: '', durum: 'aktif' });
             setMakineFormAcik(false);
             yukle();
@@ -70,8 +61,7 @@ export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
         if (!confirm('Makine kalıcı olarak silinsin mi?')) return;
         setIslemdeId('mak_sil_' + id);
         try {
-            const { error } = await supabase.from('b1_makineler').delete().eq('id', id);
-            if (error) throw error;
+            await makineSilApi(id);
             goster('Makine silindi.');
             yukle();
         } catch (e) { goster('Silme hatası: ' + e.message, 'error'); }
@@ -93,15 +83,10 @@ export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
                 parca_basi_deger_tl: parseFloat(frmOperasyon.parca_basi_deger_tl) || 0
             };
 
-            if (frmOperasyon.id) {
-                const { error } = await supabase.from('b1_uretim_operasyonlari').update(kayit).eq('id', frmOperasyon.id);
-                if (error) throw error;
-                goster('Operasyon güncellendi.');
-            } else {
-                const { error } = await supabase.from('b1_uretim_operasyonlari').insert([kayit]);
-                if (error) throw error;
-                goster('Yeni operasyon eklendi.');
-            }
+            const result = await operasyonKaydetApi(kayit, frmOperasyon.id);
+            if (result.isUpdate) goster('Operasyon güncellendi.');
+            else goster('Yeni operasyon eklendi.');
+
             setFrmOperasyon({ model_id: frmOperasyon.model_id, operasyon_adi: '', makine_id: '', sira_no: kayit.sira_no + 1, zorluk_derecesi: 5, hazirlik_suresi_sn: 0, parca_basi_deger_tl: 0 }); // Sırayı 1 arttır
             setOpFormAcik(false);
             yukle();
@@ -115,8 +100,7 @@ export function useUretimRecetesi(kullanici, modeller, aktifSekme) {
         if (!confirm('Bu operasyon adımı reçeteden silinsin mi?')) return;
         setIslemdeId('op_sil_' + id);
         try {
-            const { error } = await supabase.from('b1_uretim_operasyonlari').delete().eq('id', id);
-            if (error) throw error;
+            await operasyonSilApi(id);
             goster('Operasyon silindi.');
             yukle();
         } catch (e) { goster('Silme hatası: ' + e.message, 'error'); }

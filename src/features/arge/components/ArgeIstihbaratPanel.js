@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase'; // Sadace Realtime iin
+import { fetchArgeVerileri, searchSerp, searchDeepseek, triggerBeyazAjan } from '@/features/arge/services/argeApi';
 import {
     TrendingUp, AlertTriangle, CheckCircle2, Clock, Zap,
     Target, BarChart3, Search, Brain, ArrowUpRight, Flame,
@@ -70,38 +71,12 @@ export default function ArgeIstihbaratPanel() {
     const verileriCek = useCallback(async () => {
         setLoading(true);
         try {
-            const [stratejiRes, trendRes, logRes, canliRes] = await Promise.allSettled([
-                supabase.from('b1_arge_products')
-                    .select('id, product_name, trend_skoru, artis_yuzdesi, ai_satis_karari, rekabet_durumu, erken_trend_mi, hermania_karar_yorumu, ai_guven_skoru, created_at')
-                    .order('trend_skoru', { ascending: false })
-                    .limit(20),
-                supabase.from('b1_arge_trendler')
-                    .select('id, baslik, platform, kategori, talep_skoru, zorluk_derecesi, durum, created_at')
-                    .order('talep_skoru', { ascending: false })
-                    .limit(50),
-                supabase.from('b1_agent_loglari')
-                    .select('id, ajan_adi, islem_tipi, mesaj, sonuc, created_at')
-                    .in('ajan_adi', ['Trend Kâşifi', 'Yargıç (Matematikçi)', 'BATCH_GEMINI', 'Darboğaz Teşhiscisi'])
-                    .order('created_at', { ascending: false })
-                    .limit(15),
-                supabase.from('bot_tracking_logs')
-                    .select('*')
-                    .order('son_guncelleme', { ascending: false })
-                    .limit(6)
-            ]);
+            const data = await fetchArgeVerileri();
+            setStrateji(data.strateji);
+            setTrendler(data.trendler);
+            setAjanLog(data.ajanLog);
+            setCanliGorevler(data.canliGorevler);
 
-            if (stratejiRes.status === 'fulfilled' && stratejiRes.value.data) {
-                setStrateji(stratejiRes.value.data);
-            }
-            if (trendRes.status === 'fulfilled' && trendRes.value.data) {
-                setTrendler(trendRes.value.data);
-            }
-            if (logRes.status === 'fulfilled' && logRes.value.data) {
-                setAjanLog(logRes.value.data);
-            }
-            if (canliRes.status === 'fulfilled' && canliRes.value.data) {
-                setCanliGorevler(canliRes.value.data);
-            }
             // Veri geldiğinde "Ajanlar yolda" uyarısını söndür
             setKuyrukUyari('');
         } catch (e) {
@@ -139,13 +114,7 @@ export default function ArgeIstihbaratPanel() {
         setSerpYukleniyor(true);
         setSerpSonuc(null);
         try {
-            const res = await fetch('/api/serp-trend', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sorgu: serpSorgu }),
-                signal: AbortSignal.timeout(15000),
-            });
-            const data = await res.json();
+            const data = await searchSerp(serpSorgu);
             setSerpSonuc(data);
         } catch (e) {
             setSerpSonuc({ error: e.message });
@@ -158,13 +127,7 @@ export default function ArgeIstihbaratPanel() {
         setDeepYukleniyor(true);
         setDeepSonuc(null);
         try {
-            const res = await fetch('/api/deepseek-analiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ urunAdi: deepSorgu }),
-                signal: AbortSignal.timeout(20000),
-            });
-            const data = await res.json();
+            const data = await searchDeepseek(deepSorgu);
             setDeepSonuc(data);
         } catch (e) {
             setDeepSonuc({ error: e.message });
@@ -188,15 +151,7 @@ export default function ArgeIstihbaratPanel() {
     const ajanlariSahayaSur = async () => {
         setOrstKosuYukleniyor(true);
         try {
-            const res = await fetch('/api/beyaz-saha', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ajanTipi: 'MANUEL_HEDEF',
-                    hedefParametre: manuelHedef.trim() || 'GENEL SAHA TARAMASI'
-                })
-            });
-            const data = await res.json();
+            const data = await triggerBeyazAjan(manuelHedef.trim());
             if (data.success) {
                 setKuyrukUyari(data.mesaj || 'Ajanlar Yolda...'); // Kuyruk uyarısını ateşle
             }

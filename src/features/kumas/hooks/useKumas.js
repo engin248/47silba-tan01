@@ -6,11 +6,11 @@
  *   import { useKumas } from '@/features/kumas';
  */
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import {
     fetchKumas, fetchAksesuar, fetchGorselArsiv,
     kumasKaydet, kumasGuncelle, aksesuarKaydet, kaydiSil,
+    m3KaliphaneyeAktar, kumasKanaliKur,
     BOSH_KUMAS, BOSH_AKS,
 } from '../services/kumasApi';
 
@@ -27,7 +27,7 @@ export function useKumas(kullanici) {
     const [aksForm, setAksForm] = useState(BOSH_AKS);
     const [formAcik, setFormAcik] = useState(false);
     const [duzenleId, setDuzenleId] = useState(null);
-    const [duzenleTip, setDuzenleTip] = useState(null);
+    const [duzenleTip, setDuzenleTip] = useState(/** @type {string | null} */(null));
     const [arama, setArama] = useState('');
     const [loading, setLoading] = useState(false);
     const [mesaj, setMesaj] = useState({ text: '', type: '' });
@@ -65,11 +65,10 @@ export function useKumas(kullanici) {
         const ok = kullanici?.grup === 'tam' || pin;
         setYetkiliMi(ok);
         if (!ok) return;
-        const kanal = supabase.channel('kumas-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public' }, yukle)
-            .subscribe();
+
+        const kanal = kumasKanaliKur(yukle);
         yukle();
-        return () => { supabase.removeChannel(kanal); };
+        return () => { kanal.unsubscribe(); };
     }, [kullanici, sekme, yukle]);
 
     const kumasKaydetAction = async () => {
@@ -143,28 +142,9 @@ export function useKumas(kullanici) {
         if (!confirm('Bu karara ait Model Taslağı oluşturulup M3 Kalıphane sırasına gönderilsin mi?')) return;
         setLoading(true);
         try {
-            // 1. Model taslaklarına ekle
-            const { error: insErr } = await supabase.from('b1_model_taslaklari').insert([{
-                model_kodu: `MDL-TR-${talep.id}`,
-                model_adi: talep.baslik,
-                model_adi_ar: talep.baslik_ar || null,
-                trend_id: talep.id,
-                hedef_kitle: talep.hedef_kitle || 'kadin',
-                durum: 'taslak',
-            }]);
-            if (insErr) {
-                // Önceden eklenmiş olabilir (unique hatasi)
-                if (!insErr.message.includes('unique constraint')) throw insErr;
-            }
-
-            // 2. Trend'in durumunu kumas_secildi yap (veya baska bir flag) ki listeden dusmesin diye m3 tarafi halletsin, ama biz "M3_BEKLIYOR" yapabiliriz ya da simdilik ellemeyelim ki takip edilebilsin, 
-            // Veya durumunu 'kumas_secildi' yapalım.
-            const { error: updErr } = await supabase.from('b1_arge_trendler').update({ durum: 'kumas_secildi' }).eq('id', talep.id);
-            if (updErr) throw updErr;
-
+            await m3KaliphaneyeAktar(talep);
             goster('✅ Model Kalıphaneye (M3) aktarıldı!');
             await yukle();
-
         } catch (e) {
             goster('Kalıphaneye Aktarım Hatası: ' + e.message, 'error');
         }

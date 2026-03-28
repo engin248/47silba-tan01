@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { Camera, Activity, ShieldCheck, AlertTriangle, Eye, Server } from 'lucide-react';
+import { kameraOlaylariGetir, kameraKanaliKur } from '../services/kameraApi';
 
 export default function M6_KameraSayaci() {
     const [olaylar, setOlaylar] = useState(/** @type {any[]} */([]));
@@ -12,11 +12,7 @@ export default function M6_KameraSayaci() {
 
         const veriCek = async () => {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('b1_kamera_olaylari')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
+            const { data, error } = await kameraOlaylariGetir();
 
             if (data && isMounted) {
                 setOlaylar(data);
@@ -28,21 +24,19 @@ export default function M6_KameraSayaci() {
         veriCek();
 
         // CANLI AKIŞ (Supabase Realtime)
-        const kanal = supabase.channel('m4_kamera_kanal')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_kamera_olaylari' }, (payload) => {
-                if (isMounted) {
-                    setOlaylar(prev => {
-                        const yeniListe = [payload.new, ...prev].slice(0, 50);
-                        hesaplaStats(yeniListe);
-                        return yeniListe;
-                    });
-                }
-            })
-            .subscribe();
+        const kanal = kameraKanaliKur((payload) => {
+            if (isMounted) {
+                setOlaylar(prev => {
+                    const yeniListe = [payload.new, ...prev].slice(0, 50);
+                    hesaplaStats(yeniListe);
+                    return yeniListe;
+                });
+            }
+        });
 
         return () => {
             isMounted = false;
-            supabase.removeChannel(kanal);
+            kanal.unsubscribe();
         };
     }, []);
 

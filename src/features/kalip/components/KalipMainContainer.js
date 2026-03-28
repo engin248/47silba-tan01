@@ -2,11 +2,15 @@
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, CheckCircle2, AlertTriangle, Ruler, ChevronRight, Trash2, Lock, Tag, Box, Layers, Scissors, Settings } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import Link from 'next/link';
+import {
+    modellerVeTrendleriGetir, kaliplarVeModelleriGetir,
+    modelTaslakKaydet, kalipPastalKaydet,
+    kalipTabloElemaniSil, kalipKanaliKur
+} from '../services/kalipApi';
 
 const BEDENLER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const HEDEF_KITLE = ['kadin', 'erkek', 'cocuk', 'unisex'];
@@ -19,9 +23,9 @@ export default function KalipMainContainer() {
     const { kullanici } = useAuth();
     const [yetkiliMi, setYetkiliMi] = useState(false);
     const [sekme, setSekme] = useState('modeller');
-    const [modeller, setModeller] = useState([]);
-    const [kaliplar, setKaliplar] = useState([]);
-    const [trendler, setTrendler] = useState([]);
+    const [modeller, setModeller] = useState(/** @type {any[]} */([]));
+    const [kaliplar, setKaliplar] = useState(/** @type {any[]} */([]));
+    const [trendler, setTrendler] = useState(/** @type {any[]} */([]));
     const [formModel, setFormModel] = useState(BOSH_MODEL);
     const [formKalip, setFormKalip] = useState(BOSH_KALIP);
     const [formAcik, setFormAcik] = useState(false);
@@ -37,14 +41,11 @@ export default function KalipMainContainer() {
         let kanal;
         const baslatKanal = () => {
             if (erisebilir && !document.hidden) {
-                kanal = supabase.channel('islem-gercek-zamanli-ai-kalip-optimize')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, yukle)
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, yukle)
-                    .subscribe();
+                kanal = kalipKanaliKur(yukle);
             }
         };
 
-        const durdurKanal = () => { if (kanal) { supabase.removeChannel(kanal); kanal = null; } };
+        const durdurKanal = () => { if (kanal) { kanal.unsubscribe(); kanal = null; } };
         const handleVisibility = () => { if (document.hidden) { durdurKanal(); } else { baslatKanal(); yukle(); } };
 
         baslatKanal();
@@ -62,31 +63,13 @@ export default function KalipMainContainer() {
             const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 saniye)')), 10000));
 
             if (sekme === 'modeller') {
-                const [modellerRes, trendlerRes] = await Promise.race([
-                    Promise.all([
-                        supabase.from('b1_model_taslaklari').select('*').order('created_at', { ascending: false }).limit(200),
-                        supabase.from('b1_arge_products').select('id,product_name').in('ai_satis_karari', ['ÇOK_SATAR', 'BİNGO']).limit(100)
-                    ]),
-                    timeout
-                ]);
-                if (modellerRes.error) throw modellerRes.error;
-                if (trendlerRes.error) throw trendlerRes.error;
-
-                if (modellerRes.data) setModeller(modellerRes.data);
-                if (trendlerRes.data) setTrendler(trendlerRes.data);
+                const data = await Promise.race([modellerVeTrendleriGetir(), timeout]);
+                setModeller(data.modeller);
+                setTrendler(data.trendler);
             } else {
-                const [kaliplarRes, modellerRes] = await Promise.race([
-                    Promise.all([
-                        supabase.from('b1_model_kaliplari').select('*, b1_model_taslaklari(model_adi,model_kodu)').order('created_at', { ascending: false }).limit(200),
-                        supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
-                    ]),
-                    timeout
-                ]);
-                if (kaliplarRes.error) throw kaliplarRes.error;
-                if (modellerRes.error) throw modellerRes.error;
-
-                if (kaliplarRes.data) setKaliplar(kaliplarRes.data);
-                if (modellerRes.data) setModeller(modellerRes.data);
+                const data = await Promise.race([kaliplarVeModelleriGetir(), timeout]);
+                setKaliplar(data.kaliplar);
+                setModeller(data.modeller);
             }
         } catch (error) {
             goster('Bağlantı Hatası: ' + error.message, 'error');
@@ -99,38 +82,14 @@ export default function KalipMainContainer() {
         if (!formModel.model_adi.trim() || formModel.model_adi.length > 200) return goster('Model adı zorunlu ve en fazla 200 karakter olmalı!', 'error');
         setLoading(true);
         try {
-            if (formModel.id) {
-                const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', formModel.model_kodu.toUpperCase().trim()).neq('id', formModel.id);
-                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Model Kodu başka model tarafından kullanılıyor!', 'error'); }
-                const { error } = await supabase.from('b1_model_taslaklari').update({
-                    model_kodu: formModel.model_kodu.toUpperCase().trim(),
-                    model_adi: formModel.model_adi.trim(),
-                    model_adi_ar: formModel.model_adi_ar.trim() || null,
-                    trend_id: formModel.trend_id || null,
-                    hedef_kitle: formModel.hedef_kitle,
-                    sezon: formModel.sezon,
-                    aciklama: formModel.aciklama.trim() || null,
-                }).eq('id', formModel.id);
-                if (!error) { goster('✅ Model güncellendi!'); setFormModel(BOSH_MODEL); setFormAcik(false); yukle(); } else throw error;
+            const result = await modelTaslakKaydet(formModel);
+            if (result.isUpdate) {
+                goster('✅ Model güncellendi!');
             } else {
-                const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('id').eq('model_kodu', formModel.model_kodu.toUpperCase().trim());
-                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Model Kodu zaten kullanımda!', 'error'); }
-                const { error } = await supabase.from('b1_model_taslaklari').insert([{
-                    model_kodu: formModel.model_kodu.toUpperCase().trim(),
-                    model_adi: formModel.model_adi.trim(),
-                    model_adi_ar: formModel.model_adi_ar.trim() || null,
-                    trend_id: formModel.trend_id || null,
-                    hedef_kitle: formModel.hedef_kitle,
-                    sezon: formModel.sezon,
-                    aciklama: formModel.aciklama.trim() || null,
-                    durum: 'taslak',
-                }]);
-                if (!error) {
-                    goster('✅ Model taslağı oluşturuldu!');
-                    telegramBildirim(`📐 YENİ MODEL TASLAĞI\nKod: ${formModel.model_kodu.toUpperCase()}\nAdı: ${formModel.model_adi}\nSezon: ${formModel.sezon}\nİlk Model Taslağı sisteme işlendi.`);
-                    setFormModel(BOSH_MODEL); setFormAcik(false); yukle();
-                } else throw error;
+                goster('✅ Model taslağı oluşturuldu!');
+                telegramBildirim(`📐 YENİ MODEL TASLAĞI\nKod: ${formModel.model_kodu.toUpperCase()}\nAdı: ${formModel.model_adi}\nSezon: ${formModel.sezon}\nİlk Model Taslağı sisteme işlendi.`);
             }
+            setFormModel(BOSH_MODEL); setFormAcik(false); yukle();
         } catch (error) {
             if (!navigator.onLine || error.message.includes('fetch')) {
                 await cevrimeKuyrugaAl({
@@ -152,31 +111,14 @@ export default function KalipMainContainer() {
         if (parseFloat(formKalip.fire_orani_yuzde) < 0) return goster('Fire oranı eksi olamaz!', 'error');
         setLoading(true);
         try {
-            if (formKalip.id) {
-                const { data: mevcut } = await supabase.from('b1_model_kaliplari').select('id').eq('model_id', formKalip.model_id).eq('kalip_adi', formKalip.kalip_adi.trim()).neq('id', formKalip.id);
-                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Kalıp Adı ilgili Modele zaten eklenmiş!', 'error'); }
-                const { error } = await supabase.from('b1_model_kaliplari').update({
-                    model_id: formKalip.model_id, kalip_adi: formKalip.kalip_adi.trim(), bedenler: formKalip.bedenler,
-                    pastal_boyu_cm: parseFloat(formKalip.pastal_boyu_cm), pastal_eni_cm: parseFloat(formKalip.pastal_eni_cm),
-                    fire_orani_yuzde: parseFloat(formKalip.fire_orani_yuzde) || 5, versiyon: formKalip.versiyon.trim() || 'v1.0',
-                    kalip_dosya_url: formKalip.kalip_dosya_url.trim() || null,
-                }).eq('id', formKalip.id);
-                if (!error) { goster('✅ Kalıp güncellendi!'); setFormKalip(BOSH_KALIP); setFormAcik(false); yukle(); } else throw error;
+            const result = await kalipPastalKaydet(formKalip);
+            if (result.isUpdate) {
+                goster('✅ Kalıp güncellendi!');
             } else {
-                const { data: mevcut } = await supabase.from('b1_model_kaliplari').select('id').eq('model_id', formKalip.model_id).eq('kalip_adi', formKalip.kalip_adi.trim());
-                if (mevcut && mevcut.length > 0) { setLoading(false); return goster('⚠️ Bu Kalıp Adı ilgili Modele zaten eklenmiş!', 'error'); }
-                const { error } = await supabase.from('b1_model_kaliplari').insert([{
-                    model_id: formKalip.model_id, kalip_adi: formKalip.kalip_adi.trim(), bedenler: formKalip.bedenler,
-                    pastal_boyu_cm: parseFloat(formKalip.pastal_boyu_cm), pastal_eni_cm: parseFloat(formKalip.pastal_eni_cm),
-                    fire_orani_yuzde: parseFloat(formKalip.fire_orani_yuzde) || 5, versiyon: formKalip.versiyon.trim() || 'v1.0',
-                    kalip_dosya_url: formKalip.kalip_dosya_url.trim() || null,
-                }]);
-                if (!error) {
-                    goster('✅ Kalıp kaydedildi!');
-                    telegramBildirim(`📏 YENİ KALIP\nKalıp: ${formKalip.kalip_adi}\nBoyut: ${formKalip.pastal_boyu_cm}x${formKalip.pastal_eni_cm}cm\nKalıp kaydı eklendi.`);
-                    setFormKalip(BOSH_KALIP); setFormAcik(false); yukle();
-                } else throw error;
+                goster('✅ Kalıp kaydedildi!');
+                telegramBildirim(`📏 YENİ KALIP\nKalıp: ${formKalip.kalip_adi}\nBoyut: ${formKalip.pastal_boyu_cm}x${formKalip.pastal_eni_cm}cm\nKalıp kaydı eklendi.`);
             }
+            setFormKalip(BOSH_KALIP); setFormAcik(false); yukle();
         } catch (error) {
             if (!navigator.onLine || error.message.includes('fetch')) {
                 await cevrimeKuyrugaAl({ tablo: 'b1_model_kaliplari', islem_tipi: 'INSERT', veri: { ...formKalip } });
@@ -195,9 +137,7 @@ export default function KalipMainContainer() {
         if (!confirm('KESİN OLARAK SİLMEK İSTİYOR MUSUNUZ?')) { setIslemdeId(null); return; }
 
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: String(tablo), islem_tipi: 'SILME', kullanici_adi: 'M3 Yetkilisi', eski_veri: { durum: 'SILINDI' } }]);
-            const { error } = await supabase.from(tablo).delete().eq('id', id);
-            if (error) throw error;
+            await kalipTabloElemaniSil(tablo, id, 'M3 Yetkilisi');
             yukle(); goster('Başarıyla Silindi!');
         } catch (error) { goster('Silme hatası: ' + error.message, 'error'); } finally { setIslemdeId(null); }
     };

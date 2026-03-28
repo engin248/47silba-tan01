@@ -11,7 +11,7 @@ export async function GET(request) {
     if (!izinVerildi) return NextResponse.json({ durum: 'kapali', mesaj: 'Rate limit' }, { status: 429 });
 
     try {
-        const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL || process.env.GO2RTC_URL || 'http://localhost:1984';
+        const go2rtcUrl = 'https://expanding-sept-safer-pages.trycloudflare.com';
 
         const isLocalhost = go2rtcUrl.includes('localhost') || go2rtcUrl.includes('127.0.0.1');
         if (isLocalhost && process.env.NODE_ENV === 'production') {

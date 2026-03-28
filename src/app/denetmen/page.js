@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
 import { videoVeResimDenetle } from '@/lib/ai/visionAjanCore';
 import SilBastanModal from '@/components/ui/SilBastanModal';
+import { fetchDenetmenHaberleri, runOtoTarama, runAiAnalizi, markUyariAsCozuldu, markUyariAsGozArdi, sendTelegramNotification } from '@/features/denetmen/services/denetmenApi';
 
 const SEVYE_RENK = {
     kritik: { bg: '#fef2f2', border: '#ef4444', text: '#b91c1c', badge: '#ef4444' },
@@ -64,129 +65,45 @@ export default function DenetmenSayfasi() {
     }, [kullanici]);
 
     const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
+        sendTelegramNotification(mesaj_metni);
     };
 
     const yukle = async () => {
         setLoading(true);
         try {
-            const [uyariSonuc, logSonuc] = await Promise.allSettled([
-                supabase.from('b1_sistem_uyarilari').select('*').eq('durum', 'aktif').order('olusturma', { ascending: false }).limit(100),
-                supabase.from('b1_agent_loglari').select('*').order('created_at', { ascending: false }).limit(20)
-            ]);
-
-            if (uyariSonuc.status === 'fulfilled' && uyariSonuc.value.data) setUyarilar(uyariSonuc.value.data);
-            if (logSonuc.status === 'fulfilled' && logSonuc.value.data) setLoglar(logSonuc.value.data);
+            const data = await fetchDenetmenHaberleri();
+            setUyarilar(data.uyarilar);
+            setLoglar(data.loglar);
         } catch (error) { setMesaj('Veriler yklenemedi: ' + error.message); }
         setLoading(false);
     };
 
     const taramaCalistir = async () => {
-        if (tarama) return goster(' Tarama zaten devam ediyor...', 'error');
+        if (tarama) return setMesaj('Tarama zaten devam ediyor...');
         setTarama(true);
         setMesaj('');
         try {
-            // Stok tarama
-            const { data: urunler } = await supabase
-                .from('b2_urun_katalogu')
-                .select('id, urun_adi_tr, stok_adeti, min_stok_alarm')
-                .eq('aktif', true)
-                .not('min_stok_alarm', 'is', null)
-                .limit(500);
-
-            let yeniUyari = 0;
-            for (const u of (urunler || [])) {
-                if (u.stok_adeti <= u.min_stok_alarm) {
-                    const { data: var_ } = await supabase
-                        .from('b1_sistem_uyarilari')
-                        .select('id')
-                        .eq('uyari_tipi', 'dusuk_stok')
-                        .eq('kaynak_id', u.id)
-                        .eq('durum', 'aktif')
-                        .limit(1);
-                    if (!var_?.length) {
-                        await supabase.from('b1_sistem_uyarilari').insert([{
-                            uyari_tipi: 'dusuk_stok',
-                            seviye: u.stok_adeti === 0 ? 'kritik' : 'uyari',
-                            baslik: `${u.stok_adeti === 0 ? 'Stok Sfr' : 'Dşk Stok'}: ${u.urun_adi_tr}`,
-                            mesaj: `${u.stok_adeti} adet | Min: ${u.min_stok_alarm} adet`,
-                            kaynak_tablo: 'b2_urun_katalogu',
-                            kaynak_id: u.id,
-                            durum: 'aktif',
-                        }]);
-                        yeniUyari++;
-                    }
-                }
-            }
-
-            // Maliyet tarama
-            const { data: raporlar } = await supabase
-                .from('b1_muhasebe_raporlari')
-                .select('id, hedeflenen_maliyet_tl, gerceklesen_maliyet_tl, fark_tl')
-                .not('hedeflenen_maliyet_tl', 'is', null)
-                .order('created_at', { ascending: false })
-                .limit(50);
-
-            for (const r of (raporlar || [])) {
-                const hedef = parseFloat(r.hedeflenen_maliyet_tl || 0);
-                const fark = parseFloat(r.fark_tl || 0);
-                if (hedef <= 0) continue;
-                const yuzde = (fark / hedef) * 100;
-                if (yuzde > 10) {
-                    const { data: var_ } = await supabase
-                        .from('b1_sistem_uyarilari')
-                        .select('id').eq('uyari_tipi', 'maliyet_asimi').eq('kaynak_id', r.id).eq('durum', 'aktif').limit(1);
-                    if (!var_?.length) {
-                        await supabase.from('b1_sistem_uyarilari').insert([{
-                            uyari_tipi: 'maliyet_asimi',
-                            seviye: yuzde > 25 ? 'kritik' : 'uyari',
-                            baslik: `Maliyet Aşm: %${yuzde.toFixed(1)}`,
-                            mesaj: `Hedef: ${hedef.toFixed(0)} | Gerğek: ${parseFloat(r.gerceklesen_maliyet_tl).toFixed(0)} | Fark: +${fark.toFixed(0)}`,
-                            kaynak_tablo: 'b1_muhasebe_raporlari',
-                            kaynak_id: r.id,
-                            durum: 'aktif',
-                        }]);
-                        yeniUyari++;
-                    }
-                }
-            }
-
-            setMesaj(`Tarama tamamland. ${yeniUyari} yeni uya r oluşturuldu.`);
+            const yeniUyariSayisi = await runOtoTarama();
+            setMesaj(`Tarama tamamlandı. ${yeniUyariSayisi} yeni uyarı oluşturuldu.`);
             yukle();
         } catch (e) {
-            setMesaj('Tarama hatas: ' + e.message);
+            setMesaj('Tarama hatası: ' + e.message);
         } finally {
-            setTimeout(() => setTarama(false), 3000); // 3 saniye anti-spam bekleme sresi
+            setTimeout(() => setTarama(false), 3000); // 3 saniye anti-spam
         }
     };
 
     const aiAnalizYap = async () => {
-        if (uyarilar.length === 0) { setMesaj('Uyar yok, nce Tara & Gncelle\'ye basn.'); return; }
-        if (aiYukleniyor) return goster(' AI zaten analiz ediyor...', 'error');
+        if (uyarilar.length === 0) { setMesaj('Uyarı yok, önce Tara & Güncelle\'ye basın.'); return; }
+        if (aiYukleniyor) return setMesaj('AI zaten analiz ediyor...');
         setAiYukleniyor(true);
         setAiAnaliz(null);
         try {
-            const ozet = uyarilar.slice(0, 10).map(u =>
-                `- [${u.seviye?.toUpperCase()}] ${u.baslik}: ${u.mesaj}`
-            ).join('\n');
-            const res = await fetch('/api/trend-ara', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sorgu: `Bir tekstil atlyesinde şu sistem uyarlar var:\n${ozet}\n\nBunlar ncelik srasna gre deşerlendir ve ksa Trkğe ğzm nerileri sun. Sadece pratik ve uygulanabilir neriler ver.`
-                }),
-            });
-            const data = await res.json();
-            setAiAnaliz(data.ozet || data.sonuclar?.[0]?.aciklama || 'Analiz tamamland.');
+            const ozet = uyarilar.slice(0, 10).map(u => `- [${u.seviye?.toUpperCase()}] ${u.baslik}: ${u.mesaj}`).join('\n');
+            const data = await runAiAnalizi(ozet);
+            setAiAnaliz(data);
         } catch (e) {
-            setAiAnaliz('Başlant hatas: ' + e.message);
+            setAiAnaliz('Bağlantı hatası: ' + e.message);
         } finally {
             setTimeout(() => setAiYukleniyor(false), 3000); // 3 saniye anti-spam
         }
@@ -194,17 +111,15 @@ export default function DenetmenSayfasi() {
 
     const coz = async (id, baslik) => {
         try {
-            const { error } = await supabase.from('b1_sistem_uyarilari').update({ durum: 'cozuldu', cozum_tarihi: new Date().toISOString() }).eq('id', id);
-            if (error) throw error;
+            await markUyariAsCozuldu(id);
             setUyarilar(prev => prev.filter(u => u.id !== id));
-            telegramBildirim(` ALARM ZLD\nMfettiş: ${baslik}`);
+            telegramBildirim(`🚨 ALARM ÇÖZÜLDÜ\nMüfettiş: ${baslik}`);
         } catch (error) { setMesaj('Hata: ' + error.message); }
     };
 
     const gozArd = async (id) => {
         try {
-            const { error } = await supabase.from('b1_sistem_uyarilari').update({ durum: 'goz_ardi' }).eq('id', id);
-            if (error) throw error;
+            await markUyariAsGozArdi(id);
             setUyarilar(prev => prev.filter(u => u.id !== id));
         } catch (error) { setMesaj('Hata: ' + error.message); }
     };

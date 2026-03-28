@@ -90,7 +90,7 @@ export async function aksesuarKaydet(payload, duzenleId) {
     if (duzenleId) {
         const { error } = await supabase.from('b1_aksesuar_arsivi').update(payload).eq('id', duzenleId);
         if (error) throw error;
-        return { offline: false };
+        return { offline: false, guncellendi: true };
     }
     const res = await fetch('/api/kumas-ekle', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -99,41 +99,37 @@ export async function aksesuarKaydet(payload, duzenleId) {
     const sonuc = await res.json().catch(() => ({}));
     if (res.status === 409) throw new Error('⚠️ ' + sonuc.hata);
     if (!res.ok) throw new Error(sonuc.hata || 'Sunucu hatası');
-    return { offline: false };
+    return { offline: false, guncellendi: false };
 }
 
-export async function kumasSil(tablo, id) {
+export async function kumasSil(tablo, id, kullaniciLabel) {
     await supabase.from('b0_sistem_loglari').insert([{
         tablo_adi: tablo, islem_tipi: 'SILME',
-        kullanici_adi: 'Saha Yetkilisi',
-        eski_veri: { durum: 'Soft delete öncesi log' }
+        kullanici_adi: kullaniciLabel || 'Saha Yetkilisi',
+        eski_veri: { durum: 'Soft delete öncesi log', id }
     }]);
     const { error } = await supabase.from(tablo).update({ aktif: false }).eq('id', id);
     if (error) throw error;
     telegramBildirim(`📂 ARŞİVE KALDIRILDI\nTablo: ${tablo} | ID: ${id}`);
 }
 
-// [KU-05] Kumaş Minimum Stok Alarmı
-export async function kumasStokAlarmKontrol() {
-    const { data, error } = await supabase
-        .from('b1_kumas_arsivi')
-        .select('id, kumas_kodu, kumas_adi, stok_mt, min_stok_mt, tedarikci_adi')
-        .eq('aktif', true)
-        .not('stok_mt', 'is', null)
-        .not('min_stok_mt', 'is', null);
+// Yeni: M3'e Aktarma işlemi (Model Taslağı oluşturma ve durum güncellemesi)
+export async function m3KaliphaneyeAktar(talep) {
+    const { error: insErr } = await supabase.from('b1_model_taslaklari').insert([{
+        model_kodu: `MDL-TR-${talep.id}`,
+        model_adi: talep.baslik,
+        model_adi_ar: talep.baslik_ar || null,
+        trend_id: talep.id,
+        hedef_kitle: talep.hedef_kitle || 'kadin',
+        durum: 'taslak',
+    }]);
 
-    if (error || !data?.length) return { kritikSayisi: 0, kritikler: [] };
-
-    const kritikler = data.filter(k => parseFloat(k.stok_mt || 0) < parseFloat(k.min_stok_mt || 0));
-
-    if (kritikler.length > 0) {
-        const liste = kritikler.slice(0, 5).map(k =>
-            `• ${k.kumas_kodu} — ${k.stok_mt}m (Min: ${k.min_stok_mt}m)`
-        ).join('\n');
-        telegramBildirim(`⚠️ KUMAŞ STOK ALARMI!\n${kritikler.length} kumaş kritik seviyede:\n${liste}`);
+    if (insErr && !insErr.message.includes('unique constraint')) {
+        throw insErr;
     }
 
-    return { kritikSayisi: kritikler.length, kritikler };
+    const { error: updErr } = await supabase.from('b1_arge_trendler').update({ durum: 'kumas_secildi' }).eq('id', talep.id);
+    if (updErr) throw updErr;
 }
 
 // ─── REALTIME ─────────────────────────────────────────────────────
@@ -142,7 +138,6 @@ export function kumasKanaliKur(onChange) {
         .on('postgres_changes', { event: '*', schema: 'public' }, onChange)
         .subscribe();
 }
-
 
 // ─── SABİTLER ─────────────────────────────────────────────────────
 export const KUMAS_TIPLERI = ['dokuma', 'orgu', 'denim', 'keten', 'ipek', 'sentetik', 'pamuk', 'polar', 'kase', 'viskon', 'diger'];

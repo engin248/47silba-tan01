@@ -40,6 +40,12 @@ export function imalatKanaliKur(onChange) {
     return supabase.channel('imalat-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'b1_imalat_emirleri' }, onChange).subscribe();
 }
 
+export function imalatKanaliKapat(kanal) {
+    if (kanal) {
+        supabase.removeChannel(kanal);
+    }
+}
+
 export const DURUMLAR = ['bekliyor', 'uretimde', 'tamamlandi', 'iptal'];
 export const DURUM_RENK = { bekliyor: '#f59e0b', uretimde: '#3b82f6', tamamlandi: '#10b981', iptal: '#ef4444' };
 export const BOSH_FORM = { model_id: '', hedef_adet: '', oncelik: 'normal', baslangic_tarihi: '', notlar: '' };

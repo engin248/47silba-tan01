@@ -4,13 +4,27 @@
  */
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { idb } from '@/lib/idbKalkan';
 
 export async function maliyetleriGetir(orderId = null) {
-    let q = supabase.from('b1_maliyet_kayitlari').select('*, b1_model_taslaklari:order_id(model_kodu,model_adi)').order('created_at', { ascending: false }).limit(300);
-    if (orderId) q = q.eq('order_id', orderId);
-    const { data, error } = await q;
-    if (error) throw error;
-    return data || [];
+    const otonomSync = async () => {
+        let q = supabase.from('b1_maliyet_kayitlari').select('*, b1_model_taslaklari:order_id(model_kodu,model_adi)').order('created_at', { ascending: false }).limit(300);
+        if (orderId) q = q.eq('order_id', orderId);
+        const { data, error } = await q;
+        if (error) throw error;
+        if (data && data.length > 0 && !orderId) await idb.bulkUpsert('m13_maliyet', data);
+        return data || [];
+    };
+
+    if (orderId) return await otonomSync();
+
+    const localData = await idb.getAllWithLimit('m13_maliyet', 300, 0);
+    if (!localData || localData.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync();
+        return localData;
+    }
 }
 
 export async function modelleriGetir() {

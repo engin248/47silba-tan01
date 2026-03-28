@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bot, Plus, Play, Square, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle, Settings, Database, Globe, Cpu, FileText, Trash2, RefreshCw, Zap, Send, ToggleLeft, ToggleRight, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { fetchGorevler, createGorev, deleteGorev, triggerAjanGorevi } from '@/features/ajanlar/services/ajanApi';
 import { useLang } from '@/context/langContext';
 
 //  AJAN GREV KONFGRASYONU 
@@ -181,16 +182,7 @@ export default function AjanlarSayfasi() {
         return () => clearInterval(pollingRef.current);
     }, [gorevler]);
 
-    const telegramBildirim = (mesaj_metni) => {
-        const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 10000);
-        fetch('/api/telegram-bildirim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mesaj: mesaj_metni }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(tId)).catch(() => null);
-    };
+    // Telegram bildirimi ajanApi servisine taşındı
 
     const goster = (text, type = 'success') => {
         setMesaj({ text, type });
@@ -199,13 +191,7 @@ export default function AjanlarSayfasi() {
 
     const yukle = async () => {
         try {
-            // [AI ZIRHI]: 10sn timeout DDoS kalkan (Kriter Q)
-            const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Başlant zaman aşm (10sn)')), 10000));
-            const { data, error } = await Promise.race([
-                supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50),
-                timeout
-            ]);
-            if (error) throw error;
+            const data = await fetchGorevler();
             if (data) {
                 setGorevler(data);
                 setIstatistik({
@@ -227,22 +213,11 @@ export default function AjanlarSayfasi() {
         if (form.gorev_emri.length > 1000) return goster('Grev emri ğok uzun (Max 1000)!', 'error');
 
         try {
-            // ş U Kriteri: Mkerrer Ajan Grevi Engeli
-            const { data: mevcutGorev } = await supabase.from('b1_ajan_gorevler')
-                .select('id').ilike('gorev_adi', form.gorev_adi.trim()).eq('durum', 'bekliyor');
-
-            if (mevcutGorev && mevcutGorev.length > 0) {
-                return goster(' Bu grev adyla bekleyen bir kayt zaten var!', 'error');
-            }
-
-            const { data, error } = await supabase.from('b1_ajan_gorevler').insert([{ ...form, durum: 'bekliyor' }]).select().single();
-            if (error) throw error;
+            const data = await createGorev(form);
             goster(' Grev oluşturuldu ve kuyruşa alnd!');
-            telegramBildirim(`ş YEN OTONOM GREV\nAjan: ${form.ajan_adi}\nGrev: ${form.gorev_adi}`);
             setForm(BOS_FORM); setFormAcik(false); yukle();
             if (form.oncelik === 'acil') setTimeout(() => gorevCalistir(data.id), 500);
         } catch (error) {
-            // [AI ZIRHI]: Offline guard (Kriter J)
             if (!navigator.onLine || error.message?.includes('fetch')) {
                 const { cevrimeKuyrugaAl } = await import('@/lib/offlineKuyruk');
                 await cevrimeKuyrugaAl({ tablo: 'b1_ajan_gorevler', islem_tipi: 'INSERT', veri: { ...form, durum: 'bekliyor' } });
@@ -257,35 +232,18 @@ export default function AjanlarSayfasi() {
     const gorevCalistir = async (gorev_id) => {
         setCalistiriliyor(p => ({ ...p, [gorev_id]: true }));
         try {
-            const res = await fetch('/api/ajan-calistir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gorev_id }) });
-            const d = await res.json();
-            d.basarili ? goster(' Grev tamamland!') : goster(' ' + (d.error || 'Hata'), 'error');
-        } catch (e) { goster('Başlant hatas', 'error'); }
+            await triggerAjanGorevi(gorev_id);
+            goster(' Grev tamamland!');
+        } catch (e) { goster(' ' + e.message, 'error'); }
         setCalistiriliyor(p => ({ ...p, [gorev_id]: false }));
         yukle();
     };
 
     const gorevSil = async (id) => {
-        if (!kullanici || kullanici.grup !== 'tam') {
-            const adminPin = prompt('Bu ajan grevini silmek iğin Ynetici PN kodunu girin:');
-            const dogruPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '9999';
-            if (adminPin !== dogruPin) return goster('Yetkisiz şlem!', 'error');
-        }
-        if (!confirm('Grevi sil?')) return;
         try {
-
-            // [AI ZIRHI]: B0 KISMEN SILINMEDEN ONCE KARA KUTUYA YAZILIR (Kriter 25)
-            try {
-                await supabase.from('b0_sistem_loglari').insert([{
-                    tablo_adi: String('b1_ajan_gorevler').replace(/['"]/g, ''),
-                    islem_tipi: 'SILME',
-                    kullanici_adi: 'Saha Yetkilisi (Otonom Log)',
-                    eski_veri: { durum: 'Veri kalici silinmeden once loglandi.' }
-                }]).catch(() => { });
-            } catch (e) { }
-
-            const { error } = await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
-            if (error) throw error;
+            const isAuthorized = kullanici && kullanici.grup === 'tam';
+            const sildiMi = await deleteGorev(id, isAuthorized);
+            if (!sildiMi) return;
             setGorevler(p => p.filter(g => g.id !== id));
             if (secilenGorev?.id === id) setSecilenGorev(null);
             goster('Grev silindi!');

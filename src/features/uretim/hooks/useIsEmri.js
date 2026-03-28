@@ -6,10 +6,23 @@
 'use client';
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { createGoster, telegramBildirim } from '@/lib/utils';
-import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import {
+    uretimKismiVeriGetir,
+    durumGuncelleApi,
+    uretimIsEmriSorgulaOluştur,
+    uretimIsEmriKaydet,
+    uretimTopluDurumGuncelle,
+    uretimIsEmriArsivle,
+    uretimMaliyetEkle,
+    uretimDevirBaslat,
+    uretimKanaliKur,
+    uretimOperasyonlariGetir,
+    defaultUretimOperasyonuGetir,
+    uretimPersonelPerformansGuncelle,
+    uretimPersonelPerformansBaslat
+} from '../services/uretimApi';
 
 export const DEPARTMANLAR = [
     { id: 'is_emri', ad: 'İş Emirleri' },
@@ -83,31 +96,24 @@ export function useIsEmri(kullanici) {
     const yukle = useCallback(async () => {
         setLoading(true);
         try {
-            const timeout = (ms) => new Promise((_, r) => setTimeout(() => r(new Error('Zaman aşımı')), ms));
-            const [mRes, oRes, pRes] = await Promise.all([
-                Promise.race([supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500), timeout(10000)]),
-                Promise.race([supabase.from('production_orders').select('*').order('created_at', { ascending: false }).limit(200), timeout(10000)]),
-                Promise.race([supabase.from('b1_personel').select('id,personel_kodu,ad_soyad,rol,durum,saatlik_ucret_tl').eq('durum', 'aktif').order('ad_soyad').limit(100), timeout(10000)]),
-            ]);
-            const modellerData = mRes.data || [];
-            if (modellerData.length > 0) setModeller(modellerData);
-            if (oRes.data) {
-                const enriched = oRes.data.map(o => ({
+            const data = await uretimKismiVeriGetir(dept);
+
+            if (data.modeller.length > 0) setModeller(data.modeller);
+
+            if (data.orders) {
+                const enriched = data.orders.map(o => ({
                     ...o,
-                    b1_model_taslaklari: modellerData.find(m => m.id === o.model_id) || { model_kodu: '?', model_adi: 'Model bulunamadı' }
+                    b1_model_taslaklari: data.modeller.find(m => m.id === o.model_id) || { model_kodu: '?', model_adi: 'Model bulunamadı' }
                 }));
                 setOrders(enriched);
             }
-            if (pRes.data) setPersonel(pRes.data);
-            if (dept === 'maliyet' || dept === 'devir') {
-                const [malRes, rRes, perfRes] = await Promise.all([
-                    Promise.race([supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200), timeout(10000)]),
-                    Promise.race([supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(100), timeout(10000)]),
-                    Promise.race([supabase.from('b1_personel_performans').select('*, b1_personel(ad_soyad)').is('bitis_saati', null).limit(100), timeout(10000)]),
-                ]);
-                if (malRes.data) setMaliyetler(malRes.data);
-                if (rRes.data) setRaporlar(rRes.data);
-                if (perfRes.data) setAktifOperasyonlar(perfRes.data);
+
+            if (data.personeller) setPersonel(data.personeller);
+
+            if (dept === 'maliyet' || dept === 'devir' || dept === 'kesim') {
+                if (data.maliyetler) setMaliyetler(data.maliyetler);
+                if (data.raporlar) setRaporlar(data.raporlar);
+                if (data.aktifOperasyonlar) setAktifOperasyonlar(data.aktifOperasyonlar);
             }
         } catch (e) {
             goster('Sistem veri yükleme hatası: ' + e.message, 'error');
@@ -119,17 +125,14 @@ export function useIsEmri(kullanici) {
     useEffect(() => {
         // [A1 FIX] Hem sb47_uretim_token hem sb47_uretim_pin token anahtarları destekleniyor
         const uretimPin = typeof window !== 'undefined' && (
-            !!sessionStorage.getItem('sb47_uretim_token') ||
-            !!sessionStorage.getItem('sb47_uretim_pin')
+            !!sessionStorage.getItem('sb47_uretim_token') || !!sessionStorage.getItem('sb47_uretim_pin')
         );
         const yetkili = kullanici?.grup === 'tam' || uretimPin;
         if (!yetkili) return;
 
-        const kanal = supabase.channel('islem-gercek-zamanli-ai')
-            .on('postgres_changes', { event: '*', schema: 'public' }, yukle)
-            .subscribe();
+        const kanal = uretimKanaliKur(yukle);
         yukle();
-        return () => supabase.removeChannel(kanal);
+        return () => kanal.unsubscribe();
     }, [dept, kullanici]);
 
     useEffect(() => {
@@ -178,14 +181,12 @@ export function useIsEmri(kullanici) {
     const durumGuncelle = async (id, status) => {
         if (islemdeId === 'durum_' + id) return;
         setIslemdeId('durum_' + id);
-        if (!navigator.onLine) {
-            await cevrimeKuyrugaAl('production_orders', 'UPDATE', { id, status });
-            setIslemdeId(null);
-            return goster('⚡ Çevrimdışı: Durum kuyruğa alındı.');
-        }
         try {
-            const { error } = await supabase.from('production_orders').update({ status }).eq('id', id);
-            if (error) throw error;
+            const result = await durumGuncelleApi(id, status);
+            if (result.offline) {
+                setIslemdeId(null);
+                return goster('⚡ Çevrimdışı: Durum kuyruğa alındı.');
+            }
             goster('Durum güncellendi.');
             if (status === 'in_progress') telegramBildirim('🏭 ÜRETİM BAŞLADI');
             if (status === 'completed') telegramBildirim('✅ ÜRETİM TAMAMLANDI');
@@ -220,11 +221,11 @@ export function useIsEmri(kullanici) {
         if (toplamSn > 0) {
             try {
                 const tutar = sureDk * dakikaUcret * zorlukKatsayisi;
-                await supabase.from('b1_maliyet_kayitlari').insert([{
+                await uretimMaliyetEkle({
                     order_id: id, maliyet_tipi: 'personel_iscilik', tutar_tl: tutar,
                     kalem_aciklama: `Kronometre: ${formatSure(toplamSn)} (${sureDk} dk) | x${zorlukKatsayisi.toFixed(1)} - ${liyakatYildiz}`,
                     onay_durumu: 'hesaplandi'
-                }]);
+                });
             } catch (e) { console.error('[KÖR NOKTA ZIRHI - SESSİZ YUTMA ENGELLENDİ] Dosya: useIsEmri.js | Hata:', e ? e.message || e : 'Bilinmiyor'); }
         }
     };
@@ -251,7 +252,7 @@ export function useIsEmri(kullanici) {
             // 2.B: Barkod bir OPERASYON mu?
             let o_op = null;
             if (!o) {
-                const { data } = await supabase.from('b1_uretim_operasyonlari').select('id, model_id').eq('id', okunanBarkod).single();
+                const data = await uretimOperasyonlariGetir(okunanBarkod);
                 if (data) o_op = data;
             }
 
@@ -277,15 +278,12 @@ export function useIsEmri(kullanici) {
                 } else {
                     const pyld = { bitis_saati: new Date().toISOString(), uretilen_adet: aktifPerf.hedef_adet || 1, kalite_puani: 10, zaman_asimi_durus: (gecenSn > 8 * 3600) };
 
-                    if (!navigator.onLine) {
-                        await cevrimeKuyrugaAl('b1_personel_performans', 'UPDATE', { id: aktifPerf.id, ...pyld });
+                    const result = await uretimPersonelPerformansGuncelle(aktifPerf.id, pyld);
+                    if (result.offline) {
                         if (o && o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
                         goster(`⚡ ÇEVRİMDIŞI zırhı devrede: ${aktifPersonel.ad_soyad} iş bitişi lokalde koruma altına alındı.`);
                         setAktifOperasyonlar(prev => prev.filter(a => a.id !== aktifPerf.id));
                     } else {
-                        const { error } = await supabase.from('b1_personel_performans').update(pyld).eq('id', aktifPerf.id);
-                        if (error) throw error;
-
                         if (o && o.status === 'in_progress') await durumGuncelle(o.id, 'completed');
                         goster(`✅ OTONOM: ${aktifPersonel.ad_soyad} için iş TAMAMLANDI.`);
                         await yukle();
@@ -316,17 +314,14 @@ export function useIsEmri(kullanici) {
                 // Eğer dummy opsiyon bile yoksa ve foreign key error yersek try catch patlayacak.
                 // O yüzden en risksiz yol insert etmeden önce veritabanındaki rastgele bir operasyonu seçip atamak (test ortamı için)
                 if (!o_op) {
-                    const { data: qOp } = await supabase.from('b1_uretim_operasyonlari').select('id').limit(1).single();
+                    const qOp = await defaultUretimOperasyonuGetir();
                     if (qOp) pyld.operasyon_id = qOp.id;
                 }
 
-                if (!navigator.onLine) {
-                    await cevrimeKuyrugaAl('b1_personel_performans', 'INSERT', pyld);
+                const resultBaslat = await uretimPersonelPerformansBaslat(pyld);
+                if (resultBaslat.offline) {
                     goster(`⚡ ÇEVRİMDIŞI zırhı devrede: Başlangıç kaydı lokal DB'de tutuluyor.`);
                 } else {
-                    const { error } = await supabase.from('b1_personel_performans').insert([pyld]);
-                    if (error) throw error;
-
                     goster(`⚡ OTONOM: ${aktifPersonel.ad_soyad} işe BAŞLADI.`);
                     await yukle();
                 }
@@ -350,34 +345,22 @@ export function useIsEmri(kullanici) {
         setLoading(true);
         try {
             if (duzenleId) {
-                const { data: eskiKayit } = await supabase.from('production_orders').select('status').eq('id', duzenleId).single();
-                if (eskiKayit?.status === 'completed') {
-                    setLoading(false);
-                    setIslemdeId(null);
-                    return goster('🔒 DİJİTAL ADALET: Tamamlanmış paket güncellenemez.', 'error');
-                }
-                const { error } = await supabase.from('production_orders').update({
+                await uretimIsEmriKaydet({
                     model_id: formOrder.model_id, quantity: parseInt(formOrder.quantity),
                     planned_start_date: formOrder.planned_start_date || null,
                     planned_end_date: formOrder.planned_end_date || null,
-                }).eq('id', duzenleId);
-                if (error) throw error;
+                }, duzenleId);
                 goster('✅ İş emri güncellendi.');
                 setFormOrder(BOSH_FORM_ORDER); setFormAcik(false); setDuzenleId(null); yukle();
             } else {
-                const { data: mevcut } = await supabase.from('production_orders')
-                    .select('id').eq('model_id', formOrder.model_id).in('status', ['pending', 'in_progress']);
-                if (mevcut?.length > 0) { setLoading(false); setIslemdeId(null); return goster('⚠️ Bu model için bekleyen iş emri mevcut!', 'error'); }
-                const { error } = await supabase.from('production_orders').insert([{
+                await uretimIsEmriSorgulaOluştur(formOrder.model_id, {
                     model_id: formOrder.model_id, quantity: parseInt(formOrder.quantity), status: 'pending',
                     planned_start_date: formOrder.planned_start_date || null,
                     planned_end_date: formOrder.planned_end_date || null,
-                }]);
-                if (!error) {
-                    goster('İş emri oluşturuldu.');
-                    telegramBildirim(`📋 YENİ İŞ EMRİ\nAdet: ${formOrder.quantity}`);
-                    setFormOrder(BOSH_FORM_ORDER); setFormAcik(false); yukle();
-                } else throw error;
+                });
+                goster('İş emri oluşturuldu.');
+                telegramBildirim(`📋 YENİ İŞ EMRİ\nAdet: ${formOrder.quantity}`);
+                setFormOrder(BOSH_FORM_ORDER); setFormAcik(false); yukle();
             }
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
         finally { setLoading(false); setIslemdeId(null); }
@@ -402,8 +385,7 @@ export function useIsEmri(kullanici) {
         if (!confirm(`${seciliSiparisler.length} siparişi toplu güncellemek istiyorsunuz?`)) { setIslemdeId(null); return; }
         setLoading(true);
         try {
-            const { error } = await supabase.from('production_orders').update({ status: yeniDurum }).in('id', seciliSiparisler);
-            if (error) throw error;
+            await uretimTopluDurumGuncelle(seciliSiparisler, yeniDurum);
             goster(`✅ ${seciliSiparisler.length} sipariş güncellendi!`);
             telegramBildirim(`📦 TOPLU İŞLEM\n${seciliSiparisler.length} iş emri güncellendi.`);
             setSeciliSiparisler([]); yukle();
@@ -419,9 +401,7 @@ export function useIsEmri(kullanici) {
         if (!yetkili) { setIslemdeId(null); return goster(yMsg || 'Yetkisiz.', 'error'); }
         if (!confirm('İş emri arşive (iptal) kaldırılsın mı?')) { setIslemdeId(null); return; }
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'production_orders', islem_tipi: 'ARŞİVLEME', kullanici_adi: 'Saha Yetkilisi', eski_veri: { is_emri_id: id } }]);
-            const { error } = await supabase.from('production_orders').update({ status: 'cancelled' }).eq('id', id);
-            if (error) throw error;
+            await uretimIsEmriArsivle(id, 'Saha Yetkilisi M6');
             goster('İş emri arşive kaldırıldı.');
             telegramBildirim('🗑️ İŞ EMRİ İPTALİ\nBir iş emri arşive kaldırıldı.');
             yukle();
@@ -471,15 +451,13 @@ export function useIsEmri(kullanici) {
         if (!maliyetForm.kalem_aciklama.trim()) { setIslemdeId(null); return goster('Açıklama zorunlu!', 'error'); }
         setLoading(true);
         try {
-            const { error } = await supabase.from('b1_maliyet_kayitlari').insert([{
+            await uretimMaliyetEkle({
                 order_id: maliyetForm.order_id, maliyet_tipi: maliyetForm.maliyet_tipi,
                 tutar_tl: parseFloat(maliyetForm.tutar_tl), kalem_aciklama: maliyetForm.kalem_aciklama.trim(),
                 onay_durumu: 'hesaplandi'
-            }]);
-            if (!error) {
-                goster('Maliyet kaydedildi.');
-                setMaliyetForm(BOSH_MALIYET_FORM); setMaliyetFormAcik(false); yukle();
-            } else throw error;
+            });
+            goster('Maliyet kaydedildi.');
+            setMaliyetForm(BOSH_MALIYET_FORM); setMaliyetFormAcik(false); yukle();
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
         finally { setLoading(false); setIslemdeId(null); }
     };
@@ -493,19 +471,10 @@ export function useIsEmri(kullanici) {
         if (!confirm('Bu partiyi 2. Birime devredeceksiniz. Onaylıyor musunuz?')) { setIslemdeId(null); return; }
         setLoading(true);
         try {
-            const { data: mevcut } = await supabase.from('b1_muhasebe_raporlari').select('id').eq('order_id', orderId);
-            if (mevcut?.length > 0) { setLoading(false); setIslemdeId(null); return goster('⚠️ Bu iş emri için devir raporu zaten mevcut!', 'error'); }
-
-            // KARARGAH FİNANS ZAFİYETİ ONARIMI:
             const hedefSiparis = orders.find(x => x.id === orderId);
-            const netAdet = hedefSiparis?.quantity ? parseInt(hedefSiparis.quantity) : 1; // 0'a bölme kalkanı (Default 1)
-
             const pt = maliyetler.filter(m => m.order_id === orderId).reduce((s, m) => s + parseFloat(m.tutar_tl || 0), 0);
-            const { error } = await supabase.from('b1_muhasebe_raporlari').insert([{
-                order_id: orderId, gerceklesen_maliyet_tl: pt, net_uretilen_adet: netAdet, zayiat_adet: 0, rapor_durumu: 'taslak', devir_durumu: false
-            }]);
-            if (!error) { goster('Devir başlatıldı. M8 Muhasebede rapor oluşturuldu.'); yukle(); }
-            else throw error;
+            await uretimDevirBaslat(orderId, pt, hedefSiparis?.quantity);
+            goster('Devir başlatıldı. M8 Muhasebede rapor oluşturuldu.'); yukle();
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
         finally { setLoading(false); setIslemdeId(null); }
     };

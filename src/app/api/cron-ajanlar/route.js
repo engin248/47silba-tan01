@@ -77,7 +77,7 @@ export async function GET(req) {
 
         //  KAMERA DURUM KONTROL 
         if (gorev === 'kamera_durum_kontrol_ajan') {
-            const go2rtcUrl = process.env.NEXT_PUBLIC_GO2RTC_URL;
+            const go2rtcUrl = 'https://expanding-sept-safer-pages.trycloudflare.com';
             if (!go2rtcUrl) {
                 return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanImlı degil.' });
             }

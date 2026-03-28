@@ -4,10 +4,13 @@
  * M5 Modelhane — Tasarım & Model Yönetimi  (versiyon takibi v1/v2 dahil)
  */
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
-import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { telegramBildirim } from '@/lib/utils';
+import {
+    modelleriGetir, modelEkle, modelGuncelle,
+    modelDurumGuncelle, modelSil, logNumuneDikimi,
+    modelhaneKanaliKur
+} from '../services/modelhaneApi';
 
 export function useModelhane(kullanici) {
     const [yetkiliMi, setYetkiliMi] = useState(false);
@@ -26,19 +29,9 @@ export function useModelhane(kullanici) {
     const yukle = useCallback(async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase.from('b1_model_taslaklari')
-                .select('*').order('created_at', { ascending: false }).limit(200);
-            if (error) throw error;
-            setModeller(data || []);
-
-            // M3'ten gelen kalıp verileri (Numune emri için bekleniyor)
-            const { data: kaliplar, error: kalErr } = await supabase.from('b1_model_kaliplari')
-                .select('id, kalip_adi, bedenler, b1_model_taslaklari(model_kodu, model_adi, durum)')
-                .order('created_at', { ascending: false }).limit(50);
-
-            if (kalErr) throw kalErr;
-            setM3Talepleri(kaliplar || []);
-
+            const data = await modelleriGetir();
+            setModeller(data.modeller || []);
+            setM3Talepleri(data.kaliplar || []);
         } catch (e) { goster('Veri yüklenemedi: ' + e.message, 'error'); }
         setLoading(false);
     }, []);
@@ -50,12 +43,9 @@ export function useModelhane(kullanici) {
         setYetkiliMi(ok);
         if (!ok) return;
 
-        const kanal = supabase.channel('modelhane-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_taslaklari' }, yukle)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_model_kaliplari' }, yukle)
-            .subscribe();
+        const kanal = modelhaneKanaliKur(yukle);
         yukle();
-        return () => { supabase.removeChannel(kanal); };
+        return () => { kanal.unsubscribe(); };
     }, [kullanici, yukle]);
 
     const kaydet = async () => {
@@ -73,22 +63,17 @@ export function useModelhane(kullanici) {
                 video_url: form.video_url?.trim() || null,
                 versiyon: form.versiyon || 1,
             };
-            if (!navigator.onLine) {
-                await cevrimeKuyrugaAl('b1_model_taslaklari', duzenleId ? 'UPDATE' : 'INSERT', duzenleId ? { ...payload, id: duzenleId } : payload);
-                goster('⚡ Çevrimdışı: Kuyruğa alındı.'); setFormAcik(false); setDuzenleId(null); setForm(BOSH_FORM); setLoading(false); return;
-            }
             if (duzenleId) {
-                // Versiyon artır
-                const { data: mevcut } = await supabase.from('b1_model_taslaklari').select('versiyon').eq('id', duzenleId).single();
-                payload.versiyon = (mevcut?.versiyon || 1) + 1;
-                const { error } = await supabase.from('b1_model_taslaklari').update(payload).eq('id', duzenleId);
-                if (error) throw error;
-                goster(`✅ Model güncellendi (v${payload.versiyon})`);
+                const result = await modelGuncelle(duzenleId, payload, form.versiyon);
+                if (result.offline) goster('⚡ Çevrimdışı: Kuyruğa alındı.');
+                else goster(`✅ Model güncellendi (v${result.versiyon})`);
             } else {
-                const { error } = await supabase.from('b1_model_taslaklari').insert([{ ...payload, versiyon: 1 }]);
-                if (error) throw error;
-                telegramBildirim(`🎨 YENİ MODEL\n${payload.model_kodu} — ${payload.model_adi}`);
-                goster('✅ Model eklendi!');
+                const result = await modelEkle(payload);
+                if (result.offline) goster('⚡ Çevrimdışı: Kuyruğa alındı.');
+                else {
+                    telegramBildirim(`🎨 YENİ MODEL\n${payload.model_kodu} — ${payload.model_adi}`);
+                    goster('✅ Model eklendi!');
+                }
             }
             setFormAcik(false); setDuzenleId(null); setForm(BOSH_FORM); yukle();
         } catch (e) { goster(e.message, 'error'); }
@@ -96,19 +81,21 @@ export function useModelhane(kullanici) {
     };
 
     const durumGuncelle = async (id, yeniDurum) => {
-        const { error } = await supabase.from('b1_model_taslaklari').update({ durum: yeniDurum }).eq('id', id);
-        if (!error) { goster(`✅ Durum: ${yeniDurum}`); yukle(); }
-        else goster(error.message, 'error');
+        try {
+            await modelDurumGuncelle(id, yeniDurum);
+            goster(`✅ Durum: ${yeniDurum}`); yukle();
+        } catch (error) { goster(error.message, 'error'); }
     };
 
     const sil = async (id) => {
         const { yetkili, mesaj: m } = await silmeYetkiDogrula(kullanici, 'Model silmek için PIN:');
         if (!yetkili) return goster(m || 'Yetkisiz.', 'error');
         if (!confirm('Model silinsin mi?')) return;
-        await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_model_taslaklari', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'Model Sorumlusu', eski_veri: { id } }]);
-        const { error } = await supabase.from('b1_model_taslaklari').delete().eq('id', id);
-        if (!error) { goster('Model silindi.'); yukle(); }
-        else goster(error.message, 'error');
+
+        try {
+            await modelSil(id, kullanici?.label || 'Model Sorumlusu');
+            goster('Model silindi.'); yukle();
+        } catch (error) { goster(error.message, 'error'); }
     };
 
     const duzenleAc = (m) => { setForm({ model_kodu: m.model_kodu, model_adi: m.model_adi, model_adi_ar: m.model_adi_ar || '', hedef_adet: String(m.hedef_adet || ''), durum: m.durum, aciklama: m.aciklama || '', video_url: m.video_url || '', versiyon: m.versiyon }); setDuzenleId(m.id); setFormAcik(true); };
@@ -116,24 +103,7 @@ export function useModelhane(kullanici) {
     // NUMUNE BANDI YÖNETİMİ (M4 Kronometre Bitişi)
     const numuneDikimiBitir = async (model_id, sureSn) => {
         try {
-            // "numune_dikildi" gibi bir durum atıyoruz ve jsonb / text alana süreyi yazıyoruz.
-            const { error } = await supabase.from('b1_model_taslaklari')
-                .update({ durum: 'numune_dikildi', aciklama: `[İŞÇİLİK]: Numune ${sureSn} saniyede dikildi.` })
-                .eq('model_kodu', model_id); // model_kodu'na gore b1_model_kaliplari uzerinden erisildigi icin model_id = model_kodu gibi dusunulebilir (varsayim)
-
-            if (error) {
-                // Eger id uzerinden isliyorsa
-                const fallbackErr = await supabase.from('b1_model_taslaklari').update({ durum: 'numune_dikildi' }).eq('id', model_id);
-            }
-
-            await supabase.from('b1_agent_loglari').insert([{
-                ajan_adi: 'HermAI Yargıç',
-                islem_tipi: 'Numune Dikim Maliyeti',
-                mesaj: `${model_id} kodlu ürünün dikim sayacı durdu. Geçen işçilik süresi: ${sureSn} sn. Veri M5 imalat planı için hafızaya alındı.`,
-                sonuc: 'basarili',
-                created_at: new Date().toISOString()
-            }]);
-
+            await logNumuneDikimi(model_id, sureSn);
             goster('Dikim süresi maliyet hanesine yazıldı.', 'success');
             yukle(); // Ekrani yenile
         } catch (e) {

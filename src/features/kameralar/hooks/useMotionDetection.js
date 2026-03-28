@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984';
+const GO2RTC_URL = 'https://expanding-sept-safer-pages.trycloudflare.com';
 
 export default function useMotionDetection(kameralar, aktif = true) {
     const [hareketDurumlari, setHareketDurumlari] = useState({});

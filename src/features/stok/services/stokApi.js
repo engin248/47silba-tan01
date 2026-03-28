@@ -5,32 +5,48 @@
 import { supabase } from '@/lib/supabase';
 import { telegramBildirim } from '@/lib/utils';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { idb } from '@/lib/idbKalkan';
 
 // ─── OKUMA ────────────────────────────────────────────────────────
 export async function stokVeriGetir() {
-    const [urunRes, hareketRes] = await Promise.allSettled([
-        supabase.from('b2_urun_katalogu')
-            .select('id,urun_kodu,urun_adi,urun_adi_ar,satis_fiyati_tl,stok_adeti,min_stok,b2_stok_hareketleri(adet,hareket_tipi)'),
-        supabase.from('b2_stok_hareketleri')
-            .select('id,urun_id,hareket_tipi,adet,aciklama,created_at,b2_urun_katalogu(urun_kodu,urun_adi)')
-            .order('created_at', { ascending: false }).limit(200),
-    ]);
+    const otonomSync = async () => {
+        const [urunRes, hareketRes] = await Promise.allSettled([
+            supabase.from('b2_urun_katalogu')
+                .select('id,urun_kodu,urun_adi,urun_adi_ar,satis_fiyati_tl,stok_adeti,min_stok,b2_stok_hareketleri(adet,hareket_tipi)'),
+            supabase.from('b2_stok_hareketleri')
+                .select('id,urun_id,hareket_tipi,adet,aciklama,created_at,b2_urun_katalogu(urun_kodu,urun_adi)')
+                .order('created_at', { ascending: false }).limit(200),
+        ]);
 
-    const urunler = urunRes.status === 'fulfilled' ? urunRes.value.data || [] : [];
-    // Net stok hesabı
-    const stokEnvanteri = urunler.map(u => {
-        let giris = 0, cikis = 0;
-        (u.b2_stok_hareketleri || []).forEach(h => {
-            if (h.hareket_tipi === 'giris' || h.hareket_tipi === 'iade') giris += h.adet;
-            if (h.hareket_tipi === 'cikis' || h.hareket_tipi === 'fire') cikis += h.adet;
+        const urunler = urunRes.status === 'fulfilled' ? urunRes.value.data || [] : [];
+        const stokEnvanteri = urunler.map(u => {
+            let giris = 0, cikis = 0;
+            (u.b2_stok_hareketleri || []).forEach(h => {
+                if (h.hareket_tipi === 'giris' || h.hareket_tipi === 'iade') giris += h.adet;
+                if (h.hareket_tipi === 'cikis' || h.hareket_tipi === 'fire') cikis += h.adet;
+            });
+            return { ...u, net_stok: (u.stok_adeti || 0) + giris - cikis };
         });
-        return { ...u, net_stok: (u.stok_adeti || 0) + giris - cikis };
-    });
 
-    return {
-        stokEnvanteri,
-        hareketler: hareketRes.status === 'fulfilled' ? hareketRes.value.data || [] : [],
+        if (stokEnvanteri.length > 0) await idb.bulkUpsert('m11_stok', stokEnvanteri);
+
+        return {
+            stokEnvanteri,
+            hareketler: hareketRes.status === 'fulfilled' ? hareketRes.value.data || [] : [],
+        };
     };
+
+    const localStoklar = await idb.getAllWithLimit('m11_stok', 500, 0);
+
+    if (!localStoklar || localStoklar.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync(); // UI'ı bloklamadan arka planda güncelle
+        return {
+            stokEnvanteri: localStoklar,
+            hareketler: [], // Otonom sync sonrası dolacak
+        };
+    }
 }
 
 // ─── YAZMA ────────────────────────────────────────────────────────
