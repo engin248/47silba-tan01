@@ -1,4 +1,5 @@
 'use client';
+// @ts-nocheck
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useRef } from 'react';
 import { Bot, Plus, CheckCircle2, AlertTriangle, RefreshCw, Lock } from 'lucide-react';
@@ -9,6 +10,12 @@ import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
 import AjanKomutaGostergesi from '@/components/AjanKomutaGostergesi';
 import AjanOrchestrator from './AjanOrchestrator';
+import {
+    ajanVerileriniGetir,
+    ajanGorevEkle,
+    ajanGorevSil,
+    ajanGercekZamanliKur
+} from '../services/ajanlarApi';
 
 // Alt Modüller
 import AjanlarIstatistikCards from './tabs/AjanlarIstatistikCards';
@@ -63,11 +70,7 @@ export default function AjanlarMainContainer() {
         setYetkiliMi(erisebilir);
 
         let kanal;
-        if (erisebilir) {
-            kanal = supabase.channel('islem-gercek-zamanli-ai')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_ajan_gorevler' }, () => { yukle(); })
-                .subscribe();
-        }
+        if (erisebilir) kanal = ajanGercekZamanliKur(() => yukle());
         yukle();
         return () => { if (kanal) supabase.removeChannel(kanal); };
     }, [kullanici]);
@@ -79,37 +82,28 @@ export default function AjanlarMainContainer() {
         return () => clearInterval(pollingRef.current);
     }, []);
 
+    const sDurum = (data) => {
+        if (!data) return;
+        setIstatistik({
+            toplam: data.length, tamamlandi: data.filter(g => g.durum === 'tamamlandi').length,
+            'calisıyor': data.filter(g => g.durum === 'calisıyor').length, hata: data.filter(g => g.durum === 'hata').length,
+            bekliyor: data.filter(g => g.durum === 'bekliyor').length,
+        });
+    };
+
     const yukleSessiz = async () => {
         try {
-            const { data, error } = await supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50);
-            if (error) return;
-            if (data) {
-                setGorevler(data);
-                setIstatistik({
-                    toplam: data.length, tamamlandi: data.filter(g => g.durum === 'tamamlandi').length,
-                    'calisıyor': data.filter(g => g.durum === 'calisıyor').length, hata: data.filter(g => g.durum === 'hata').length,
-                    bekliyor: data.filter(g => g.durum === 'bekliyor').length,
-                });
-            }
-        } catch (error) { }
+            const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000));
+            const r = await ajanVerileriniGetir(timeout);
+            if (r?.data) { setGorevler(r.data); sDurum(r.data); }
+        } catch { }
     };
 
     const yukle = async () => {
         try {
             const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Zaman aşımı (10sn)')), 10000));
-            const { data, error } = await Promise.race([
-                supabase.from('b1_ajan_gorevler').select('*').order('created_at', { ascending: false }).limit(50),
-                timeout
-            ]);
-            if (error) throw error;
-            if (data) {
-                setGorevler(data);
-                setIstatistik({
-                    toplam: data.length, tamamlandi: data.filter(g => g.durum === 'tamamlandi').length,
-                    'calisıyor': data.filter(g => g.durum === 'calisıyor').length, hata: data.filter(g => g.durum === 'hata').length,
-                    bekliyor: data.filter(g => g.durum === 'bekliyor').length,
-                });
-            }
+            const r = await ajanVerileriniGetir(timeout);
+            if (r?.data) { setGorevler(r.data); sDurum(r.data); }
         } catch (error) { goster('Hata: ' + error.message, 'error'); }
         setLoading(false);
     };
@@ -121,23 +115,17 @@ export default function AjanlarMainContainer() {
         setIslemdeId('yeniGorev');
 
         try {
-            const { data: mevcutGorev } = await supabase.from('b1_ajan_gorevler').select('id').ilike('gorev_adi', form.gorev_adi.trim()).eq('durum', 'bekliyor');
-            if (mevcutGorev && mevcutGorev.length > 0) return goster('⚠️ Bu görev adıyla bekleyen kayıt var!', 'error');
-
-            const { data, error } = await supabase.from('b1_ajan_gorevler').insert([{ ...form, durum: 'bekliyor' }]).select().single();
-            if (error) throw error;
-            goster('✅ Görev kuyruğa alındı!');
-            telegramBildirim(`🤖 YENİ OTONOM GÖREV\nAjan: ${form.ajan_adi}\nGörev: ${form.gorev_adi}`);
-            setForm(BOS_FORM); setFormAcik(false); yukle();
-            if (form.oncelik === 'acil') setTimeout(() => gorevCalistir(data.id), 500);
-        } catch (error) {
-            if (!navigator.onLine || error.message?.includes('fetch')) {
-                await cevrimeKuyrugaAl('b1_ajan_gorevler', 'INSERT', { ...form, durum: 'bekliyor' });
+            const r = await ajanGorevEkle(form);
+            if (r.offline) {
                 goster('İnternet Yok: Görev offline kuyruğa alındı.', 'success');
-                setForm(BOS_FORM); setFormAcik(false);
-            } else { goster('Hata: ' + error.message, 'error'); }
-        }
-        setIslemdeId(null);
+            } else {
+                goster('✅ Görev sisteme iletildi!');
+                telegramBildirim(`🤖 YENİ OTONOM GÖREV\nAjan: ${form.ajan_adi}\nGörev: ${form.gorev_adi}`);
+                if (form.oncelik === 'acil') setTimeout(() => gorevCalistir(r.data.id), 500);
+            }
+            setForm(BOS_FORM); setFormAcik(false); yukle();
+        } catch (error) { goster('Hata: ' + error.message, 'error'); }
+        finally { setIslemdeId(null); }
     };
 
     const gorevCalistir = async (gorev_id) => {
@@ -165,8 +153,7 @@ export default function AjanlarMainContainer() {
         setIslemdeId('sil_' + id);
 
         try {
-            await supabase.from('b0_sistem_loglari').insert([{ tablo_adi: 'b1_ajan_gorevler', islem_tipi: 'SILME', kullanici_adi: kullanici?.label || 'Saha Yetkilisi', eski_veri: { durum: 'Silindi' } }]);
-            await supabase.from('b1_ajan_gorevler').delete().eq('id', id);
+            await ajanGorevSil(id, kullanici?.label || 'Saha Yetkilisi');
             setGorevler(p => p.filter(g => g.id !== id));
             if (secilenGorev?.id === id) setSecilenGorev(null);
             goster('Görev silindi!');

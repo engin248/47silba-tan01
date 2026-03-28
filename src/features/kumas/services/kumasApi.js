@@ -6,19 +6,34 @@ import { supabase } from '@/lib/supabase';
 import { telegramBildirim } from '@/lib/utils';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
+import { idb } from '@/lib/idbKalkan';
+
 // ─── OKUMA ────────────────────────────────────────────────────────
 export async function kumaslariGetir() {
-    const [kumasRes, tedarikciRes] = await Promise.allSettled([
-        supabase.from('b1_kumas_arsivi')
-            .select('*, b2_tedarikciler(firma_adi)')
-            .order('created_at', { ascending: false }).limit(200),
-        supabase.from('b2_tedarikciler')
-            .select('id, firma_adi').eq('aktif_mi', true).order('firma_adi'),
-    ]);
-    return {
-        kumaslar: kumasRes.status === 'fulfilled' ? (kumasRes.value.data || []).filter(k => k.aktif !== false) : [],
-        tedarikciler: tedarikciRes.status === 'fulfilled' ? (tedarikciRes.value.data || []) : [],
+    const localZirh = await idb.getAllWithLimit('m11_kumas', 1, 0);
+
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_kumas_arsivi').select('*, b2_tedarikciler(firma_adi)').order('created_at', { ascending: false }).limit(200),
+                supabase.from('b2_tedarikciler').select('id, firma_adi').eq('aktif_mi', true).order('firma_adi')
+            ]), new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (e) { return { kumaslar: [], tedarikciler: [] }; }
+
+        const kumasRes = results[0];
+        const tedarikciRes = results[1];
+
+        const kumaslar = kumasRes?.status === 'fulfilled' ? (kumasRes.value.data || []).filter(k => k.aktif !== false) : [];
+        const tedarikciler = tedarikciRes?.status === 'fulfilled' ? (tedarikciRes.value.data || []) : [];
+
+        const paket = { id: 'kumas_veri_zirhi', kumaslar, tedarikciler };
+        if (kumaslar.length > 0) await idb.bulkUpsert('m11_kumas', [paket]);
+        return paket;
     };
+
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh[0];
 }
 
 export async function aksesuarlariGetir() {

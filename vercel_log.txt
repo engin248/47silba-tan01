@@ -1,0 +1,8 @@
+WARNING! Build not running on Vercel. System environment variables will not be available.
+WARNING: You should not upload the `.next` directory.
+Running "install" command: `npm install --legacy-peer-deps`...
+
+up to date in 684ms
+Detected Next.js version: 15.5.14
+Running "npm run build"
+Error: spawn cmd.exe ENOENT

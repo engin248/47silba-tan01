@@ -5,25 +5,35 @@
  */
 import { supabase } from '@/lib/supabase';
 
-// KN-4: Bölgesel Satış Analizi
-export async function bolgeselSatisGetir() {
-    const { data, error } = await supabase
-        .from('b2_siparisler')
-        .select('kanal,toplam_tutar_tl,created_at,durum')
-        .neq('durum', 'iptal')
-        .order('created_at', { ascending: false })
-        .limit(500);
-    if (error) throw error;
+import { idb } from '@/lib/idbKalkan';
 
-    // Kanal bazlı gruplama
-    const kanalMap = {};
-    (data || []).forEach(s => {
-        const k = s.kanal || 'diger';
-        if (!kanalMap[k]) kanalMap[k] = { kanal: k, toplam: 0, adet: 0 };
-        kanalMap[k].toplam += parseFloat(s.toplam_tutar_tl || 0);
-        kanalMap[k].adet += 1;
-    });
-    return Object.values(kanalMap).sort((a, b) => b.toplam - a.toplam);
+export async function bolgeselSatisGetir() {
+    const defaultData = await idb.getAllWithLimit('m_raporlar', 1, 0);
+
+    const otonomSync = async () => {
+        let results;
+        try {
+            results = await Promise.race([
+                supabase.from('b2_siparisler').select('kanal,toplam_tutar_tl,created_at,durum').neq('durum', 'iptal').order('created_at', { ascending: false }).limit(500),
+                new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))
+            ]);
+        } catch (e) { return []; }
+
+        const data = results?.data || [];
+        const kanalMap = {};
+        data.forEach(s => {
+            const k = s.kanal || 'diger';
+            if (!kanalMap[k]) kanalMap[k] = { kanal: k, toplam: 0, adet: 0 };
+            kanalMap[k].toplam += parseFloat(s.toplam_tutar_tl || 0);
+            kanalMap[k].adet += 1;
+        });
+        const ans = Object.values(kanalMap).sort((a, b) => b.toplam - a.toplam);
+        if (ans.length > 0) await idb.bulkUpsert('m_raporlar', [{ id: 'rapor_bolgesel', data: ans }]);
+        return ans;
+    };
+
+    if (!defaultData || defaultData.length === 0) return await otonomSync();
+    otonomSync(); return defaultData[0].data || [];
 }
 
 // Haftalık sipariş trendi (son 8 hafta) — LineChart için

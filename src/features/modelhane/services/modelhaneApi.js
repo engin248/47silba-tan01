@@ -1,22 +1,39 @@
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
-export async function modelleriGetir() {
-    const { data: modeller, error } = await supabase
-        .from('b1_model_taslaklari')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-    if (error) throw error;
+import { idb } from '@/lib/idbKalkan';
 
-    const { data: kaliplar, error: kalErr } = await supabase
-        .from('b1_model_kaliplari')
-        .select('id, kalip_adi, bedenler, b1_model_taslaklari(model_kodu, model_adi, durum)')
-        .order('created_at', { ascending: false })
-        .limit(50);
-    if (kalErr) throw kalErr;
+export async function modelleriGetir(timeoutPromise) {
+    const localZirh = await idb.getAllWithLimit('m4_modelhane', 1, 0);
 
-    return { modeller: modeller || [], kaliplar: kaliplar || [] };
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_model_taslaklari').select('*').order('created_at', { ascending: false }).limit(200),
+                supabase.from('b1_model_kaliplari').select('id, kalip_adi, bedenler, b1_model_taslaklari(model_kodu, model_adi, durum)').order('created_at', { ascending: false }).limit(50)
+            ]), timeoutPromise || new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (error) {
+            console.error('[KÖR NOKTA ZIRHI - Modelhane] timeout:', error);
+            return { modeller: [], kaliplar: [] };
+        }
+
+        const [modellerRes, kaliplarRes] = results;
+        const modeller = modellerRes?.status === 'fulfilled' ? modellerRes.value.data || [] : [];
+        const kaliplar = kaliplarRes?.status === 'fulfilled' ? kaliplarRes.value.data || [] : [];
+
+        const paket = { id: 'modelhane_veri_zirhi', modeller, kaliplar };
+        if (modeller.length > 0) await idb.bulkUpsert('m4_modelhane', [paket]);
+
+        return paket;
+    };
+
+    if (!localZirh || localZirh.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync(); // Arkada asenkron bırak
+        return localZirh[0];
+    }
 }
 
 export async function modelEkle(payload) {

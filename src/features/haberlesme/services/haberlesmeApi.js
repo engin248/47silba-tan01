@@ -8,37 +8,53 @@ export const fetchModeller = async () => {
     return data || [];
 };
 
+import { idb } from '@/lib/idbKalkan';
+
 export const fetchMesajlar = async (sekme, kullaniciModul, kullaniciAdi, tamArsivYetkisi) => {
-    const URETIM_BIRIMLERI = ['uretim', 'kesim', 'kalip', 'arge', 'modelhane', 'tasarim'];
-    const uretimBirimiMi = (modul) => URETIM_BIRIMLERI.includes(modul);
+    const localZirh = await idb.getAllWithLimit('m_haberlesme', 1, 0);
 
-    let query = supabase
-        .from('b1_ic_mesajlar')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
+    const otonomSync = async () => {
+        const URETIM_BIRIMLERI = ['uretim', 'kesim', 'kalip', 'arge', 'modelhane', 'tasarim'];
+        const uretimBirimiMi = (modul) => URETIM_BIRIMLERI.includes(modul);
 
-    if (sekme === 'gelen') {
-        const temelFiltre = `alici_grup.eq.${kullaniciModul},alici_grup.eq.hepsi`;
-        if (uretimBirimiMi(kullaniciModul)) query = query.or(`${temelFiltre},urun_id.not.is.null`);
-        else query = query.or(temelFiltre);
-    } else if (sekme === 'gonderilen') {
-        query = query.eq('gonderen_modul', kullaniciModul);
-        if (kullaniciAdi !== 'Bilinmeyen') query = query.eq('gonderen_adi', kullaniciAdi);
-    } else if (sekme === 'arsiv') {
-        if (tamArsivYetkisi) { }
-        else if (uretimBirimiMi(kullaniciModul)) {
-            query = query.or(`gonderen_modul.eq.${kullaniciModul},alici_grup.eq.${kullaniciModul},urun_id.not.is.null`);
-        } else {
-            query = query.or(`gonderen_modul.eq.${kullaniciModul},alici_grup.eq.${kullaniciModul}`);
+        let query = supabase.from('b1_ic_mesajlar').select('*').order('created_at', { ascending: false }).limit(200);
+
+        if (sekme === 'gelen') {
+            const temelFiltre = `alici_grup.eq.${kullaniciModul},alici_grup.eq.hepsi`;
+            if (uretimBirimiMi(kullaniciModul)) query = query.or(`${temelFiltre},urun_id.not.is.null`);
+            else query = query.or(temelFiltre);
+        } else if (sekme === 'gonderilen') {
+            query = query.eq('gonderen_modul', kullaniciModul);
+            if (kullaniciAdi !== 'Bilinmeyen') query = query.eq('gonderen_adi', kullaniciAdi);
+        } else if (sekme === 'arsiv') {
+            if (tamArsivYetkisi) { }
+            else if (uretimBirimiMi(kullaniciModul)) {
+                query = query.or(`gonderen_modul.eq.${kullaniciModul},alici_grup.eq.${kullaniciModul},urun_id.not.is.null`);
+            } else {
+                query = query.or(`gonderen_modul.eq.${kullaniciModul},alici_grup.eq.${kullaniciModul}`);
+            }
+        } else if (sekme === 'cop') {
+            query = query.eq('copte', true);
         }
-    } else if (sekme === 'cop') {
-        query = query.eq('copte', true);
-    }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000));
+        let results;
+        try {
+            results = await Promise.race([query, timeout]);
+        } catch (e) { return []; }
+
+        const data = results?.data || [];
+        const paketId = `haberlesme_${sekme}_${kullaniciModul}`;
+        if (data.length > 0) await idb.bulkUpsert('m_haberlesme', [{ id: paketId, veri: data }]);
+        return data;
+    };
+
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+
+    // Spesifik cache bulma statik arama
+    const cacheLine = localZirh.find(z => z.id === `haberlesme_${sekme}_${kullaniciModul}`);
+    otonomSync();
+    return cacheLine ? cacheLine.veri : [];
 };
 
 export const markMesajOkundu = async (id) => {

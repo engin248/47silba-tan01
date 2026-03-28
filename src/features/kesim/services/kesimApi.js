@@ -1,18 +1,43 @@
 import { supabase } from '@/lib/supabase';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { idb } from '@/lib/idbKalkan';
 
-export async function kesimVerileriniGetir() {
-    const p1 = supabase.from('b1_kesim_operasyonlari').select('*, b1_model_taslaklari(model_kodu, model_adi)').order('created_at', { ascending: false }).limit(200);
-    const p2 = supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi').eq('durum', 'uretime_hazir').limit(500);
-    const p3 = supabase.from('b1_kumas_arsivi').select('id, kumas_kodu, renk_tanimi').limit(200);
+export async function kesimVerileriniGetir(timeoutPromise) {
+    const localZirh = await idb.getAllWithLimit('m3_kesim', 1, 0);
 
-    const [kesimRes, modelRes, kumasRes] = await Promise.allSettled([p1, p2, p3]);
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            const p1 = supabase.from('b1_kesim_operasyonlari').select('*, b1_model_taslaklari(model_kodu, model_adi)').order('created_at', { ascending: false }).limit(200);
+            const p2 = supabase.from('b1_model_taslaklari').select('id, model_kodu, model_adi').eq('durum', 'uretime_hazir').limit(500);
+            const p3 = supabase.from('b1_kumas_arsivi').select('id, kumas_kodu, renk_tanimi').limit(200);
 
-    return {
-        kesimler: kesimRes.status === 'fulfilled' ? (kesimRes.value.data || []) : [],
-        modeller: modelRes.status === 'fulfilled' ? (modelRes.value.data || []) : [],
-        kumaslar: kumasRes.status === 'fulfilled' ? (kumasRes.value.data || []) : [],
+            results = await Promise.race([Promise.allSettled([p1, p2, p3]), timeoutPromise || new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (error) {
+            console.error('[KÖR NOKTA ZIRHI - Kesim] timeout:', error);
+            return { kesimler: [], modeller: [], kumaslar: [] };
+        }
+
+        const [kesimRes, modelRes, kumasRes] = results;
+        const kesimler = kesimRes?.status === 'fulfilled' ? (kesimRes.value.data || []) : [];
+        const modeller = modelRes?.status === 'fulfilled' ? (modelRes.value.data || []) : [];
+        const kumaslar = kumasRes?.status === 'fulfilled' ? (kumasRes.value.data || []) : [];
+
+        const paket = { id: 'kesim_veri_zirhi', kesimler, modeller, kumaslar };
+        // Yalnızca anlamlı veri varsa kaydet
+        if (kesimler.length > 0 || modeller.length > 0) {
+            await idb.bulkUpsert('m3_kesim', [paket]);
+        }
+
+        return paket;
     };
+
+    if (!localZirh || localZirh.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync(); // Arkada asenkron bırak
+        return localZirh[0];
+    }
 }
 
 export async function kesimKaydet(payload, duzenleId) {

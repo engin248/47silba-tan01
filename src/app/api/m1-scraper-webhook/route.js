@@ -16,19 +16,31 @@ export async function POST(req) {
         const kaynakLink = rawData.kaynakLink || rawData.url || 'bilinmiyor';
 
         // --------------------------------------------------------------------------
-        // ADIM 1: "GEREKSİZ VERİYİ DİĞER VERİTABANINA AT" (Data Lake Arch)
-        // Karargahı kirletmeden, AI Token parası yemeden ham veriyi Supabase "b1_raw_data_lake" çöplüğüne bırak.
+        // ADIM 1: "GEREKSİZ VERİYİ DİĞER (DIŞ) FİRMANIN VERİTABANINA AT" (Upstash Redis)
+        // Karargahı (Supabase'i) kirletmeden ham veriyi Upstash Redis çöplüğüne bırak.
         // --------------------------------------------------------------------------
         try {
-            await supabaseAdmin.from('b1_raw_data_lake').insert([{
-                kaynak_platform: platformAd,
-                kaynak_url: kaynakLink,
-                ham_json: rawData, // Tüm gereksiz, ağır HTML/Metadata buraya akar, Gemini'ye GİTMEZ.
-                islenme_durumu: 'bekliyor'
-            }]);
+            const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+            const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+            if (UPSTASH_URL && UPSTASH_TOKEN) {
+                // Supabase'in yükünü alıp veriyi Redis "raw_data_lake" listesine atıyoruz
+                await fetch(`${UPSTASH_URL}/lpush/raw_data_lake`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
+                    body: JSON.stringify({
+                        kaynak_platform: platformAd,
+                        kaynak_url: kaynakLink,
+                        ham_json: rawData,
+                        islenme_durumu: 'bekliyor',
+                        zaman: new Date().toISOString()
+                    })
+                });
+            } else {
+                console.warn("Upstash Redis bilgileri eksik, çöp veri atıldı.");
+            }
         } catch (lakeErr) {
-            console.warn("b1_raw_data_lake tablosu eksik veya bağlantı hatası, atlandı.", lakeErr.message);
-            // Tablo devrede değilse bile akış durmaz, hata yutulur (Zırh)
+            console.warn("Dış Veritabanı (Upstash) bağlantı hatası, atlandı.", lakeErr.message);
         }
 
         // --------------------------------------------------------------------------
@@ -42,7 +54,7 @@ export async function POST(req) {
         const motorSonucu = M1GelistirilmisTrendMotoru.trendiKoklaVeriEle({
             sadelestirilmisMetin: ucuzaMalEdilmisVeri, // Asıl devrim bu satır. AI sadece saf text okuyacak
             baslik: rawData.urunBasligi || 'Bilinmeyen'
-        });
+        }, null, {});
 
         // --------------------------------------------------------------------------
         // ADIM 3: "GEREKLİ BİLGİYİ ALACAK" (Eleme)

@@ -5,16 +5,33 @@
 import { supabase } from '@/lib/supabase';
 import { telegramBildirim } from '@/lib/utils';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { idb } from '@/lib/idbKalkan';
 
-export async function imalatEmirleriGetir() {
-    const [emirRes, modelRes] = await Promise.allSettled([
-        supabase.from('b1_imalat_emirleri').select('*, b1_model_taslaklari:model_id(model_kodu,model_adi)').order('created_at', { ascending: false }).limit(200),
-        supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').eq('durum', 'onaylandi').order('model_kodu'),
-    ]);
-    return {
-        emirler: emirRes.status === 'fulfilled' ? emirRes.value.data || [] : [],
-        modeller: modelRes.status === 'fulfilled' ? modelRes.value.data || [] : [],
+export async function imalatEmirleriGetir(timeoutPromise) {
+    const localZirh = await idb.getAllWithLimit('m5_imalat', 1, 0);
+
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_imalat_emirleri').select('*, b1_model_taslaklari:model_id(model_kodu,model_adi)').order('created_at', { ascending: false }).limit(200),
+                supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').eq('durum', 'onaylandi').order('model_kodu')
+            ]), timeoutPromise || new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (e) { return { emirler: [], modeller: [] }; }
+
+        const emirRes = results[0];
+        const modelRes = results[1];
+
+        const emirler = emirRes?.status === 'fulfilled' ? emirRes.value.data || [] : [];
+        const modeller = modelRes?.status === 'fulfilled' ? modelRes.value.data || [] : [];
+
+        const paket = { id: 'imalat_veri_zirhi', emirler, modeller };
+        if (emirler.length > 0) await idb.bulkUpsert('m5_imalat', [paket]);
+        return paket;
     };
+
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh[0];
 }
 
 export async function imalatEmriKaydet(payload) {

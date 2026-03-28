@@ -1,15 +1,34 @@
 import { supabase } from '@/lib/supabase';
 
-export const fetchDenetmenHaberleri = async () => {
-    const [uyariSonuc, logSonuc] = await Promise.allSettled([
-        supabase.from('b1_sistem_uyarilari').select('*').eq('durum', 'aktif').order('olusturma', { ascending: false }).limit(100),
-        supabase.from('b1_agent_loglari').select('*').order('created_at', { ascending: false }).limit(20)
-    ]);
+import { idb } from '@/lib/idbKalkan';
 
-    return {
-        uyarilar: uyariSonuc.status === 'fulfilled' && uyariSonuc.value.data ? uyariSonuc.value.data : [],
-        loglar: logSonuc.status === 'fulfilled' && logSonuc.value.data ? logSonuc.value.data : []
+export const fetchDenetmenHaberleri = async () => {
+    const localZirh = await idb.getAllWithLimit('m_denetmen', 1, 0);
+
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_sistem_uyarilari').select('*').eq('durum', 'aktif').order('olusturma', { ascending: false }).limit(100),
+                supabase.from('b1_agent_loglari').select('*').order('created_at', { ascending: false }).limit(20)
+            ]), new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (e) { return { uyarilar: [], loglar: [] }; }
+
+        const uyariSonuc = results[0];
+        const logSonuc = results[1];
+
+        const uyarilar = uyariSonuc?.status === 'fulfilled' && uyariSonuc.value.data ? uyariSonuc.value.data : [];
+        const loglar = logSonuc?.status === 'fulfilled' && logSonuc.value.data ? logSonuc.value.data : [];
+
+        const paket = { id: 'denetmen_veri_zirhi', uyarilar, loglar };
+        if (uyarilar.length > 0 || loglar.length > 0) {
+            await idb.bulkUpsert('m_denetmen', [paket]);
+        }
+        return paket;
     };
+
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh[0];
 };
 
 export const runOtoTarama = async () => {

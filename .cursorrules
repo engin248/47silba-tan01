@@ -208,4 +208,13 @@ Her cevap şu kalite filtresinden geçirilir.
 
 ---
 
+## 17. İŞLEM ADIMLARI VE KESİN UYGULAMA (PARÇALA - TİKLE - BİTİR V2)
+
+1. Kullanıcıdan gelen komut alınacak, içinde kaç adet eylem/talimat olduğu deşifre edilip not alınacaktır.
+2. Görevler alt parçalara bölünecek, her bir adım fiziksel olarak uygulanıp test edildikten ve %100 kod seviyesinde doğrulandıktan sonra karşısına "✅" (tik) işareti konulacaktır.
+3. Listelenen alt görevlerin TAMI bitmeden ve doğrulanmadan asla "Bitti", "Tamamlandı" veya "Doğruladım" şeklinde bir yanıt oluşturulmayacaktır.
+4. Aceleci, varsayıma dayalı, yüzeysel veya eksik (Sadece klasör taşıyıp kodu sökmemek vb.) kararlar SIFIR-TOLERANS kuralıyla reddedilecektir.
+
+---
+
 END OF FILE

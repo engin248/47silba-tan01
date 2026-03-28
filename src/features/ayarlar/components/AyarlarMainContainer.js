@@ -7,6 +7,7 @@ import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/context/langContext';
 import { silmeYetkiDogrula } from '@/lib/silmeYetkiDogrula';
+import { sistemAyarGetir, sistemAyarKaydet } from '../services/ayarlarApi';
 
 const VARSAYILAN = {
     teknik_foy_zorunlu: true,
@@ -43,28 +44,21 @@ export default function AyarlarMainContainer() {
         setYetkiliMi(erisebilir);
 
         if (erisebilir) {
-            // SİSTEM OPTİMİZASYONU: Realtime Websocket (Kriter 20 & 34)
             const kanal = supabase.channel('ayarlar-gercek-zamanli')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'b1_sistem_ayarlari' }, () => { yukle(); })
                 .subscribe();
 
             yukle();
-
             return () => { supabase.removeChannel(kanal); };
         }
     }, [kullanici]);
-
-    // telegramBildirim → @/lib/utils'den import ediliyor (yerel tanım kaldırıldı)
 
     const goster = (text, type = 'success') => { setMesaj({ text, type }); setTimeout(() => setMesaj({ text: '', type: '' }), 5000); };
 
     const yukle = async () => {
         try {
-            const { data, error } = await supabase.from('b1_sistem_ayarlari').select('*').limit(1).maybeSingle();
-            if (error) throw error;
-            if (data?.deger) {
-                try { setAyarlar({ ...VARSAYILAN, ...JSON.parse(data.deger) }); } catch { }
-            }
+            const ayar = await sistemAyarGetir(VARSAYILAN);
+            setAyarlar(ayar);
         } catch (error) { goster('Ayarlar yüklenemedi: ' + error.message, 'error'); }
     };
 
@@ -82,28 +76,14 @@ export default function AyarlarMainContainer() {
 
         setLoading(true);
         try {
-            const deger = JSON.stringify(ayarlar);
-            const { data: mevcut, error: eqErr } = await supabase.from('b1_sistem_ayarlari').select('id').limit(1).maybeSingle();
-            if (eqErr) throw eqErr;
-
-            let error;
-            if (mevcut) {
-                ({ error } = await supabase.from('b1_sistem_ayarlari').update({ deger, updated_at: new Date().toISOString() }).eq('id', mevcut.id));
+            const result = await sistemAyarKaydet(ayarlar);
+            if (result?.offline) {
+                goster('İnternet Yok: Zırh Korundu, çevrimdışı kuyruğa alındı.', 'success');
             } else {
-                ({ error } = await supabase.from('b1_sistem_ayarlari').insert([{ anahtar: 'sistem_genel', deger }]));
+                goster('✅ Ayarlar kaydedildi.');
             }
-            if (error) throw error;
-
-            goster('✅ Ayarlar kaydedildi.');
-            telegramBildirim(`⚙️ SİSTEM AYARLARI GÜNCELLENDİ\nPrim: %${(ayarlar.prim_orani * 100).toFixed(0)}\nDk Mlyt: ₺${ayarlar.dakika_basi_ucret}\nSistem parametreleri yönetici tarafından değiştirildi.`);
         } catch (error) {
-            // SİSTEM OPTİMİZASYONU: Offline guard (Kriter J)
-            if (!navigator.onLine || error.message?.includes('fetch')) {
-                await cevrimeKuyrugaAl({ tablo: 'b1_sistem_ayarlari', islem_tipi: 'UPSERT', veri: { anahtar: 'sistem_genel', deger: JSON.stringify(ayarlar) } });
-                goster('İnternet Yok: Ayarlar çevrimdışı kuyruğa alındı.', 'success');
-            } else {
-                goster('Hata: ' + error.message, 'error');
-            }
+            goster('Hata: ' + error.message, 'error');
         }
         setLoading(false);
     };

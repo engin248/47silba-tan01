@@ -6,23 +6,47 @@ import { supabase } from '@/lib/supabase';
 import { telegramBildirim } from '@/lib/utils';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 
+import { idb } from '@/lib/idbKalkan';
+
 // ─── OKUMA ────────────────────────────────────────────────────────
 export async function personelleriGetir() {
-    const timeout = new Promise((_, r) => setTimeout(() => r(new Error('Zaman aşımı (10sn)')), 10000));
-    const { data, error } = await Promise.race([
-        supabase.from('b1_personel').select('*').order('created_at', { ascending: false }).limit(200),
-        timeout,
-    ]);
-    if (error) throw error;
-    return data || [];
+    const localZirh = await idb.getAllWithLimit('m12_personel', 200, 0);
+    const otonomSync = async () => {
+        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000));
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_personel').select('*').order('created_at', { ascending: false }).limit(200)
+            ]), timeout]);
+        } catch (e) { return { data: null }; }
+
+        const data = results[0]?.status === 'fulfilled' ? results[0].value.data || [] : [];
+        if (data.length > 0) await idb.bulkUpsert('m12_personel', data);
+        return data;
+    };
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh;
 }
 
 export async function devamlarGetir() {
-    const { data, error } = await supabase.from('b1_personel_devam')
-        .select('*, b1_personel:personel_id(ad_soyad,personel_kodu,rol)')
-        .order('tarih', { ascending: false }).limit(100);
-    if (error) throw error;
-    return data || [];
+    const localZirh = await idb.getAllWithLimit('m12_devam', 100, 0);
+    const otonomSync = async () => {
+        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000));
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_personel_devam')
+                    .select('*, b1_personel:personel_id(ad_soyad,personel_kodu,rol)')
+                    .order('tarih', { ascending: false }).limit(100)
+            ]), timeout]);
+        } catch (e) { return { data: null }; }
+
+        const data = results[0]?.status === 'fulfilled' ? results[0].value.data || [] : [];
+        if (data.length > 0) await idb.bulkUpsert('m12_devam', data);
+        return data;
+    };
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh;
 }
 
 export async function sistemAyarlariGetir() {

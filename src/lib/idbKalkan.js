@@ -17,7 +17,24 @@ const STORES = {
     m2_musteri: 'id, musteri_kodu, musteri_tipi',
     m10_katalog: 'id, urun_kodu, kategori_id, durum',
     m13_maliyet: 'id, order_id, on_gecis',
-    m14_muhasebe: 'id, rapor_durumu, evrak_no'
+    m14_muhasebe: 'id, rapor_durumu, evrak_no',
+    m0_karargah: 'id',
+    m1_ajanlar: 'id, durum, gorev_tipi',
+    m2_arge: 'id',
+    m3_kesim: 'id',
+    m3_kalip: 'id',
+    m4_modelhane: 'id',
+    m5_imalat: 'id',
+    m11_kumas: 'id',
+    m12_personel: 'id',
+    m12_devam: 'id',
+    m15_gorevler: 'id',
+    m_ayarlar: 'id',
+    m_denetmen: 'id',
+    m_guvenlik: 'id',
+    m_haberlesme: 'id',
+    m_raporlar: 'id',
+    m_tasarim: 'id'
 };
 
 class LocalDBKalkan {

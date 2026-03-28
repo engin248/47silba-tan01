@@ -1,90 +1,59 @@
-/**
- * features/ayarlar/services/ayarlarApi.js
- *
- * Tüm Supabase sorguları tek yer.
- * Tablo: b1_sistem_ayarlari (JSON blob pattern)
- */
 import { supabase } from '@/lib/supabase';
+import { idb } from '@/lib/idbKalkan';
 import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
+import { telegramBildirim } from '@/lib/utils';
 
-const TABLO = 'b1_sistem_ayarlari';
-const ANAHTAR = 'sistem_genel';
+export async function sistemAyarGetir(varsayilan) {
+    const localZirh = await idb.getAllWithLimit('m_ayarlar', 1, 0);
 
-// ─── OKUMA ───────────────────────────────────────────────────────
-/**
- * Sistem ayarlarını getir
- * @returns {Promise<object|null>}
- */
-export async function ayarlariGetir() {
-    const { data, error } = await supabase
-        .from(TABLO)
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-    if (error) throw error;
-    if (!data?.deger) return null;
-    try { return JSON.parse(data.deger); } catch { return null; }
+    const otonomSync = async () => {
+        let results;
+        try {
+            results = await Promise.race([
+                supabase.from('b1_sistem_ayarlari').select('*').limit(1).maybeSingle(),
+                new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))
+            ]);
+        } catch (e) { return varsayilan; }
+
+        if (results?.data?.deger) {
+            try {
+                const prs = JSON.parse(results.data.deger);
+                const paket = { id: 'ayarlar_veri_zirhi', veri: { ...varsayilan, ...prs } };
+                await idb.bulkUpsert('m_ayarlar', [paket]);
+                return paket.veri;
+            } catch (e) { return varsayilan; }
+        }
+        return varsayilan;
+    };
+
+    if (!localZirh || localZirh.length === 0) {
+        return await otonomSync();
+    } else {
+        otonomSync();
+        return localZirh[0].veri || varsayilan;
+    }
 }
 
-// ─── YAZMA ───────────────────────────────────────────────────────
-/**
- * Sistem ayarlarını kaydet (upsert)
- * @param {object} ayarlar - tüm ayarlar objesi
- * @returns {Promise<{ok: boolean, mesaj: string}>}
- */
-export async function ayarlariKaydet(ayarlar) {
+export async function sistemAyarKaydet(ayarlar) {
     const deger = JSON.stringify(ayarlar);
 
-    // Çevrimdışı
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        await cevrimeKuyrugaAl({ tablo: TABLO, islem_tipi: 'UPSERT', veri: { anahtar: ANAHTAR, deger } });
-        return { ok: true, mesaj: '✅ İnternet yok: Ayarlar kuyruğa alındı.' };
+    if (!navigator.onLine) {
+        await cevrimeKuyrugaAl('b1_sistem_ayarlari', 'UPSERT', { anahtar: 'sistem_genel', deger });
+        return { offline: true };
     }
 
-    const { data: mevcut, error: readErr } = await supabase.from(TABLO).select('id').limit(1).maybeSingle();
-    if (readErr) return { ok: false, mesaj: 'Okuma hatası: ' + readErr.message };
+    const { data: mevcut, error: eqErr } = await supabase.from('b1_sistem_ayarlari').select('id').limit(1).maybeSingle();
+    if (eqErr) throw eqErr;
 
-    const { error } = mevcut
-        ? await supabase.from(TABLO).update({ deger, updated_at: new Date().toISOString() }).eq('id', mevcut.id)
-        : await supabase.from(TABLO).insert([{ anahtar: ANAHTAR, deger }]);
-
-    if (error) return { ok: false, mesaj: 'Kayıt hatası: ' + error.message };
-    return { ok: true, mesaj: '✅ Ayarlar kaydedildi.' };
-}
-
-/**
- * Logo dosyası Supabase Storage'a yükle
- * @param {File} dosya
- * @param {string} firmaAdi
- * @returns {Promise<{ok: boolean, url?: string, mesaj: string}>}
- */
-export async function logoYukle(dosya, firmaAdi = 'firma') {
-    if (!dosya) return { ok: false, mesaj: 'Dosya seçilmedi.' };
-    if (dosya.size > 2 * 1024 * 1024) return { ok: false, mesaj: 'Logo 2MB altında olmalı.' };
-    if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(dosya.type)) {
-        return { ok: false, mesaj: 'Sadece PNG, JPG, WebP veya SVG.' };
+    let error;
+    if (mevcut) {
+        ({ error } = await supabase.from('b1_sistem_ayarlari').update({ deger, updated_at: new Date().toISOString() }).eq('id', mevcut.id));
+    } else {
+        ({ error } = await supabase.from('b1_sistem_ayarlari').insert([{ anahtar: 'sistem_genel', deger }]));
     }
 
-    const uzanti = dosya.name.split('.').pop();
-    const dosyaYolu = `logos/${firmaAdi.toLowerCase().replace(/\s/g, '_')}_${Date.now()}.${uzanti}`;
+    if (error) throw error;
 
-    const { error } = await supabase.storage.from('ayarlar').upload(dosyaYolu, dosya, {
-        cacheControl: '3600',
-        upsert: true,
-    });
-    if (error) return { ok: false, mesaj: 'Yükleme hatası: ' + error.message };
-
-    const { data: urlData } = supabase.storage.from('ayarlar').getPublicUrl(dosyaYolu);
-    return { ok: true, url: urlData.publicUrl, mesaj: '✅ Logo yüklendi.' };
-}
-
-/**
- * Realtime kanal kur
- * @param {Function} onChange
- * @returns kanal (cleanup için)
- */
-export function ayarlarKanaliKur(onChange) {
-    return supabase.channel('ayarlar-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: TABLO }, onChange)
-        .subscribe();
+    telegramBildirim(`⚙️ SİSTEM AYARLARI GÜNCELLENDİ\nPrim: %${(ayarlar.prim_orani * 100).toFixed(0)}\nDk Mlyt: ₺${ayarlar.dakika_basi_ucret}\nSistem parametreleri yönetici tarafından değiştirildi.`);
+    return { offline: false };
 }

@@ -15,18 +15,33 @@ export async function modellerVeTrendleriGetir() {
     };
 }
 
-export async function kaliplarVeModelleriGetir() {
-    const [kaliplarRes, modellerRes] = await Promise.all([
-        supabase.from('b1_model_kaliplari').select('*, b1_model_taslaklari(model_adi,model_kodu)').order('created_at', { ascending: false }).limit(200),
-        supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
-    ]);
-    if (kaliplarRes.error) throw kaliplarRes.error;
-    if (modellerRes.error) throw modellerRes.error;
+import { idb } from '@/lib/idbKalkan';
 
-    return {
-        kaliplar: kaliplarRes.data || [],
-        modeller: modellerRes.data || []
+export async function kaliplarVeModelleriGetir() {
+    const localZirh = await idb.getAllWithLimit('m3_kalip', 1, 0);
+
+    const otonomSync = async () => {
+        let results = [];
+        try {
+            results = await Promise.race([Promise.allSettled([
+                supabase.from('b1_model_kaliplari').select('*, b1_model_taslaklari(model_adi,model_kodu)').order('created_at', { ascending: false }).limit(200),
+                supabase.from('b1_model_taslaklari').select('id,model_kodu,model_adi').limit(500)
+            ]), new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+        } catch (e) { return { kaliplar: [], modeller: [] }; }
+
+        const kaliplarRes = results[0];
+        const modellerRes = results[1];
+
+        const kaliplar = kaliplarRes?.status === 'fulfilled' ? kaliplarRes.value.data || [] : [];
+        const modeller = modellerRes?.status === 'fulfilled' ? modellerRes.value.data || [] : [];
+
+        const paket = { id: 'kalip_veri_zirhi', kaliplar, modeller };
+        if (kaliplar.length > 0) await idb.bulkUpsert('m3_kalip', [paket]);
+        return paket;
     };
+
+    if (!localZirh || localZirh.length === 0) return await otonomSync();
+    otonomSync(); return localZirh[0];
 }
 
 export async function modelTaslakKaydet(formModel) {
