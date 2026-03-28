@@ -296,7 +296,7 @@ export default function KatalogMainContainer() {
                 skuAcik={skuAcik} setSkuAcik={setSkuAcik} seciliUrun={seciliUrun} varyantStoklar={varyantStoklar} setVaryantStoklar={setVaryantStoklar}
                 skuBedenler={skuBedenler} setSkuBedenler={setSkuBedenler} skuRenkler={skuRenkler} setSkuRenkler={setSkuRenkler} varyantKaydet={varyantKaydet}
             />
-            <FiyatGecmisiModal acik={fiyatGecmisiniAcik} setAcik={setFiyatGecmisiAcik} seciliUrun={seciliUrun} fiyatGecmisi={fiyatGecmisi} />
+            <FiyatGecmisiModal acik={fiyatGecmisiAcik} setAcik={setFiyatGecmisiAcik} seciliUrun={seciliUrun} fiyatGecmisi={fiyatGecmisi} />
 
             <SilBastanModal acik={barkodAcik} onClose={() => setBarkodAcik(false)} title="Ürün Barkodu (Fiziksel Mağaza / Depo)">
                 <div className="flex flex-col items-center justify-center py-4 bg-white rounded">

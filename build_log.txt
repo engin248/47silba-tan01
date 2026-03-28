@@ -1,0 +1,493 @@
+
+> mizanet@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.5.14
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ÔÜá Compiled with warnings in 5.6s
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kalipApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kaliplariGetir' is not exported from '../services/kalipApi' (imported as 'kaliplariGetir').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipGuncelle' is not exported from '../services/kalipApi' (imported as 'kalipGuncelle').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipKaydet' is not exported from '../services/kalipApi' (imported as 'apiKaydet').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kalipApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipSil' is not exported from '../services/kalipApi' (imported as 'apiSil').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BEDENLER' is not exported from '../services/kalipApi' (imported as 'BEDENLER').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'BEDENLER' (reexported as 'BEDENLER') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'BOSH_FORM' (reexported as 'BOSH_FORM') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipGuncelle' (reexported as 'kalipGuncelle') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipKaydet' (reexported as 'kalipKaydet') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipSil' (reexported as 'kalipSil') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kaliplariGetir' (reexported as 'kaliplariGetir') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kesimApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimVeriGetir' is not exported from '../services/kesimApi' (imported as 'kesimVeriGetir').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimEmriKaydet' is not exported from '../services/kesimApi' (imported as 'apiKaydet').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kesimApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimDurumGuncelle' is not exported from '../services/kesimApi' (imported as 'kesimDurumGuncelle').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimSil' is not exported from '../services/kesimApi' (imported as 'apiSil').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'BOSH_FORM' (reexported as 'BOSH_FORM') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimDurumGuncelle' (reexported as 'kesimDurumGuncelle') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimEmriKaydet' (reexported as 'kesimEmriKaydet') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimSil' (reexported as 'kesimSil') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimVeriGetir' (reexported as 'kesimVeriGetir') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kalipApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kaliplariGetir' is not exported from '../services/kalipApi' (imported as 'kaliplariGetir').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipGuncelle' is not exported from '../services/kalipApi' (imported as 'kalipGuncelle').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipKaydet' is not exported from '../services/kalipApi' (imported as 'apiKaydet').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kalipApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'kalipSil' is not exported from '../services/kalipApi' (imported as 'apiSil').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/hooks/useKalip.js
+Attempted import error: 'BEDENLER' is not exported from '../services/kalipApi' (imported as 'BEDENLER').
+
+Import trace for requested module:
+./src/features/kalip/hooks/useKalip.js
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'BEDENLER' (reexported as 'BEDENLER') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'BOSH_FORM' (reexported as 'BOSH_FORM') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipGuncelle' (reexported as 'kalipGuncelle') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipKaydet' (reexported as 'kalipKaydet') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kalipSil' (reexported as 'kalipSil') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kalip/index.js
+export 'kaliplariGetir' (reexported as 'kaliplariGetir') was not found in './services/kalipApi' (possible exports: kalipKanaliKur, kalipPastalKaydet, kalipTabloElemaniSil, kaliplarVeModelleriGetir, modelTaslakKaydet, modellerVeTrendleriGetir)
+
+Import trace for requested module:
+./src/features/kalip/index.js
+./src/app/kalip/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kesimApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimVeriGetir' is not exported from '../services/kesimApi' (imported as 'kesimVeriGetir').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimEmriKaydet' is not exported from '../services/kesimApi' (imported as 'apiKaydet').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'BOSH_FORM' is not exported from '../services/kesimApi' (imported as 'BOSH_FORM').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimDurumGuncelle' is not exported from '../services/kesimApi' (imported as 'kesimDurumGuncelle').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/hooks/useKesim.js
+Attempted import error: 'kesimSil' is not exported from '../services/kesimApi' (imported as 'apiSil').
+
+Import trace for requested module:
+./src/features/kesim/hooks/useKesim.js
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'BOSH_FORM' (reexported as 'BOSH_FORM') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimDurumGuncelle' (reexported as 'kesimDurumGuncelle') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimEmriKaydet' (reexported as 'kesimEmriKaydet') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimSil' (reexported as 'kesimSil') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+./src/features/kesim/index.js
+export 'kesimVeriGetir' (reexported as 'kesimVeriGetir') was not found in './services/kesimApi' (possible exports: kesimDurumunuGuncelleVeStokDus, kesimKanaliKur, kesimKaydet, kesimSilVeArsivle, kesimVerileriniGetir, uretimIsEmriOlustur)
+
+Import trace for requested module:
+./src/features/kesim/index.js
+./src/app/kesim/page.js
+
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/96) ...
+   Generating static pages (24/96) 
+   Generating static pages (48/96) 
+   Generating static pages (72/96) 
+ Ô£ô Generating static pages (96/96)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+Ôöî Ôùï /                                    31.1 kB         187 kB
+Ôö£ Ôùï /_not-found                            277 B         102 kB
+Ôö£ Ôùï /ajanlar                             10.7 kB         165 kB
+Ôö£ ãÆ /api/2fa-dogrula                       277 B         102 kB
+Ôö£ ãÆ /api/2fa-kurulum                       277 B         102 kB
+Ôö£ ãÆ /api/agent/kasif                       277 B         102 kB
+Ôö£ ãÆ /api/ai-kahin-ajan                     277 B         102 kB
+Ôö£ ãÆ /api/ajan-calistir                     277 B         102 kB
+Ôö£ ãÆ /api/ajan-orkestrator                  277 B         102 kB
+Ôö£ ãÆ /api/ajan-tetikle                      277 B         102 kB
+Ôö£ ãÆ /api/ajan-yargic                       277 B         102 kB
+Ôö£ ãÆ /api/b2b-webhook-tetikle               277 B         102 kB
+Ôö£ ãÆ /api/batch-ai                          277 B         102 kB
+Ôö£ ãÆ /api/beyaz-saha                        277 B         102 kB
+Ôö£ ãÆ /api/camera-log                        277 B         102 kB
+Ôö£ ãÆ /api/cikis                             277 B         102 kB
+Ôö£ ãÆ /api/cron-ajanlar                      277 B         102 kB
+Ôö£ ãÆ /api/deepseek-analiz                   277 B         102 kB
+Ôö£ ãÆ /api/gorev-ekle                        277 B         102 kB
+Ôö£ ãÆ /api/haberlesme/gonder                 277 B         102 kB
+Ôö£ ãÆ /api/haberlesme/oku                    277 B         102 kB
+Ôö£ ãÆ /api/health                            277 B         102 kB
+Ôö£ ãÆ /api/is-emri-ekle                      277 B         102 kB
+Ôö£ ãÆ /api/kamera-sayac                      277 B         102 kB
+Ôö£ ãÆ /api/kasa-ozet                         277 B         102 kB
+Ôö£ ãÆ /api/kopru-ajan                        277 B         102 kB
+Ôö£ ãÆ /api/kumas-ekle                        277 B         102 kB
+Ôö£ ãÆ /api/kur                               277 B         102 kB
+Ôö£ ãÆ /api/kuyruk-motoru                     277 B         102 kB
+Ôö£ ãÆ /api/m1-motor-test                     277 B         102 kB
+Ôö£ ãÆ /api/m1-scraper-webhook                277 B         102 kB
+Ôö£ ãÆ /api/m4-vision                         277 B         102 kB
+Ôö£ ãÆ /api/model-hafizasi                    277 B         102 kB
+Ôö£ ãÆ /api/musteri-ekle                      277 B         102 kB
+Ôö£ ãÆ /api/perplexity-arama                  277 B         102 kB
+Ôö£ ãÆ /api/personel-ekle                     277 B         102 kB
+Ôö£ ãÆ /api/pin-dogrula                       277 B         102 kB
+Ôö£ ãÆ /api/rapor/atil-sermaye                277 B         102 kB
+Ôö£ ãÆ /api/rapor/darbogaz                    277 B         102 kB
+Ôö£ ãÆ /api/rapor/kor-nokta                   277 B         102 kB
+Ôö£ ãÆ /api/rapor/kumbaraci                   277 B         102 kB
+Ôö£ ãÆ /api/rapor/mevsimsel-muneccim          277 B         102 kB
+Ôö£ ãÆ /api/rapor/sabika-kaydi                277 B         102 kB
+Ôö£ ãÆ /api/rapor/sistem-hafizasi             277 B         102 kB
+Ôö£ ãÆ /api/rapor/yirtici-firsat              277 B         102 kB
+Ôö£ ãÆ /api/serp-trend                        277 B         102 kB
+Ôö£ ãÆ /api/siparis-ekle                      277 B         102 kB
+Ôö£ ãÆ /api/stok-alarm                        277 B         102 kB
+Ôö£ ãÆ /api/stok-hareket-ekle                 277 B         102 kB
+Ôö£ ãÆ /api/stream-durum                      277 B         102 kB
+Ôö£ ãÆ /api/stress-test                       277 B         102 kB
+Ôö£ ãÆ /api/telegram-bildirim                 277 B         102 kB
+Ôö£ ãÆ /api/telegram-foto                     277 B         102 kB
+Ôö£ ãÆ /api/telegram-webhook                  277 B         102 kB
+Ôö£ ãÆ /api/trend-ara                         277 B         102 kB
+Ôö£ ãÆ /api/trigger-agents                    277 B         102 kB
+Ôö£ ãÆ /api/uretim-senkronize                 277 B         102 kB
+Ôö£ ãÆ /api/veri-getir                        277 B         102 kB
+Ôö£ ãÆ /api/vision-ajan                       277 B         102 kB
+Ôö£ ãÆ /api/worker-ajan                       277 B         102 kB
+Ôö£ ãÆ /api/yargic-motor-test                 277 B         102 kB
+Ôö£ Ôùï /arge                                 109 kB         261 kB
+Ôö£ Ôùï /arge/karantina                      7.69 kB         164 kB
+Ôö£ Ôùï /ayarlar                             5.54 kB         160 kB
+Ôö£ Ôùï /denetmen                            8.75 kB         164 kB
+Ôö£ Ôùï /giris                               9.69 kB         112 kB
+Ôö£ Ôùï /gorevler                            6.13 kB         161 kB
+Ôö£ Ôùï /guvenlik                               7 kB         109 kB
+Ôö£ Ôùï /haberlesme                          14.1 kB         167 kB
+Ôö£ Ôùï /icon.png                                0 B            0 B
+Ôö£ Ôùï /imalat                              10.4 kB         165 kB
+Ôö£ Ôùï /kalip                               10.4 kB         169 kB
+Ôö£ Ôùï /kameralar                           9.31 kB         165 kB
+Ôö£ Ôùï /karargah                              277 B         102 kB
+Ôö£ Ôùï /karargah/telsiz                      1.6 kB         104 kB
+Ôö£ Ôùï /kasa                                6.11 kB         161 kB
+Ôö£ Ôùï /katalog                              126 kB         285 kB
+Ôö£ Ôùï /kesim                               11.8 kB         177 kB
+Ôö£ Ôùï /kumas                               10.5 kB         169 kB
+Ôö£ Ôùï /m1-istihbarat                       2.66 kB         155 kB
+Ôö£ Ôùï /m2-finans                             700 B         153 kB
+Ôö£ Ôùï /m3-tasarim                          2.23 kB         155 kB
+Ôö£ Ôùï /m4-lojistik                         1.55 kB         154 kB
+Ôö£ Ôùï /maliyet                             10.9 kB         173 kB
+Ôö£ Ôùï /modelhane                           8.87 kB         167 kB
+Ôö£ Ôùï /muhasebe                            8.88 kB         171 kB
+Ôö£ Ôùï /musteriler                          11.5 kB         170 kB
+Ôö£ Ôùï /odalar/albay                         1.6 kB         104 kB
+Ôö£ Ôùï /odalar/basmimar                      1.6 kB         104 kB
+Ôö£ Ôùï /odalar/mufettis                      1.6 kB         104 kB
+Ôö£ Ôùï /personel                            14.4 kB         173 kB
+Ôö£ Ôùï /raporlar                            7.11 kB         162 kB
+Ôö£ Ôùï /siparisler                          19.3 kB         180 kB
+Ôö£ Ôùï /sistem-raporu                       2.62 kB         105 kB
+Ôö£ Ôùï /stok                                11.2 kB         169 kB
+Ôö£ Ôùï /tasarim                             10.1 kB         163 kB
+Ôö£ Ôùï /uretim                              16.8 kB         178 kB
+Ôöö Ôùï /uretim-kiosk                        8.39 kB         161 kB
++ First Load JS shared by all             102 kB
+  Ôö£ chunks/1255-dfb5f8d642ae4426.js      45.7 kB
+  Ôö£ chunks/4bd1b696-100b9d70ed4e49c1.js  54.2 kB
+  Ôöö other shared chunks (total)           2.1 kB
+
+
+ãÆ Middleware                             34.9 kB
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

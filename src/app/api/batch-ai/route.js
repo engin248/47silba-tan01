@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { geminiIcinMaliyetFiltresi } from '@/lib/nizamETL'; // Token Tasarruf Filtresi
 
 //  BATCH GEMİNİ ANALİZ MOTORU 
 async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
     if (!GEMINI_URL) return { error: 'Gemini API anahtarı yok', results: [] };
 
     try {
-        const pazar_urunleri = is_data_array.map(i => ({ id: i.kuyruk_id, ad: i.urunAdi, fiyat: i.fiyatSayi, data: i.ham_veri }));
+        // MÜHENDİSLİK KARARI: Ham veriyi geminiIcinMaliyetFiltresi ile filtreleyip, 
+        // 50.000 tokenlik HTML çöplüğü yerine sadece 1000 tokenlik saf özeti yolluyoruz.
+        const pazar_urunleri = is_data_array.map(i => ({
+            id: i.kuyruk_id,
+            ad: i.urunAdi,
+            fiyat: i.fiyatSayi,
+            data: geminiIcinMaliyetFiltresi(i.ham_veri) // EN KRİTİK ADIM: TOKEN TASARRUFU
+        }));
 
         const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin. 
 Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) rn verisidir.

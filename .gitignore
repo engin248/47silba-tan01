@@ -109,3 +109,5 @@ test_cron_time.js
 test_db.js
 test_savas_simulasyonu.js
 test_trigger.js
+
+.vercel
