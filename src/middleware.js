@@ -72,7 +72,28 @@ export async function middleware(request) {
     // ─── [0] HONEYPOT: WordPress/bot tarama yollarını anında engelle ──
     const honeypotEslesti = HONEYPOT_YOLLARI.some(hp => url.startsWith(hp));
     if (honeypotEslesti) {
-        return new NextResponse(null, { status: 403 });
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'BILINMEYEN_KAYNAK';
+        return new NextResponse(
+            `[NIZAM SIBER KALKANI AKTIF]
+--------------------------------------------------
+UYARI: GOLGE ARAMA MOTORLARI TESPIT EDILDI
+HEDEF YOL: ${url}
+KAYNAK IP: ${ip}
+
+ACIKLAMA: 
+Sistemimizde bir zafiyet arayisinda bulundugunuz tespit edilmistir. 
+Bu sistem THE ORDER / NIZAM AI tarafindan korunmaktadir.
+IP adresiniz karalisteye (blackhole) alinmak uzere işaretlendi.
+--------------------------------------------------
+ACCESS DENIED.`,
+            {
+                status: 403,
+                headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                    'X-Kalkan-Durum': 'AKTIF-BLOK'
+                }
+            }
+        );
     }
 
     // ─── [S1] JWT_SIRRI ENV ALARM GUARD ─────────────────────────
@@ -114,7 +135,21 @@ export async function middleware(request) {
     );
     if (saldiriYolu) {
         console.warn(`[GÜVENLİK] Engellenen yol: ${url} | IP: ${ip}`);
-        return new NextResponse(null, { status: 403 });
+        return new NextResponse(
+            `[NIZAM SIBER KALKANI AKTIF]
+--------------------------------------------------
+UYARI: GOLGE ARAMA MOTORLARI TESPIT EDILDI
+HEDEF YOL: ${url}
+KAYNAK IP: ${ip}
+
+ACIKLAMA: 
+Sistemimizde bir zafiyet arayisinda bulundugunuz tespit edilmistir. 
+Bu sistem THE ORDER / NIZAM AI tarafindan korunmaktadir.
+IP adresiniz karalisteye (blackhole) alinmak uzere işaretlendi.
+--------------------------------------------------
+ACCESS DENIED.`,
+            { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
+        );
     }
 
     // ─── 1. BOT/CRAWLER TESPİTİ ───────────────────────────────
