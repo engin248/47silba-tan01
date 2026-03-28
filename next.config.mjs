@@ -3,7 +3,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     env: {
-        NEXT_PUBLIC_GO2RTC_URL: 'https://expanding-sept-safer-pages.trycloudflare.com',
+        NEXT_PUBLIC_GO2RTC_URL: 'https://kamera.demirtekstiltheondercom.com',
     },
     async headers() {
         const isDev = process.env.NODE_ENV === 'development';
