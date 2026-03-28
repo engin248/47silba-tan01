@@ -6,7 +6,7 @@ import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useRef } from 'react';
 
 // ████████████████████████████████████████████████████████████████████████
-// [ NİZAM ] SİBER KARARGAH — V2.4 GERÇEK ASKERİ (SON GÖRSEL BİREBİR)
+// [ NİZAM ] SİBER KARARGAH — V2.5 GERÇEK ASKERİ (SON ONAYLI YAPILANDIRMA)
 // ████████████████████████████████████████████████████████████████████████
 
 // GÖZ YORMAYAN, UZUN SÜRELİ İZLEMEYE UYGUN GERÇEK ASKERİ RENKLER
@@ -285,7 +285,7 @@ export function KarargahMainContainer() {
                 {/* 3. SÜTUN: ÜRETİM, KAMERA VE TELSİZ */}
                 <div className="flex flex-col gap-3">
 
-                    {/* ÜRETİM PANELİ & HERMES KUTUSU BİREBİR GÖRSELDEKİ */}
+                    {/* ÜRETİM PANELİ & HERMES KUTUSU (Göz Yormaz Tema) */}
                     <div className={`border ${MILITARY.panel} p-2 flex flex-col`}>
                         <div className="flex justify-between items-end border-b border-[#2E4031] pb-1 mb-2">
                             <h2 className={`text-[12px] ${MILITARY.header} text-[#FFD54F]`}>ÜRETİM PANELİ</h2>
@@ -296,7 +296,7 @@ export function KarargahMainContainer() {
                             <div className="flex justify-between bg-[#1A261D] px-1 py-0.5"><span className="uppercase">Hazır:</span> <span className="text-[#FFD54F] font-semibold">312 Adet</span></div>
                         </div>
 
-                        {/* HERMES + GEMINI ONAY KUTUSU (Göz Yormayan) */}
+                        {/* HERMES + GEMINI ONAY KUTUSU */}
                         <div className="border border-[#4A5D23] bg-[#1E2615] p-2 mt-1">
                             <div className="flex items-center gap-1 text-[9px] text-[#DCE775] font-bold border-b border-[#4A5D23] pb-1 mb-1 uppercase tracking-widest"><Cpu size={12} /> HERMES+GEMİNİ KARAR MERKEZİ</div>
                             <div className="text-[8px] text-[#9EB5A2] leading-tight mb-2 uppercase">
