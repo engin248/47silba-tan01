@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WifiOff, EyeOff } from 'lucide-react';
 
-const GO2RTC_URL = 'https://expanding-sept-safer-pages.trycloudflare.com';
+const GO2RTC_URL = process.env.NEXT_PUBLIC_GO2RTC_URL || 'https://kamera.demirtekstiltheondercom.com';
 
 export default function CameraPlayer({ src, type = 'sub', kameraAdi = '', offline = false }) {
     const [isVisible, setIsVisible] = useState(false);

@@ -8,7 +8,7 @@ import { hataBildir } from '@/lib/hataBildirim';
 export async function POST(request) {
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
-        if (!rateLimitKontrol(ip, 10, 60)) {
+        if (!(request.headers.get('x-internal-api-key') === process.env.INTERNAL_API_KEY || rateLimitKontrol(ip, 10, 60))) {
             return NextResponse.json({ hata: 'ok fazla istek.' }, { status: 429 });
         }
 

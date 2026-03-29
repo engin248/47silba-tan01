@@ -8,7 +8,7 @@ export async function POST(request) {
 
     try {
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
-        if (!rateLimitKontrol(ip, 20, 60)) {
+        if (!(request.headers.get('x-internal-api-key') === process.env.INTERNAL_API_KEY || rateLimitKontrol(ip, 20, 60))) {
             return NextResponse.json({ hata: 'ok fazla stok hareketi isteği. Ltfen bekleyin.' }, { status: 429 });
         }
 
@@ -43,7 +43,7 @@ export async function POST(request) {
 
         return NextResponse.json({ mesaj: 'Başarılı', veri: data });
     } catch (error) {
-        hataBildir(error, 'stok-hareket-ekle_API');
+        hataBildir('stok-hareket-ekle_API', error);
         return NextResponse.json({ hata: 'Sunucu hatası: ' + error.message }, { status: 500 });
     }
 }

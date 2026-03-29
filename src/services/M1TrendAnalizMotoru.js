@@ -38,6 +38,12 @@ export class M1GelistirilmisTrendMotoru {
         rawData.saticiSayisi = safeNum(rawData.saticiSayisi);
         rawData.baskaHesaptaKopyaSikligi = safeNum(rawData.baskaHesaptaKopyaSikligi);
         rawData.ilkSayfaDoygunlugu_Yuzde = safeNum(rawData.ilkSayfaDoygunlugu_Yuzde);
+        rawData.birYildizOrani = safeNum(rawData.birYildizOrani);
+        rawData.urunPiyasadaKacGundurVar = safeNum(rawData.urunPiyasadaKacGundurVar);
+        rawData.ayinGunu = safeNum(rawData.ayinGunu);
+        rawData.ilk10RakiplerinFiyatOrtalamasi = safeNum(rawData.ilk10RakiplerinFiyatOrtalamasi);
+        rawData.mevcutMarj = safeNum(rawData.mevcutMarj);
+        rawData.benzerVaryantSayisi = safeNum(rawData.benzerVaryantSayisi);
         rawData.pozitifYorumOrani = typeof rawData.pozitifYorumOrani === 'number' ? rawData.pozitifYorumOrani : 50;
 
 

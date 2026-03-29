@@ -9,7 +9,7 @@ export async function POST(request) {
     try {
         // 1. RATE LIMIT
         const ip = (request.headers.get('x-forwarded-for') || 'bilinmeyen').split(',')[0].trim();
-        if (!rateLimitKontrol(ip, 15, 60)) {
+        if (!(request.headers.get('x-internal-api-key') === process.env.INTERNAL_API_KEY || rateLimitKontrol(ip, 15, 60))) {
             return NextResponse.json({ hata: 'ok fazla istek.' }, { status: 429 });
         }
 

@@ -182,7 +182,7 @@ export default function GirisSayfasi() {
                 </div>
 
                 <p style={{ textAlign: 'center', fontSize: '0.62rem', color: '#e2e8f0', marginTop: '1.25rem', fontWeight: 600 }}>
-                    {dil === 'ar' ? `الجلسة صالحة لمدة 4 ساعات • ${MAX_DENEME} محاولات خاطئة = قفل 15 دقيقة` : `Oturum 8 saat geçerlidir • ${MAX_DENEME} yanlış denemede 15 dk kilit`}
+                    {dil === 'ar' ? `الجلسة صالحة لمدة 8 ساعات • ${MAX_DENEME} محاولات خاطئة = قفل 15 دقيقة` : `Oturum 8 saat geçerlidir • ${MAX_DENEME} yanlış denemede 15 dk kilit`}
                 </p>
             </div>
 

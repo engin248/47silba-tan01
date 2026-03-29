@@ -13,7 +13,7 @@ export async function POST(request) {
         // 1. RATE LIMIT KONTROL
         const forwarded = request.headers.get('x-forwarded-for');
         const ip = forwarded ? forwarded.split(',')[0].trim() : 'bilinmeyen';
-        const limitGecti = rateLimitKontrol(ip, 20, 60); // 1 dakikada max 20 istek
+        const limitGecti = request.headers.get('x-internal-api-key') === process.env.INTERNAL_API_KEY || rateLimitKontrol(ip, 20, 60); // 1 dakikada max 20 istek
         if (!limitGecti) {
             return NextResponse.json(
                 { hata: 'ok fazla istek. Ltfen bekleyin.' },
