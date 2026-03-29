@@ -1,19 +1,17 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import {
-    sabahSubayi,
-    aksamci,
-    nabiz,
-    zincirci,
-    finansKalkani,
-    muhasebeYazici
-} from '@/lib/ajanlar-v2';
 
 /**
- * /api/cron-ajanlar — Zamanlanmış Ajan Kprs
- *
- * Vercel cron veya x-internal-api-key ile tetiklenir.
- * Her cron grevi, ajanlar-v2.js'deki ilgili fonksiyonu direkt agIrIr.
+ * /api/cron-ajanlar — ZAMANLANMIŞ AJAN KÖPRÜSÜ (GÜNCELLENDİ)
+ * 
+ * [Vercel-Node Ayrımı Operasyonu]:
+ * Eskiden Sabah Subayı, Akşamcı, Nabız gibi tüm ağır AI ajanları burada Next.js 
+ * içerisinde Serverless function olarak çalıştırılıyordu. Bu durum Vercel Hobby 
+ * katmanında 60 saniye timeout (ölüm) sınırına takılıyordu.
+ * 
+ * YENİ MİMARİ:
+ * Tüm ajan yükü Mizanet-Backend (Yerel Makine / Engin PC) tarafına aktarılmıştır.
+ * Vercel Cron tetiklendiği anda yükü çalıştırmadan 200 OK döner veya 
+ * işi yerel makineye ping (Webhook) atarak devreder.
  */
 export async function GET(req) {
     const authHeader = req.headers.get('Authorization');
@@ -22,145 +20,43 @@ export async function GET(req) {
     }
 
     const gorev = new URL(req.url).searchParams.get('gorev');
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-    try {
-        //  SABAH ZETİ (08:00 TR) 
-        if (gorev === 'sabah_ozeti') {
-            const sonuc = await sabahSubayi();
-            await nabiz();
-            await zincirci();
-
-            await supabaseAdmin.from('b1_ajan_gorevler').insert([{
-                ajan_adi: 'Sabah Subayı',
-                gorev_adi: 'Otomatik Sabah zeti (Cron)',
-                gorev_tipi: 'rapor',
-                durum: sonuc.basarili ? 'tamamlandi' : 'hata',
-                oncelik: 'yuksek',
-                bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: sonuc.brifing || sonuc.hata || 'Sabah brifing tamamlandı.',
-                gorev_emri: 'Sabah taraması — tm kritik kontroller yapIldı'
-            }]);
-
-            return NextResponse.json({ success: true, mesaj: 'Sabah cronu alIstı', sonuc });
+    // Sadece Telegram Kamera Kopması Uyarısını Vercel'de bırakabiliriz (Hafif bir HTTP isteği olduğu için)
+    if (gorev === 'kamera_durum_kontrol_ajan') {
+        const go2rtcUrl = 'https://expanding-sept-safer-pages.trycloudflare.com';
+        let nvrDurum = 'aktif';
+        try {
+            const res = await fetch(`${go2rtcUrl}/api`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
+            if (!res.ok) nvrDurum = 'kapali';
+        } catch {
+            nvrDurum = 'kapali';
         }
 
-        //  GECE YEDEKLEMESİ (03:00 TR) 
-        if (gorev === 'gece_yedekleme_ve_temizlik') {
-            const aksamSonuc = await aksamci();
-            const muhasebeSonuc = await muhasebeYazici();
-            await finansKalkani();
+        const saatTR = new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul", hour12: false, hour: "2-digit" });
+        const mesaiDisi = parseInt(saatTR, 10) >= 0 && parseInt(saatTR, 10) < 8;
 
-            const otuzGunOnce = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-            const { data: silinenLoglar } = await supabaseAdmin
-                .from('b1_agent_loglari')
-                .delete()
-                .lt('created_at', otuzGunOnce)
-                .select('id');
-
-            await supabaseAdmin.from('b1_ajan_gorevler').insert([{
-                ajan_adi: 'Sistem',
-                gorev_adi: 'Gece Log Arsivleme ve Muhasebe (Cron)',
-                gorev_tipi: 'kontrol',
-                durum: 'tamamlandi',
-                oncelik: 'normal',
-                bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: `Gece operasyonu tamamlandı. ${silinenLoglar?.length || 0} eski log temizlendi.`,
-                gorev_emri: '30 gnden eski logları temizle, muhasebe gncelle.'
-            }]);
-
-            return NextResponse.json({
-                success: true, mesaj: 'Gece cronu alIstı',
-                aksamSonuc, muhasebeSonuc,
-                temizlenen_log: silinenLoglar?.length || 0
-            });
-        }
-
-        //  KAMERA DURUM KONTROL 
-        if (gorev === 'kamera_durum_kontrol_ajan') {
-            const go2rtcUrl = 'https://expanding-sept-safer-pages.trycloudflare.com';
-            if (!go2rtcUrl) {
-                return NextResponse.json({ success: false, mesaj: 'NEXT_PUBLIC_GO2RTC_URL tanImlı degil.' });
+        if (nvrDurum === 'kapali' && !mesaiDisi) {
+            if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: "🔴 *KRITIK UYARI* 🔴\n\nNVR Kamera Stream Sunucusu ulasIlamIyor!",
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(() => null);
             }
-
-            let nvrDurum = 'aktif';
-            try {
-                const res = await fetch(`${go2rtcUrl}/api`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
-                if (!res.ok) nvrDurum = 'kapali';
-            } catch {
-                nvrDurum = 'kapali';
-            }
-
-            const saatTR = new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul", hour12: false, hour: "2-digit" });
-            const mesaiDisi = parseInt(saatTR, 10) >= 0 && parseInt(saatTR, 10) < 8;
-
-            if (nvrDurum === 'kapali' && !mesaiDisi) {
-                try {
-                    await supabaseAdmin.from('camera_events').insert([{
-                        camera_id: null, event_type: 'offline_alarm', video_url: null
-                    }]);
-                } catch { }
-
-                const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-                const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-                if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: TELEGRAM_CHAT_ID,
-                            text: "🔴 *KRITIK UYARI* 🔴\n\nNVR Kamera Stream Sunucusu ulasIlamIyor!",
-                            parse_mode: 'Markdown'
-                        })
-                    }).catch(() => null);
-                }
-            } else if (nvrDurum === 'kapali' && mesaiDisi) {
-                try {
-                    await supabaseAdmin.from('camera_events').insert([{
-                        camera_id: null, event_type: 'offline_sleep', video_url: null
-                    }]);
-                } catch { }
-            }
-
-            return NextResponse.json({ success: true, mesaj: `Kamera Cron alIstı. Durum: ${nvrDurum}, Mesai Dışı: ${mesaiDisi}` });
         }
-
-        //  AR-GE ZINCIRİ: Yargı + Kpr + Zincirci 
-        if (gorev === 'arge_zincir') {
-            await zincirci();
-
-            const domain = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-            const cronReqHeaders = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.CRON_SECRET}` // [A-4 FIX]: dev_secret fallback kaldIrIldı
-            };
-
-            fetch(`${domain}/api/ajan-yargic`, {
-                method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-            }).catch(e => console.error('Yargı Cron Tetikleme Hatası:', e));
-
-            setTimeout(() => {
-                fetch(`${domain}/api/kopru-ajan`, {
-                    method: 'POST', headers: cronReqHeaders, body: JSON.stringify({})
-                }).catch(e => console.error('Kpr Cron Tetikleme Hatası:', e));
-            }, 5000);
-
-            await supabaseAdmin.from('b1_ajan_gorevler').insert([{
-                ajan_adi: 'Sistem Cron',
-                gorev_adi: 'Ar-Ge Zinciri (Yargı+Kpr+Zincirci) Tetiklendi',
-                gorev_tipi: 'otomasyon',
-                durum: 'tamamlandi',
-                oncelik: 'yuksek',
-                bitis_tarihi: new Date().toISOString(),
-                sonuc_ozeti: 'Vercel Cron otonom zinciri atesledi.',
-                gorev_emri: 'Ar-Ge zinciri: Zincirci → Yargı → Kpr'
-            }]);
-
-            return NextResponse.json({ success: true, mesaj: 'Ar-Ge zinciri tetiklendi.' });
-        }
-
-        return NextResponse.json({ success: true, mesaj: 'Bilinmeyen Cron Parametresi. Boş dnld.' });
-
-    } catch (e) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ success: true, mesaj: `Kamera kontrolü yapıldı: ${nvrDurum}` });
     }
+
+    // Diğer tüm ağır görevler (Sabah, Akşam, Ar-Ge) NodeJS PC sunucusuna aktarıldı
+    console.log(`[VERCEL CRON] '${gorev}' tetiklendi. İşlem yerel Mizanet-Backend sunucusuna devredilmiş durumda, es geçiliyor.`);
+    return NextResponse.json({
+        success: true,
+        mesaj: `[Vercel-Node Ayrımı] '${gorev}' görevi yerel (Node) sunucudaki scheduler (Zamanlayıcı) tarafından yönetiliyor. Vercel'in görevi bitirildi.`
+    });
 }

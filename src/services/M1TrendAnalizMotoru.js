@@ -11,8 +11,35 @@ export class M1GelistirilmisTrendMotoru {
      */
     static trendiKoklaVeriEle(rawData, dynWeights, historyData = {}) {
 
+        /** @type {{uyarılar: string[], elenmeSebebi: string|null, toplamSkor: number, karar: string, guvenSkoru: number, detaylar: any, Aciklama?: string}} */
         let rapor = { uyarılar: [], elenmeSebebi: null, toplamSkor: 0, karar: "BEKLE", guvenSkoru: 0, detaylar: {} };
         let zayifSinyalKatsayisi = 1;
+
+        // ============================================================================
+        // 0. VERİ SANİTİZASYONU (KÖK ONAY: NaN Zehirlenmesi / Veri Eksikliği Kalkanı)
+        // ============================================================================
+        if (!rawData || typeof rawData !== 'object') {
+            rapor.elenmeSebebi = "KRİTİK HATA: Ajanlardan Pazar verisi gelmedi veya eksik.";
+            rapor.karar = "IPTAL";
+            return rapor;
+        }
+
+        // Güvenli sayı filtresi (Korumasız NaN hesaplamalarının motoru çökertmesini engeller)
+        const safeNum = (val) => (typeof val === 'number' && !isNaN(val)) ? val : 0;
+        rawData.veriGecikmesiSaat = safeNum(rawData.veriGecikmesiSaat);
+        rawData.toplamIzlenme = safeNum(rawData.toplamIzlenme);
+        rawData.yorumSayisi = safeNum(rawData.yorumSayisi);
+        rawData.sepetTotal = safeNum(rawData.sepetTotal);
+        rawData.satisSinyali = safeNum(rawData.satisSinyali);
+        rawData.sepetDeltasi = safeNum(rawData.sepetDeltasi);
+        rawData.yorumDeltasi = safeNum(rawData.yorumDeltasi);
+        rawData.favoriDeltasi = safeNum(rawData.favoriDeltasi);
+        rawData.izlenmeHizi_Gunluk = safeNum(rawData.izlenmeHizi_Gunluk);
+        rawData.saticiSayisi = safeNum(rawData.saticiSayisi);
+        rawData.baskaHesaptaKopyaSikligi = safeNum(rawData.baskaHesaptaKopyaSikligi);
+        rawData.ilkSayfaDoygunlugu_Yuzde = safeNum(rawData.ilkSayfaDoygunlugu_Yuzde);
+        rawData.pozitifYorumOrani = typeof rawData.pozitifYorumOrani === 'number' ? rawData.pozitifYorumOrani : 50;
+
 
         // ============================================================================
         // 1. VERİ TEMİZLEME, GECİKME TELAFİSİ VE SAHTE TREND FİLTRESİ

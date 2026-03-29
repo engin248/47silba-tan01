@@ -11,20 +11,20 @@ import { useState, useEffect, useRef } from 'react';
 
 // TAM GÖRSELDEKİ "SARIYA ÇALAN ASKERİ YEŞİL" (PHOSPHOR MIX)
 const COLORS = {
-    bg: "bg-[#070A06]",                      // En koyu dış zemin
-    panel: "bg-[#0F140A] border-[#698E2A]",  // Panel zemini ve ince sarımtırak-yeşil çerçevesi
-    borderStrong: "border-[#8CAE36]",        // Kalın/Vurgulu çerçeveler (Görseldeki gibi)
-    borderDim: "border-[#3A5018]",           // İçi sönük bölücü çizgiler
+    bg: "bg-[#0A0D08]",                      // Orijinal Askeri Koyu Haki (Olive Black)
+    panel: "bg-[#12160E] border-[#38422A]",  // Mat Askeri Panel
+    borderStrong: "border-[#4A5D33]",        // Taktikal Ordu Yeşili Kenarlık
+    borderDim: "border-[#202919]",           // Gölgeli Haki
 
-    textTitle: "text-[#D1EF53] drop-shadow-[0_0_8px_rgba(209,239,83,0.3)]", // Orijinal resimdeki ana başlık fosforik sarı/yeşili
-    textMain: "text-[#9CBF48]",              // Genel veri yazıları
-    textDim: "text-[#6E8F3D]",               // Kutu altlarındaki "Hazırlık Skoru", "Altyapı" gibi sönük açıklamalar
+    textTitle: "text-[#B5CE75] drop-shadow-[0_0_8px_rgba(181,206,117,0.3)]", // Orijinal Askeri HUD Yeşili
+    textMain: "text-[#9EB56B]",              // Tok ve Net Asker Yeşili
+    textDim: "text-[#6A7848]",               // Sönük Haki
 
-    red: "text-[#E84C3D]",                   // Yıpranmış / CRT Kırmızısı (3 HATA rengi)
-    redBg: "bg-[#E84C3D]",
-    amber: "text-[#F1C40F]",                 // ADALETLİ ÜCRET ve Para rengi
-    amberBg: "bg-[#F1C40F]",
-    cyan: "text-[#4DB6AC]"                   // Grafikler / Mavi veriler
+    red: "text-[#CC3333]",                   // Uyarı Kırmızısı
+    redBg: "bg-[#CC3333]",
+    amber: "text-[#E6B800]",                 // Uyarı Sarısı
+    amberBg: "bg-[#E6B800]",
+    cyan: "text-[#5C9E8A]"                   // Askeri Mavimsi Taktikal Hat
 };
 
 const MILITARY_NAV = [
@@ -228,12 +228,18 @@ export function KarargahMainContainer() {
                         <h2 className={`text-[12px] ${COLORS.textMain} font-bold text-center border-b ${COLORS.borderDim} pb-1 mb-3 uppercase`}>RADAR / NİŞANGAH</h2>
                         <RadarDisplay ajanlar={TUM_AJANLAR} />
 
-                        <div className="mt-3 text-[9px] font-medium space-y-1 pr-1 h-[190px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#3A5018]">
-                            <div className="sticky top-0 bg-[#0F140A] border-b border-[#3A5018] pb-1 mb-1 text-[#9CBF48] uppercase text-center font-bold">AJAN DURUMU</div>
+                        <div className="mt-3 text-[10px] space-y-1.5 pr-1 h-[190px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#38422A]">
+                            <div className={`sticky top-0 ${COLORS.panel} border-b ${COLORS.borderDim} pb-1 mb-1 ${COLORS.textMain} uppercase text-center font-bold tracking-widest`}>AJAN LOG LOKASYONLARI</div>
                             {TUM_AJANLAR.map((a, i) => (
-                                <div key={i} className={`flex justify-between items-center px-1.5 py-1 mb-1 border-l-2 ${a.aktif ? 'border-[#8CAE36]' : 'border-[#3A5018]'} ${COLORS.textMain} font-bold`}>
-                                    <span className="flex items-center gap-1.5 uppercase tracking-wide"><span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${a.aktif ? 'bg-[#D1EF53]' : 'bg-[#526054]'}`} /> {a.isim}</span>
-                                    <span className={a.aktif ? 'text-[#D1EF53]' : 'text-[#6E8F3D]'}>— AKTİF</span>
+                                <div key={i} className={`flex justify-between items-center px-2 py-1 mb-1 border-l-2 ${a.aktif ? COLORS.borderStrong : COLORS.borderDim} ${COLORS.textMain} font-semibold text-[9px]`}>
+                                    <div className="flex items-center gap-1.5 uppercase tracking-wide">
+                                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${a.aktif ? 'bg-[#B5CE75]' : 'bg-[#4A5D33]'}`} />
+                                        <div className="flex flex-col leading-tight">
+                                            <span>{a.isim}</span>
+                                            <span className={`text-[8px] ${COLORS.textDim}`}>» BÖLGE: {a.lokasyon}</span>
+                                        </div>
+                                    </div>
+                                    <span className={a.aktif ? 'text-[#B5CE75] font-bold text-[8px]' : `text-[8px] ${COLORS.textDim}`}>AKTİF</span>
                                 </div>
                             ))}
                         </div>

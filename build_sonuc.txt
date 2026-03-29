@@ -1,0 +1,33 @@
+
+> mizanet@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.5.14
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/features/uretim/components/UretimSayfasi.js
+Error:   x You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+  |
+  |  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+    ,-[C:\Users\Admin\Desktop\mizanet\src\features\uretim\components\UretimSayfasi.js:19:1]
+ 16 | import UretimKalite from './UretimKalite';
+ 17 | import UretimMaliyet from './UretimMaliyet';
+ 18 | import UretimRecete from './UretimRecete';
+ 19 | import { useState } from 'react';
+    :          ^^^^^^^^
+ 20 | 
+ 21 | export default function UretimSayfasi() {
+ 21 |     const { kullanici } = useAuth();
+    `----
+
+Import trace for requested module:
+./src/features/uretim/components/UretimSayfasi.js
+./src/app/uretim/page.js
+
+
+> Build failed because of webpack errors

@@ -6,6 +6,8 @@ const BOT_IMZALARI = [
     'python-requests', 'go-http-client', 'curl/',
     'wget/', 'libwww-perl', 'scrapy', 'ahrefsbot',
     'semrushbot', 'dotbot', 'mj12bot', 'petalbot',
+    'headlesschrome', 'puppeteer', 'playwright', 'selenium',
+    'phantomjs', 'electron', 'cypress', 'nightmare'
 ];
 
 // ─── IP KISITLAMA (GU-04) ────────────────────────────────────────

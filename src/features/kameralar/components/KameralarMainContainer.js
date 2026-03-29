@@ -15,7 +15,13 @@ import {
     fetchAIEvents, subscribeCameraEvents, sendCameraSnapshot
 } from '../services/kameralarApi';
 
-const GO2RTC_URL = 'https://expanding-sept-safer-pages.trycloudflare.com';
+// ── KÖK ÇÖZÜM: Dinamik IP Tespit Motoru ──
+// Sabit trycloudflare adresi yerine, ağ lokasyonuna göre dinamik yönlendirme:
+// - Yerel ağdaysa (192.168.1.X veya localhost) doğrudan :1984 portuna gider. (Lag 0, UDP açık)
+// - Dışarıdaysa environment üzerinden NIZAM kurumsal tünel adresini okur.
+let GO2RTC_URL = typeof window !== 'undefined' && window.location.hostname.includes('192.168.1')
+    ? `http://${window.location.hostname}:1984`
+    : (process.env.NEXT_PUBLIC_GO2RTC_URL || 'http://localhost:1984');
 
 // ── NVR Gerçek Kamera Listesi (Neutron NEU-NVR116-SHD @ 192.168.1.200) ──
 // RTSP: rtsp://admin:tuana1452.@192.168.1.200:554/unicast/c{n}/s{0=main,1=sub}/live
@@ -57,6 +63,10 @@ export default function KameralarMainContainer() {
     const [loading, setLoading] = useState(false);
     const [streamDurum, setStreamDurum] = useState('kontrol');
     const [aiOlaylar, setAiOlaylar] = useState([]);  // [YENİ] DB'den gelen AI event logları
+
+    // ── TV MODU (KÖK ÇÖZÜM) ──
+    // Duvardaki monitörlerde idle timeout olmaması için Sürekli Açık Mod kilit mekanizması
+    const [tvModu, setTvModu] = useState(false);
 
     // Sekme gizliliği ve hareketsizlik takibi
     const [isTabHidden, setIsTabHidden] = useState(false);
@@ -103,23 +113,30 @@ export default function KameralarMainContainer() {
         let idleTimer = null;
 
         const handleVisibilityChange = () => {
-            setIsTabHidden(document.visibilityState === 'hidden');
+            if (!tvModu) setIsTabHidden(document.visibilityState === 'hidden');
         };
 
         const resetIdleTimer = () => {
             setIsIdle(false);
             if (idleTimer) clearTimeout(idleTimer);
-            // 3 Dakika inaktivite (180000ms)
-            idleTimer = setTimeout(() => setIsIdle(true), 180000);
+            if (!tvModu) {
+                // TV Modu kapalıysa 3 Dakika inaktivite (180000ms)
+                idleTimer = setTimeout(() => setIsIdle(true), 180000);
+            }
         };
+
+        // TV Modu değiştiğinde idle timer'ı yeniden kalibre et
+        resetIdleTimer();
+        if (tvModu) {
+            setIsTabHidden(false);
+            setIsIdle(false);
+        }
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('mousemove', resetIdleTimer);
         window.addEventListener('keydown', resetIdleTimer);
         window.addEventListener('click', resetIdleTimer);
         window.addEventListener('touchstart', resetIdleTimer);
-
-        resetIdleTimer();
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -129,7 +146,7 @@ export default function KameralarMainContainer() {
             window.removeEventListener('touchstart', resetIdleTimer);
             if (idleTimer) clearTimeout(idleTimer);
         };
-    }, []);
+    }, [tvModu]);
 
     // ── Yetki Kontrolü ─────────────────────────────────────────
     useEffect(() => {
@@ -292,6 +309,21 @@ export default function KameralarMainContainer() {
                         <div style={{ width: 8, height: 8, background: '#10b981', borderRadius: '50%' }} />
                         {filtreliKameralar.length} / {kameralar.length} Aktif
                     </div>
+
+                    {/* TV MODU Toggle (Sürekli Uyanık Kalma Anahtarı) */}
+                    <button onClick={() => setTvModu(!tvModu)}
+                        title="Sabit ekranlarda kapanmayı engelle"
+                        style={{
+                            background: tvModu ? '#dc2626' : '#1e293b',
+                            border: `1px solid ${tvModu ? '#ef4444' : '#334155'}`,
+                            padding: '6px 12px', borderRadius: 8,
+                            color: tvModu ? 'white' : '#94a3b8',
+                            fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                            boxShadow: tvModu ? '0 0 10px rgba(220, 38, 38, 0.5)' : 'none'
+                        }}>
+                        <Lock size={14} />
+                        {tvModu ? 'TV Modu: AÇIK (Uyumaz)' : 'TV Modu: KAPALI'}
+                    </button>
 
                     {/* Log Panel */}
                     <button onClick={() => setLogPanelAcik(!logPanelAcik)}

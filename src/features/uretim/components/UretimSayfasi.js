@@ -1,3 +1,4 @@
+"use client";
 // @ts-nocheck
 import { Plus, FileCheck, Factory } from 'lucide-react';
 import { useAuth } from '@/lib/auth';

@@ -1,0 +1,33 @@
+name: THE ORDER / NIZAM Operasyonel Test Hattı (CI)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  sistem_denetimi:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Kaynak Kod İndiriliyor
+      uses: actions/checkout@v4
+      
+    - name: Node.js 20 Kurulumu
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Paketlerin Temiz Kurulumu
+      run: npm ci
+
+    - name: Build Zırhı Testi (Derleme Kopması Kontrolü)
+      run: npm run build
+      env:
+        # Minimum build env variables
+        NEXT_PUBLIC_SUPABASE_URL: "https://mock-supabase.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key"
+        JWT_SIRRI: "CI_TEST_SIRRI_32_KARAKTER_UZUNLUK_123"
+        INTERNAL_API_KEY: "CI_MOCK_INTERNAL_KEY"

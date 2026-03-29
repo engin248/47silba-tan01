@@ -43,8 +43,8 @@ const nextConfig = {
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
                             "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
                             "img-src 'self' data: blob: https://api.qrserver.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co",
-                            // [DOMAIN FIX] Kamera URL dinamize edildi
-                            `connect-src 'self' ${process.env.NEXT_PUBLIC_GO2RTC_URL || ''} wss://${(process.env.NEXT_PUBLIC_GO2RTC_URL || '').replace('https://', '')} http://localhost:1984 ws://localhost:1984 https://mizanet.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co wss://*.supabase.co https://api.perplexity.ai https://api.telegram.org https://api1.telegram.org https://*.ingest.sentry.io https://*.ingest.de.sentry.io`,
+                            // [DOMAIN FIX] Kamera URL dinamize edildi, WebSocket (wss:// veya ws://) için HTTP önekleri kaldırılıyor
+                            `connect-src 'self' ${process.env.NEXT_PUBLIC_GO2RTC_URL || ''} wss://${(process.env.NEXT_PUBLIC_GO2RTC_URL || '').replace(/^https?:\/\//, '')} ws://${(process.env.NEXT_PUBLIC_GO2RTC_URL || '').replace(/^https?:\/\//, '')} http://localhost:1984 ws://localhost:1984 https://mizanet.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co wss://*.supabase.co https://api.perplexity.ai https://api.telegram.org https://api1.telegram.org https://*.ingest.sentry.io https://*.ingest.de.sentry.io`,
                             `media-src 'self' blob: ${process.env.NEXT_PUBLIC_GO2RTC_URL || ''} http://localhost:1984 https://cauptlsnqieegdrgotob.supabase.co`,
                             `frame-src 'self' ${process.env.NEXT_PUBLIC_GO2RTC_URL || ''} http://localhost:1984`,
                             "frame-ancestors 'none'",
