@@ -111,10 +111,10 @@ export default function GirisSayfasi() {
                         <Lock size={26} color="#d8b863" />
                     </div>
                     <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#e2e8f0', margin: 0, letterSpacing: '-0.01em' }}>
-                        {T('sistem_adi', dil)}
+                        Mizanet
                     </h1>
                     <p style={{ fontSize: '0.72rem', color: '#a7f3d0', margin: '6px 0 0', fontWeight: 600 }}>
-                        {dil === 'ar' ? 'نظام الإنتاج والمتجر' : 'Üretim & Mağaza Sistemi'}
+                        {dil === 'ar' ? 'نظام ميزانيت المتكامل' : 'mizanet.com'}
                     </p>
                 </div>
 

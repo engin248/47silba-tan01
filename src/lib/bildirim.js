@@ -1,5 +1,5 @@
 // ████████████████████████████████████████████████████████████████
-// MERKEZİ BİLDİRİM KATMANI — THE ORDER / NIZAM
+// MERKEZİ BİLDİRİM KATMANI — MİZANET
 // Kural: Tüm Telegram bildirimleri buradan geçer.
 // Modüller doğrudan telegramBildirim() ÇAĞIRMAZ — bu dosyayı kullanır.
 // Supabase log: b0_bildirim_loglari tablosuna yazılır.

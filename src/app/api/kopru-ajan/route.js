@@ -14,7 +14,7 @@ async function telegramBildirimGonder(urunAdi, firsatSkoru, karar, agentNote, bo
     if (!botToken || !chatId) return false;
 
     const emoji = karar === 'ÜRETİM' ? '🏭' : '🧪';
-    const mesaj = `${emoji} *THE ORDER — YENİ KARAR*
+    const mesaj = `${emoji} *Mizanet — YENİ KARAR*
 
 📦 *Ürün:* ${urunAdi}
 📊 *Fırsat Skoru:* ${firsatSkoru.toFixed(1)}/100
@@ -45,7 +45,7 @@ async function yeniKararlariTara(gorevId, botToken, chatId) {
     const { data: yeniKararlar, error } = await supabaseAdmin
         .from('b1_arge_strategy')
         .select('*')
-        .in('nizam_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
+        .in('mizanet_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
         // Sadece 'boss_approved' = false olanları yani onaylanmamışları alabiliriz ama orijinal script son 1 saate göreydi.
         .gte('created_at', birSaatOnce)
         .order('opportunity_score', { ascending: false });
@@ -62,7 +62,7 @@ async function yeniKararlariTara(gorevId, botToken, chatId) {
         const karar = yeniKararlar[i];
         if (gorevId) await ajanAkliniGoster(gorevId, `📱 Telegram İletişiyor: [${i + 1}/${yeniKararlar.length}] ${karar.product_name?.substring(0, 15)}...`);
 
-        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen Ürün', karar.opportunity_score || 0, karar.nizam_decision, karar.agent_note, botToken, chatId);
+        const basarili = await telegramBildirimGonder(karar.product_name || 'Bilinmeyen Ürün', karar.opportunity_score || 0, karar.mizanet_decision, karar.agent_note, botToken, chatId);
         if (basarili) gonderilen++;
 
         // Telegram rate limit koruması — mesajlar arası 1sn bekle (Sadece dış bağlantılarda)

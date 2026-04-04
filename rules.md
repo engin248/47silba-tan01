@@ -266,4 +266,104 @@ Her görev tamamlandığında, bir sonraki adıma geçmeden ÖNCE aşağıdaki k
 
 ---
 
+## 24. ZAMAN TAHMİNİ VE SÜRE BİLGİSİ YASAĞI (KESİN KURAL)
+
+**Yürürlük Tarihi:** 3 Nisan 2026  
+**Veren Makam:** Başkomutan / Patron
+
+1. **Sistem bundan böyle hiçbir işlem için süre tahmini, zaman notu veya "bu X haftada biter" gibi bilgi vermez.**
+2. Hiçbir rapora, plana veya analize zaman tahmini bloğu eklenmez.
+3. Zaman çizelgesi sadece kullanıcının açıkça ve doğrudan talep etmesi durumunda, tek seferlik verilebilir. Otomatik eklenemez.
+4. Bu kural ihlal edilirse ilgili çıktı geçersiz sayılır ve yeniden üretilir.
+
+> **KURAL:** "X haftada biter", "Yaklaşık Y gün sürer", "Tahmini süre..." ifadeleri KESİNLİKLE YASAKTIR.
+
+---
+
+## 25. KANITLI ONAY PROTOKOLÜ (HİÇBİR İŞLEM KANITSIZ ONAY ALAMAZ)
+
+**Yürürlük Tarihi:** 3 Nisan 2026  
+**Veren Makam:** Başkomutan / Patron
+
+### İşlem Onay Döngüsü
+
+Her işlem için aşağıdaki adımlar **sırasıyla ve eksiksiz** tamamlanmadan onay alınamaz:
+
+```
+ADIM 1 — YAPILAN İŞLEM KAYDEDILIR
+  → Hangi dosya değiştirildi? (dosya yolu + satır aralığı)
+  → Ne değiştirildi? (önceki durum → sonraki durum)
+  → Neden değiştirildi? (iş gereksinimi)
+
+ADIM 2 — KANIT TOPLANIR
+  → Ön uç (frontend): Tarayıcı ekran görüntüsü veya canlı URL testi
+  → Arka uç (backend): Terminal çıktısı, konsol logu veya Supabase kayıt kanıtı
+  → Build: Hatasız build ekran görüntüsü
+
+ADIM 3 — RAPOR SUNULUR
+  → Kanıt raporu kullanıcıya iletilir
+  → "Onaylanıyor mu?" sorusu sorulur
+
+ADIM 4 — ONAY ALINIR
+  → Kullanıcı açıkça "onay", "tamam", "geç" veya benzeri onay ifadesi verir
+  → Sessizlik veya belirsiz cevap ONAY SAYILMAZ
+
+ADIM 5 — ONAY KAYDEDILIR
+  → Onay, SISTEM_MERKEZI.md'deki işlem loguna yazılır
+```
+
+### Kanıtsız Onay Yok Kuralı
+
+- Hiçbir işlem kanıt sunulmadan onay isteyemez.
+- Kanıt sunulmadan kullanıcı onay verse bile, sistem o onayı geçerli saymaz.
+- Kanıt = Ekran görüntüsü VEYA terminal/konsol çıktısı VEYA canlı URL erişim testi.
+
+> **KURAL:** Kanıtsız onay isteği yasaktır. Onay almış gibi davranmak yasaktır.
+
+---
+
+## 26. COMMIT-PUSH-ONAY DÖNGÜSÜ (SIRADAKİ İŞLEME GEÇİŞ YASAĞI)
+
+**Yürürlük Tarihi:** 3 Nisan 2026  
+**Veren Makam:** Başkomutan / Patron
+
+### Kesin Çalışma Döngüsü
+
+```
+[ İşlem Yapılır ]
+       ↓
+[ Ön + Arka Uç Kanıtı Toplanır ]
+       ↓
+[ Rapor Sunulur + Onay Alınır ]
+       ↓
+[ git pull --rebase origin main ]
+       ↓
+[ git add -A ]
+       ↓
+[ git commit -m "işlem açıklaması" ]
+       ↓
+[ git push origin main ]
+       ↓
+[ Push kanıtı (çıktı) SISTEM_MERKEZI.md'e yazılır ]
+       ↓
+[ Canlıda (mizanet.com) doğrulama yapılır ]
+       ↓
+[ Canlı onay alınır ]
+       ↓
+       ✅ ANCAK BUNDAN SONRA SONRAKİ İŞLEME GEÇİLİR
+```
+
+### Geçiş Yasağı Kuralları
+
+1. Push yapılmadan bir sonraki işleme geçilemez.
+2. Canlıda doğrulama yapılmadan onay alınamaz.
+3. Onay alınmadan yeni göreve başlanamaz.
+4. `git push` çıktısı her seferinde SISTEM_MERKEZI.md'e kaydedilir.
+5. `&&` operatörü ile zincir git komutu kullanılmaz — her komut ayrı çalışır.
+
+> **KURAL:** Push → Canlı Doğrulama → Kullanıcı Onayı olmadan bir sonraki işlem BAŞLAMAZ. Bu kuralın tek istisnası yoktur.
+
+---
+
 END OF FILE
+

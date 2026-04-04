@@ -60,7 +60,7 @@ export default function ScraperKarantinaContainer() {
 
             if (mevcutKayit && mevcutKayit.length > 0) {
                 // Eğer daha önce kaydedilmişse karantinadaki de çöpe çevirebiliriz ya da baştan uyarabiliriz.
-                const onay = confirm('⚠️ DİKKAT: Bu ürünün linki MizanNizam ana veritabanında (b1_arge_products) ZATEN VAR! Yine de aktaralım mı? (İptal derseniz karantinadan silinecek)');
+                const onay = confirm('⚠️ DİKKAT: Bu ürünün linki Mizanet ana veritabanında (b1_arge_products) ZATEN VAR! Yine de aktaralım mı? (İptal derseniz karantinadan silinecek)');
                 if (!onay) {
                     // Karantinadan sil
                     await supabase.from('b1_arge_products_karantina').update({ karantina_durumu: 'reddedildi_mukerrer' }).eq('id', urun.id);

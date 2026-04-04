@@ -1,4 +1,4 @@
-# 🛡️ THE ORDER - 138 ALTIN KRİTER VE BİNGO (KESİN ÜRETİM) MATEMATİĞİ
+# 🛡️ Mizanet - 138 ALTIN KRİTER VE BİNGO (KESİN ÜRETİM) MATEMATİĞİ
 > Bu dosya, sistemin ANA BEYNİDİR. Yapay zeka ajanları ve Karargah karar algoritmaları bu dosyadan asla sapamaz.
 
 ## C) SİSTEM FAYDASI VE "BİNGO" (KESİN TREND) 8 ŞARTI

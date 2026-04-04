@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Scan, UserCheck, PackageOpen, CheckCircle, AlertTriangle, Clock, Hammer, X, Play, LogOut, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useLang } from '@/lib/langContext';
+import { fetchIsEmriById } from '@/features/uretim/services/uretimApi';
 
 export default function KioskTerminal() {
     const { lang } = useLang();
@@ -137,11 +138,14 @@ export default function KioskTerminal() {
             }
 
             // YENİ UX: Yeni Bir İş Sepeti (Sipariş) Barkodu Okutuldu!
-            let { data: ordData, error: ordErr } = await supabase
-                .from('production_orders')
-                .select('id, quantity, model_id, order_code')
-                .eq('id', kod)
-                .single();
+            // production_orders — uretimApi.fetchIsEmriById
+            let ordData = null;
+            let ordErr = null;
+            try {
+                ordData = await fetchIsEmriById(kod);
+            } catch (e) {
+                ordErr = e;
+            }
 
             if (ordErr || !ordData) {
                 // Alternatif (Belki operasyon barkodu okutmuştur diye)

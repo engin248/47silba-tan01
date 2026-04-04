@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// DARBOĞAZ (BOTTLENECK) TEŞHİSCİSİ — THE ORDER / NIZAM
+// DARBOĞAZ (BOTTLENECK) TEŞHİSCİSİ — MİZANET
 // /api/rapor/darbogaz
 //
 // GET  → Mevcut darboğaz analizini döner (Dashboard için)

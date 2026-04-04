@@ -108,7 +108,7 @@ export default function HataSayfasi({ error, reset }) {
 
             {/* Alt bilgi */}
             <p style={{ color: '#334155', fontSize: '0.7rem', margin: 0 }}>
-                THE ORDER NIZAM — Hata Ref: {Date.now().toString(36).toUpperCase()}
+                Mizanet — Hata Ref: {Date.now().toString(36).toUpperCase()}
             </p>
         </div>
     );

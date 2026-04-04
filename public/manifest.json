@@ -1,7 +1,7 @@
 {
-    "name": "mizanet.com",
+    "name": "Mizanet",
     "short_name": "Mizanet",
-    "description": "Tekstil Üretim & Mağaza ERP Sistemi",
+    "description": "Mizanet — Entegre İşletme Yönetim Sistemi",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0f172a",

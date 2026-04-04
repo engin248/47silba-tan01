@@ -7,6 +7,11 @@ import { supabase } from '@/lib/supabase';
  * Parametreler: url, count, concurrency
  */
 export async function POST(req) {
+    // [AUDIT-FIX #10]: Stres testi sadece development ortamında çalışabilir
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Stres testi production ortamında devre dışıdır.' }, { status: 403 });
+    }
+
     try {
         // Güvenlik ve yetki kontrolü
         const sessionCookie = req.cookies.get('sb47_auth_session')?.value;

@@ -11,7 +11,7 @@
 **Sayfada Yer Alan Bütün Fonksiyonlar/İşlemler:**
 1. **İş Emri Planlaması (A):** Model arşivinden modele seçip, adet belirleyip hedef tarihle sıraya dizme.
 2. **Barkodlu Bant Sistemi (B):** İş emrini barkodla veya butonla `in_progress` (üretimde) ve `completed` (tamamlandı) hallerine otomatik/manual geçirme.
-3. **Kronometre (C):** İşe start ve stop verme. Durdurulduğu an toplam sürenin NIZAM dakika_ucreti katsayısına çarpılarak Maliyetlere Otonom atılması.
+3. **Kronometre (C):** İşe start ve stop verme. Durdurulduğu an toplam sürenin Mizanet dakika_ucreti katsayısına çarpılarak Maliyetlere Otonom atılması.
 4. **Maliyet Fişi (D):** Manuel ekstra "Sarf Malzeme" veya "Personel İşçilik" kalemleri ekleme.
 5. **M8 Rapor Devri (E):** Toplam maliyet çıkarılan partinin "Mağazaya Sevket" butonuyla b1_muhasebe_raporlari tablosuna şutlanması.
 

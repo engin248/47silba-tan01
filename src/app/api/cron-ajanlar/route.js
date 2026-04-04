@@ -16,8 +16,13 @@ import {
  * Her cron görevi, ajanlar-v2.js'deki ilgili fonksiyonu direkt çağırır.
  */
 export async function GET(req) {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+        console.error('[KRİTİK] CRON_SECRET ENV tanımlı değil — cron kilitlendi!');
+        return NextResponse.json({ error: 'Sistem yapılandırma hatası.' }, { status: 503 });
+    }
     const authHeader = req.headers.get('Authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: 'Yetkisiz Cron İsteği' }, { status: 401 });
     }
 
@@ -51,9 +56,11 @@ export async function GET(req) {
             await finansKalkani();
 
             const otuzGunOnce = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            // [AUDIT-FIX #28]: Log silme → arşivleme (SOC2 uyumu)
             const { data: silinenLoglar } = await supabaseAdmin
                 .from('b1_agent_loglari')
-                .delete()
+                .update({ arsivlendi: true })
+                .eq('arsivlendi', false)
                 .lt('created_at', otuzGunOnce)
                 .select('id');
 

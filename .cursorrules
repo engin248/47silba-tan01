@@ -1,7 +1,24 @@
 # ANTIGRAVITY GLOBAL AGENT RULES
-System: THE ORDER / NIZAM
+System: MİZANET
 Environment: Cursor Agent
-Version: 1.0
+Version: 2.0
+
+---
+
+## 0. SİSTEM SABİT BİLGİLERİ
+
+| Bilgi | Değer |
+|---|---|
+| Sistem Adı | MİZANET |
+| Canlı Domain | **https://mizanet.com** |
+| Proje Klasörü | `C:\Users\Esisya\Desktop\Mizanet` |
+| Veritabanı | Supabase |
+| Sistem Kurucusu | Engin |
+| Renk Standardı | Zümrüt + Koyu Gold + Lacivert |
+
+> [!IMPORTANT]
+> Bu proje MİZANET'tir. Başka proje isimleri (THE ORDER, NIZAM, 47 Sil Baştan, demirtekstiltheondercom, Lumora) kesinlikle karıştırılmaz.
+> Lumora tamamen ayrı bir projedir — bu dosyalara dokunulmaz.
 
 ---
 
@@ -155,10 +172,10 @@ Kullanıcı komutları sistem için önceliklidir.
 
 Her yeni sohbet başladığında aşağıdaki sistem bağlamı otomatik kabul edilir.
 
-System Name: THE ORDER / NIZAM  
-Project Directory: C:\Users\Admin\Desktop\47_SIL_BASTAN_01  
-Primary Website: demirtekstiltheonder.com  
-Database: Supabase  
+System Name: MİZANET
+Project Directory: C:\Users\Esisya\Desktop\Mizanet
+Primary Website: mizanet.com
+Database: Supabase
 System Founder: Engin
 
 Bu bilgiler tekrar sorulmaz.

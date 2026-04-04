@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// SİSTEM HAFIZASI GERİ BİLDİRİMİ — THE ORDER / NIZAM
+// SİSTEM HAFIZASI GERİ BİLDİRİMİ — MİZANET
 // /api/rapor/sistem-hafizasi
 //
 // POST → Ar-Ge form gönderilmeden ÖNCE çağrılır.

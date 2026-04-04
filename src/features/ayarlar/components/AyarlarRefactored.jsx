@@ -125,7 +125,7 @@ export default function AyarlarRefactored() {
                             {/* Firma bilgileri */}
                             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {[
-                                    { label: 'Firma Adı', key: 'firma_adi', ph: '47 Nizam Tekstil' },
+                                    { label: 'Firma Adı', key: 'firma_adi', ph: 'Mizanet Tekstil' },
                                     { label: 'Vergi No', key: 'firma_vergi_no', ph: '1234567890' },
                                     { label: 'Telefon', key: 'firma_telefon', ph: '+90 555 000 00 00' },
                                     { label: 'E-posta', key: 'firma_eposta', ph: 'info@firma.com', type: 'email' },

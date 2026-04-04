@@ -5,10 +5,13 @@
 // ============================================================
 import { createClient } from '@supabase/supabase-js';
 
-const sb = createClient(
-    (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://mock.supabase.co',
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim() || 'mock-key'
-);
+// [AUDIT-FIX #14]: Mock fallback kaldırıldı — ENV yoksa error log atılır.
+const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+if (!sbUrl || !sbKey) {
+    console.error('[KRİTİK] ajanlar-v2: Supabase URL veya KEY tanımlı değil!');
+}
+const sb = sbUrl && sbKey ? createClient(sbUrl, sbKey) : null;
 
 // ─── AJAN İSİMLERİ KONFİGÜRASYONU ──────────────────────────
 // Koordinatör istediğinde sadece bu bölümü değiştirir.
@@ -728,7 +731,8 @@ export async function trendKasifi(gorevEmri = null) {
         // ── KONTROL NOKTASI 4: Veritabanına Kaydet ──────────
         sonuc.arastirilan++;
         for (const baslik of gecenTrendler) {
-            const skor = Math.floor(Math.random() * 3) + 7; // 7-9 arası demo
+            // [AUDIT-FIX #27]: Math.random() kaldırıldı — deterministik skor
+            const skor = 7 + (baslik.length % 3); // 7-9 arası, başlık uzunluğuna göre sabit
             await sb.from('b1_arge_trendler').insert([{
                 baslik,
                 platform: 'trendyol',

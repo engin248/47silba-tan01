@@ -1,4 +1,4 @@
-# THE ORDER / NIZAM — robots.txt
+# Mizanet — robots.txt
 # https://mizanet.com
 
 User-agent: *

@@ -5,7 +5,7 @@
 
 import { supabase } from './supabase';
 
-const DB_ADI = '47_Nizam_Offline_DB';
+const DB_ADI = 'Mizanet_Offline_DB';
 const STORE_ADI = 'bekleyen_kuyruk';
 
 export function baglantiAc() {

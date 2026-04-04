@@ -97,9 +97,9 @@ export function AuthProvider({ children }) {
                     localStorage.removeItem('sb47_auth');
                 }
             }
-        } catch (authHata) { 
+        } catch (authHata) {
             console.warn('[AUTH] Oturum parse hatası, sıfırlanıyor:', authHata?.message);
-            localStorage.removeItem('sb47_auth'); 
+            localStorage.removeItem('sb47_auth');
         }
         setYukleniyor(false);
     }, []);
@@ -162,10 +162,9 @@ export function AuthProvider({ children }) {
         const cookieValue = encodeURIComponent(JSON.stringify(kayit));
         document.cookie = `sb47_auth_session=${cookieValue}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
 
-        // JWT Token cookie'ye yaz (middleware JWT doğrulaması için)
-        if (veri.token) {
-            document.cookie = `sb47_jwt_token=${veri.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
-        }
+        // [AUDIT-FIX]: Client-side JWT cookie kaldırıldı.
+        // JWT token yalnızca server'dan (pin-dogrula) HttpOnly cookie olarak set edilir.
+        // Eski kod: document.cookie = `sb47_jwt_token=...` — XSS'e açıktı.
 
 
         // Yeni Session Storage Injection - Giriş Anında anında set et (Hook güncellenmesi beklemesin)

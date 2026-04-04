@@ -88,7 +88,7 @@ export async function POST(request) {
         if (text === '/start') {
             await botLog(supabase, chat_id, '/start', 'BASARILI');
             await telegramMesaj(chat_id,
-                '👋 <b>47 Sil Baştan — Fotoğraf Botu</b>\n\n' +
+                '👋 <b>Mizanet — Fotoğraf Botu</b>\n\n' +
                 'Atölye fotoğraflarını direkt buradan sisteme yükle!\n\n' +
                 '📷 <b>Nasıl kullanılır?</b>\n' +
                 '1. Fotoğrafı bu sohbete gönder\n' +
@@ -104,6 +104,13 @@ export async function POST(request) {
 
         // === FOTOĞRAF YÜKLEMESİ ===
         if (message.photo || message.document) {
+            // [AUDIT-FIX #19]: Fotoğraf yüklemede chat_id whitelist kontrolü
+            const fotoYetkili = process.env.TELEGRAM_ADMIN_CHAT_ID?.split(',') || [];
+            if (fotoYetkili.length > 0 && !fotoYetkili.includes(String(chat_id))) {
+                await telegramMesaj(chat_id, '⛔ Fotoğraf yükleme yetkiniz yok.');
+                return NextResponse.json({ ok: true });
+            }
+
             let file_id, uzanti;
 
             if (message.photo) {

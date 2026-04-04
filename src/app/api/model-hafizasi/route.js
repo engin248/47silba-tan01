@@ -1,5 +1,5 @@
 /**
- * NIZAM MODEL HAFIZASI API
+ * Mizanet MODEL HAFIZASI API
  * Endpoint: /api/model-hafizasi?model_id=xxx&model_kodu=MODEL-47-A
  *
  * Mimarisi: Ajan Öğrenmesi Altyapısı

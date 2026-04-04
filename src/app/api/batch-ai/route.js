@@ -8,7 +8,7 @@ async function bulkGeminiAnaliz(is_data_array, GEMINI_URL, controller) {
     try {
         const pazar_urunleri = is_data_array.map(i => ({ id: i.kuyruk_id, ad: i.urunAdi, fiyat: i.fiyatSayi, data: i.ham_veri }));
 
-        const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin. 
+        const prompt = `Sen Mizanet tekstil şirketinin acımasız pazar analistisin. 
 Aşağıdaki liste, ${is_data_array.length} adet farklı e-ticaret (Trendyol/Zara vb.) ürün verisidir.
 Görev: Bu ürünlerin HER BİRİNİ tekstil üretiminde kârlılık ve risk açısından analiz et. Sonuçları kesinlikle aşağıdaki formatta YALNIZCA BİR JSON LİSTESİ (Array) olarak dön. İçine ekstra açıklama ekleme.
 [{
@@ -110,7 +110,7 @@ export async function POST(req) {
             if (decision === 'REDDET') {
                 await supabaseAdmin.from('b1_arge_strategy').insert({
                     product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak,
-                    opportunity_score: firsatSkoru, nizam_decision: decision, risk_level: riskLevel,
+                    opportunity_score: firsatSkoru, mizanet_decision: decision, risk_level: riskLevel,
                     supply_risk: ai.risk_ozeti || '', time_risk: timeRiskStr, estimated_profit: 0, outsource_cost: Number(ai.teorik_maliyet) || 0,
                     agent_note: ai.agent_notu || '', boss_approved: false, reason: 'Risk oranları potansiyeli aştı.'
                 });
@@ -120,7 +120,7 @@ export async function POST(req) {
                 await supabaseAdmin.from('b1_arge_risk_analysis').insert({ product_id: orgData.urun_id, supply_risk_score: ai.tedarik_riski_puani, production_risk_score: ai.uretim_karma_puani });
 
                 await supabaseAdmin.from('b1_arge_strategy').insert({
-                    product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak, opportunity_score: firsatSkoru, nizam_decision: decision,
+                    product_id: orgData.urun_id, product_name: orgData.urunAdi, platform: orgData.kaynak, opportunity_score: firsatSkoru, mizanet_decision: decision,
                     risk_level: riskLevel, supply_risk: ai.risk_ozeti || '', time_risk: timeRiskStr, estimated_profit: estimatedProfit, outsource_cost: Number(ai.teorik_maliyet) || 0,
                     agent_note: ai.agent_notu || '', boss_approved: false, reason: `Trend: %${trendSkoru.toFixed(1)}`
                 });

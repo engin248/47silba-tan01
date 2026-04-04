@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * /api/agent/kasif
- * THE ORDER / NİZAM — KAŞİF AJAN (Dış Gözlemci)
+ * Mizanet — KAŞİF AJAN (Dış Gözlemci)
  *
  * Görev: Verilen ürün için internet araştırması yapar (Perplexity Sonar),
  * ardından Gemini ile "Bu ürün neden satar / satmaz?" karar desteği üretir.
@@ -84,7 +84,7 @@ Kısa ve veri odaklı yanıt ver. Kaynak belirt.
 
         // ── AŞAMA 2: GEMİNİ — "Satar mı?" Karar Desteği ───────────
         const geminiPrompt = `
-Sen THE ORDER / NİZAM sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İç Üretim kapasitesine sahip) için ürün kârlılık kararı veriyorsun.
+Sen Mizanet sisteminin KAŞİF ajanısın. Tekstil fabrikası (Fason ve İç Üretim kapasitesine sahip) için ürün kârlılık kararı veriyorsun.
 
 DİL VE ÜSLUP KURALI (KESİN TALİMAT):
 Asla sübjektif, coşkulu, abartılı veya satıcı ağzıyla ("müthiş satıyor", "uçuyor", "hemen üretmeliyiz", "harika fırsat") YAZMAYACAKSIN. Tamamen soğukkanlı, net, metrik (sayısal) ve analitik bir dil kullan. Raporlamalarını yüzdelik değişimler, TL cinsinden fiyat bantları ve ölçülebilir istatistikler üzerine kur. Ölçülemeyen hiçbir yorum yapma.

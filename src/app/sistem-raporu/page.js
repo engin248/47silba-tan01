@@ -159,7 +159,7 @@ export default function SistemRaporuSayfasi() {
 
             {/* Alt bilgi */}
             <div style={{ borderTop: '1px solid #1a4731', marginTop: '24px', paddingTop: '12px', fontSize: '10px', color: '#374151', textAlign: 'center', letterSpacing: '0.2em' }}>
-                mizanet.com — THE ORDER / NİZAM — GİZLİ
+                mizanet.com — GİZLİ
             </div>
         </div>
     );

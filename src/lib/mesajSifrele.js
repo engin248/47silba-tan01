@@ -1,5 +1,5 @@
 /**
- * NIZAM SİBER KARARGAH — AES-256-GCM MESAJ ŞİFRELEME MODÜLÜ
+ * Mizanet SİBER KARARGAH — AES-256-GCM MESAJ ŞİFRELEME MODÜLÜ
  * ─────────────────────────────────────────────────────────────
  * Mesaj içerikleri Supabase'e gitmeden önce bu modül ile şifrelenir.
  * Sadece HABERLESME_MASTER_KEY'e sahip sistem şifreyi çözebilir.

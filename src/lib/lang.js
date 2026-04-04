@@ -6,8 +6,8 @@
 export const TRANSLATIONS = {
     tr: {
         // GENEL
-        sistem_adi: '47 SİL BAŞTAN',
-        sistem_alt: 'Sıfır İnisiyatif / Tam Adalet',
+        sistem_adi: 'MİZANET',
+        sistem_alt: 'Üretim & Mağaza Yönetim Sistemi',
         karargah: 'Karargâh',
         aktif: 'Aktif',
         iptal: 'İptal',
@@ -153,8 +153,8 @@ export const TRANSLATIONS = {
     // =========================================================================
     ar: {
         // GENEL
-        sistem_adi: '47 ابدأ من جديد',
-        sistem_alt: 'صفر مبادرة / عدالة كاملة',
+        sistem_adi: 'MİZANET',
+        sistem_alt: 'نظام الإنتاج والمتجر',
         karargah: 'المقر الرئيسي',
         aktif: 'نشط',
         iptal: 'ملغي',

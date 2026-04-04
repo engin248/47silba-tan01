@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// YIRTICI FIRSAT BOTU — THE ORDER / NIZAM
+// YIRTICI FIRSAT BOTU — MİZANET
 // /api/rapor/yirtici-firsat
 //
 // GET  → Trendyol'da tükenip sizde olan ürünlerin listesi

@@ -49,7 +49,7 @@ export async function POST(request) {
                 messages: [
                     {
                         role: 'system',
-                        content: 'Sen THE ORDER sisteminin zamansal doğrulama uzmanısın. Sana verilen detaylı soruları gerçek piyasa verilerine dayanarak yanıtla. Yalnızca ölçülebilir veri, rakam ve yüzde kullan. Cevabın formatı: TREND/SATIS/ORTALAMA_FIYAT/RAKIP_URETTI/HermAI_KARAR_UYUM/EN_ONEMLI_BULGU şeklinde olmalı.'
+                        content: 'Sen Mizanet sisteminin zamansal doğrulama uzmanısın. Sana verilen detaylı soruları gerçek piyasa verilerine dayanarak yanıtla. Yalnızca ölçülebilir veri, rakam ve yüzde kullan. Cevabın formatı: TREND/SATIS/ORTALAMA_FIYAT/RAKIP_URETTI/HermAI_KARAR_UYUM/EN_ONEMLI_BULGU şeklinde olmalı.'
                     },
                     { role: 'user', content: sorgu }
                 ],

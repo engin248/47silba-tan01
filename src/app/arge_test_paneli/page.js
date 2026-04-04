@@ -44,7 +44,7 @@ export default function ArgeTestPaneli() {
     const verileriGetir = async () => {
         setLoading(true);
         try {
-            // THE ORDER KURALI: Sadece okuma yap, 70 puan üstü Altın Madenlerini getir.
+            // Mizanet KURALI: Sadece okuma yap, 70 puan üstü Altın Madenlerini getir.
             const { data, error } = await supabase
                 .from('b1_arge_strategy')
                 .select('*')
@@ -67,7 +67,7 @@ export default function ArgeTestPaneli() {
     useEffect(() => {
         veriCekRef.current();
 
-        // THE ORDER KURALI: Canlı Akış (Realtime) Bağlantısı - F5 İhtiyacı Yok
+        // Mizanet KURALI: Canlı Akış (Realtime) Bağlantısı - F5 İhtiyacı Yok
         const kanal = supabase.channel('boss-karargah-arge')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_arge_strategy' }, (payload) => {
                 // Yeni kayıt geldiğinde ekranı flaş yap (Animasyon)

@@ -1,5 +1,5 @@
 /**
- * THE ORDER - EKİP 1 KOMUTANLIĞI: "ÖLÜ İŞÇİ" (VERİ TOPLAMA TABURU)
+ * Mizanet - EKİP 1 KOMUTANLIĞI: "ÖLÜ İŞÇİ" (VERİ TOPLAMA TABURU)
  * Tarih: 16.03.2026
  *
  * DURUM: AKTİF — Sadece VPS/Node.js ortamında çalışır. Vercel/Next.js'de çalışmaz.

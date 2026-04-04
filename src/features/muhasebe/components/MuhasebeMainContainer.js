@@ -3,6 +3,7 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { FileCheck, CheckCircle2, AlertTriangle, TrendingDown, TrendingUp, Lock, Trash2, Edit2, Search, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { fetchIsEmriForMuhasebe, fetchIsEmriForRapor } from '@/features/uretim/services/uretimApi';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
@@ -62,27 +63,22 @@ export default function MuhasebeMainContainer() {
         try {
             const req1 = supabase.from('b1_muhasebe_raporlari').select('*').order('created_at', { ascending: false }).limit(200);
 
-            // VERİ BÜTÜNLÜĞÜ: Model Taslakları yerine tamamlanmış İş Emirleri (production_orders) referans alınıyor
-            const req2 = supabase.from('production_orders')
-                .select('id, quantity, status, b1_model_taslaklari:model_id(model_kodu, model_adi)')
-                .eq('status', 'completed')
-                .order('updated_at', { ascending: false }).limit(200);
+            // VERİ BÜTÜNLÜĞÜ: Tamamlanmış İş Emirleri — uretimApi.fetchIsEmriForMuhasebe
+            const req2 = fetchIsEmriForMuhasebe();
 
             const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 sn)')), 10000));
-            const [rRes, mRes] = await Promise.race([
-                Promise.allSettled([req1, req2]),
+            const [rRes, ordersData] = await Promise.race([
+                Promise.all([req1, req2]),
                 timeoutPromise()
             ]);
 
             let currentRaporlar = [];
-            if (rRes.status === 'fulfilled' && rRes.value.data) {
-                currentRaporlar = rRes.value.data;
+            if (rRes.data) {
+                currentRaporlar = rRes.data;
             }
-            if (mRes.status === 'fulfilled' && mRes.value.data) {
-                // b1_muhasebe_raporlari'ndaki (order_id) production_orders.id'sini temsil eder. 
-                // Ekleme ile map yapıyoruz ki isimler ve kodlar raporlarda görünsün.
+            if (ordersData && ordersData.length > 0) {
                 currentRaporlar = currentRaporlar.map(r => {
-                    const eslesenEmir = mRes.value.data.find(o => o.id === r.order_id);
+                    const eslesenEmir = ordersData.find(o => o.id === r.order_id);
                     return {
                         ...r,
                         model_kodu: eslesenEmir?.b1_model_taslaklari?.model_kodu || r.model_kodu || null,
@@ -91,14 +87,15 @@ export default function MuhasebeMainContainer() {
                 });
                 setRaporlar(currentRaporlar);
                 const raporOrderIds = new Set(currentRaporlar.map(r => r.order_id));
-                // Model ID asimetrisi giderildiği için listeye doğrudan emir.id ve birleşik model verileri set edilecek:
-                const maplenmisEmirler = mRes.value.data.map(o => ({
+                const maplenmisEmirler = ordersData.map(o => ({
                     id: o.id,
                     model_kodu: o.b1_model_taslaklari?.model_kodu || 'Bilinmiyor',
                     model_adi: o.b1_model_taslaklari?.model_adi || 'Bilinmeyen Model',
                     hedef_adet: o.quantity || 0
                 }));
                 setRaporsizemOrders(maplenmisEmirler.filter(o => !raporOrderIds.has(o.id)));
+            } else {
+                setRaporlar(currentRaporlar);
             }
         } catch (error) { goster('Ağ bağlantısı koptu! ' + error.message, 'error'); }
         setLoading(false);
@@ -164,17 +161,12 @@ export default function MuhasebeMainContainer() {
             }).eq('id', rapor.id);
             if (error) throw error;
 
-            // ONAY AKIŞI: İmalat (M4) aşaması bittiğinde stoklar eklendiği için burada sadece 2. Birim Onayı log'laması yapılır.
+            // ONAY AKIŞI — uretimApi.fetchIsEmriForRapor
             try {
-                const { data: orderData } = await supabase.from('production_orders')
-                    .select('model_id, quantity, b1_model_taslaklari(model_kodu)')
-                    .eq('id', rapor.order_id).single();
-
+                const orderData = await fetchIsEmriForRapor(rapor.order_id);
                 const mData = Array.isArray(orderData?.b1_model_taslaklari) ? orderData?.b1_model_taslaklari[0] : orderData?.b1_model_taslaklari;
                 const modelKodu = mData?.model_kodu;
-
                 if (modelKodu) {
-                    // Sadece doğrulama logu yaz — Mükerrer stok girme!
                     await supabase.from('b0_sistem_loglari').insert([{
                         tablo_adi: 'b2_stok_hareketleri',
                         islem_tipi: 'MUHASEBE_STOK_DOGRULAMA',

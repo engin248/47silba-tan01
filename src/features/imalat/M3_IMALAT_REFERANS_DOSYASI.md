@@ -42,7 +42,7 @@
 ### 🧪 Test Durumu ve Sonuçları (Revizyon 1)
 *   **Yerel Derleme (Local Build):** `npx next build` sıfır hata (Exit 0) ile onaylandı.
 *   **Vercel Bulut Testi:** Github'a `176bdfc` Hash'i ile pushlandı, Vercel Build Başarılı.
-*   **Tarayıcı Sızma Testi:** Tarayıcı Ajanımız (Browser Subagent) ile `https://the-order-nizam.vercel.app/imalat` prodüksiyon adresine sızıldı. M3 Sayfası hatasız işlendi, "Erişim Kodu (PIN)" duvarının ve 47 Sil Baştan kurumsal güvenliğinin ayakta olduğu teyit edildi. (Sayfa çökmedi, Memory Leak yaşanmadı).
+*   **Tarayıcı Sızma Testi:** Tarayıcı Ajanımız (Browser Subagent) ile `https://mizanet.com/imalat` prodüksiyon adresine sızıldı. M3 Sayfası hatasız işlendi, "Erişim Kodu (PIN)" duvarının ve Mizanet kurumsal güvenliğinin ayakta olduğu teyit edildi. (Sayfa çökmedi, Memory Leak yaşanmadı).
 
 ---
 

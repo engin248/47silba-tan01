@@ -4,12 +4,12 @@
 // ║ Güncel versiyon: src/scripts/ai_mastermind/yargic.js            ║
 // ╚══════════════════════════════════════════════════════════════════╝
 /**
- * THE ORDER - EKİP 2 KOMUTANLIĞI: MATEMATİKÇİ VE KARAR YARGICI
+ * Mizanet - EKİP 2 KOMUTANLIĞI: MATEMATİKÇİ VE KARAR YARGIÇI
  * Tarih: 16.03.2026
  *
  * GÖREV EMRİ:
  * 1. Ekip 1 (Ölü İşçi) tarafından 'b1_arge_products' (products) tablosuna yığılan verileri dinler.
- * 2. Gemini LLM tahmini ile THE ORDER Algoritmasını (Satış %35, Sosyal %30, Rakip %20, Sezon %15) çalıştırır.
+ * 2. Gemini LLM tahmini ile Mizanet Algoritmasını (Satış %35, Sosyal %30, Rakip %20, Sezon %15) çalıştırır.
  * 3. Hata payı olmadan Trend Skoru, Maliyet ve Risk hesaplar.
  * 4. Puanları b1_arge_strategy tablosundaki 'opportunity_score' kolonuna basar.
  * 5. Mühür (Hakim Tokmağı):
@@ -64,20 +64,20 @@ export class Ekip2_MatematikciYargic {
     }
 
     /**
-     * Tekil ürün bazında THE ORDER formülünü işleyen çekirdek yapı
+     * Tekil ürün bazında Mizanet formülünü işleyen çekirdek yapı
      */
     async matematikselAlgoritmaVeKarar(urun) {
 
 
         // 2. Gemini LLM ile Tahmin & Sayısal Puan Çıkarımı
         const prompt = `
-            Sen THE ORDER sisteminin 2. Ekip üyesisin (Matematikçi Yargıç, Analist).
+            Sen Mizanet sisteminin 2. Ekip üyesisin (Matematikçi Yargıç, Analist).
             Aşağıdaki piyasa ürün verisini analiz edeceksin:
             Ürün: ${urun.product_name}
             Kategori: ${urun.category}
             Pazar Fiyatı: ${urun.price_range} TL
 
-            Lütfen THE ORDER veritabanına yazılmak üzere aşağıdaki metrikleri tahmin et (0 ile 100 arası puan).
+            Lütfen Mizanet veritabanına yazılmak üzere aşağıdaki metrikleri tahmin et (0 ile 100 arası puan).
             SADECE JSON döndür:
             {
                 "satis_buyumesi": 0-100 arasi rakam,
@@ -109,7 +109,7 @@ export class Ekip2_MatematikciYargic {
             return; // Hata durumunda atla, çöp veri basma.
         }
 
-        // 3. THE ORDER MATEMATİKSEL ALGORİTMA İŞLETİMİ
+        // 3. MİZANET MATEMATİKSEL ALGORİTMA İŞLETİMİ
         const satisPuan = (llmAnaliz.satis_buyumesi || 0) * 0.35;
         const sosyalPuan = (llmAnaliz.sosyal_medya_hacmi || 0) * 0.30;
         const rakipPuan = (llmAnaliz.rakip_rekabet_orani || 0) * 0.20;

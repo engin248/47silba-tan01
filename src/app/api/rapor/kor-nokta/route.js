@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// KÖR NOKTA FIRE RADARI — THE ORDER / NIZAM
+// KÖR NOKTA FIRE RADARI — MİZANET
 // /api/rapor/kor-nokta
 //
 // GET  → Model bazında kumaş harcama & fire oranı raporu

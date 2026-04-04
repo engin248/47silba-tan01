@@ -11,7 +11,7 @@ from datetime import datetime, date, timedelta
 from dotenv import load_dotenv
 
 # =========================================================================
-# THE ORDER - 1. EKIP: GUNLUK GOZLEM + DELTA TAKIP AJANI
+# Mizanet - 1. EKIP: GUNLUK GOZLEM + DELTA TAKIP AJANI
 # Hedef Tablo : b1_piyasa_gozlem
 # Calistirma  : Her gun sabah ayni saatte (cron / gorev zamanlayici)
 # Etik Kural  : Sadece kamuya acik bilgi. Guvenlik atlatilmaz.
@@ -36,7 +36,7 @@ from supabase import create_client, Client
 from datetime import datetime
 
 # =========================================================================
-# THE ORDER - 1. EKİP (VERİ MADENCİSİ / SCOUT AJANI)
+# Mizanet - 1. EKİP (VERİ MADENCİSİ / SCOUT AJANI)
 # Görevi: Sadece veri toplar. Karar vermez, skorlamaz.
 # Hedef: Trendyol Erkek/Kadın Giyim veya Rakip Siteler.
 # =========================================================================

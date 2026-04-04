@@ -14,14 +14,8 @@ const AjanVeriFiltresi = z.object({
 // YENİ: Middleware zaten JWT dogruladı ve buraya 'tam' grubu izin verdi.
 //        Route içinde tekrar cookie parse etmek gereksiz VE tehlikeliydi.
 // Bu fonksiyon artık sadece INTERNAL_API_KEY iç servis geçişini kontrol eder.
-function yetkiKontrol(req) {
-    const apiKey = req.headers.get('x-internal-api-key');
-    if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true;
-    // Middleware JWT dogrulamasından geçti ise burada her zaman true döner.
-    // (Middleware, bu route için 'tam' grubunu zorunlu tutuyor)
-    return true;
-}
-
+// [AUDIT-FIX #20]: yetkiKontrol() dead code kaldırıldı.
+// Middleware zaten JWT doğrulaması yapıyor, bu fonksiyon çağrılmıyordu ve her zaman true dönüyordu.
 
 // ------------------------------------------------------------
 // KRİTER 145: CANLI KARARGAHTA AJANIN DÜŞÜNME ADIMLARI (Trace)
@@ -110,8 +104,7 @@ async function arastirmaGoreviniCalistir(gorev, supabase) {
 
 export async function POST(req) {
     try {
-        if (!yetkiKontrol(req)) return NextResponse.json({ error: 'Yetkisiz.' }, { status: 401 });
-
+        // [AUDIT-FIX #20]: Middleware JWT doğrulaması yeterli — yetkiKontrol() çağrısı kaldırıldı.
         const body = await req.json();
         const { gorev_id, sorgu_metni } = body;
 

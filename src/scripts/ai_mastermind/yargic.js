@@ -39,7 +39,7 @@ async function geminiAnaliz(hamVeriStr, fiyatStr) {
     const timeout = setTimeout(() => controller.abort(), 3000);
 
     try {
-        const prompt = `Sen THE ORDER tekstil şirketinin acımasız pazar analistisin.
+        const prompt = `Sen Mizanet tekstil şirketinin acımasız pazar analistisin.
 Görevin: Aşağıdaki ham ürün verisini tekstil üretiminde kârlılık ve risk açısından analiz et.
 
 HAM VERİ:
@@ -159,14 +159,14 @@ async function yargilamayiBaslat() {
             const hamVeriMetni = typeof urun.ham_veri === 'object' ? JSON.stringify(urun.ham_veri) : (urun.ham_veri || '');
             const ai = await geminiAnaliz(hamVeriMetni, parsedHamVeri.fiyatSayi || 0);
 
-            // ─── THE ORDER ANAYASASI: TREND SKORU ───────────────
+            // ─── MİZANET ANAYASASI: TREND SKORU ───────────────
             const trendSkoru =
                 (ai.satis_buyumesi * 0.35) +
                 (ai.sosyal_medya_etkisi * 0.30) +
                 (ai.rakip_kullanim_hizi * 0.20) +
                 (ai.sezon_uyumu * 0.15);
 
-            // ─── THE ORDER ANAYASASI: FIRSAT SKORU ──────────────
+            // ─── MİZANET ANAYASASI: FIRSAT SKORU ──────────────
             const ortalamaRisk = (ai.tedarik_riski_puani + ai.uretim_karma_puani) / 2;
             const firsatSkoru = Math.max(0, Math.min(100, trendSkoru - (ortalamaRisk * 0.5)));
 
@@ -204,7 +204,7 @@ async function yargilamayiBaslat() {
                     product_name: urunAdi,
                     platform: kaynak,
                     opportunity_score: firsatSkoru,
-                    nizam_decision: decision,
+                    mizanet_decision: decision,
                     risk_level: riskLevel,
                     supply_risk: ai.risk_ozeti,
                     time_risk: timeRisk,
@@ -250,7 +250,7 @@ async function yargilamayiBaslat() {
                     product_name: urunAdi,
                     platform: kaynak,
                     opportunity_score: firsatSkoru,
-                    nizam_decision: decision,
+                    mizanet_decision: decision,
                     risk_level: riskLevel,
                     supply_risk: ai.risk_ozeti,
                     time_risk: timeRisk,

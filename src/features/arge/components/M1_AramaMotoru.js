@@ -5,7 +5,7 @@ import { useState } from 'react';
 /**
  * M1_AramaMotoru.js
  * Hermes V2 AI arama kutusu — Perplexity Sonar tetikleyicisi
- * THE ORDER Özel Filtreleri (TailwindCSS Optimized)
+ * Mizanet Özel Filtreleri (TailwindCSS Optimized)
  */
 export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniyor, aiAjanDurumu, isAR }) {
     const HIZLI_ARAMALAR = isAR
@@ -43,7 +43,7 @@ export default function M1_AramaMotoru({ aiSorgu, setAiSorgu, trendAra, aiAraniy
                 </div>
             </div>
 
-            {/* THE ORDER Vize Parametreleri (Kalkanlar) */}
+            {/* Mizanet Vize Parametreleri (Kalkanlar) */}
             <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => setFiltreler(f => ({ ...f, medyaAlgisi: !f.medyaAlgisi }))}

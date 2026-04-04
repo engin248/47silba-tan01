@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// TEDARİKÇİ / FASON SABIKA KAYDI — THE ORDER / NIZAM
+// TEDARİKÇİ / FASON SABIKA KAYDI — MİZANET
 // /api/rapor/sabika-kaydi
 //
 // GET  → Fason/tedarikçi gecikme + defo/iade skorları

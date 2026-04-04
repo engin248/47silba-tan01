@@ -1,6 +1,6 @@
 # 🏭 ÜRETİM BANDI + İMALAT — TAM DENETİM RAPORU VE GÖREV DAĞILIMI
 
-**Tarih:** 16 Mart 2026 — 06:53 | **Proje:** 47 Sil Baştan (THE ORDER / NİZAM)
+**Tarih:** 16 Mart 2026 — 06:53 | **Proje:** Mizanet
 **Kapsam:** `/uretim` (M14) + `/imalat` (M3/M6) + Ajanlar (`ajanlar-v2.js`)
 
 ---

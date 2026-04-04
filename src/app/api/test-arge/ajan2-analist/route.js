@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * NİZAM KUM HAVUZU (SANDBOX) - AJAN 2: ANALİST (KANTAR & TERZİ BİRLEŞİMİ)
- * Görev: Ajan 1'den (İstihbarat) gelen ham veriyi alır, THE ORDER kurallarına (D2C, Fason Maliyeti, Kalite Açığı)
+ * Görev: Ajan 1'den (İstihbarat) gelen ham veriyi alır, Mizanet kurallarına (D2C, Fason Maliyeti, Kalite Açığı)
  * göre değerlendirir ve 1-100 arası matematiksel bir "Risk/Kâr Puanı" çıkarır.
  */
 
@@ -21,7 +21,7 @@ export async function POST(req) {
         }
 
         const prompt = `
-            Sen (NİZAM Ajan 2: Analist), "THE ORDER" tekstil imalat şirketinin acımasız ve tavizsiz üretim analistisin.
+            Sen (Mizanet Ajan 2: Analist), Mizanet tekstil imalat şirketinin acımasız ve tavizsis üretim analistisin.
             Amacımız: Aracıları çıkarıp D2C (Doğrudan Tüketiciye) yüksek kaliteyi uygun fiyata sunmak.
             
             GELEN İSTİHBARAT VERİSİ:

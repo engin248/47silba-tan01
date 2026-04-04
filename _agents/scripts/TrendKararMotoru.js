@@ -1,5 +1,5 @@
 /**
- * THE ORDER / NİZAM - BEYİN (KARAR MOTORU)
+ * Mizanet - BEYİN (KARAR MOTORU)
  * 
  * Bu algoritma, 8 KRİTİK SİNYALİ okuyarak bir ürünün ÜRET / GİR / BEKLE / İPTAL
  * kararını kesin ve matematiksel olarak %90+ doğrulukla veren tek merkezdir.
@@ -196,7 +196,7 @@ const ornekUrunler = [
 const motor = new TrendKararMotoru();
 
 console.log("=========================================");
-console.log("THE ORDER - YAPAY ZEKA KARAR MOTORU AKTİF");
+console.log("Mizanet - YAPAY ZEKA KARAR MOTORU AKTİF");
 console.log("=========================================\n");
 
 ornekUrunler.forEach(urun => {

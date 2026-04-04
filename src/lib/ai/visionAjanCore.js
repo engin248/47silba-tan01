@@ -1,6 +1,6 @@
 ﻿/**
  * /src/lib/ai/visionAjanCore.js
- * THE ORDER — KÖR NOKTA VİSİON (Görü) ANALİZ MOTORU
+ * Mizanet — KÖR NOKTA VİSİON (Görü) ANALİZ MOTORU
  *
  * KÖK SORUN ONARIM:
  * ÖNCE: Math.random() ile sahte (simülasyon) veri üretiyordu. Hiçbir analiz yapılmıyordu.
@@ -35,7 +35,7 @@ export async function videoVeResimDenetle(resimBase64) {
                     contents: [{
                         parts: [
                             {
-                                text: `Sen THE ORDER tekstil fabrikasının kalite kontrol uzmanısın.
+                                text: `Sen Mizanet tekstil fabrikasının kalite kontrol uzmanısın.
 Bu kumaş veya ürün fotoğrafını incele ve aşağıdaki JSON formatında yanıt ver (SADECE JSON):
 
 {

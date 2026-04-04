@@ -1,6 +1,6 @@
 # M1 / AR-GE & TREND ARAŞTIRMASI (KÖK ARŞİV VE SİSTEM REFERANS DOSYASI)
 
-**UYARI:** Bu dosya, `src/features/arge` modülünün KÖK kimliğidir. NİZAM sistem kurallarına bağlılık yeminidir, her türlü zırh işlemi bu belgeye işlenecektir.
+**UYARI:** Bu dosya, `src/features/arge` modülünün KÖK kimliğidir. Mizanet sistem kurallarına bağlılık yeminidir, her türlü zırh işlemi bu belgeye işlenecektir.
 
 ---
 
@@ -18,9 +18,9 @@
 ---
 
 ## 2. KÖK ARŞİV (YAPILAN ZIRHLAMA TESPİT VE DEĞİŞİKLİKLERİ)
-*"NİZAM 'Minimum Maliyet - Sıfır Açık' kuralı çerçevesinde bu modüle uygulanan siber cerrahi kayıtlarıdır."*
+*"Mizanet 'Minimum Maliyet - Sıfır Açık' kuralı çerçevesinde bu modüle uygulanan siber cerrahi kayıtlarıdır."*
 
-### 🛠️ Revizyon 1: FAZ-4 NİZAM / Ağ Güvenliği ve Anti-Spam (M1)
+### 🛠️ Revizyon 1: FAZ-4 Mizanet / Ağ Güvenliği ve Anti-Spam (M1)
 *   **Tarih:** 12 Mart 2026
 *   **Geliştirici / Otorite:** Antigravity AI Agent (Kurucu-Yönetici: Engin Emriyle)
 *   **Problemler:** 

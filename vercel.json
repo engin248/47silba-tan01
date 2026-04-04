@@ -13,7 +13,7 @@
         },
         {
             "path": "/api/cron-ajanlar?gorev=kamera_durum_kontrol_ajan",
-            "schedule": "0 5 * * *"
+            "schedule": "10 5 * * *"
         }
     ]
 }

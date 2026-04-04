@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// KUMBARACI (AKILLI KÜMELEME) — THE ORDER / NIZAM
+// KUMBARACI (AKILLI KÜMELEME) — MİZANET
 // /api/rapor/kumbaraci
 //
 // GET  → Bu haftanın kalıp+model metadatasından ortak malzeme planı

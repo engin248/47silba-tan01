@@ -58,7 +58,7 @@ export async function POST(request) {
     }
 
     try {
-        const prompt = `Sen THE ORDER sisteminin 119 Kriterlik Üretim ve Risk Mimarisiyle donatılmış "Hermes" kod adlı veri madenciliği ajanısın. Tek görevin, istenilen konu hakkında e-ticaret siteleri ve moda platformlarındaki GERÇEK talep verilerini toplamak ve bunu 119 KRİTERLİ FİLTREMİZE (Kârlılık, Operasyonel Risk, Talep Şiddeti) göre acımasızca süzmektir.
+        const prompt = `Sen Mizanet sisteminin 119 Kriterlik Üretim ve Risk Mimarisiyle donatılmış "Hermes" kod adlı veri madenciliği ajanısın. Tek görevin, istenilen konu hakkında e-ticaret siteleri ve moda platformlarındaki GERÇEK talep verilerini toplamak ve bunu 119 KRİTERLİ FİLTREMİZE (Kârlılık, Operasyonel Risk, Talep Şiddeti) göre acımasızca süzmektir.
 
 DİL VE ÜSLUP KURALI (KESİN TALİMAT):
 Asla sübjektif, coşkulu veya abartılı cümleler ("müthiş satıyor", "uçuyor", "kaçıyor", "harika trend") KULLANMAYACAKSIN. Yorum yapmayacaksın. Cevapların %100 rakamlara, yüzdelere, TL/Euro cinsinden finansal değerlere ve ölçülebilir verilere dayanmak ZORUNDADIR. Ölçemediğin hiçbir şeyi rapora yazma. Tamamen soğukkanlı, net ve rakamsal (analitik) bir dil kullan.
@@ -94,7 +94,7 @@ Aşağıdaki JSON FORMATINI (Schema) eksiksiz doldur. JSON FORMATI DIŞINDA ASLA
 }
 
 ARAŞTIRILACAK KONU: ${sorgu}
-Odak: Sınırsız Üretim Gücü (İç Tesis + Fason), Kârlılık, Operasyonel Risk ve THE ORDER 119 Kriter Mimarisi.`;
+Odak: Sınırsız Üretim Güceü (İç Tesis + Fason), Kârlılık, Operasyonel Risk ve Mizanet 119 Kriter Mimarisi.`;
 
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',

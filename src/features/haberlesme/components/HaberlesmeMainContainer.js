@@ -541,7 +541,7 @@ export default function HaberlesmeMainContainer() {
                         <MessageSquare size={26} color="white" />
                     </div>
                     <div style={{ background: '#1d4ed8', color: 'white', padding: '4px 10px', borderRadius: '4px', display: 'inline-block' }}>
-                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>NIZAM Haberleşme</h1>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>Mizanet Haberleşme</h1>
                         <p style={{ fontSize: '0.72rem', color: '#dbeafe', margin: '2px 0 0', fontWeight: 600 }}>
                             Adil · Şeffaf · SHA-256 Damgalı · Silinmez Arşiv
                         </p>

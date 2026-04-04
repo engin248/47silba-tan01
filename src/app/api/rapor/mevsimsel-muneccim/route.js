@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// MEVSİMSEL MÜNECCİM — THE ORDER / NIZAM
+// MEVSİMSEL MÜNECCİM — MİZANET
 // /api/rapor/mevsimsel-muneccim
 //
 // GET  → Son 3 yılın aynı dönemi satış + trend analizi

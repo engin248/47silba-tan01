@@ -70,6 +70,18 @@ const HONEYPOT_YOLLARI = [
 export async function middleware(request) {
     const url = request.nextUrl.pathname;
 
+    // ─── [KÖKSEL FİX] PUBLIC STATİK ASSETLERİ MIDDLEWARE'DEN MUAF TUT ──────
+    // Matcher'da hariç tutulsa bile bazı Vercel edge durumlarında buraya düşebilir.
+    // Bu early-return ile sitemap, favicon gibi public dosyalar LOGIN'e yönlendirilmez.
+    const PUBLIC_STATIK = [
+        '/sitemap.xml', '/robots.txt', '/favicon.ico', '/favicon.png',
+        '/sw.js', '/service-worker.js', '/manifest.json', '/offline.html',
+        '/icon.png', '/adalet_muhuru.png',
+    ];
+    if (PUBLIC_STATIK.includes(url) || url.startsWith('/icons/')) {
+        return NextResponse.next();
+    }
+
     // ─── [0] HONEYPOT: WordPress/bot tarama yollarını anında engelle ──
     const honeypotEslesti = HONEYPOT_YOLLARI.some(hp => url.startsWith(hp));
     if (honeypotEslesti) {
@@ -130,6 +142,11 @@ export async function middleware(request) {
         '/api/personel-ekle',
         '/api/stok-alarm',
         '/api/cron-ajanlar', // [A4]: Cron artık x-internal-api-key zorunlu
+        '/api/rapor',        // [AUDIT-FIX]: Tüm rapor endpoint'leri korunuyor
+        '/api/batch-ai',     // [AUDIT-FIX]: Gemini batch AI korunuyor
+        '/api/deepseek-analiz', // [AUDIT-FIX]: DeepSeek AI korunuyor
+        '/api/perplexity-arama', // [AUDIT-FIX]: Perplexity AI korunuyor
+        '/api/trend-ara',    // [AUDIT-FIX]: Trend araştırma korunuyor
     ];
     const apiKorumalı = korunanApiRotalar.some(r => url.startsWith(r));
 

@@ -6,7 +6,7 @@
 
 ## 1. MODÜL GİRİŞ DEĞERLERİ VE TEMEL GÖREVLER
 **Dosya Yolu:** `src/features/tasarim/components/TasarimMainContainer.js`
-**Sistem Görevi:** Tekstil atölyesindeki Tasarım Stüdyosu alanının (Vektörel çizimler, baskı, kumaş paleti seçimi vb. M1 öncesi soyut planlar) idare edildiği ana vizyon ekranı. Corel DRAW, Photoshop vs dış sistemlerindeki taslakların NIZAM'a eklendiği bulut disk noktası.
+**Sistem Görevi:** Tekstil atölyesindeki Tasarım Stüdyosu alanının (Vektörel çizimler, baskı, kumaş paleti seçimi vb. M1 öncesi soyut planlar) idare edildiği ana vizyon ekranı. Corel DRAW, Photoshop vs dış sistemlerindeki taslakların Mizanet'e eklendiği bulut disk noktası.
 
 ## 2. KÖK ARŞİV (YAPILAN ZIRHLAMA TESPİT VE DEĞİŞİKLİKLERİ)
 ### 🛠️ Revizyon 1: FAZ-4 NİZAM / Ağ Güvenliği ve Anti-Spam

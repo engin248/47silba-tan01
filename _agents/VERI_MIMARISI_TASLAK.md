@@ -1,4 +1,4 @@
-# 📡 VERİ TOPLAMA MİMARİSİ — THE ORDER / NİZAM
+# 📡 VERİ TOPLAMA MİMARİSİ — Mizanet
 > Oluşturuldu: 17 Mart 2026 22:21
 > Durum: TASLAK — Onaylanmadı, tartışılıyor
 

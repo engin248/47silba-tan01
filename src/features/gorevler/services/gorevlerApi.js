@@ -1,6 +1,6 @@
 /**
  * features/gorevler/services/gorevlerApi.js
- * Tablo: b1_gorevler (NIZAM sistemi b1_ prefix standardı)
+ * Tablo: b1_gorevler (Mizanet sistemi b1_ prefix standardı)
  * [DÜZELTİLDİ] b0_gorevler → b1_gorevler tablo adı tutarlı hale getirildi
  */
 import { supabase } from '@/lib/supabase';

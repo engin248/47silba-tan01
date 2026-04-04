@@ -27,7 +27,7 @@ export default function FizikselQRBarkod({ veriKodu, baslik = "Kumaş Barkodu", 
                     </style>
                 </head>
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <h1 style="font-size: 2.5rem; margin: 0; padding: 0; letter-spacing: 4px; border-bottom: 4px solid #000; display: inline-block;">THE ORDER</h1>
+                        <h1 style="font-size: 2.5rem; margin: 0; padding: 0; letter-spacing: 4px; border-bottom: 4px solid #000; display: inline-block;">MİZANET</h1>
                         <h2 style="font-size: 1.2rem; margin: 5px 0 0 0; letter-spacing: 6px; color: #555;">47 NİZAM</h2>
                     </div>
                     <h3>${baslik}</h3>

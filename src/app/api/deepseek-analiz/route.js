@@ -27,7 +27,7 @@ export async function POST(req) {
             return NextResponse.json({ error: 'urunAdi parametresi zorunlu.' }, { status: 400 });
         }
 
-        const prompt = `Sen THE ORDER / NİZAM sisteminin tekstil fabrikası analisti'sin.
+        const prompt = `Sen Mizanet sisteminin tekstil fabrikası analisti'sin.
 Görevin: Verilen ürün için üretim kararı ve maliyet analizi yap.
 
 DİL KURALI: Tamamen soğukkanlı, metrik odaklı Türkçe yaz. Abartılı ifade kullanma.

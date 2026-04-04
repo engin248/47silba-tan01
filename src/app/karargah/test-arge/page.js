@@ -4,7 +4,7 @@ export default function TestArgeGorevTimi() {
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui' }}>
             <h1 style={{ color: '#0f172a', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-                THE ORDER - Kum Havuzu (Gelişmiş Ar-Ge 3 Ajan Testi)
+                Mizanet - Kum Havuzu (Gelişmiş Ar-Ge 3 Ajan Testi)
             </h1>
             <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
                 Bu alan NİZAM ana sisteminden izole edilmiştir. 3 Kişilik Araştırma Timi algoritmaları burada test edilecektir.

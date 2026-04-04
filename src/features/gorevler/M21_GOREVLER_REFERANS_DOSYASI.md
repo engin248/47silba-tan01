@@ -11,4 +11,4 @@
 ## 2. KÖK ARŞİV (YAPILAN ZIRHLAMA TESPİT VE DEĞİŞİKLİKLERİ)
 ### 🛠️ Revizyon 1: FAZ-4 NİZAM / Ağ Güvenliği ve Anti-Spam
 *   **Problemler:** Liste içi "Tamamla", "Atanıyor" ve "Yeni Görev" butonlarında ardışık UI spam zafiyeti tespit edilmişti.
-*   **Yapılan Ameliyatlar:** Component seviyesinde asenkron yükleyici devresi ('loading' & promise kilitleri) uygulanarak veri satırında `...` işlemleri bekletilir konuma getirilmiş, UX standartları yükseltilip Duplicate verilerin (Aynı vardiyada çift temizlik görevi atanması gibi) önü kesilmiştir. Sayfanın salt-SPA yönlendirmesi 404 NIZAM doktrinine tam oturtulmuştur.
+*   **Yapılan Ameliyatlar:** Component seviyesinde asenkron yükleyici devresi ('loading' & promise kilitleri) uygulanarak veri satırında `...` işlemleri bekletilir konuma getirilmiş, UX standartları yükseltilip Duplicate verilerin (Önne var dıyda çift temizlik görevi atanması gibi) önü kesilmiştir. Sayfanın salt-SPA yönlendirmesi 404 Mizanet doktrinine tam oturtulmuştur.

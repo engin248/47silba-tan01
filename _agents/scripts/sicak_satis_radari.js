@@ -117,7 +117,7 @@ async function sicakSatisRadari() {
             console.log(`    ↳ Sinyal: ${mesaj}\n`);
         }
 
-        console.log('✅ THE ORDER VİZYONU BAŞARIYLA TAMAMLANDI: Yarının modası ekranınızda şifrelendi.');
+        console.log('✅ Mizanet VİZYONU BAŞARIYLA TAMAMLANDI: Yarının modası ekranınızda şifrelendi.');
 
     } catch (err) {
         console.error('❌ Radar Vizyon Hatası: ', err.message);

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const srcDir = path.join(__dirname, '..', 'src', 'app');
-let raporContent = `# 🛡️ THE ORDER 47 NİZAM: TÜM SİSTEM (22 MODÜL) 54 KRİTER MERKEZLİ DEV DENETİM VE KABUL RAPORU
+let raporContent = `# 🛡️ Mizanet: TÜM SİSTEM (22 MODÜL) 54 KRİTER MERKEZLİ DEV DENETİM VE KABUL RAPORU
 
 **Test Tarihi:** 08/03/2026
 **Uygulayan / Denetmen:** AI ANTIGRAVITY KONTROL AJANI (Tam Otonom Tarama Sistemi)

@@ -3,6 +3,7 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { Camera, FileText, CheckCircle2, PlaySquare, PlusCircle, Save, Trash2, Edit, Mic, Video, Users, DollarSign, Clock, AlertTriangle, ShieldCheck, Play, Activity, CheckSquare, UploadCloud, Receipt, BarChart3, Database } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchIsEmriForImalat, updateIsEmriDurum } from '@/features/uretim/services/uretimApi';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
@@ -121,15 +122,9 @@ export default function ImalatMainContainer() {
     const timeoutPromise = () => new Promise((_, reject) => setTimeout(() => reject(new Error('Bağlantı zaman aşımı (10 saniye)')), 10000));
     const yukleTeknikFoyler = async () => {
         try {
-            // ZIRH: V2 yerine, M3 Kesim'den düşen GERÇEK iş emirlerini oku! (B1 Jenerasyonu)
-            const res = await Promise.race([
-                supabase.from('production_orders')
-                    .select('*, b1_model_taslaklari(id, model_kodu, model_adi)')
-                    .order('created_at', { ascending: false }).limit(200),
-                timeoutPromise()
-            ]);
-            if (res.error) throw res.error;
-            if (res.data) setTeknikFoyler(res.data);
+            // production_orders — uretimApi.fetchIsEmriForImalat
+            const data = await fetchIsEmriForImalat();
+            if (data) setTeknikFoyler(data);
         } catch (error) { showMessage('Ağ hatası: ' + error.message, 'error'); }
     };
 
@@ -206,8 +201,8 @@ export default function ImalatMainContainer() {
                 .insert([{ order_id: seciliModel.id, model_workflow_id: wfData.id, status: 'assigned' }]);
             if (takipErr) throw takipErr;
 
-            // 4. Production order'ı güncelle
-            await supabase.from('production_orders').update({ status: 'in_progress', quantity: parseInt(uretimAdeti) }).eq('id', seciliModel.id);
+            // production_orders — uretimApi.updateIsEmriDurum
+            await updateIsEmriDurum(seciliModel.id, 'in_progress');
 
             showMessage(`İŞLEMLER ONAYLANDI! ${parseInt(uretimAdeti)} Adet Üretim Bandına fırlatıldı!`);
             telegramBildirim(`🚀 SERİ ÜRETİM BAŞLADI!\nModel: ${modKodu}\nAtanan İlk Adım: ${islemAdimlari[0].islem_adi}\nMiktar: ${parseInt(uretimAdeti)} Adet`);

@@ -267,7 +267,7 @@ export default function DenetmenMainContainer() {
                             `👁 Son Ajan Hareketleri:`,
                             ...loglar.slice(0, 5).map(l => `  • [${l.ajan_adi}] ${l.mesaj}`),
                             ``,
-                            `✅ THE ORDER ERP — Otonom Rapor`
+                            `✅ Mizanet ERP — Otonom Rapor`
                         ].join('\n');
                         telegramBildirim(ozet);
                         setMesaj('📨 Haftalık rapor Telegram\'a gönderildi!');

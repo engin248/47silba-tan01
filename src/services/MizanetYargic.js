@@ -1,4 +1,4 @@
-export class TheOrderYargic {
+export class MizanetYargic {
     /**
      * 56 Noktalı Profesyonel Karar Algoritması
      * @param {Object} pazarVerisi - Satış dalgası, yorumlar (Aşama 1, 2)

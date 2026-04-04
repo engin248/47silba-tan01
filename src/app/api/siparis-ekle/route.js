@@ -83,9 +83,9 @@ export async function POST(request) {
         if (siparisDog.data.musteri_id) {
             const islemTutari = parseFloat(siparisDog.data.toplam_tutar_tl || 0);
             if (islemTutari > 0) {
-                // Cari Bakiye Güncelle (Tutar kadar borç eklenir, ödeme yaptıysa o an kasa/tahsilatla düşmesi theOrder standardıdır)
+                // Cari Bakiye Güncelle (Tutar kadar borç eklenir, ödeme yaptıysa o an kasa/tahsilatla düşmesi Mizanet standardıdır)
                 // Yada peşin ise bakiye değişmez. Biz standart olarak bakiyeye bindirip anında kasadan tahsilat düşebiliriz.
-                // Burada en doğrusu theOrder mantığında: Sipariş cirosunu bakiyeye(borca) ekle.
+                // Burada en doğrusu Mizanet mantığında: Sipariş cirosunu bakiyeye(borca) ekle.
                 const { data: musteriData } = await supabaseAdmin.from('b2_musteriler').select('toplam_borc_tl').eq('id', siparisDog.data.musteri_id).single();
                 if (musteriData) {
                     await supabaseAdmin.from('b2_musteriler').update({ toplam_borc_tl: (parseFloat(musteriData.toplam_borc_tl || 0) + islemTutari) }).eq('id', siparisDog.data.musteri_id);

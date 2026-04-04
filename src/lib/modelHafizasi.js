@@ -1,5 +1,5 @@
 /**
- * NIZAM MODEL HAFIZASI — Ajan Yardımcı Fonksiyonu
+ * Mizanet MODEL HAFIZASI — Ajan Yardımcı Fonksiyonu
  * 
  * Kullanım: Her üretim aşaması geçişinde (M5→M6, vb.) çağrılır.
  * Ajanlar bu fonksiyonu kullanarak modelin geçmişini okur,

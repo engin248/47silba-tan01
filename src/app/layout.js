@@ -4,16 +4,22 @@
 import './globals.css';
 import ClientLayout from './ClientLayout';
 
-// ─── NEXT.JS METADATA API (Doğru Kullanım) ───────────────────
+// ─── NEXT.JS METADATA API ────────────────────────────────────
 export const metadata = {
-    title: '47 Sil Baştan — Üretim & Mağaza Sistemi',
-    description: 'mizanet.com — Adil Düzen, Şeffaf Maliyet, Adaletli Dağıtım. Fason ve Ürün Yönetim Sistemi.',
+    title: 'Mizanet',
+    description: 'Mizanet — Entegre İşletme Yönetim Sistemi',
     manifest: '/manifest.json',
-    keywords: ['üretim', 'fason', 'tekstil', 'stok', 'muhasebe', 'mizanet'],
+    keywords: ['mizanet', 'üretim', 'tekstil', 'stok', 'muhasebe'],
+    alternates: {
+        canonical: 'https://mizanet.com',
+    },
     icons: {
-        icon: '/icon.png',
+        icon: [
+            { url: '/favicon.ico', sizes: 'any' },
+            { url: '/icon.png', type: 'image/png' },
+        ],
         apple: '/icon.png',
-        shortcut: '/icon.png',
+        shortcut: '/favicon.ico',
     },
     robots: {
         index: false,
@@ -21,8 +27,10 @@ export const metadata = {
         googleBot: { index: false, follow: false },
     },
     openGraph: {
-        title: '47 Sil Baştan — mizanet.com',
-        description: 'Adil Düzen · Şeffaf Maliyet · Adaletli Dağıtım',
+        title: 'Mizanet',
+        description: 'Mizanet — Entegre İşletme Yönetim Sistemi',
+        url: 'https://mizanet.com',
+        siteName: 'Mizanet',
         locale: 'tr_TR',
         type: 'website',
     },
@@ -46,4 +54,3 @@ export default function RootLayout({ children }) {
         </html>
     );
 }
-// force hmr

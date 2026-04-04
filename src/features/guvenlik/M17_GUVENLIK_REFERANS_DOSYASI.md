@@ -30,5 +30,5 @@
 ---
 
 ## 3. GELECEK REHBERİ (MÜHENDİS NOTU)
-*   Olay loglama (Auth Log), cihaz taraflı işliyor `sb47_giris_log`. Supabase e (bulut) erişim limitini zorlamamak ve NIZAM kuralıyla maliyeti %90 düşürmek için yapılan mimari harika ilerliyor. 
+*   Olay loglama (Auth Log), cihaz taraflı işliyor `sb47_giris_log`. Supabase e (bulut) erişim limitini zorlamamak ve Mizanet kuralıyla maliyeti %90 düşürmek için yapılan mimari harika ilerliyor. 
 *   Faz-5 (Buluta toplu senkron) gibi büyük çaplı güncellemeler gelinceye kadar bu sistem güvenli bir siber yapı sergilemektedir.

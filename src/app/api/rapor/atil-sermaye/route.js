@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin as sb } from '@/lib/supabaseAdmin';
 
 // ============================================================
-// ATİL SERMAYE UYANDIRICI — THE ORDER / NIZAM
+// ATİL SERMAYE UYANDIRICI — MİZANET
 // /api/rapor/atil-sermaye
 //
 // GET  → 180+ gün hareketsiz kumaş ve stok tespiti

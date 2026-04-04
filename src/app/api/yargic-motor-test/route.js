@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { TheOrderYargic } from '@/services/TheOrderYargic';
+import { MizanetYargic } from '@/services/MizanetYargic';
 
 export async function POST(req) {
     try {
@@ -41,7 +41,7 @@ export async function POST(req) {
             alternatifTedarikciYok: false
         };
 
-        const result = TheOrderYargic.analizEt(
+        const result = MizanetYargic.analizEt(
             pazarVerisi,
             stratejiVerisi,
             teknikVeri,

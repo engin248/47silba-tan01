@@ -3,6 +3,7 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect } from 'react';
 import { Scissors, Plus, Search, CheckCircle2, AlertTriangle, Trash2, ShieldAlert, QrCode } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { createIsEmri } from '@/features/uretim/services/uretimApi';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
@@ -146,7 +147,7 @@ export default function KesimMainContainer() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // ─── M5 → M6 VERİ KÖPRÜSÜ ───────────────────────────────────────────────────
+    // ─── M5 → M6 VERİ KÖPRÜSÜ — uretimApi.createIsEmri ────────────────────────
     const isEmriOlustur = async (k) => {
         if (islemdeId) return goster('Lütfen önceki işlemin bitmesini bekleyin.', 'error');
         if (k.durum !== 'tamamlandi') return goster('Sadece tamamlanan kesimler Üretim Bandına (M6) aktarılabilir!', 'error');
@@ -154,45 +155,29 @@ export default function KesimMainContainer() {
         setLoading(true);
         setIslemdeId('emr_' + k.id);
         try {
-            const { data: mevcut } = await supabase.from('production_orders')
-                .select('id').eq('model_id', k.model_taslak_id).in('status', ['pending', 'in_progress']);
-            if (mevcut && mevcut.length > 0) {
-                setLoading(false);
-                setIslemdeId(null);
-                return goster('⚠️ Bu model için zaten aktif bir iş emri var!', 'error');
-            }
-
-            // OTOMATİK İŞ EMRİ OLUŞTURMA: V1 Tablosu V2'ye Yönlendirildi
-            const { data: yeniEmir, error } = await supabase.from('production_orders').insert([{
+            // createIsEmri içinde çakişma kontrolü var (checkAktifIsEmriVar)
+            const yeniEmir = await createIsEmri({
                 order_code: 'KSM-ORD-' + Date.now(),
                 model_id: k.model_taslak_id,
                 quantity: k.kesilen_net_adet || 0,
-                status: 'pending'
-            }]).select().single();
-            if (error) throw error;
+            });
 
-            // FİRE MALİYETİ AKTARIMI: Kesim Firesi Otomatik Maliyete Yansıtılıyor (Maliyet Sapması Algoritması)
+            // FİRE MALİYETİ AKTARIMI
             const fireYuzde = parseFloat(k.fire_orani) || 0;
             if (fireYuzde > 0) {
                 const toplamKumasMt = parseFloat(k.kullanilan_kumas_mt) || 0;
-                let kayipKumasMt = 0;
-                // Kumaş harcaması girildiyse yüzdesini al, girilmediyse pastal başı 1.2mt ortalamasından yola çık
-                if (toplamKumasMt > 0) kayipKumasMt = (toplamKumasMt * fireYuzde) / 100;
-                else kayipKumasMt = (k.kesilen_net_adet * 1.2 * fireYuzde) / 100;
+                let kayipKumasMt = toplamKumasMt > 0 ? (toplamKumasMt * fireYuzde) / 100 : (k.kesilen_net_adet * 1.2 * fireYuzde) / 100;
 
-                let kumasMtFiyat = 250; // Varsayılan yedek fiyat tahmini
+                let kumasMtFiyat = 250;
                 try {
                     if (k.kumas_topu_no) {
                         const { data: kmData } = await supabase.from('b1_kumas_arsivi')
-                            .select('birim_maliyet_tl')
-                            .eq('kumas_kodu', k.kumas_topu_no.trim())
-                            .single();
+                            .select('birim_maliyet_tl').eq('kumas_kodu', k.kumas_topu_no.trim()).single();
                         if (kmData && parseFloat(kmData.birim_maliyet_tl) > 0) kumasMtFiyat = parseFloat(kmData.birim_maliyet_tl);
                     }
                 } catch (e) { console.warn("Dinamik kumaş fiyatı çekilemedi, varsayılana dönüldü."); }
 
                 const gercekZararTl = kayipKumasMt * kumasMtFiyat;
-
                 await supabase.from('b1_maliyet_kayitlari').insert([{
                     order_id: yeniEmir.id,
                     maliyet_tipi: 'fire_kaybi',
@@ -201,19 +186,17 @@ export default function KesimMainContainer() {
                     onay_durumu: 'hesaplandi'
                 }]);
 
-                // 🔴 AKILLI ALARM: Fire %5'i geçerse Sistem Uyarılarına "Kök Neden" tebligatı fırlat
                 if (fireYuzde > 5) {
                     await supabase.from('b1_sistem_uyarilari').insert([{
                         baslik: `🚨 Kritik Kesim Firesi (%${fireYuzde.toFixed(1)}) - Model: ${k.b1_model_taslaklari?.model_kodu || 'Bilinmiyor'}`,
-                        mesaj: `${k.kesilen_net_adet} adetlik kesimde ${kayipKumasMt.toFixed(1)} metre kumaş israf oldu. Beklenmeyen Zarar Tutarı: ₺${gercekZararTl.toFixed(0)}.\n\nKÖK NEDEN TAHMİNLERİ:\n1. Pastal yerleşim optimizasyonu verimsiz yapıldı.\n2. Kumaş eni modele uygun gelmediği için boşluklar metrajı artırdı.\n3. Defolu kumaş kısımları freze edildiği için eksilmeler yükseldi.`,
-                        onem_derecesi: 'yuksek',
-                        durum: 'aktif'
+                        mesaj: `${k.kesilen_net_adet} adetlik kesimde ${kayipKumasMt.toFixed(1)} metre kumaş israf oldu. Beklenmeyen Zarar: ₺${gercekZararTl.toFixed(0)}.`,
+                        onem_derecesi: 'yuksek', durum: 'aktif'
                     }]);
                 }
             }
 
             goster(`✅ M6 Üretim İş Emri oluşturuldu! ${k.b1_model_taslaklari?.model_kodu} — ${k.kesilen_net_adet} adet`);
-            telegramBildirim(`🔗 M5→M6 KÖPRÜ\nKesimden Üretime: ${k.b1_model_taslaklari?.model_kodu}\nAdet: ${k.kesilen_net_adet}\nİş emri "Bekliyor" olarak açıldı.`);
+            telegramBildirim(`🔗 M5→M6 KÖPRÜ\nKesimden Üretime: ${k.b1_model_taslaklari?.model_kodu}\nAdet: ${k.kesilen_net_adet}`);
         } catch (error) { goster('İş emri hatası: ' + error.message, 'error'); }
         setLoading(false);
         setIslemdeId(null);

@@ -195,7 +195,7 @@ export function KarargahMainContainer() {
             } catch { setBotDurum('hata'); }
         };
         botLogCek();
-        const kanal = supabase.channel('nizambot-realtime')
+        const kanal = supabase.channel('mizanet-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'b1_agent_loglari', filter: 'ajan_adi=eq.NİZAMBOT' }, botLogCek)
             .subscribe();
         const handleVisibility = () => { if (!document.hidden) botLogCek(); };
@@ -274,7 +274,7 @@ export function KarargahMainContainer() {
                         <div className="absolute inset-0 opacity-20"
                             style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,255,65,0.05) 40px, rgba(0,255,65,0.05) 41px)' }} />
                         <div className="absolute inset-0 flex flex-col justify-center pl-6 z-10">
-                            <div className="text-[8px] text-green-700 uppercase tracking-[0.4em] mb-1">Demir Tekstil — THE ORDER</div>
+                            <div className="text-[8px] text-green-700 uppercase tracking-[0.4em] mb-1">Demir Tekstil — MİZANET</div>
                             <div className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] leading-tight">
                                 MİZANET<br />
                                 <span className="text-[9px] text-green-600">SİBER KARARGAH</span>
@@ -531,7 +531,7 @@ export function KarargahMainContainer() {
                         </div>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                             {botYukleniyor ? (
-                                <div className="text-[8px] text-green-800 text-center py-2 uppercase tracking-widest animate-pulse">NIZAMBOT SORGULANYOR...</div>
+                                <div className="text-[8px] text-green-800 text-center py-2 uppercase tracking-widest animate-pulse">MİZANET BOT SORGULANYOR...</div>
                             ) : botLoglar.length === 0 ? (
                                 <div className="text-[8px] text-green-900 text-center py-2 uppercase tracking-widest">HAREKET YOK</div>
                             ) : botLoglar.map((log, i) => (
@@ -585,7 +585,7 @@ export function KarargahMainContainer() {
                     <span className="text-green-900">|</span>
                     <span className="text-green-700">AJAN: <span className={botDurum === 'aktif' ? 'text-green-400' : 'text-yellow-500'}>{botDurum.toUpperCase()}</span></span>
                 </div>
-                <div className="text-[8px] text-green-900 uppercase tracking-widest">mizanet.com — THE ORDER / NİZAM</div>
+                <div className="text-[8px] text-green-900 uppercase tracking-widest">mizanet.com</div>
             </div>
         </div>
     );

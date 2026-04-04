@@ -3,6 +3,7 @@ import { cevrimeKuyrugaAl } from '@/lib/offlineKuyruk';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DollarSign, Plus, Trash2, BarChart2, Edit2, X, TrendingUp, Package, Calculator, Upload, ChevronDown, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { fetchIsEmriForMaliyet } from '@/features/uretim/services/uretimApi';
 import { createGoster, telegramBildirim, formatTarih, yetkiKontrol } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
@@ -59,7 +60,6 @@ export default function MaliyetMainContainer() {
     const yukle = useCallback(async () => {
         setLoading(true);
         try {
-            // GÜVENLİK ALGORİTMASI: 10sn timeout kalkanı
             const timeout = (ms) => new Promise((_, r) => setTimeout(() => r(new Error('Zaman aşımı')), ms));
             const { data: m, error: mErr } = await Promise.race([
                 supabase.from('b1_maliyet_kayitlari').select('*').order('created_at', { ascending: false }).limit(200),
@@ -68,14 +68,8 @@ export default function MaliyetMainContainer() {
             if (mErr) throw mErr;
             if (m) setMaliyetler(m);
 
-            const { data: sifarisler, error: sifErr } = await Promise.race([
-                supabase.from('production_orders')
-                    .select('id, quantity, b1_model_taslaklari(model_kodu, model_adi)')
-                    .order('created_at', { ascending: false }).limit(200),
-                timeout(10000)
-            ]);
-            if (sifErr) throw sifErr;
-
+            // production_orders — uretimApi.fetchIsEmriForMaliyet
+            const sifarisler = await fetchIsEmriForMaliyet();
             if (sifarisler && sifarisler.length > 0) {
                 setOrderler(sifarisler.map(o => ({
                     id: o.id,

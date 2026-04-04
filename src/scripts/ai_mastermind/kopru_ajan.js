@@ -28,7 +28,7 @@ async function telegramBildirimGonder(urunAdi, firsatSkoru, karar, agentNote) {
     }
 
     const emoji = karar === 'ÜRETİM' ? '🏭' : '🧪';
-    const mesaj = `${emoji} *THE ORDER — YENİ KARAR*
+    const mesaj = `${emoji} *Mizanet — YENİ KARAR*
 
 📦 *Ürün:* ${urunAdi}
 📊 *Fırsat Skoru:* ${firsatSkoru.toFixed(1)}/100
@@ -70,7 +70,7 @@ async function yeniKararlariTara() {
     const { data: yeniKararlar, error } = await supabase
         .from('b1_arge_strategy')
         .select('*')
-        .in('nizam_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
+        .in('mizanet_decision', ['ÜRETİM', 'TEST ÜRETİMİ (Numune)'])
         .gte('created_at', birSaatOnce)
         .order('opportunity_score', { ascending: false });
 
@@ -89,7 +89,7 @@ async function yeniKararlariTara() {
         const basarili = await telegramBildirimGonder(
             karar.product_name || 'Bilinmeyen Ürün',
             karar.opportunity_score || 0,
-            karar.nizam_decision,
+            karar.mizanet_decision,
             karar.agent_note
         );
         if (basarili) gonderilen++;

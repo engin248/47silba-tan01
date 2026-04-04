@@ -9,7 +9,7 @@ const nextConfig = {
         const corsHeaders = [
             { key: 'Access-Control-Allow-Credentials', value: 'true' },
             { key: 'Access-Control-Allow-Origin', value: 'https://mizanet.com' },
-            { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS' },
+            { key: 'Access-Control-Allow-Methods', value: 'GET,PATCH,POST,PUT,OPTIONS' },
             { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
         ];
 
@@ -17,6 +17,23 @@ const nextConfig = {
             {
                 source: '/api/:path*',
                 headers: corsHeaders
+            },
+            // [CACHE-FIX] sitemap, robots, favicon — CDN cache bypass
+            // Vercel agresif cache bu dosyaları eski versiyondan servis ediyordu
+            {
+                source: '/sitemap.xml',
+                headers: [
+                    { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+                    { key: 'X-Robots-Tag', value: 'noindex' },
+                ],
+            },
+            {
+                source: '/robots.txt',
+                headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+            },
+            {
+                source: '/favicon.ico',
+                headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
             },
             {
                 source: '/(.*)',
@@ -33,7 +50,7 @@ const nextConfig = {
                             // 'unsafe-eval' sadece dev'de (Turbopack zorunlu kılıyor)
                             isDev
                                 ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io"
-                                : "script-src 'self' 'unsafe-inline' https://*.sentry.io",
+                                : "script-src 'self' https://*.sentry.io",  // [AUDIT-FIX #9]: Production'da unsafe-inline kaldırıldı
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
                             "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
                             "img-src 'self' data: blob: https://api.qrserver.com https://cauptlsnqieegdrgotob.supabase.co https://*.supabase.co",

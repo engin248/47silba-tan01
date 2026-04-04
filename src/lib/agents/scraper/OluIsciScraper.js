@@ -4,7 +4,7 @@
 // ║ Güncel versiyon: src/scripts/scrapers/oluisci.js                ║
 // ╚══════════════════════════════════════════════════════════════════╝
 /**
- * NİZAM (THE ORDER) - 1. EKİP ÜYESİ: "ÖLÜ İŞÇİ" (THE SCRAPER)
+ * Mizanet - 1. EKİP ÜYESİ: "ÖLÜ İŞÇİ" (THE SCRAPER)
  * DEPARTMAN: Ar-Ge (M1) Veri Toplama Katmanı
  * 
  * Görev Sınırları: Sadece internette (Trendyol, Zara, Instagram vb.) bir fare gibi dolaşır.

@@ -1,9 +1,10 @@
 // ============================================================
-// AJAN MOTORU — 47 Sil Baştan
+// AJAN MOTORU — MİZANET
 // Supabase okur → karar verir → Supabase yazar
 // Dışarıya sıfır bağlantı
 // ============================================================
 import { supabase } from '@/lib/supabase';
+import { fetchGecikmiIsEmirleri } from '@/features/uretim/services/uretimApi';
 
 // Gerçek tablo kolonları (birim1_ek_tablolar.sql'den):
 // b1_sistem_uyarilari:
@@ -122,22 +123,14 @@ export async function maliyetAjani() {
 }
 
 // ------------------------------------------------------------
-// AJAN 3: Gecikmiş İş Emri — production_orders tarar
+// AJAN 3: Gecikmiş İş Emri — uretimApi.fetchGecikmiIsEmirleri
 // ------------------------------------------------------------
 export async function gecikmeAjani() {
     const sonuc = { tarandi: 0, uyarilar: [] };
     try {
-        const bugun = new Date().toISOString().split('T')[0];
-        const { data: emirler } = await supabase
-            .from('production_orders')
-            .select('id, quantity, planned_end_date, status, b1_model_taslaklari:model_id(model_adi, model_kodu)')
-            .in('status', ['pending', 'in_progress'])
-            .not('planned_end_date', 'is', null)
-            .lt('planned_end_date', bugun);
-
-        if (!emirler) return sonuc;
+        const emirler = await fetchGecikmiIsEmirleri();
+        if (!emirler || emirler.length === 0) return sonuc;
         sonuc.tarandi = emirler.length;
-
         for (const e of emirler) {
             const gun = Math.floor((Date.now() - new Date(e.planned_end_date)) / 86400000);
             const model = e.b1_model_taslaklari?.model_kodu || '?';
