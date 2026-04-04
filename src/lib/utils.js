@@ -3,6 +3,7 @@
  * Tüm sayfalar buradan import eder — tek yerden güncellenir
  */
 
+import { logCatch } from './errorCore';
 // ── MESAJ GÖSTERİCİ ─────────────────────────────────────────────────────────
 /**
  * createGoster(setMesaj) → goster(text, type)
@@ -42,7 +43,8 @@ export const telegramFotoGonder = async (blob, mesaj) => {
             body: formData
         });
         return await res.json();
-    } catch {
+    } catch (e) {
+        logCatch('utils.telegramFotoGonder', e);
         return { success: false };
     }
 };
@@ -70,7 +72,8 @@ export const yetkiKontrol = (kullanici) => {
     if (kullanici?.grup === 'tam') return true;
     try {
         return !!sessionStorage.getItem('sb47_uretim_token');
-    } catch {
+    } catch (e) {
+        logCatch('utils.yetkiKontrol', e);
         return false;
     }
 };

@@ -19,7 +19,10 @@ const _hataKontrol = new Map();
  */
 export async function hataBildir(modul, hata, ekBilgi = '') {
     try {
-        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return; // Env yoksa sessizce geç
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+            console.warn('[HATA-BILDIRIM] TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID tanımlı değil — hata bildirimi gönderilemedi. Modül:', modul);
+            return;
+        }
 
         const hataMesaji = hata instanceof Error ? hata.message : String(hata);
 

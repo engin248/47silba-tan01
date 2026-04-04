@@ -65,7 +65,7 @@ export default function GlobalError({ error, reset }) {
                     </div>
 
                     <p style={{ color: '#475569', fontSize: '0.75rem', margin: '2rem 0 0 0', fontWeight: 700 }}>
-                        THE ORDER NIZAM 47 | PROTOKOL: ANKA KUŞU (ZERO-DOWNTIME)
+                        Mizanet | PROTOKOL: ANKA KUŞU (ZERO-DOWNTIME)
                     </p>
                 </div>
             </body>

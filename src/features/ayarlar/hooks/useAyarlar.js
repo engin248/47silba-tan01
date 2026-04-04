@@ -57,7 +57,7 @@ export function useAyarlar(kullanici) {
                 .maybeSingle();
             if (error) throw error;
             if (data?.deger) {
-                try { setAyarlar({ ...VARSAYILAN_AYARLAR, ...JSON.parse(data.deger) }); } catch { }
+                try { setAyarlar({ ...VARSAYILAN_AYARLAR, ...JSON.parse(data.deger) }); } catch (e) { console.error('[AYARLAR] JSON parse hatası:', e?.message); }
             }
         } catch (e) { goster('Ayarlar yüklenemedi: ' + e.message, 'error'); }
     }, []);

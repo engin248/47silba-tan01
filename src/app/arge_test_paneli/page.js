@@ -123,7 +123,7 @@ export default function ArgeTestPaneli() {
                                 M1 AR-GE <span className="text-white">İSTİHBARAT PANELİ</span>
                             </h1>
                             <p className="text-xs text-[#047857] font-bold uppercase tracking-widest flex items-center gap-2">
-                                <Cpu size={12} /> The Order - Single Pane of Glass
+                                <Cpu size={12} /> Mizanet - Single Pane of Glass
                             </p>
                         </div>
                     </div>

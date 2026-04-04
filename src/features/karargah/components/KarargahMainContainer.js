@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { useKarargah } from '../hooks/useKarargah';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { logCatch } from '@/lib/errorCore';
 
 // ████████████████████████████████████████████████████████████████████████
 // MİZANET SİBER KARARGAH — ASKERİ OPERASYON MERKEZİ
@@ -134,7 +135,7 @@ export function KarargahMainContainer() {
                 if (!res.ok) { setKameraStreamDurum('kapali'); return; }
                 const d = await res.json();
                 setKameraStreamDurum(d.durum === 'aktif' ? 'aktif' : 'kapali');
-            } catch { setKameraStreamDurum('kapali'); }
+            } catch (e) { logCatch('KarargahMain.kameraStream', e); setKameraStreamDurum('kapali'); }
         };
         kontrol();
         const iv = setInterval(kontrol, 30000);
@@ -151,20 +152,20 @@ export function KarargahMainContainer() {
         try {
             const { count } = await supabase.from('b1_ic_mesajlar').select('id', { count: 'exact', head: true }).is('okundu_at', null);
             setMesajSayisi(count || 0);
-        } catch { /* sessiz */ }
+        } catch (e) { logCatch('KarargahMain.mesajSayisi', e); }
         try {
             const { data: aktif } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, gonderen_adi, created_at, urun_id').order('created_at', { ascending: false }).limit(3);
             setSonMesajlar(aktif || []);
-        } catch { setSonMesajlar([]); }
+        } catch (e) { logCatch('KarargahMain.sonMesajlar', e); setSonMesajlar([]); }
         try {
             const { data: gizli } = await supabase.from('b1_mesaj_gizli').select('mesaj_id, kullanici_adi, gizlendi_at, b1_ic_mesajlar(konu, oncelik, urun_id, urun_kodu, gonderen_adi, gonderen_modul)').gte('gizlendi_at', gun45Once).order('gizlendi_at', { ascending: false }).limit(20);
             const izler = (gizli || []).filter(g => { const b1 = Array.isArray(g.b1_ic_mesajlar) ? g.b1_ic_mesajlar[0] : g.b1_ic_mesajlar; return !(b1?.urun_id); });
             setGizlenIzleri(izler);
-        } catch { setGizlenIzleri([]); }
+        } catch (e) { logCatch('KarargahMain.gizlenIzleri', e); setGizlenIzleri([]); }
         try {
             const { data: model } = await supabase.from('b1_ic_mesajlar').select('id, konu, oncelik, urun_id, urun_kodu, urun_adi, gonderen_adi, created_at, okundu_at').not('urun_id', 'is', null).order('created_at', { ascending: false }).limit(50);
             setModelArsiv(model || []);
-        } catch { setModelArsiv([]); }
+        } catch (e) { logCatch('KarargahMain.modelArsiv', e); setModelArsiv([]); }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [MESAJ_AKTIF]);
 
@@ -192,7 +193,7 @@ export function KarargahMainContainer() {
                     .limit(8);
                 setBotLoglar(data || []);
                 setBotDurum('aktif');
-            } catch { setBotDurum('hata'); }
+            } catch (e) { logCatch('KarargahMain.botLog', e); setBotDurum('hata'); }
         };
         botLogCek();
         const kanal = supabase.channel('mizanet-realtime')

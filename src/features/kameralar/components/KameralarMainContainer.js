@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { supabase } from '@/lib/supabase';
 import { telegramBildirim, telegramFotoGonder } from '@/lib/utils';
+import { logCatch } from '@/lib/errorCore';
 import CameraPlayer from './CameraPlayer';
 import useMotionDetection from '../hooks/useMotionDetection';
 
@@ -90,7 +91,7 @@ export default function KameralarMainContainer() {
                 kamera_adi: kameraAdi,
                 ip_adresi: 'client',
             }]);
-        } catch { /* tablo henüz yoksa sessizce geç */ }
+        } catch (e) { logCatch('KameralarMain.erisimLog', e); }
     }, [kullanici]);
 
     // ── Stream Sunucu Durumu ──────────────────────────────────
@@ -99,7 +100,8 @@ export default function KameralarMainContainer() {
             const res = await fetch('/api/stream-durum', { signal: AbortSignal.timeout(5000), cache: 'no-store' });
             const data = await res.json();
             setStreamDurum(data.durum === 'aktif' ? 'aktif' : 'kapali');
-        } catch {
+        } catch (e) {
+            logCatch('KameralarMain.streamDurum', e);
             setStreamDurum('kapali');
         }
     }, []);
@@ -164,7 +166,7 @@ export default function KameralarMainContainer() {
                 }
                 // Tablo yoksa veya boşsa VARSAYILAN_KAMERALAR kullanılmaya devam eder
             } catch (e) {
-                // Tablo henüz oluşturulmamış — varsayılan kullan
+                logCatch('KameralarMain.kameraYukle', e);
             }
             setLoading(false);
         };
@@ -193,7 +195,7 @@ export default function KameralarMainContainer() {
                     .order('created_at', { ascending: false })
                     .limit(5);
                 if (data) setAiOlaylar(data);
-            } catch { /* tablo yoksa sessizce geç */ }
+            } catch (e) { logCatch('KameralarMain.aiOlaylar', e); }
         };
         aiOlaylariGetir();
     }, [yetkili]);
@@ -277,7 +279,7 @@ export default function KameralarMainContainer() {
                 event_type: 'snapshot',
                 video_url: null,
             }]);
-        } catch { /* tablo yoksa geç */ }
+        } catch (e) { logCatch('KameralarMain.snapshotLog', e); }
 
         setIslemdeId(null);
     };

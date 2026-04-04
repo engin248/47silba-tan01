@@ -47,7 +47,8 @@ async function jwtDogrula(token, sirri) {
         if (payloadJson.exp && Date.now() / 1000 > payloadJson.exp) return null;
 
         return payloadJson;
-    } catch {
+    } catch (e) {
+        console.error('🔴 [MİZANET MIDDLEWARE] JWT doğrulama hatası:', e?.message || e);
         return null;
     }
 }
@@ -92,7 +93,7 @@ export async function middleware(request) {
     // SPF: Bu iki değişken yoksa auth sistemi tamamen çöker → 503 ver
     const sirriKontrol = process.env.JWT_SIRRI || process.env.INTERNAL_API_KEY;
     if (!sirriKontrol) {
-        console.error('[NIZAM KRİTİK] JWT_SIRRI ve INTERNAL_API_KEY ENV eksik — sistem kilitlendi!');
+        console.error('[MİZANET KRİTİK] JWT_SIRRI ve INTERNAL_API_KEY ENV eksik — sistem kilitlendi!');
         return new NextResponse(
             JSON.stringify({ hata: 'Sistem yapılandırma hatası. Yöneticiye başvurun.' }),
             { status: 503, headers: { 'Content-Type': 'application/json' } }

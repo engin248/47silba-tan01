@@ -186,7 +186,7 @@ function LayoutInner({ children }) {
         // K-16: Gerçek Service Worker Kaydı (Stale-While-Revalidate offline fallback)
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                .catch(() => { /* SW kaydı sessiz başarısız olabilir */ });
+                .catch(e => console.error('[SW] Service Worker kayıt hatası:', e?.message));
         }
 
         return () => {
@@ -294,7 +294,7 @@ function LayoutInner({ children }) {
                                     ? "KARARGÂH OPERASYON MERKEZİ"
                                     : aktifItem
                                         ? (isAR ? aktifItem.labelAR : aktifItem.labelTR).toUpperCase()
-                                        : "THE ORDER / NİZAM";
+                                        : "MİZANET";
 
                                 return (
                                     <h2 style={{ margin: 0, fontSize: pathname === '/' ? '1.5rem' : '1.2rem', fontWeight: 900, color: '#34d399', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { logCatch } from '@/lib/errorCore';
 import { komutSchema } from '../schemas/komutSchema';
 
 export function useKarargah() {
@@ -125,7 +126,7 @@ export function useKarargah() {
                     ciro = data.ciro || 0;
                     maliyet = data.maliyet || 0;
                 }
-            } catch { /* sessiz */ }
+            } catch (e) { logCatch('useKarargah.kasaOzet', e); }
 
             // Alarmlar — sadece ALARM_AKTIF=true ise
             try {
@@ -142,7 +143,7 @@ export function useKarargah() {
                         })));
                     } else { setAlarms([]); }
                 }
-            } catch { /* tablo yok — sessiz */ }
+            } catch (e) { logCatch('useKarargah.alarmlar', e); }
 
             setPing(Math.round(performance.now() - t0));
 

@@ -14,7 +14,7 @@
 // Anahtarı base64 veya düz metin olarak destekle
 const MASTER_KEY = process.env.NEXT_PUBLIC_HABERLESME_MASTER_KEY
     || process.env.HABERLESME_MASTER_KEY
-    || 'NIZAM-47-FALLBACK-KEY-DEV-ONLY';
+    || 'MIZANET-47-FALLBACK-KEY-DEV-ONLY';
 
 /** Hex string → Uint8Array */
 const hexToBytes = (hex) => new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));

@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useLang } from '@/lib/langContext';
 import { MessageSquare, X, ChevronRight, AlertTriangle } from 'lucide-react';
+import { logCatch } from '@/lib/errorCore';
 
 export default function MesajBildirimButonu() {
     const { kullanici } = useAuth();
@@ -40,7 +41,7 @@ export default function MesajBildirimButonu() {
                 .is('okundu_at', null)
                 .eq('copte', false); // ✅ Boolean için .eq() kullanılmalı, .is() null içindir
             setOkunmamis(count || 0);
-        } catch { /* sessiz */ }
+        } catch (e) { logCatch('MesajBildirim.sayiGetir', e); }
     }, [kullaniciId, kGrup]);
 
     // Detay — yalnızca popup açılınca (lazy)
@@ -61,7 +62,7 @@ export default function MesajBildirimButonu() {
             }
             const kritik = mesajlar.filter(m => m.oncelik === 'kritik' || m.oncelik === 'acil');
             if (kritik.length > 0) { setAlarmMesajlar(kritik); setAlarmAcik(true); }
-        } catch { /* sessiz */ }
+        } catch (e) { logCatch('MesajBildirim.detayGetir', e); }
     }, [kullaniciId, kGrup]); // 🔴 DİKKAT: sonMesajlar listeden ÇIKARILDI (Sonsuz Renderı kırmak için)
 
     // İlk yükleme

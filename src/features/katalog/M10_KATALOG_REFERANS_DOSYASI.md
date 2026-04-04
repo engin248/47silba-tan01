@@ -7,7 +7,7 @@
 ## 1. MODÜL GİRİŞ DEĞERLERİ VE TEMEL GÖREVLER
 **Dosya Yolu:** `src/features/katalog/components/KatalogMainContainer.js`
 **Sistem Görevi:** İşletmenin satabileceği tüm ticari ürünleri ("SKU") tanımlamak, fiyatlandırmak ve görselleriyle beraber sergilemek.
-Katalog tarafı sipariş açılmadan önceki vitrindir. Excel ile toplu yükleme (`B-04`), canlı kur entegrasyonu (`A-02`) ve Otofill sipariş ekleme özellikleriyle The Order'ın ana gelir üretici ekranıdır.
+Katalog tarafı sipariş açılmadan önceki vitrindir. Excel ile toplu yükleme (`B-04`), canlı kur entegrasyonu (`A-02`) ve Otofill sipariş ekleme özellikleriyle Mizanet'in ana gelir üretici ekranıdır.
 
 **Sayfada Yer Alan Bütün Fonksiyonlar/İşlemler:**
 1. **Canlı Döviz ve Çarpan:** Dolar bazlı giriş yapılırsa güncel kur ile TL'ye, TL bazlı girilirse güncel kur ile USD'ye yansıtma yapar. Kurlar API'den oto-çekilir, çekilemezse fail-over (kur=32.5 vb.) devreye girer.

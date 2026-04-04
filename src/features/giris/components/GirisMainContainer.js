@@ -34,7 +34,7 @@ export default function GirisSayfasi() {
             }
             const localDil = localStorage.getItem('sb47_dil') || 'tr';
             setDil(localDil);
-        } catch { }
+        } catch (e) { console.error('[GIRIS] localStorage okuma hatası:', e?.message); }
     }, []);
 
     const handleDilDegis = (yeniDil) => {

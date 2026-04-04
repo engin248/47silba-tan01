@@ -115,7 +115,7 @@ class ErrorBoundary extends React.Component {
                 body: JSON.stringify({
                     mesaj: `🔴 SİSTEM HATASI\nModül: ${this.props.modulAd || '?'}\nHata: ${hata.message}`,
                 }),
-            }).catch(() => null); // Bildirim hatası sessizce görmezden gel
+            }).catch(e => console.error('[ErrorBoundary] Telegram bildirim gönderilemedi:', e?.message));
         }
     }
 

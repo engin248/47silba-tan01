@@ -70,7 +70,7 @@ async function jwtOlustur(grup) {
         grup,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 8 * 3600, // 8 saat
-        iss: 'nizam-sb47',
+        iss: 'mizanet-sb47',
     };
     const enc = (obj) => btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const veri = `${enc(baslik)}.${enc(icerik)}`;

@@ -12,7 +12,7 @@ export async function POST(req) {
             return NextResponse.json({ error: 'rawData nesnesi bulunamadı. Lütfen M1 Görev Emri JSON formatına uyunuz.' }, { status: 400 });
         }
 
-        // 1. Gelen ham veriyi The Order M1 Motoruna sor
+        // 1. Gelen ham veriyi Mizanet M1 Motoruna sor
         const motorSonucu = M1GelistirilmisTrendMotoru.trendiKoklaVeriEle(rawData);
 
         // 2. Güvenlik Filtresi (Sadece barajı geçenleri al)
